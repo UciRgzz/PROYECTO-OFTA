@@ -31,20 +31,20 @@ app.use(session({
 }));
 
 // PostgreSQL
-/*const pool = new Pool({
+const pool = new Pool({
     user: 'postgres',
     host: 'localhost',
     database: 'Optavision',
     password: '12345',
     port: 5432
-});*/
+});
 
 //este es para la base en linea
-const pool = new Pool({
+/*const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
 });
-
+*/
 
 pool.connect()
     .then(() => console.log('Conexión a PostgreSQL exitosa'))
@@ -635,21 +635,67 @@ app.post("/api/pagos", async (req, res) => {
   }
 });
 
-// ==================== RUTA TEMPORAL PARA CREAR ADMIN ====================
-app.get("/crear-admin", async (req, res) => {
-    try {
-        const hashedPassword = await bcrypt.hash("12345", 10); // contraseña por defecto
-        await pool.query(
-            "INSERT INTO usuarios (nomina, username, password) VALUES ($1, $2, $3)",
-            ["A001", "admin", hashedPassword]
-        );
-        res.send("✅ Usuario admin creado (usuario: admin / pass: 12345)");
-    } catch (err) {
-        console.error("Error creando admin:", err);
-        res.status(500).send("Error creando admin: " + err.message);
+// ==================== CIERRE DE CAJA ====================
+
+// Resumen por forma de pago y procedimiento
+app.get("/api/cierre-caja", async (req, res) => {
+  try {
+    const { fecha } = req.query;
+    if (!fecha) {
+      return res.status(400).json({ error: "Falta fecha" });
     }
+
+    const result = await pool.query(`
+      SELECT 
+          r.forma_pago AS pago,
+          r.procedimiento,
+          SUM(r.precio) AS total
+      FROM recibos r
+      WHERE DATE(r.fecha) = $1
+      GROUP BY r.forma_pago, r.procedimiento
+      ORDER BY r.forma_pago, r.procedimiento
+    `, [fecha]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error en /api/cierre-caja:", err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
+// Listado de pacientes con recibos de ese día
+app.get("/api/listado-pacientes", async (req, res) => {
+  try {
+    const { fecha } = req.query;
+    if (!fecha) {
+      return res.status(400).json({ error: "Falta fecha" });
+    }
+
+    const result = await pool.query(`
+      SELECT 
+          r.fecha::date AS fecha,
+          r.id AS folio,
+          e.nombre_completo AS nombre,
+          r.procedimiento,
+          CASE 
+            WHEN (r.precio - r.monto_pagado) > 0 THEN 'Pago Pendiente'
+            ELSE 'Pagado'
+          END AS status,
+          r.forma_pago AS pago,
+          r.precio AS total,
+          (r.precio - r.monto_pagado) AS saldo
+      FROM recibos r
+      JOIN expedientes e ON r.paciente_id = e.numero_expediente
+      WHERE DATE(r.fecha) = $1
+      ORDER BY r.fecha, r.id
+    `, [fecha]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error en /api/listado-pacientes:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 
 // ==================== LOGOUT ====================

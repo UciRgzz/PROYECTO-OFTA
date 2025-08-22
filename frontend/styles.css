@@ -1,49 +1,192 @@
+/* ==========================
+   RESET Y BASE
+========================== */
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background-color: #f5f6f8;
     display: flex;
+    color: #2c3e50;
 }
 
-/* Sidebar */
+h1, h2, h3 {
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+/* ==========================
+   SIDEBAR (MENÚ LATERAL)
+========================== */
 .sidebar {
-    width: 200px;
+    width: 220px;
     background-color: #2c3e50;
     color: white;
     height: 100vh;
     padding-top: 20px;
     box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+
+.sidebar h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 24px;
+    font-weight: bold;
 }
 
 .sidebar a {
     display: block;
-    color: white;
+    color: #ecf0f1;
     text-decoration: none;
-    padding: 15px;
+    padding: 15px 20px;
     margin: 5px 0;
+    border-radius: 4px;
+    transition: background 0.3s;
 }
 
 .sidebar a:hover {
     background-color: #34495e;
 }
 
-/* Área principal */
+.sidebar a.active {
+    background-color: #1abc9c;
+    font-weight: bold;
+    color: white;
+}
+
+/* ==========================
+   CONTENEDOR PRINCIPAL
+========================== */
 .main {
     flex: 1;
     padding: 20px;
+    margin-left: 220px; /* espacio para el sidebar */
 }
 
+/* ==========================
+   TABLAS
+========================== */
 table {
     width: 100%;
     border-collapse: collapse;
+    margin-bottom: 20px;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-table th, table td {
-    padding: 8px;
+table th {
+    background-color: #2c3e50;
+    color: white;
+    padding: 12px;
     text-align: left;
-    border: 1px solid #ccc;
+    font-weight: 600;
 }
 
-button {
-    padding: 5px 10px;
-    margin-top: 10px;
+table td {
+    padding: 10px;
+    border-top: 1px solid #ddd;
+}
+
+/* Fila alternada */
+table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* ==========================
+   COLORES SEGÚN PROCEDIMIENTO
+========================== */
+.table-consulta {
+    background-color: #e9f5ff !important; /* Azul claro */
+}
+
+.table-estudio {
+    background-color: #fff9e6 !important; /* Amarillo/beige claro */
+}
+
+.table-cirugia {
+    background-color: #fdecea !important; /* Rojo suave */
+}
+
+/* ==========================
+   BOTONES
+========================== */
+button, .btn {
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: transform 0.1s ease-in-out;
+}
+
+button:hover, .btn:hover {
+    transform: scale(1.05);
+}
+
+/* Colores */
+.btn-primary {
+    background-color: #3498db;
+    color: white;
+}
+
+.btn-success {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.btn-warning {
+    background-color: #f39c12;
+    color: white;
+}
+
+.btn-danger {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.btn-info {
+    background-color: #1abc9c;
+    color: white;
+}
+
+/* ==========================
+   TARJETAS (CAJAS CON SOMBRA)
+========================== */
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    background: #3498db;
+    color: white;
+    padding: 12px 20px;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 8px 8px 0 0;
+}
+
+/* ==========================
+   FORMULARIOS
+========================== */
+input, select {
+    padding: 8px 10px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 4px rgba(52, 152, 219, 0.5);
 }

@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <title>Cierre de Caja</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/litera/bootstrap.min.css">
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 </head>
 <body class="bg-light p-4">
 
@@ -22,6 +23,9 @@
                 <div class="col-md-2">
                     <button class="btn btn-success w-100" onclick="cargarCierre()">📊 Generar Cierre</button>
                 </div>
+                <div class="col-md-2">
+                    <button class="btn btn-primary w-100" onclick="exportarExcel()">📥 Exportar Excel</button>
+                </div>
             </div>
         </div>
     </div>
@@ -32,7 +36,7 @@
             <h4 class="mb-0">Resumen</h4>
         </div>
         <div class="card-body">
-            <table class="table table-bordered table-hover text-center align-middle">
+            <table id="tablaResumen" class="table table-bordered table-hover text-center align-middle">
                 <thead class="table-dark">
                     <tr>
                         <th>Forma de Cobro</th>
@@ -51,7 +55,7 @@
             <h4 class="mb-0">Listado de Pacientes</h4>
         </div>
         <div class="card-body">
-            <table class="table table-striped table-bordered text-center align-middle">
+            <table id="tablaPacientesWrap" class="table table-striped table-bordered text-center align-middle">
                 <thead class="table-dark">
                     <tr>
                         <th>Fecha</th>
@@ -109,6 +113,26 @@ async function cargarCierre() {
         console.error("Error cargando cierre de caja:", error);
         alert("Error cargando datos del cierre.");
     }
+}
+
+function exportarExcel() {
+    const fecha = document.getElementById("fechaCierre").value || "sin_fecha";
+
+    // Tablas completas
+    const tablaResumen = document.getElementById("tablaResumen");
+    const tablaPacientes = document.getElementById("tablaPacientesWrap");
+
+    // Crear libro Excel
+    const wb = XLSX.utils.book_new();
+
+    const wsResumen = XLSX.utils.table_to_sheet(tablaResumen);
+    const wsPacientes = XLSX.utils.table_to_sheet(tablaPacientes);
+
+    XLSX.utils.book_append_sheet(wb, wsResumen, "Resumen");
+    XLSX.utils.book_append_sheet(wb, wsPacientes, "Pacientes");
+
+    // Descargar
+    XLSX.writeFile(wb, `cierre_${fecha}.xlsx`);
 }
 </script>
 </body>

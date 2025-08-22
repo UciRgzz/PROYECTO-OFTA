@@ -3,7 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <title>Módulo Médico</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/litera/bootstrap.min.css">
+    <style>
+        /* 🎨 Colores suaves personalizados */
+        .table-consulta td, .table-consulta th {
+            background-color: #e9f5ff !important; /* azul claro */
+        }
+        .table-estudio td, .table-estudio th {
+            background-color: #fff9e6 !important; /* beige claro */
+        }
+        .table-cirugia td, .table-cirugia th {
+            background-color: #fdecea !important; /* rojo muy suave */
+        }
+    </style>
 </head>
 <body class="p-4">
 
@@ -72,36 +84,38 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
     // ================== Cargar lista de pacientes pendientes ==================
-    async function cargarPacientes() {
-        const res = await fetch('/api/pendientes-medico');
-        const data = await res.json();
-        const tbody = document.getElementById('lista-medica');
-        tbody.innerHTML = '';
+// ================== Cargar lista de pacientes pendientes ==================
+async function cargarPacientes() {
+    const res = await fetch('/api/pendientes-medico');
+    const data = await res.json();
+    const tbody = document.getElementById('lista-medica');
+    tbody.innerHTML = '';
 
-        data.forEach(exp => {
-            // 🎨 Colores según procedimiento
-            let clase = "";
-            if (exp.procedimiento === "Consulta") clase = "table-primary";   // azul
-            else if (exp.procedimiento === "Estudio") clase = "table-warning"; // amarillo
-            else if (exp.procedimiento === "Cirugía") clase = "table-danger"; // rojo
+    data.forEach(exp => {
+        // 🎨 Colores suaves según procedimiento
+        let clase = "";
+        if (exp.procedimiento === "Consulta") clase = "table-consulta";   // azul claro
+        else if (exp.procedimiento === "Estudio") clase = "table-estudio"; // beige claro
+        else if (exp.procedimiento === "Cirugía") clase = "table-cirugia"; // rojo claro
 
-            tbody.innerHTML += `
-                <tr class="${clase}">
-                    <td>${exp.expediente_id}</td>
-                    <td>${exp.nombre_completo}</td>
-                    <td>${exp.edad}</td>
-                    <td>${exp.padecimientos}</td>
-                    <td><b>${exp.procedimiento}</b></td>
-                    <td>
-                        <button class="btn btn-primary btn-sm" 
-                            onclick="abrirOrden(${exp.expediente_id}, ${exp.recibo_id})">
-                            Atender
-                        </button>
-                    </td>
-                </tr>
-            `;
-        });
-    }
+        tbody.innerHTML += `
+            <tr class="${clase}">
+                <td>${exp.expediente_id}</td>
+                <td>${exp.nombre_completo}</td>
+                <td>${exp.edad}</td>
+                <td>${exp.padecimientos}</td>
+                <td><b>${exp.procedimiento}</b></td>
+                <td>
+                    <button class="btn btn-primary btn-sm" 
+                        onclick="abrirOrden(${exp.expediente_id}, ${exp.recibo_id})">
+                        Atender
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
 
   // ================== Cargar procedimientos en el select ==================
 async function cargarProcedimientos() {
@@ -154,5 +168,6 @@ async function cargarProcedimientos() {
     // Inicializar carga de pacientes
     cargarPacientes();
     </script>
+    
 </body>
 </html>
