@@ -38,6 +38,8 @@ app.use(session({
     password: '12345',
     port: 5432
 });*/
+
+//este es para la base en linea
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
@@ -632,6 +634,23 @@ app.post("/api/pagos", async (req, res) => {
     client.release();
   }
 });
+
+// ==================== RUTA TEMPORAL PARA CREAR ADMIN ====================
+app.get("/crear-admin", async (req, res) => {
+    try {
+        const hashedPassword = await bcrypt.hash("12345", 10); // contraseña por defecto
+        await pool.query(
+            "INSERT INTO usuarios (nomina, username, password) VALUES ($1, $2, $3)",
+            ["A001", "admin", hashedPassword]
+        );
+        res.send("✅ Usuario admin creado (usuario: admin / pass: 12345)");
+    } catch (err) {
+        console.error("Error creando admin:", err);
+        res.status(500).send("Error creando admin: " + err.message);
+    }
+});
+
+
 
 // ==================== LOGOUT ====================
 app.get('/api/logout', (req, res) => {
