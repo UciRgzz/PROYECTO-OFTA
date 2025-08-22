@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Cierre de Caja</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light p-4">
+
+<div class="container">
+    <!-- Encabezado -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">Cierre de Caja</h3>
+        </div>
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="fechaCierre" class="form-label">Seleccionar Fecha:</label>
+                    <input type="date" id="fechaCierre" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-success w-100" onclick="cargarCierre()">📊 Generar Cierre</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumen -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-dark text-white">
+            <h4 class="mb-0">Resumen</h4>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-hover text-center align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Forma de Cobro</th>
+                        <th>Tipo de Procedimiento</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaCierre"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Listado de Pacientes -->
+    <div class="card shadow">
+        <div class="card-header bg-secondary text-white">
+            <h4 class="mb-0">Listado de Pacientes</h4>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped table-bordered text-center align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Folio</th>
+                        <th>Paciente</th>
+                        <th>Procedimiento</th>
+                        <th>Status</th>
+                        <th>Pago</th>
+                        <th>Total Folio</th>
+                        <th>Saldo</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaPacientes"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+async function cargarCierre() {
+    const fecha = document.getElementById("fechaCierre").value;
+    if (!fecha) {
+        alert("Selecciona una fecha");
+        return;
+    }
+
+    try {
+        // Resumen de cierre
+        const resResumen = await fetch(`/api/cierre-caja?fecha=${fecha}`);
+        const datosResumen = await resResumen.json();
+        document.getElementById("tablaCierre").innerHTML = datosResumen.map(d => `
+            <tr>
+                <td>${d.pago}</td>
+                <td>${d.procedimiento}</td>
+                <td><span class="badge bg-success">$${parseFloat(d.total).toFixed(2)}</span></td>
+            </tr>
+        `).join('');
+
+        // Listado de pacientes
+        const resPacientes = await fetch(`/api/listado-pacientes?fecha=${fecha}`);
+        const pacientes = await resPacientes.json();
+        document.getElementById("tablaPacientes").innerHTML = pacientes.map(p => `
+            <tr>
+                <td>${p.fecha}</td>
+                <td>${p.folio}</td>
+                <td>${p.nombre}</td>
+                <td>${p.procedimiento}</td>
+                <td>${p.status}</td>
+                <td>${p.pago}</td>
+                <td><span class="badge bg-primary">$${parseFloat(p.total).toFixed(2)}</span></td>
+                <td><span class="badge bg-warning text-dark">$${parseFloat(p.saldo).toFixed(2)}</span></td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error("Error cargando cierre de caja:", error);
+        alert("Error cargando datos del cierre.");
+    }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Estado de Cuenta del Paciente</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light p-4">
+
+<div class="container">
+    <!-- Encabezado -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">Estado de Cuenta del Paciente</h3>
+        </div>
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-6">
+                    <label for="nombrePaciente" class="form-label">Nombre del Paciente:</label>
+                    <input type="text" id="nombrePaciente" class="form-control" placeholder="Escribe el nombre">
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-success w-100" onclick="buscarEstado()">🔍 Buscar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de estado de cuenta -->
+    <div class="card shadow">
+        <div class="card-header bg-dark text-white">
+            <h4 class="mb-0">Resultados</h4>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped table-bordered text-center align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Paciente</th>
+                        <th>Total del Folio</th>
+                        <th>Pagos Realizados</th>
+                        <th>Status</th>
+                        <th>Deuda</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaEstado"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+async function buscarEstado() {
+    const nombre = document.getElementById("nombrePaciente").value.trim();
+    if (!nombre) {
+        alert("Escribe un nombre de paciente");
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/estado-cuenta?nombre=${encodeURIComponent(nombre)}`);
+        const datos = await res.json();
+
+        document.getElementById("tablaEstado").innerHTML = datos.map(d => `
+            <tr>
+                <td>${d.nombre}</td>
+                <td><span class="badge bg-primary">$${parseFloat(d.total).toFixed(2)}</span></td>
+                <td><span class="badge bg-success">$${parseFloat(d.pagos).toFixed(2)}</span></td>
+                <td>${d.status === "AL DÍA" 
+                        ? '<span class="badge bg-success">✔ Al día</span>' 
+                        : '<span class="badge bg-danger">Pendiente</span>'}</td>
+                <td><span class="badge bg-warning text-dark">$${parseFloat(d.deuda).toFixed(2)}</span></td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error("Error cargando estado de cuenta:", error);
+        alert("Error cargando estado de cuenta.");
+    }
+}
+</script>
+</body>
+</html>

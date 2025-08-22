@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Optavisión</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body{display:flex;min-height:100vh;margin:0}
+    .sidebar{width:220px;background:#343a40;color:#fff;padding:20px}
+    .sidebar a{display:block;color:#fff;padding:10px;margin-bottom:5px;text-decoration:none;border-radius:5px}
+    .sidebar a:hover{background:#495057}
+    .main{flex:1;padding:20px;background:#f8f9fa}
+    iframe{width:100%;height:85vh;border:none}
+    .small-muted{font-size:.9rem;color:#6c757d}
+  </style>
+</head>
+<body>
+  <!-- SIDEBAR (orden solicitado) -->
+  <div class="sidebar">
+    <h2>Menú</h2>
+    <a href="#" onclick="mostrarSeccion('expedientes')">Expedientes</a>
+    <a href="#" onclick="mostrarSeccion('recibo')">Recibo</a>
+    <a href="#" onclick="mostrarSeccion('medico')">Módulo Médico</a>
+    <a href="#" onclick="mostrarSeccion('ordenes')">Órdenes</a>
+    <a href="#" onclick="mostrarSeccion('cierre')">Cierre de Caja</a>
+    <hr>
+    <a href="/api/logout" class="text-danger mt-3 d-block">Cerrar Sesión</a>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main" id="main-content">
+    <h1>Cargando...</h1>
+  </div>
+
+  <!-- MODAL ÓRDENES POR PACIENTE -->
+  <div class="modal fade" id="modalOrdenes" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Órdenes del Paciente</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="contenedorOrdenes">
+            <!-- Se llena por JS -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <span class="small-muted me-auto">Se muestra primero la orden más reciente.</span>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+  // Sesión
+  fetch('/api/check-session')
+    .then(res => res.ok ? res.json() : Promise.reject())
+    .then(data => {
+      if (data.usuario) {
+        document.getElementById('main-content').innerHTML =
+          `<h1>Bienvenido al sistema Oftavisión</h1><p>Selecciona una opción del menú.</p>`;
+      }
+    })
+    .catch(() => window.location.href = '/login/login.html');
+
+  // Router simple
+  async function mostrarSeccion(seccion){
+    const main = document.getElementById('main-content');
+    const paginas = {
+      recibo: "/frontend/recibo.html",
+      cierre: "/frontend/cierre-caja.html",
+      expedientes: null,
+      medico: "/frontend/medico.html",
+      ordenes: "/frontend/ordenes.html"
+    };
+
+    if(seccion === 'expedientes'){
+      main.innerHTML = `
+        <h2>Gestión de Expedientes</h2>
+        <div class="d-flex justify-content-between mb-3">
+          <input type="text" id="buscarExp" class="form-control w-50" placeholder="Buscar por nombre o número">
+          <button class="btn btn-primary" id="btnNuevo">Nuevo Expediente</button>
+        </div>
+        <div id="formulario-expediente" style="display:none;"></div>
+        <div id="lista-expedientes"></div>
+        <p id="mensaje-expediente" class="mt-3"></p>
+      `;
+      document.getElementById('btnNuevo').addEventListener('click', () => {
+        document.getElementById('lista-expedientes').style.display = 'none';
+        mostrarFormulario();
+      });
+      document.getElementById('buscarExp').addEventListener('input', filtrarLista);
+      cargarLista();
+    }else if(paginas[seccion]){
+      main.innerHTML = `<iframe src="${paginas[seccion]}"></iframe>`;
+    }else{
+      main.innerHTML = `<h2>${seccion}</h2><p>Contenido de ${seccion} aquí...</p>`;
+    }
+  }
+
+  // ---------- Expedientes UI ----------
+  function mostrarFormulario(expediente=null){
+    const cont = document.getElementById('formulario-expediente');
+    cont.style.display='block';
+    cont.innerHTML = `
+      <form id="form-expediente">
+        <div class="mb-2">
+          <label>Número de Expediente:</label>
+          <input type="text" id="num_expediente" class="form-control" readonly>
+        </div>
+        <div class="mb-2"><label>Nombre:</label>
+          <input type="text" id="nombre" class="form-control" required></div>
+        <div class="mb-2"><label>Fecha de Nacimiento:</label>
+          <input type="date" id="fecha_nac" class="form-control" required></div>
+        <div class="mb-2"><label>Edad:</label>
+          <input type="number" id="edad" class="form-control" readonly></div>
+        <div class="mb-2"><label>Padecimiento:</label>
+          <select id="padecimiento" class="form-select" required>
+            <option value="">Seleccione...</option>
+            <option value="DIABETES">DIABETES</option>
+            <option value="HIPERTENSO">HIPERTENSO</option>
+            <option value="NINGUNO">NINGUNO</option>
+          </select>
+        </div>
+        <div class="mb-2"><label>Colonia:</label>
+          <input type="text" id="colonia" class="form-control"></div>
+        <div class="mb-2"><label>Ciudad:</label>
+          <input type="text" id="ciudad" class="form-control"></div>
+        <div class="mb-2"><label>Teléfono 1:</label>
+          <input type="text" id="telefono1" class="form-control"></div>
+        <div class="mb-2"><label>Teléfono 2:</label>
+          <input type="text" id="telefono2" class="form-control"></div>
+        <button type="submit" class="btn btn-success">Guardar</button>
+        <button type="button" class="btn btn-secondary" onclick="cancelarFormulario()">Cancelar</button>
+      </form>
+    `;
+
+    fetch('/api/expedientes').then(r=>r.json()).then(arr=>{
+      const siguiente = expediente
+        ? expediente.numero_expediente
+        : (arr.length>0 ? arr[arr.length-1].numero_expediente+1 : 1).toString().padStart(4,'0');
+      document.getElementById('num_expediente').value = siguiente;
+    });
+
+    if(expediente){
+      document.getElementById('form-expediente').dataset.editando = true;
+      document.getElementById('nombre').value = expediente.nombre_completo;
+      if(expediente.fecha_nacimiento){
+        const f = new Date(expediente.fecha_nacimiento);
+        const yyyy=f.getFullYear(), mm=String(f.getMonth()+1).padStart(2,'0'), dd=String(f.getDate()).padStart(2,'0');
+        document.getElementById('fecha_nac').value = `${yyyy}-${mm}-${dd}`;
+      }
+      document.getElementById('edad').value = expediente.edad;
+      document.getElementById('padecimiento').value = expediente.padecimientos;
+      document.getElementById('colonia').value = expediente.colonia;
+      document.getElementById('ciudad').value = expediente.ciudad;
+      document.getElementById('telefono1').value = expediente.telefono1;
+      document.getElementById('telefono2').value = expediente.telefono2;
+    }else{
+      document.getElementById('form-expediente').dataset.editando = '';
+    }
+
+    document.getElementById('fecha_nac').addEventListener('change', ()=>{
+      const f = new Date(document.getElementById('fecha_nac').value);
+      if(!isNaN(f)){
+        const hoy = new Date();
+        let edad = hoy.getFullYear()-f.getFullYear();
+        const m = hoy.getMonth()-f.getMonth();
+        if(m<0 || (m===0 && hoy.getDate()<f.getDate())) edad--;
+        document.getElementById('edad').value = edad;
+      }
+    });
+
+    document.getElementById('form-expediente').addEventListener('submit', guardarExpediente);
+  }
+
+  function cancelarFormulario(){
+    document.getElementById('formulario-expediente').style.display='none';
+    document.getElementById('lista-expedientes').style.display='block';
+  }
+
+  async function guardarExpediente(e){
+    e.preventDefault();
+    const id = document.getElementById('num_expediente').value;
+    const nombre = document.getElementById('nombre').value;
+    const fecha_nacimiento = document.getElementById('fecha_nac').value;
+
+    let metodo='POST', url='/api/expedientes';
+    const edicion = !!document.getElementById('form-expediente').dataset.editando;
+
+    if(edicion){
+      metodo='PUT'; url=`/api/expedientes/${id}`;
+    }else{
+      const chk = await fetch(`/api/expedientes/check?nombre=${encodeURIComponent(nombre)}&fecha_nacimiento=${fecha_nacimiento}`);
+      const existe = await chk.json();
+      if(existe.existe){
+        const m = document.getElementById('mensaje-expediente');
+        m.innerText = 'El expediente ya existe.'; m.className='text-danger';
+        return;
+      }
+    }
+
+    const data = {
+      nombre_completo:nombre, fecha_nacimiento,
+      edad:document.getElementById('edad').value,
+      padecimientos:document.getElementById('padecimiento').value,
+      colonia:document.getElementById('colonia').value,
+      ciudad:document.getElementById('ciudad').value,
+      telefono1:document.getElementById('telefono1').value,
+      telefono2:document.getElementById('telefono2').value
+    };
+
+    const res = await fetch(url,{method:metodo,headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    const json = await res.json();
+    const msg = document.getElementById('mensaje-expediente');
+    msg.innerText = json.mensaje || json.error;
+    msg.className = res.ok ? 'text-success':'text-danger';
+    setTimeout(()=>{msg.innerText=''},1000);
+    if(res.ok){ cancelarFormulario(); cargarLista(); }
+  }
+
+  function cargarLista(){
+    fetch('/api/expedientes').then(r=>r.json()).then(data=>{
+      let html = `<table class="table table-bordered align-middle">
+        <thead>
+          <tr>
+            <th>Número</th><th>Nombre</th><th>Edad</th><th>Padecimiento</th>
+            <th>Ciudad</th><th>Teléfono 1</th><th>Teléfono 2</th><th>Acciones</th>
+          </tr>
+        </thead><tbody>`;
+      data.forEach(exp=>{
+        html += `<tr>
+          <td>${exp.numero_expediente}</td>
+          <td>${exp.nombre_completo}</td>
+          <td>${exp.edad}</td>
+          <td>${exp.padecimientos}</td>
+          <td>${exp.ciudad}</td>
+          <td>${exp.telefono1}</td>
+          <td>${exp.telefono2 || ''}</td>
+          <td>
+            <button class="btn btn-warning btn-sm" onclick='editarExpediente(${JSON.stringify(exp)})'>Editar</button>
+            <button class="btn btn-info btn-sm" onclick="verOrdenes(${exp.numero_expediente}, '${exp.nombre_completo.replace(/'/g,"\\'")}')">Médico</button>
+          </td>
+        </tr>`;
+      });
+      html += `</tbody></table>`;
+      document.getElementById('lista-expedientes').innerHTML = html;
+    });
+  }
+
+  function editarExpediente(exp){ document.getElementById('lista-expedientes').style.display='none'; mostrarFormulario(exp); }
+  function filtrarLista(){
+    const f = document.getElementById('buscarExp').value.toLowerCase();
+    document.querySelectorAll('#lista-expedientes tbody tr').forEach(row=>{
+      row.style.display = row.innerText.toLowerCase().includes(f) ? '' : 'none';
+    });
+  }
+
+  // ---------- Modal: Ver órdenes del paciente ----------
+  async function verOrdenes(expedienteId, nombrePaciente=''){
+    try{
+      const res = await fetch(`/api/expedientes/${expedienteId}/ordenes`);
+      const ordenes = await res.json(); // ordenadas DESC por fecha desde el server
+
+      const cont = document.getElementById('contenedorOrdenes');
+      const titulo = document.querySelector('#modalOrdenes .modal-title');
+      titulo.textContent = `Órdenes de ${nombrePaciente || 'Paciente'} (Expediente ${expedienteId})`;
+
+      if(!Array.isArray(ordenes) || ordenes.length===0){
+        cont.innerHTML = `<div class="alert alert-warning mb-0">Este paciente aún no tiene órdenes médicas.</div>`;
+      }else{
+        const ultima = ordenes[0]; // más reciente
+        cont.innerHTML = `
+          <div class="mb-3">
+            <span class="badge bg-secondary">Última orden</span>
+          </div>
+          <table class="table table-sm table-bordered">
+            <tbody>
+              <tr><th style="width:220px">Número de Orden</th><td>${ultima.numero_orden}</td></tr>
+              <tr><th>Médico</th><td>${ultima.medico}</td></tr>
+              <tr><th>Diagnóstico</th><td>${ultima.diagnostico}</td></tr>
+              <tr><th>Lado</th><td>${ultima.lado}</td></tr>
+              <tr><th>Procedimiento</th><td>${ultima.procedimiento}</td></tr>
+              <tr><th>Precio</th><td>$${parseFloat(ultima.precio||0).toFixed(2)}</td></tr>
+              <tr><th>Estatus</th><td>${ultima.status || 'Sin Pago'}</td></tr>
+              <tr><th>Fecha</th><td>${new Date(ultima.fecha).toLocaleString()}</td></tr>
+            </tbody>
+          </table>
+
+          ${ordenes.length>1 ? `
+            <details class="mt-3">
+              <summary>Ver todas las órdenes (${ordenes.length})</summary>
+              <div class="mt-2">
+                <table class="table table-striped table-bordered table-sm">
+                  <thead class="table-light">
+                    <tr>
+                      <th># Orden</th><th>Médico</th><th>Diagnóstico</th><th>Lado</th>
+                      <th>Procedimiento</th><th>Precio</th><th>Estatus</th><th>Fecha</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${ordenes.map(o=>`
+                      <tr>
+                        <td>${o.numero_orden}</td>
+                        <td>${o.medico}</td>
+                        <td>${o.diagnostico}</td>
+                        <td>${o.lado}</td>
+                        <td>${o.procedimiento}</td>
+                        <td>$${parseFloat(o.precio||0).toFixed(2)}</td>
+                        <td>${o.status || 'Sin Pago'}</td>
+                        <td>${new Date(o.fecha).toLocaleString()}</td>
+                      </tr>`).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </details>` : ``}
+        `;
+      }
+
+      const modal = new bootstrap.Modal(document.getElementById('modalOrdenes'));
+      modal.show();
+    }catch(err){
+      console.error('Error al cargar órdenes:', err);
+      alert('No se pudieron cargar las órdenes de este paciente.');
+    }
+  }
+  </script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Registro de Recibo</title>
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-light">
+
+<div class="container my-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">Registro de Recibo</h3>
+        </div>
+        <div class="card-body">
+            <form id="formRecibo" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Fecha:</label>
+                    <input type="date" id="fecha" name="fecha" class="form-control" required>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Folio:</label>
+                    <input type="number" id="folio" name="folio" class="form-control" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Nombre del Paciente:</label>
+                    <input type="text" id="nombrePaciente" class="form-control" readonly>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Procedimiento:</label>
+                    <select id="procedimiento" class="form-select" required>
+                        <option value="Consulta">Consulta</option>
+                        <option value="Estudio">Estudio</option>
+                        <option value="Cirugía">Cirugía</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Precio (Total a pagar):</label>
+                    <input type="number" id="precio" class="form-control" step="0.01" required>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Forma de Pago:</label>
+                    <select id="forma_pago" class="form-select" required>
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Tarjeta Débito">Tarjeta Débito</option>
+                        <option value="Tarjeta Crédito">Tarjeta Crédito</option>
+                        <option value="Transferencia">Transferencia</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Monto Pagado:</label>
+                    <input type="number" id="monto_pagado" class="form-control" step="0.01" required>
+                </div>
+
+                <div class="col-12 text-end">
+                    <button type="submit" class="btn btn-success px-4">💾 Guardar Recibo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-lg mt-4">
+        <div class="card-header bg-dark text-white">
+            <h4 class="mb-0">📋 Lista de Recibos</h4>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped table-bordered text-center align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Folio</th>
+                        <th>Paciente</th>
+                        <th>Procedimiento</th>
+                        <th>Forma de Pago</th>
+                        <th>Monto Pagado</th>
+                        <th>Precio</th>
+                        <th>Pendiente</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaRecibos"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+let pacienteId = null; // guardamos el id real del paciente
+
+// Buscar paciente cuando se ingresa el folio
+document.getElementById("folio").addEventListener("input", async () => {
+    const folio = document.getElementById("folio").value;
+    if (!folio) {
+        document.getElementById("nombrePaciente").value = "";
+        pacienteId = null;
+        return;
+    }
+    try {
+        const res = await fetch(`http://localhost:3000/api/recibos/paciente/${folio}`);
+        if (!res.ok) {
+            document.getElementById("nombrePaciente").value = "No encontrado";
+            pacienteId = null;
+            return;
+        }
+        const data = await res.json();
+        document.getElementById("nombrePaciente").value = data.nombre_completo;
+        pacienteId = data.id; // ✅ usar el id correcto
+    } catch (err) {
+        console.error("Error buscando paciente:", err);
+    }
+});
+
+// Guardar recibo
+document.getElementById("formRecibo").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    if (!pacienteId) {
+        alert("Debes ingresar un folio válido de paciente");
+        return;
+    }
+
+    const datos = {
+        fecha: this.fecha.value,
+        folio: this.folio.value,
+        paciente_id: pacienteId,
+        procedimiento: this.procedimiento.value,
+        precio: this.precio.value,
+        forma_pago: this.forma_pago.value,
+        monto_pagado: this.monto_pagado.value
+    };
+
+    const res = await fetch('http://localhost:3000/api/recibos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(datos)
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+        alert("✅ Recibo guardado correctamente");
+        this.reset();
+        document.getElementById("nombrePaciente").value = "";
+        cargarRecibos();
+    } else {
+        alert("❌ Error: " + data.error);
+    }
+});
+
+// Eliminar recibo
+async function eliminarRecibo(id) {
+    if (!confirm("¿Seguro que deseas eliminar este recibo?")) return;
+    try {
+        const res = await fetch(`http://localhost:3000/api/recibos/${id}`, { method: "DELETE" });
+        const data = await res.json();
+        if (res.ok) {
+            alert("🗑️ Recibo eliminado");
+            cargarRecibos();
+        } else {
+            alert("❌ Error: " + data.error);
+        }
+    } catch (err) {
+        console.error("Error al eliminar recibo:", err);
+    }
+}
+
+// Cargar recibos en la tabla
+async function cargarRecibos() {
+    const res = await fetch('http://localhost:3000/api/recibos');
+    const recibos = await res.json();
+    document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
+        <tr>
+            <td>${r.fecha}</td>
+            <td>${r.folio}</td>
+            <td>${r.paciente}</td>
+            <td>${r.procedimiento}</td>
+            <td>${r.forma_pago}</td>
+            <td><span class="badge bg-info">$${parseFloat(r.monto_pagado).toFixed(2)}</span></td>
+            <td><span class="badge bg-success">$${parseFloat(r.precio).toFixed(2)}</span></td>
+            <td><span class="badge bg-warning text-dark">$${parseFloat(r.precio - r.monto_pagado).toFixed(2)}</span></td>
+            <td>
+                <button class="btn btn-danger btn-sm" onclick="eliminarRecibo(${r.id})">Eliminar</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+cargarRecibos();
+</script>
+</body>
+</html>

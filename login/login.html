@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - OFTASIS</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body { background-color: #39393b; }
+        .card { border-radius: 20px; }
+        .icon-circle {
+            background-color: #dde8f0;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            margin: 0 auto 20px auto;
+            color: #505458;
+        }
+        .btn-custom { border-radius: 50px; font-weight: bold; }
+        .form-control { border-radius: 50px; padding-left: 40px; }
+        .input-group-text { border-radius: 50px 0 0 50px; background-color: #f0f0f0; }
+        .header-title {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        .header-title h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+        .header-title p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body class="d-flex flex-column justify-content-center align-items-center vh-100">
+
+<!-- Encabezado -->
+<div class="header-title">
+    <h1>OFTASIS</h1>
+    <p>Sistema Integral de Oftavisión</p>
+</div>
+
+<!-- Tarjeta Login -->
+<div class="card shadow-sm p-4" style="width: 350px;">
+    <div class="icon-circle">
+        <i class="bi bi-person"></i>
+    </div>
+    <h4 class="text-center mb-4" id="formTitle">Iniciar Sesión</h4>
+
+    <!-- LOGIN -->
+    <form id="loginForm">
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-person"></i></span>
+            <input type="text" id="loginUsername" class="form-control" placeholder="Usuario" required>
+        </div>
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+            <input type="password" id="loginPassword" class="form-control" placeholder="Contraseña" required>
+        </div>
+        <button class="btn btn-primary w-100 btn-custom">Ingresar</button>
+        <button type="button" class="btn btn-link w-100 mt-2" id="showForgot">¿Olvidaste tu contraseña?</button>
+    </form>
+
+    <!-- OLVIDAR CONTRASEÑA -->
+    <form id="forgotForm" class="d-none">
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-hash"></i></span>
+            <input type="text" id="forgotNomina" class="form-control" placeholder="Número de nómina" required>
+        </div>
+        <button class="btn btn-warning w-100 btn-custom">Generar código de recuperación</button>
+        <button type="button" class="btn btn-link w-100 mt-2" id="backToLogin">Volver</button>
+    </form>
+
+    <!-- RESTABLECER CONTRASEÑA -->
+    <form id="resetForm" class="d-none">
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-hash"></i></span>
+            <input type="text" id="resetNomina" class="form-control" placeholder="Número de nómina" required>
+        </div>
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-key"></i></span>
+            <input type="text" id="resetToken" class="form-control" placeholder="Código de recuperación" required>
+        </div>
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+            <input type="password" id="resetPassword" class="form-control" placeholder="Nueva contraseña" required>
+        </div>
+        <button class="btn btn-success w-100 btn-custom">Restablecer contraseña</button>
+        <button type="button" class="btn btn-link w-100 mt-2" id="resetBackToLogin">Volver</button>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.js"></script>
+<script>
+    const loginForm = document.getElementById('loginForm');
+    const forgotForm = document.getElementById('forgotForm');
+    const resetForm = document.getElementById('resetForm');
+    const formTitle = document.getElementById('formTitle');
+    const showForgot = document.getElementById('showForgot');
+    const backToLogin = document.getElementById('backToLogin');
+    const resetBackToLogin = document.getElementById('resetBackToLogin');
+
+    // Mostrar formulario "Recuperar Contraseña"
+    showForgot.addEventListener('click', () => {
+        loginForm.reset();
+        loginForm.classList.add('d-none');
+        resetForm.classList.add('d-none');
+        forgotForm.classList.remove('d-none');
+        formTitle.textContent = 'Recuperar Contraseña';
+    });
+
+    // Volver a Login desde "Recuperar Contraseña"
+    backToLogin.addEventListener('click', () => {
+        forgotForm.reset();
+        forgotForm.classList.add('d-none');
+        resetForm.classList.add('d-none');
+        loginForm.classList.remove('d-none');
+        formTitle.textContent = 'Iniciar Sesión';
+    });
+
+    // Volver a Login desde "Restablecer Contraseña"
+    resetBackToLogin.addEventListener('click', () => {
+        resetForm.reset();
+        resetForm.classList.add('d-none');
+        forgotForm.classList.add('d-none');
+        loginForm.classList.remove('d-none');
+        formTitle.textContent = 'Iniciar Sesión';
+    });
+
+    // LOGIN
+    loginForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        const username = document.getElementById('loginUsername').value;
+        const password = document.getElementById('loginPassword').value;
+
+        const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+            window.location.href = '/frontend/index.html';
+        } else {
+            alert(data.error);
+        }
+    });
+
+    // OLVIDAR CONTRASEÑA (NÓMINA)
+    forgotForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        const nomina = document.getElementById('forgotNomina').value;
+
+        const res = await fetch('/api/forgot-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nomina })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+            alert(`Tu código de recuperación es: ${data.token}`);
+            forgotForm.reset();
+            forgotForm.classList.add('d-none');
+            resetForm.classList.remove('d-none');
+            document.getElementById('resetNomina').value = nomina;
+            formTitle.textContent = 'Restablecer Contraseña';
+        } else {
+            alert(data.error);
+        }
+    });
+
+    // RESTABLECER CONTRASEÑA
+    resetForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        const nomina = document.getElementById('resetNomina').value;
+        const token = document.getElementById('resetToken').value;
+        const password = document.getElementById('resetPassword').value;
+
+        const res = await fetch('/api/reset-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nomina, token, password })
+        });
+
+        const data = await res.json();
+        alert(data.mensaje || data.error);
+        if (res.ok) {
+            resetForm.reset();
+            resetBackToLogin.click();
+        }
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+</body>
+</html>

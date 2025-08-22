@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Órdenes Médicas</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container my-4">
+  <div class="card shadow-lg">
+    <div class="card-header bg-primary text-white">
+      <h3 class="mb-0">Órdenes Médicas</h3>
+    </div>
+    <div class="card-body">
+      <table class="table table-striped table-bordered text-center align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th>Número de Orden</th>
+            <th>Paciente</th>
+            <th>Médico</th>
+            <th>Diagnóstico</th>
+            <th>Lado</th>
+            <th>Procedimiento</th>
+            <th>Precio</th>
+            <th>Pagado</th>        <!-- nueva columna -->
+            <th>Pendiente</th>     <!-- nueva columna -->
+            <th>Estatus</th>
+            <th>Fecha</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tablaOrdenes"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Pago -->
+<div class="modal fade" id="modalPago" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">Liquidar Pago</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formPago">
+          <input type="hidden" id="orden_id">
+
+          <p><b>Paciente:</b> <span id="pacientePago"></span></p>
+          <p><b>Procedimiento:</b> <span id="procedimientoPago"></span></p>
+          <p><b>Precio Total:</b> $<span id="precioPago"></span></p>
+          <p><b>Pagado:</b> $<span id="pagadoPago"></span></p>
+          <p><b>Pendiente:</b> $<span id="pendientePago"></span></p>
+
+          <div class="mb-3">
+            <label class="form-label">Monto a liquidar:</label>
+            <input type="number" id="montoLiquidar" class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Forma de Pago:</label>
+            <select id="formaPago" class="form-control" required>
+              <option value="Efectivo">Efectivo</option>
+              <option value="Tarjeta Débito">Tarjeta Débito</option>
+              <option value="Tarjeta Crédito">Tarjeta Crédito</option>
+              <option value="Transferencia">Transferencia</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn-success w-100">Confirmar Pago</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+let ordenesData = [];
+
+// Cargar órdenes
+async function cargarOrdenes() {
+  try {
+    const res = await fetch("http://localhost:3000/api/ordenes_medicas");
+    ordenesData = await res.json();
+
+    document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
+      <tr>
+        <td>${o.numero_orden}</td>
+        <td>${o.paciente}</td>
+        <td>${o.medico}</td>
+        <td>${o.diagnostico}</td>
+        <td>${o.lado}</td>
+        <td>${o.procedimiento}</td>
+        <td>$${parseFloat(o.precio).toFixed(2)}</td>
+        <td>$${parseFloat(o.pagado).toFixed(2)}</td>        <!-- pagado -->
+        <td>$${parseFloat(o.pendiente).toFixed(2)}</td>     <!-- pendiente -->
+        <td>
+          ${o.status === "Pagado"
+            ? `<span class="badge bg-success">Pagado</span>`
+            : `<span class="badge bg-warning text-dark">${o.status}</span>`}
+        </td>
+        <td>${new Date(o.fecha).toLocaleDateString()}</td>
+        <td>
+          ${o.status === "Pagado" 
+            ? `<button class="btn btn-secondary btn-sm" disabled>Pagado</button>` 
+            : `<button class="btn btn-warning btn-sm" onclick="abrirPago(${i})">Pagar</button>`}
+        </td>
+      </tr>
+    `).join("");
+  } catch (err) {
+    console.error("Error cargando órdenes:", err);
+  }
+}
+
+// Abrir modal con datos
+function abrirPago(index) {
+  const orden = ordenesData[index];
+  document.getElementById("orden_id").value = orden.numero_orden;
+  document.getElementById("pacientePago").textContent = orden.paciente;
+  document.getElementById("procedimientoPago").textContent = orden.procedimiento;
+  document.getElementById("precioPago").textContent = orden.precio;
+  document.getElementById("pagadoPago").textContent = orden.pagado;
+  document.getElementById("pendientePago").textContent = orden.pendiente;
+
+  const modal = new bootstrap.Modal(document.getElementById("modalPago"));
+  modal.show();
+}
+
+// Enviar pago
+document.getElementById("formPago").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const data = {
+    orden_id: document.getElementById("orden_id").value,
+    monto: document.getElementById("montoLiquidar").value,
+    forma_pago: document.getElementById("formaPago").value
+  };
+
+  const res = await fetch("http://localhost:3000/api/pagos", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+
+  if (res.ok) {
+    alert("Pago registrado con éxito");
+    const modal = bootstrap.Modal.getInstance(document.getElementById("modalPago"));
+    modal.hide();
+    cargarOrdenes(); // refresca tabla
+  } else {
+    alert("Error al registrar el pago");
+  }
+});
+
+cargarOrdenes();
+</script>
+</body>
+</html>
