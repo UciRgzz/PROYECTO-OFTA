@@ -31,13 +31,21 @@ app.use(session({
 }));
 
 // PostgreSQL
-const pool = new Pool({
+/*const pool = new Pool({
     user: 'postgres',
     host: 'localhost',
     database: 'Optavision',
     password: '12345',
     port: 5432
+});*/
+const pool = new Pool({
+  user: process.env.PGUSER,
+  host: process.env.PGHOST,
+  database: process.env.PGDATABASE,
+  password: process.env.PGPASSWORD,
+  port: process.env.PGPORT
 });
+
 
 pool.connect()
     .then(() => console.log('Conexión a PostgreSQL exitosa'))
