@@ -3,16 +3,96 @@
 <head>
 <meta charset="UTF-8">
 <title>Cierre de Caja</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/litera/bootstrap.min.css">
+
+<!-- Bootstrap y FontAwesome -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Librería Excel -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: #f0f5ff;
+    padding: 20px;
+  }
+
+  .card {
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    overflow: hidden;
+    margin-bottom: 25px;
+  }
+
+  .card-header {
+    font-weight: 600;
+    font-size: 1.2rem;
+    padding: 15px 20px;
+  }
+
+  .card-header.bg-primary {
+    background: linear-gradient(135deg, #2c3e50, #3498db);
+  }
+
+  .card-header.bg-dark {
+    background: linear-gradient(135deg, #212121, #424242);
+  }
+
+  .card-header.bg-secondary {
+    background: linear-gradient(135deg, #455a64, #90a4ae);
+  }
+
+  .table {
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .table thead {
+    background: #2c3e50;
+    color: white;
+  }
+
+  .table tbody tr:nth-child(odd) {
+    background-color: #f9f9f9;
+  }
+
+  .table tbody tr:hover {
+    background-color: #eef6ff;
+    transition: background 0.2s;
+  }
+
+  .btn {
+    font-weight: 600;
+    border-radius: 6px;
+  }
+
+  .btn-success {
+    background: #27ae60;
+    border: none;
+  }
+
+  .btn-success:hover {
+    background: #1e8449;
+  }
+
+  .btn-primary {
+    background: #2980b9;
+    border: none;
+  }
+
+  .btn-primary:hover {
+    background: #21618c;
+  }
+</style>
 </head>
-<body class="bg-light p-4">
+<body>
 
 <div class="container">
     <!-- Encabezado -->
     <div class="card shadow mb-4">
         <div class="card-header bg-primary text-white">
-            <h3 class="mb-0">Cierre de Caja</h3>
+            <h3 class="mb-0"><i class="fas fa-cash-register me-2"></i> Cierre de Caja</h3>
         </div>
         <div class="card-body">
             <div class="row g-3 align-items-end">
@@ -21,10 +101,14 @@
                     <input type="date" id="fechaCierre" class="form-control">
                 </div>
                 <div class="col-md-2">
-                    <button class="btn btn-success w-100" onclick="cargarCierre()">📊 Generar Cierre</button>
+                    <button class="btn btn-success w-100" onclick="cargarCierre()">
+                        <i class="fas fa-chart-bar me-1"></i> Generar
+                    </button>
                 </div>
                 <div class="col-md-2">
-                    <button class="btn btn-primary w-100" onclick="exportarExcel()">📥 Exportar Excel</button>
+                    <button class="btn btn-primary w-100" onclick="exportarExcel()">
+                        <i class="fas fa-file-excel me-1"></i> Exportar
+                    </button>
                 </div>
             </div>
         </div>
@@ -33,11 +117,11 @@
     <!-- Resumen -->
     <div class="card shadow mb-4">
         <div class="card-header bg-dark text-white">
-            <h4 class="mb-0">Resumen</h4>
+            <h4 class="mb-0"><i class="fas fa-list me-2"></i> Resumen</h4>
         </div>
         <div class="card-body">
             <table id="tablaResumen" class="table table-bordered table-hover text-center align-middle">
-                <thead class="table-dark">
+                <thead>
                     <tr>
                         <th>Forma de Cobro</th>
                         <th>Tipo de Procedimiento</th>
@@ -52,11 +136,11 @@
     <!-- Listado de Pacientes -->
     <div class="card shadow">
         <div class="card-header bg-secondary text-white">
-            <h4 class="mb-0">Listado de Pacientes</h4>
+            <h4 class="mb-0"><i class="fas fa-users me-2"></i> Listado de Pacientes</h4>
         </div>
         <div class="card-body">
             <table id="tablaPacientesWrap" class="table table-striped table-bordered text-center align-middle">
-                <thead class="table-dark">
+                <thead>
                     <tr>
                         <th>Fecha</th>
                         <th>Folio</th>

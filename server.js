@@ -6,6 +6,9 @@ const bcrypt = require('bcrypt');
 const path = require('path');
 const session = require('express-session');
 const crypto = require('crypto');
+const multer = require('multer');
+const xlsx = require('xlsx');
+
 
 const app = express();
 
@@ -218,7 +221,11 @@ app.get('/api/expedientes', verificarSesion, async (req, res) => {
 
 // Actualizar expediente
 app.put('/api/expedientes/:id', verificarSesion, async (req, res) => {
-    const { id } = req.params;
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+        return res.status(400).json({ error: "ID inválido" });
+    }
+
     const {
         nombre_completo,
         fecha_nacimiento,
@@ -259,7 +266,10 @@ app.put('/api/expedientes/:id', verificarSesion, async (req, res) => {
 
 // Eliminar expediente
 app.delete('/api/expedientes/:id', verificarSesion, async (req, res) => {
-    const { id } = req.params;
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+        return res.status(400).json({ error: "ID inválido" });
+    }
 
     try {
         const result = await pool.query(
@@ -277,9 +287,13 @@ app.delete('/api/expedientes/:id', verificarSesion, async (req, res) => {
         res.status(500).json({ error: "Error al eliminar expediente" });
     }
 });
+
 // Obtener expediente por ID (numero_expediente)
 app.get('/api/expedientes/:id', verificarSesion, async (req, res) => {
-    const { id } = req.params;
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+        return res.status(400).json({ error: "ID inválido" });
+    }
 
     try {
         const result = await pool.query(
@@ -412,11 +426,29 @@ app.get("/api/pendientes-medico", async (req, res) => {
 });
 
 // ==================== MODULO DE ÓRDENES ========================================
-
-// ==================== GUARDAR ORDEN MÉDICA  ====================
+// ==================== GUARDAR ORDEN MÉDICA ====================
 app.post("/api/ordenes_medicas", async (req, res) => {
   try {
-    const { expediente_id, folio_recibo, medico, diagnostico, lado } = req.body;
+    const {
+      expediente_id,
+      folio_recibo,
+      medico,
+      diagnostico,
+      lado,
+      procedimiento_id,
+      anexos,
+      conjuntiva,
+      cornea,
+      camara_anterior,   
+      cristalino,
+      retina,
+      macula,
+      nervio_optico,     
+      ciclopejia,
+      hora_tp,
+      problemas,
+      plan
+    } = req.body;
 
     // 📌 Buscar el recibo relacionado
     const reciboResult = await pool.query(
@@ -432,19 +464,27 @@ app.post("/api/ordenes_medicas", async (req, res) => {
 
     const recibo = reciboResult.rows[0];
 
-    // 📌 Insertar la orden médica (procedimiento ahora es texto)
-    const result = await pool.query(
-      `INSERT INTO ordenes_medicas 
-       (expediente_id, folio_recibo, medico, diagnostico, lado, procedimiento, status, fecha)
-       VALUES ($1,$2,$3,$4,$5,$6,'Pendiente',NOW())
-       RETURNING *`,
+    // 📌 Insertar la orden médica con campos clínicos
+       const result = await pool.query(
+      `INSERT INTO ordenes_medicas (
+        expediente_id, folio_recibo, medico, diagnostico, lado, procedimiento, 
+        anexos, conjuntiva, cornea, camara_anterior, cristalino,
+        retina, macula, nervio_optico, ciclopejia, hora_tp,
+        problemas, plan, estatus, fecha
+      )
+      VALUES (
+        $1,$2,$3,$4,$5,$6,
+        $7,$8,$9,$10,$11,
+        $12,$13,$14,$15,$16,
+        $17,$18,'Pendiente',NOW()
+      )
+      RETURNING *`,
+
       [
-        expediente_id,
-        folio_recibo,
-        medico,
-        diagnostico,
-        lado,
-        recibo.procedimiento   // aquí ya entra como texto: "Consulta", "Cirugía de Catarata"
+        expediente_id, folio_recibo, medico, diagnostico, lado, recibo.procedimiento,
+        anexos, conjuntiva, cornea, camara_anterior, cristalino,
+        retina, macula, nervio_optico, ciclopejia, hora_tp,
+        problemas, plan
       ]
     );
 
@@ -455,37 +495,80 @@ app.post("/api/ordenes_medicas", async (req, res) => {
   }
 });
 
-// ==================== LISTAR PROCEDIMIENTOS ====================
-app.get("/api/procedimientos", async (req, res) => {
+
+// ==================== ÓRDENES POR EXPEDIENTE ====================
+app.get("/api/expedientes/:id/ordenes", async (req, res) => {
   try {
-    const result = await pool.query("SELECT id, nombre, precio FROM catalogo_procedimientos ORDER BY nombre");
+    const { id } = req.params;
+
+    const result = await pool.query(`
+      SELECT 
+        o.id AS numero_orden,
+        o.medico,
+        o.diagnostico,
+        o.lado,
+        o.procedimiento,
+        r.precio,
+        r.monto_pagado AS pagado,
+        r.pendiente,
+        o.estatus,
+        o.fecha,
+        -- 🔽 CAMPOS CLÍNICOS
+        o.anexos,
+        o.conjuntiva,
+        o.cornea,
+        o.camara_anterior,
+        o.cristalino,
+        o.retina,
+        o.macula,
+        o.nervio_optico,
+        o.ciclopejia,
+        o.hora_tp,
+        o.problemas,
+        o.plan
+      FROM ordenes_medicas o
+      JOIN recibos r ON r.id = o.folio_recibo
+      WHERE o.expediente_id = $1
+      ORDER BY o.fecha DESC
+    `, [id]);
+
     res.json(result.rows);
   } catch (err) {
-    console.error("Error al obtener procedimientos:", err);
+    console.error("Error en /api/expedientes/:id/ordenes:", err);
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // ==================== LISTAR TODAS LAS ÓRDENES ====================
 app.get("/api/ordenes_medicas", async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT 
-        o.id AS numero_orden,   -- usamos el ID como número de orden
+        o.id AS numero_orden,
         e.nombre_completo AS paciente, 
         o.medico, 
         o.diagnostico, 
         o.lado, 
         o.procedimiento,       
         r.precio,              
-        r.monto_pagado AS pagado,   -- pagado
-        r.pendiente,                -- pendiente
+        r.monto_pagado AS pagado,
+        r.pendiente,
+        o.estatus,
         o.fecha,
-        CASE 
-          WHEN o.status = 'Pagado' THEN 'Pagado'
-          WHEN r.pendiente = 0 THEN 'Pagado'
-          ELSE 'Pago Pendiente'
-        END AS status
+        -- 🔽 CAMPOS CLÍNICOS
+        o.anexos,
+        o.conjuntiva,
+        o.cornea,
+        o.camara_anterior,
+        o.cristalino,
+        o.retina,
+        o.macula,
+        o.nervio_optico,
+        o.ciclopejia,
+        o.hora_tp,
+        o.problemas,
+        o.plan
       FROM ordenes_medicas o
       JOIN recibos r ON r.id = o.folio_recibo
       JOIN expedientes e ON e.numero_expediente = o.expediente_id
@@ -499,74 +582,17 @@ app.get("/api/ordenes_medicas", async (req, res) => {
   }
 });
 
-// ==================== MARCAR ORDEN COMO PAGADA ====================
-app.put("/api/ordenes_medicas/:id/pagar", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const result = await pool.query(
-      `UPDATE ordenes_medicas 
-       SET status = 'Pagado' 
-       WHERE id = $1 
-       RETURNING *`,
-      [id]
-    );
-
-    if (result.rowCount === 0) {
-      return res.status(404).json({ error: "Orden no encontrada" });
-    }
-
-    res.json({ mensaje: "Orden pagada correctamente", orden: result.rows[0] });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ==================== ÓRDENES POR EXPEDIENTE ====================
-app.get("/api/expedientes/:id/ordenes", async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const result = await pool.query(`
-      SELECT 
-        o.id AS numero_orden,
-        o.medico,
-        o.diagnostico,
-        o.lado,
-        o.procedimiento,            -- texto directo
-        r.precio,                   -- precio viene del recibo
-        r.monto_pagado AS pagado,
-        r.pendiente,
-        o.status,
-        o.fecha
-      FROM ordenes_medicas o
-      JOIN recibos r ON r.id = o.folio_recibo
-      JOIN expedientes e ON o.expediente_id = e.numero_expediente
-      WHERE e.numero_expediente = $1
-      ORDER BY o.fecha DESC
-    `, [id]);
-
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Error en /api/expedientes/:id/ordenes:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ==================== LISTADO ÓRDENES MÉDICAS ====================
-app.get("/api/ordenes_medicas", async (req, res) => {
+// ==================== LISTAR PROCEDIMIENTOS ====================
+app.get("/api/procedimientos", async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT o.id, o.numero_orden, e.nombre as paciente, o.medico, 
-             o.diagnostico, o.lado, o.procedimiento, o.status, o.fecha,
-             r.precio, r.pagado, r.pendiente
-      FROM ordenes_medicas o
-      JOIN recibos r ON r.id = o.folio_recibo
-      JOIN expedientes e ON e.id = r.expediente_id
-      ORDER BY o.fecha DESC
+      SELECT id, nombre, precio 
+      FROM catalogo_procedimientos   -- 👈 corregido
+      ORDER BY id ASC
     `);
     res.json(result.rows);
   } catch (err) {
-    console.error("Error en /api/ordenes_medicas:", err);
+    console.error("Error en /api/procedimientos:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -598,7 +624,7 @@ app.post("/api/pagos", async (req, res) => {
     const orden = ordenResult.rows[0];
     let nuevoPagado = parseFloat(orden.monto_pagado) + parseFloat(monto);
 
-    // 2. Actualizar solo lo permitido
+    // 2. Actualizar el recibo
     await client.query(
       `UPDATE recibos 
        SET monto_pagado = $1, forma_pago = $2
@@ -606,7 +632,7 @@ app.post("/api/pagos", async (req, res) => {
       [nuevoPagado, forma_pago, orden.folio_recibo]
     );
 
-    // 3. Verificar si ya quedó en cero el pendiente (calculado automáticamente)
+    // 3. Verificar si ya quedó en cero el pendiente
     const checkRecibo = await client.query(
       `SELECT pendiente FROM recibos WHERE id = $1`,
       [orden.folio_recibo]
@@ -614,17 +640,22 @@ app.post("/api/pagos", async (req, res) => {
 
     const pendienteFinal = parseFloat(checkRecibo.rows[0].pendiente);
 
+    // ⚡️ CORREGIDO: usar "estatus" en lugar de "status"
     if (pendienteFinal === 0) {
       await client.query(
         `UPDATE ordenes_medicas 
-         SET status = 'Pagado'
+         SET estatus = 'Pagado'
          WHERE id = $1`,
         [orden_id]
       );
     }
 
     await client.query("COMMIT");
-    res.json({ message: "Pago registrado con éxito", pagado: nuevoPagado, pendiente: pendienteFinal });
+    res.json({
+      message: "Pago registrado con éxito",
+      pagado: nuevoPagado,
+      pendiente: pendienteFinal
+    });
 
   } catch (err) {
     await client.query("ROLLBACK");
@@ -634,6 +665,7 @@ app.post("/api/pagos", async (req, res) => {
     client.release();
   }
 });
+
 
 // ==================== CIERRE DE CAJA ====================
 
@@ -696,6 +728,175 @@ app.get("/api/listado-pacientes", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// ==================== MÓDULO OPTOMETRÍA ====================
+
+// Guardar nueva evaluación de optometría
+app.post("/api/optometria", async (req, res) => {
+  try {
+    const {
+      expediente_id,
+      esfera_od, cilindro_od, eje_od, avcc_od, adicion_od, avcc2_od,
+      esfera_oi, cilindro_oi, eje_oi, avcc_oi, adicion_oi, avcc2_oi,
+      bmp, bmp_od, bmp_oi, fo, fo_od, fo_oi
+    } = req.body;
+
+    const result = await pool.query(
+      `INSERT INTO optometria (
+        expediente_id, esfera_od, cilindro_od, eje_od, avcc_od, adicion_od, avcc2_od,
+        esfera_oi, cilindro_oi, eje_oi, avcc_oi, adicion_oi, avcc2_oi,
+        bmp, bmp_od, bmp_oi, fo, fo_od, fo_oi, fecha
+      )
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19, NOW())
+      RETURNING *`,
+      [
+        expediente_id,
+        esfera_od, cilindro_od, eje_od, avcc_od, adicion_od, avcc2_od,
+        esfera_oi, cilindro_oi, eje_oi, avcc_oi, adicion_oi, avcc2_oi,
+        bmp, bmp_od, bmp_oi, fo, fo_od, fo_oi
+      ]
+    );
+
+    res.json({ mensaje: "✅ Optometría guardada con éxito", data: result.rows[0] });
+  } catch (err) {
+    console.error("Error al guardar optometría:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Obtener todas las evaluaciones de optometría (con nombre de paciente)
+app.get("/api/optometria", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT o.*, e.nombre_completo AS nombre
+      FROM optometria o
+      JOIN expedientes e ON o.expediente_id = e.numero_expediente
+      ORDER BY o.fecha DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error en /api/optometria:", err);
+    res.status(500).json({ error: "Error al obtener registros de optometría" });
+  }
+});
+
+// Obtener las evaluaciones de optometría de un expediente específico
+app.get("/api/expedientes/:id/optometria", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(`
+      SELECT *
+      FROM optometria
+      WHERE expediente_id = $1
+      ORDER BY fecha DESC
+    `, [id]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error en /api/expedientes/:id/optometria:", err);
+    res.status(500).json({ error: "Error al obtener optometría del expediente" });
+  }
+});
+
+// Eliminar evaluación de optometría
+app.delete("/api/optometria/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query("DELETE FROM optometria WHERE id = $1", [id]);
+    res.json({ mensaje: "🗑️ Evaluación de optometría eliminada" });
+  } catch (err) {
+    console.error("Error al eliminar optometría:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ==================== MÓDULO INSUMOS ====================
+
+// Configuración de multer para guardar con nombre único
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, 'uploads')); // carpeta uploads
+  },
+  filename: function (req, file, cb) {
+    // agrega timestamp al nombre para evitar duplicados
+    const uniqueName = Date.now() + '-' + file.originalname;
+    cb(null, uniqueName);
+  }
+});
+
+const upload = multer({ storage });
+
+// Servir los archivos subidos para poder descargarlos
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// 1. Guardar insumo manual
+app.post('/api/insumos', async (req, res) => {
+  try {
+    const { fecha, medicamento, cantidad } = req.body;
+    const result = await pool.query(
+      'INSERT INTO insumos (fecha, nombre, cantidad) VALUES ($1, $2, $3) RETURNING *',
+      [fecha, medicamento, cantidad]
+    );
+    res.json({ mensaje: '✅ Insumo agregado', insumo: result.rows[0] });
+  } catch (err) {
+    console.error("Error al guardar insumo:", err);
+    res.status(500).json({ error: 'Error al guardar insumo' });
+  }
+});
+
+// 2. Listar insumos
+app.get('/api/insumos', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM insumos ORDER BY fecha ASC');
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error al obtener insumos:", err);
+    res.status(500).json({ error: 'Error al obtener insumos' });
+  }
+});
+
+// 3. Subir Excel
+app.post('/api/insumos/upload', upload.single('excelFile'), async (req, res) => {
+  try {
+    const workbook = xlsx.readFile(req.file.path);
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const data = xlsx.utils.sheet_to_json(sheet);
+
+    for (let row of data) {
+      // Convertir fecha si viene como número de Excel
+      let fecha = row.Fecha;
+      if (typeof fecha === "number") {
+        fecha = xlsx.SSF.format("yyyy-mm-dd", fecha);
+      }
+
+      await pool.query(
+        'INSERT INTO insumos (fecha, nombre, cantidad, archivo) VALUES ($1,$2,$3,$4)',
+        [fecha, row.Medicamento, row.Cantidad, req.file.filename]  // 👈 guarda el filename real
+      );
+    }
+
+    res.json({ mensaje: 'Excel procesado y guardado' });
+  } catch (err) {
+    console.error("Error procesando Excel:", err);
+    res.status(500).json({ error: 'Error procesando Excel' });
+  }
+});
+
+// 4. Eliminar insumo
+app.delete('/api/insumos/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query("DELETE FROM insumos WHERE id = $1", [id]);
+    res.json({ mensaje: "🗑️ Insumo eliminado correctamente" });
+  } catch (err) {
+    console.error("Error eliminando insumo:", err);
+    res.status(500).json({ error: "Error eliminando insumo" });
+  }
+});
+
+
+// Servir carpeta de uploads como pública
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 // ==================== LOGOUT ====================

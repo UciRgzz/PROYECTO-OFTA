@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Insumos Médicos</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f5ff; padding: 20px; color: #333; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    header { text-align: center; margin-bottom: 30px; padding: 15px; background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); color: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+    h1 { font-size: 2.2rem; margin-bottom: 10px; }
+    .description { font-size: 1.1rem; opacity: 0.9; }
+
+    .card { background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); margin-bottom: 30px; overflow: hidden; }
+    .card-header { background: #2c3e50; color: white; padding: 15px 20px; font-size: 1.2rem; font-weight: 600; display: flex; align-items: center; justify-content: space-between; }
+    .card-header i { margin-right: 10px; }
+    .card-body { padding: 20px; }
+    .form-group { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 15px; }
+    input, button { padding: 12px 15px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; }
+    input[type="date"], input[type="text"], input[type="number"] { flex: 1; min-width: 200px; }
+
+    .btn { cursor: pointer; font-weight: 600; transition: all 0.3s ease; border: none; }
+    .btn-add { background: #27ae60; color: white; }
+    .btn-add:hover { background: #219653; }
+    .btn-upload { background: #2980b9; color: white; display: flex; align-items: center; }
+    .btn-upload:hover { background: #2573a7; }
+    .btn-delete { background: #e74c3c; color: white; padding: 6px 12px; font-size: 0.9rem; }
+    .btn-delete:hover { background: #c0392b; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+    th { background-color: #f8f9fa; font-weight: 600; color: #2c3e50; }
+    tr:hover { background-color: #f9f9f9; }
+    .download-link { color: #2980b9; text-decoration: none; display: flex; align-items: center; gap: 5px; }
+    .download-link:hover { text-decoration: underline; }
+
+    .calendar-nav { display: flex; justify-content: space-between; align-items: center; margin: 20px 0; padding: 15px; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
+    .current-month { font-size: 1.5rem; font-weight: 600; color: #2c3e50; }
+    .nav-btn { background: #3498db; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .nav-btn:hover { background: #2980b9; }
+    .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; }
+    .day-header { padding: 15px; text-align: center; background: #2c3e50; color: white; font-weight: 600; border-radius: 6px; }
+    .calendar-day { background: white; border-radius: 8px; min-height: 120px; padding: 10px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05); display: flex; flex-direction: column; }
+    .day-number { font-weight: 600; margin-bottom: 8px; color: #2c3e50; font-size: 1.1rem; }
+    .medicamento-item { background: #e3f2fd; padding: 6px; margin-bottom: 6px; border-radius: 5px; border-left: 4px solid #2196f3; font-size: 0.85rem; }
+    .medicamento-name { font-weight: 600; color: #2c3e50; }
+    .medicamento-time { color: #7f8c8d; font-size: 0.8rem; margin-top: 2px; }
+    .empty-day { background: #f8f9fa; border-radius: 8px; min-height: 120px; display: flex; align-items: center; justify-content: center; color: #bdc3c7; font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Sistema de Gestión de Insumos Médicos</h1>
+      <p class="description">Agenda de medicamentos programados</p>
+    </header>
+
+    <!-- Registro -->
+    <div class="card">
+      <div class="card-header"><i class="fas fa-pills"></i> Pedido de Insumos Médicos</div>
+      <div class="card-body">
+        <form id="agendaForm">
+          <div class="form-group">
+            <input type="date" id="fechaInsumo" required>
+            <input type="text" id="medicamento" placeholder="Nombre del medicamento" required>
+            <input type="number" id="cantidad" placeholder="Cantidad" min="1" required>
+            <button type="submit" class="btn btn-add"><i class="fas fa-plus"></i> Agregar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Lista -->
+    <div class="card">
+      <div class="card-header">
+        <span><i class="fas fa-list-alt"></i> Lista de Insumos Pedidos</span>
+        <form id="uploadForm" enctype="multipart/form-data">
+          <input type="file" id="excelFile" name="excelFile" accept=".xls,.xlsx" style="display:none;">
+          <button type="button" class="btn btn-upload" onclick="document.getElementById('excelFile').click()">
+            <i class="fas fa-upload"></i> Subir Excel
+          </button>
+        </form>
+      </div>
+      <div class="card-body">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th><th>Medicamento</th><th>Cantidad</th><th>Archivo</th><th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tablaInsumos"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Calendario -->
+    <div class="card">
+      <div class="card-header"><i class="far fa-calendar-alt"></i> Agenda de Medicamentos</div>
+      <div class="card-body">
+        <div class="calendar-nav">
+          <button class="nav-btn" onclick="cambiarMes(-1)"><i class="fas fa-chevron-left"></i> Mes anterior</button>
+          <div class="current-month" id="mesActual"></div>
+          <button class="nav-btn" onclick="cambiarMes(1)">Mes siguiente <i class="fas fa-chevron-right"></i></button>
+        </div>
+        <div class="calendar" id="calendario"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let fechaActual = new Date();
+
+    document.addEventListener("DOMContentLoaded", () => {
+      cargarInsumos();
+      renderCalendar();
+    });
+
+    // Registrar insumo
+    document.getElementById("agendaForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const fecha = document.getElementById("fechaInsumo").value;
+      const medicamento = document.getElementById("medicamento").value;
+      const cantidad = document.getElementById("cantidad").value;
+      try {
+        const res = await fetch("/api/insumos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fecha, medicamento, cantidad })
+        });
+        const data = await res.json();
+        alert(data.mensaje || "Guardado");
+        cargarInsumos();
+        renderCalendar();
+        e.target.reset();
+      } catch (err) { console.error(err); }
+    });
+
+    // Subir Excel
+    document.getElementById("uploadForm").addEventListener("change", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(document.getElementById("uploadForm"));
+      try {
+        const res = await fetch("/api/insumos/upload", { method: "POST", body: formData });
+        const data = await res.json();
+        alert(data.mensaje || "Archivo subido");
+        cargarInsumos();
+        renderCalendar();
+      } catch (err) { console.error(err); }
+    });
+
+    // Listar insumos
+    async function cargarInsumos() {
+      const tabla = document.getElementById("tablaInsumos");
+      try {
+        const res = await fetch("/api/insumos");
+        const insumos = await res.json();
+        tabla.innerHTML = "";
+        insumos.forEach(i => {
+          tabla.innerHTML += `
+            <tr>
+              <td>${new Date(i.fecha).toLocaleDateString()}</td>
+              <td>${i.medicamento || i.nombre}</td>
+              <td>${i.cantidad}</td>
+              <td>${i.archivo ? `<a class="download-link" href="/uploads/${encodeURIComponent(i.archivo)}" download><i class="fas fa-download"></i> Descargar</a>` : "-"}</td>
+              <td><button class="btn btn-delete" onclick="eliminarInsumo(${i.id})"><i class="fas fa-trash"></i></button></td>
+            </tr>`;
+        });
+      } catch (err) { console.error(err); }
+    }
+
+    // Eliminar
+    async function eliminarInsumo(id) {
+      if (!confirm("¿Seguro que deseas eliminar este insumo?")) return;
+      try {
+        const res = await fetch(`/api/insumos/${id}`, { method: "DELETE" });
+        const data = await res.json();
+        alert(data.mensaje || "Eliminado");
+        cargarInsumos();
+        renderCalendar();
+      } catch (err) { console.error(err); }
+    }
+
+    // Calendario dinámico
+    async function renderCalendar() {
+      const calendario = document.getElementById("calendario");
+      const mesActual = document.getElementById("mesActual");
+
+      const year = fechaActual.getFullYear();
+      const month = fechaActual.getMonth();
+
+      mesActual.textContent = fechaActual.toLocaleString("es-ES", { month: "long", year: "numeric" });
+
+      const primerDia = new Date(year, month, 1).getDay() || 7;
+      const diasEnMes = new Date(year, month + 1, 0).getDate();
+
+      // Traer insumos
+      let insumos = [];
+      try {
+        const res = await fetch("/api/insumos");
+        insumos = await res.json();
+      } catch (err) { console.error(err); }
+
+      calendario.innerHTML = "";
+
+      // Encabezados
+      ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"].forEach(d => {
+        calendario.innerHTML += `<div class="day-header">${d}</div>`;
+      });
+
+      // Vacíos iniciales
+      for (let i = 1; i < primerDia; i++) {
+        calendario.innerHTML += `<div class="empty-day"></div>`;
+      }
+
+      // Días
+      for (let d = 1; d <= diasEnMes; d++) {
+        const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
+        const meds = insumos.filter(i => i.fecha.startsWith(fechaDia));
+
+        let contenido = `<div class="calendar-day"><div class="day-number">${d}</div>`;
+        if (meds.length > 0) {
+          meds.forEach(m => {
+            contenido += `
+              <div class="medicamento-item">
+                <div class="medicamento-name">${m.medicamento || m.nombre}</div>
+                <div class="medicamento-time">Cantidad: ${m.cantidad} unidades</div>
+              </div>`;
+          });
+        }
+        contenido += "</div>";
+        calendario.innerHTML += contenido;
+      }
+    }
+
+    function cambiarMes(offset) {
+      fechaActual.setMonth(fechaActual.getMonth() + offset);
+      renderCalendar();
+    }
+  </script>
+</body>
+</html>

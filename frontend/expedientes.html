@@ -14,12 +14,43 @@
         table { width: 100%; border-collapse: collapse; background: white; }
         th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
         th { background: #eee; }
-        button { padding: 6px 12px; cursor: pointer; border: none; border-radius: 4px; }
-        .btn-guardar { background: #4CAF50; color: white; }
-        .btn-editar { background: #2196F3; color: white; }
-        .btn-cancelar { background: #f44336; color: white; }
+        button { padding: 6px 12px; cursor: pointer; border: none; border-radius: 6px; transition: 0.3s; font-weight: 500; }
+
+        /* 🎨 Botones con paleta profesional */
+        .btn-guardar { background: #2e7d32; color: white; }       /* Verde corporativo */
+        .btn-guardar:hover { background: #1b5e20; }
+
+        .btn-editar { background: #1976d2; color: white; }        /* Azul profesional */
+        .btn-editar:hover { background: #0d47a1; }
+
+        .btn-cancelar { background: #6c757d; color: white; }      /* Gris oscuro elegante */
+        .btn-cancelar:hover { background: #495057; }
+
+        .btn-medico { background: #009688; color: white; }        /* Turquesa */
+        .btn-medico:hover { background: #00695c; }
+
+        .btn-opto { background: #6a1b9a; color: white; }          /* Morado elegante */
+        .btn-opto:hover { background: #4a148c; }
+
         #expedienteForm { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
         input, select { width: 100%; padding: 6px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; }
+
+        /* Modal */
+        #modalMedico {
+            display:none; 
+            position:fixed; 
+            top:5%; 
+            left:50%; 
+            transform:translateX(-50%); 
+            background:white; 
+            padding:20px; 
+            border:1px solid #ccc; 
+            border-radius:8px; 
+            width:80%; 
+            max-height:90%; 
+            overflow-y:auto; 
+            z-index:2000;
+        }
     </style>
 </head>
 <body>
@@ -29,7 +60,7 @@
         <!-- Barra búsqueda -->
         <div class="top-bar">
             <div class="search-section">
-                <input type="text" id="buscarInput" placeholder="Buscar por número de expediente...">
+                <input type="text" id="buscarInput" placeholder="Buscar por número de expediente o nombre...">
                 <button onclick="buscarExpediente()">Buscar</button>
             </div>
             <button onclick="nuevoExpediente()">Nuevo Expediente</button>
@@ -92,6 +123,13 @@
         </table>
     </div>
 
+    <!-- Modal -->
+    <div id="modalMedico">
+        <h3 id="modalTitulo"></h3>
+        <div id="modalContenido"></div>
+        <button onclick="cerrarModal()" class="btn-cancelar mt-2">Cerrar</button>
+    </div>
+
 <script>
 async function cargarExpedientes() {
     const res = await fetch('/api/expedientes');
@@ -112,6 +150,8 @@ async function cargarExpedientes() {
                 <td>${exp.telefono2 || ''}</td>
                 <td>
                     <button class="btn-editar" onclick="editarExpediente(${exp.numero_expediente})">Editar</button>
+                    <button class="btn-medico" onclick="verMedico(${exp.numero_expediente}, '${exp.nombre_completo}')">Médico</button>
+                    <button class="btn-opto" onclick="verOptometria(${exp.numero_expediente}, '${exp.nombre_completo}')">Optometría</button>
                 </td>
             </tr>
         `;
@@ -209,12 +249,86 @@ async function buscarExpediente() {
                 <td>${data.telefono2 || ''}</td>
                 <td>
                     <button class="btn-editar" onclick="editarExpediente(${data.numero_expediente})">Editar</button>
+                    <button class="btn-medico" onclick="verMedico(${data.numero_expediente}, '${data.nombre_completo}')">Médico</button>
+                    <button class="btn-opto" onclick="verOptometria(${data.numero_expediente}, '${data.nombre_completo}')">Optometría</button>
                 </td>
             </tr>
         `;
     } else {
         document.getElementById('listaExpedientes').innerHTML = `<tr><td colspan="9">No encontrado</td></tr>`;
     }
+}
+
+// === VER ORDENES MÉDICAS ===
+async function verMedico(expedienteId, nombre) {
+    const res = await fetch(`/api/expedientes/${expedienteId}/ordenes`);
+    const data = await res.json();
+
+    if (!data.length) {
+        alert("❌ No hay órdenes médicas registradas para este expediente.");
+        return;
+    }
+
+    let contenido = "";
+    data.forEach((orden, idx) => {
+        contenido += `
+        <h4 class="mt-3">Orden #${orden.numero_orden} ${idx === 0 ? '(Más reciente)' : ''}</h4>
+        <table class="table table-bordered">
+            <tr><th>Médico</th><td>${orden.medico}</td></tr>
+            <tr><th>Diagnóstico</th><td>${orden.diagnostico}</td></tr>
+            <tr><th>Lado</th><td>${orden.lado}</td></tr>
+            <tr><th>Procedimiento</th><td>${orden.procedimiento}</td></tr>
+            <tr><th>Precio</th><td>$${orden.precio || ''}</td></tr>
+            <tr><th>Estatus</th><td>${orden.estatus}</td></tr>
+            <tr><th>Fecha</th><td>${new Date(orden.fecha).toLocaleString()}</td></tr>
+        </table>
+        <hr/>
+        `;
+    });
+
+    document.getElementById("modalTitulo").innerText = `Órdenes de ${nombre} (Expediente ${expedienteId})`;
+    document.getElementById("modalContenido").innerHTML = contenido;
+    document.getElementById("modalMedico").style.display = "block";
+}
+
+// === VER OPTOMETRÍA ===
+async function verOptometria(expedienteId, nombre) {
+    const res = await fetch(`/api/expedientes/${expedienteId}/optometria`);
+    const data = await res.json();
+
+    if (!data.length) {
+        alert("❌ No hay evaluaciones de optometría registradas para este expediente.");
+        return;
+    }
+
+    let contenido = "";
+    data.forEach((opto, idx) => {
+        contenido += `
+        <h4 class="mt-3">Evaluación #${opto.id} ${idx === 0 ? '(Más reciente)' : ''}</h4>
+        <table class="table table-bordered">
+            <tr><th>OD Esfera</th><td>${opto.esfera_od || ''}</td></tr>
+            <tr><th>OD Cilindro</th><td>${opto.cilindro_od || ''}</td></tr>
+            <tr><th>OD Eje</th><td>${opto.eje_od || ''}</td></tr>
+            <tr><th>OD AVcC</th><td>${opto.avcc_od || ''}</td></tr>
+            <tr><th>OI Esfera</th><td>${opto.esfera_oi || ''}</td></tr>
+            <tr><th>OI Cilindro</th><td>${opto.cilindro_oi || ''}</td></tr>
+            <tr><th>OI Eje</th><td>${opto.eje_oi || ''}</td></tr>
+            <tr><th>OI AVcC</th><td>${opto.avcc_oi || ''}</td></tr>
+            <tr><th>BMP</th><td>${opto.bmp || ''}</td></tr>
+            <tr><th>F.O</th><td>${opto.fo || ''}</td></tr>
+            <tr><th>Fecha</th><td>${new Date(opto.fecha).toLocaleString()}</td></tr>
+        </table>
+        <hr/>
+        `;
+    });
+
+    document.getElementById("modalTitulo").innerText = `Optometría de ${nombre} (Expediente ${expedienteId})`;
+    document.getElementById("modalContenido").innerHTML = contenido;
+    document.getElementById("modalMedico").style.display = "block";
+}
+
+function cerrarModal() {
+    document.getElementById("modalMedico").style.display = "none";
 }
 
 cargarExpedientes();
