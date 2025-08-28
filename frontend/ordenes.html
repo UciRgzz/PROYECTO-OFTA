@@ -23,6 +23,8 @@
     .badge { padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; }
     .badge.bg-success { background: #27ae60 !important; }
     .badge.bg-warning { background: #f39c12 !important; color: #fff !important; }
+    .badge.bg-info { background: #3498db !important; color: #fff !important; }
+    .badge.bg-danger { background: #e74c3c !important; color: #fff !important; }
 
     /* Modal */
     .modal-content { border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
@@ -53,12 +55,13 @@
               <th>Diagnóstico</th>
               <th>Lado</th>
               <th>Procedimiento</th>
+              <th>Tipo</th>
               <th>Precio</th>
               <th>Pagado</th>
               <th>Pendiente</th>
               <th>Estatus</th>
               <th>Fecha</th>
-              <th>Acciones</th>
+              <th>Acción</th>
             </tr>
           </thead>
           <tbody id="tablaOrdenes"></tbody>
@@ -120,6 +123,11 @@
             <td>${o.diagnostico}</td>
             <td>${o.lado}</td>
             <td>${o.procedimiento}</td>
+            <td>
+              ${o.tipo === "Especial" 
+                ? `<span class="badge bg-danger">Especial</span>` 
+                : `<span class="badge bg-info">Normal</span>`}
+            </td>
             <td>$${parseFloat(o.precio).toFixed(2)}</td>
             <td>$${parseFloat(o.pagado).toFixed(2)}</td>
             <td>$${parseFloat(o.pendiente).toFixed(2)}</td>

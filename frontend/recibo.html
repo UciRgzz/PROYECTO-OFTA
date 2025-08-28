@@ -28,6 +28,7 @@
     .badge.bg-info { background: #3498db !important; }
     .badge.bg-success { background: #27ae60 !important; }
     .badge.bg-warning { background: #f39c12 !important; color: #fff !important; }
+    .badge.bg-danger { background: #e74c3c !important; }
   </style>
 </head>
 <body>
@@ -55,6 +56,16 @@
             <label class="form-label">Nombre del Paciente:</label>
             <input type="text" id="nombrePaciente" class="form-control" readonly>
           </div>
+
+          <!-- Tipo de Recibo -->
+          <div class="col-md-4">
+            <label class="form-label">Tipo de Recibo:</label>
+            <select id="tipoRecibo" class="form-select" required>
+              <option value="Normal">Atención Médica</option>
+              <option value="Especial">Consulta Especial</option>
+            </select>
+          </div>
+
           <div class="col-md-4">
             <label class="form-label">Procedimiento:</label>
             <select id="procedimiento" class="form-select" required>
@@ -63,10 +74,13 @@
               <option value="Cirugía">Cirugía</option>
             </select>
           </div>
-          <div class="col-md-4">
+
+          <!-- Precio normal o catálogo dinámico -->
+          <div class="col-md-4" id="precioContainer">
             <label class="form-label">Precio (Total):</label>
             <input type="number" id="precio" class="form-control" step="0.01" required>
           </div>
+
           <div class="col-md-4">
             <label class="form-label">Forma de Pago:</label>
             <select id="forma_pago" class="form-select" required>
@@ -100,6 +114,7 @@
               <th>Folio</th>
               <th>Paciente</th>
               <th>Procedimiento</th>
+              <th>Tipo</th>
               <th>Forma de Pago</th>
               <th>Monto Pagado</th>
               <th>Precio</th>
@@ -116,6 +131,36 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     let pacienteId = null;
+    let catalogo = [];
+
+    // Cargar catálogo de procedimientos
+    async function cargarCatalogo() {
+      const res = await fetch("http://localhost:3000/api/procedimientos");
+      catalogo = await res.json();
+    }
+    cargarCatalogo();
+
+    // Cambiar entre Atención Médica y Consulta Especial
+    document.getElementById("tipoRecibo").addEventListener("change", () => {
+      const tipo = document.getElementById("tipoRecibo").value;
+      const container = document.getElementById("precioContainer");
+
+      if (tipo === "Especial") {
+        // Select con catálogo
+        container.innerHTML = `
+          <label class="form-label">Precio (Catálogo):</label>
+          <select id="precio" class="form-select" required>
+            ${catalogo.map(c => `<option value="${c.precio}">${c.nombre} - $${c.precio}</option>`).join("")}
+          </select>
+        `;
+      } else {
+        // Campo manual
+        container.innerHTML = `
+          <label class="form-label">Precio (Total):</label>
+          <input type="number" id="precio" class="form-control" step="0.01" required>
+        `;
+      }
+    });
 
     document.getElementById("folio").addEventListener("input", async () => {
       const folio = document.getElementById("folio").value;
@@ -150,7 +195,8 @@
         procedimiento: this.procedimiento.value,
         precio: this.precio.value,
         forma_pago: this.forma_pago.value,
-        monto_pagado: this.monto_pagado.value
+        monto_pagado: this.monto_pagado.value,
+        tipo: this.tipoRecibo.value
       };
       const res = await fetch('http://localhost:3000/api/recibos', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos)
@@ -189,6 +235,7 @@
           <td>${r.folio}</td>
           <td>${r.paciente}</td>
           <td>${r.procedimiento}</td>
+          <td>${r.tipo === "Especial" ? '<span class="badge bg-danger">Especial</span>' : '<span class="badge bg-info">Normal</span>'}</td>
           <td>${r.forma_pago}</td>
           <td><span class="badge bg-info">$${parseFloat(r.monto_pagado).toFixed(2)}</span></td>
           <td><span class="badge bg-success">$${parseFloat(r.precio).toFixed(2)}</span></td>

@@ -330,13 +330,13 @@ app.get('/api/pacientes', async (req, res) => {
 
 // Guardar recibo
 app.post('/api/recibos', verificarSesion, async (req, res) => {
-    const { fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado } = req.body;
+    const { fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo } = req.body;
 
     try {
         const result = await pool.query(
-            `INSERT INTO recibos (fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-            [fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado]
+            `INSERT INTO recibos (fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+            [fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo]
         );
 
         res.json({ mensaje: "Recibo guardado correctamente", recibo: result.rows[0] });
@@ -351,7 +351,8 @@ app.get('/api/recibos', verificarSesion, async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT r.id, r.fecha, r.folio, e.nombre_completo AS paciente,
-                   r.procedimiento, r.forma_pago, r.monto_pagado, r.precio, r.pendiente
+                   r.procedimiento, r.tipo, r.forma_pago, r.monto_pagado, r.precio, 
+                   (r.precio - r.monto_pagado) AS pendiente
             FROM recibos r
             JOIN expedientes e ON r.paciente_id = e.numero_expediente
             ORDER BY r.fecha DESC
@@ -363,9 +364,8 @@ app.get('/api/recibos', verificarSesion, async (req, res) => {
     }
 });
 
-
 // Eliminar recibo
-app.delete('/api/recibos/:id', async (req, res) => {
+app.delete('/api/recibos/:id', verificarSesion, async (req, res) => {
     try {
         const { id } = req.params;
         await pool.query('DELETE FROM recibos WHERE id = $1', [id]);
@@ -375,6 +375,7 @@ app.delete('/api/recibos/:id', async (req, res) => {
         res.status(500).json({ error: "Error eliminando recibo" });
     }
 });
+
 
 // ==================== BUSCAR PACIENTE POR FOLIO ====================
 app.get('/api/recibos/paciente/:folio', async (req, res) => {
@@ -439,20 +440,20 @@ app.post("/api/ordenes_medicas", async (req, res) => {
       anexos,
       conjuntiva,
       cornea,
-      camara_anterior,   
+      camara_anterior,
       cristalino,
       retina,
       macula,
-      nervio_optico,     
+      nervio_optico,
       ciclopejia,
       hora_tp,
       problemas,
       plan
     } = req.body;
 
-    // 📌 Buscar el recibo relacionado
+    // 📌 Buscar el recibo relacionado y traer también el paciente_id
     const reciboResult = await pool.query(
-      `SELECT procedimiento, precio, monto_pagado, pendiente 
+      `SELECT procedimiento, precio, monto_pagado, pendiente, tipo, paciente_id 
        FROM recibos 
        WHERE id = $1`,
       [folio_recibo]
@@ -464,24 +465,25 @@ app.post("/api/ordenes_medicas", async (req, res) => {
 
     const recibo = reciboResult.rows[0];
 
-    // 📌 Insertar la orden médica con campos clínicos
-       const result = await pool.query(
+    // 📌 Insertar la orden médica usando el expediente_id correcto
+    const result = await pool.query(
       `INSERT INTO ordenes_medicas (
-        expediente_id, folio_recibo, medico, diagnostico, lado, procedimiento, 
+        expediente_id, folio_recibo, medico, diagnostico, lado, procedimiento, tipo,
         anexos, conjuntiva, cornea, camara_anterior, cristalino,
         retina, macula, nervio_optico, ciclopejia, hora_tp,
         problemas, plan, estatus, fecha
       )
       VALUES (
-        $1,$2,$3,$4,$5,$6,
-        $7,$8,$9,$10,$11,
-        $12,$13,$14,$15,$16,
-        $17,$18,'Pendiente',NOW()
+        $1,$2,$3,$4,$5,$6,$7,
+        $8,$9,$10,$11,$12,
+        $13,$14,$15,$16,$17,
+        $18,$19,'Pendiente',NOW()
       )
       RETURNING *`,
-
       [
-        expediente_id, folio_recibo, medico, diagnostico, lado, recibo.procedimiento,
+        recibo.paciente_id,  // 👈 aquí forzamos que siempre se guarde el id del expediente/paciente
+        folio_recibo, medico, diagnostico, lado,
+        recibo.procedimiento, recibo.tipo,
         anexos, conjuntiva, cornea, camara_anterior, cristalino,
         retina, macula, nervio_optico, ciclopejia, hora_tp,
         problemas, plan
@@ -544,35 +546,36 @@ app.get("/api/expedientes/:id/ordenes", async (req, res) => {
 app.get("/api/ordenes_medicas", async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT 
-        o.id AS numero_orden,
-        e.nombre_completo AS paciente, 
-        o.medico, 
-        o.diagnostico, 
-        o.lado, 
-        o.procedimiento,       
-        r.precio,              
-        r.monto_pagado AS pagado,
-        r.pendiente,
-        o.estatus,
-        o.fecha,
-        -- 🔽 CAMPOS CLÍNICOS
-        o.anexos,
-        o.conjuntiva,
-        o.cornea,
-        o.camara_anterior,
-        o.cristalino,
-        o.retina,
-        o.macula,
-        o.nervio_optico,
-        o.ciclopejia,
-        o.hora_tp,
-        o.problemas,
-        o.plan
-      FROM ordenes_medicas o
-      JOIN recibos r ON r.id = o.folio_recibo
-      JOIN expedientes e ON e.numero_expediente = o.expediente_id
-      ORDER BY o.fecha DESC
+          SELECT 
+      o.expediente_id AS numero_orden,  -- 👈 Ahora usamos el id del expediente
+      e.nombre_completo AS paciente, 
+      o.medico, 
+      o.diagnostico, 
+      o.lado, 
+      o.procedimiento, 
+      o.tipo,
+      r.precio,              
+      r.monto_pagado AS pagado,
+      r.pendiente,
+      o.estatus,
+      o.fecha,
+      -- 🔽 CAMPOS CLÍNICOS
+      o.anexos,
+      o.conjuntiva,
+      o.cornea,
+      o.camara_anterior,
+      o.cristalino,
+      o.retina,
+      o.macula,
+      o.nervio_optico,
+      o.ciclopejia,
+      o.hora_tp,
+      o.problemas,
+      o.plan
+    FROM ordenes_medicas o
+    JOIN recibos r ON r.id = o.folio_recibo
+    JOIN expedientes e ON e.numero_expediente = o.expediente_id
+    ORDER BY o.fecha DESC
     `);
 
     res.json(result.rows);
@@ -581,6 +584,7 @@ app.get("/api/ordenes_medicas", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // ==================== LISTAR PROCEDIMIENTOS ====================
 app.get("/api/procedimientos", async (req, res) => {
@@ -596,9 +600,22 @@ app.get("/api/procedimientos", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// ==================== PROCEDIMIENTOS ESPECIALES ====================
+app.get('/api/procedimientos-especiales', verificarSesion, async (req, res) => {
+    try {
+        const result = await pool.query(
+            "SELECT id, nombre, precio FROM catalogo_procedimientos ORDER BY id ASC"
+        );
+        res.json(result.rows);
+    } catch (err) {
+        console.error("Error al obtener procedimientos especiales:", err);
+        res.status(500).json({ error: "Error al obtener procedimientos especiales" });
+    }
+});
+
+
 
 // ==================== PAGOS ====================
-
 // Registrar un pago para una orden
 app.post("/api/pagos", async (req, res) => {
   const client = await pool.connect();

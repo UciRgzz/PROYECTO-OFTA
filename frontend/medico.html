@@ -27,6 +27,9 @@
     .btn-primary { background: #3498db; border: none; }
     .btn-primary:hover { background: #2980b9; }
 
+    .btn-warning { color: #fff; border: none; }
+    .btn-warning:hover { background: #d39e00; }
+
     /* Modal */
     .modal-content { border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
     .modal-header { background: #2c3e50; color: white; border-radius: 10px 10px 0 0; }
@@ -34,9 +37,15 @@
     .btn-success { background: #27ae60; border: none; }
     .btn-success:hover { background: #219653; }
 
-    /* Fix selects en modal */
     .modal, .modal-dialog, .modal-content { overflow: visible !important; }
     select.form-select { z-index: 2000 !important; position: relative; }
+
+    /* Fix para que los dropdown se muestren encima del modal */
+    .modal-open .modal .dropdown-menu,
+    .modal-open .modal select {
+      z-index: 9999 !important;
+      position: relative !important;
+    }
   </style>
 </head>
 <body>
@@ -137,8 +146,14 @@
             </div>
 
             <div class="row mt-3">
-              <div class="col-md-6"><label>Ciclopejía</label><input type="text" id="ciclopejia" class="form-control"></div>
-              <div class="col-md-6"><label>Hora T.P.</label><input type="time" id="hora_tp" class="form-control"></div>
+              <div class="col-md-6">
+                <label>Cicloplejia</label>
+                <input type="text" id="cicloplejia" class="form-control">
+              </div>
+              <div class="col-md-6">
+                <label>Hora T.P.</label>
+                <input type="time" id="hora_tp" class="form-control">
+              </div>
             </div>
             <div class="mt-3">
               <label>Plan</label>
@@ -170,7 +185,14 @@
             <td>${exp.edad}</td>
             <td>${exp.padecimientos}</td>
             <td><b>${exp.procedimiento}</b></td>
-            <td><button class="btn btn-primary btn-sm" onclick="abrirOrden(${exp.expediente_id}, ${exp.recibo_id})"><i class="fas fa-stethoscope"></i> Atender</button></td>
+            <td>
+              <button class="btn btn-primary btn-sm" onclick="abrirOrden(${exp.expediente_id}, ${exp.recibo_id})">
+                <i class="fas fa-stethoscope"></i> Atención Médica
+              </button>
+              <button class="btn btn-warning btn-sm" onclick="abrirConsultaEspecial(${exp.expediente_id}, ${exp.recibo_id})">
+                <i class="fas fa-star"></i> Consulta Especial
+              </button>
+            </td>
           </tr>`;
       });
     }
@@ -185,10 +207,27 @@
       });
     }
 
+    async function cargarProcedimientosEspeciales() {
+      const res = await fetch('/api/procedimientos-especiales');
+      const data = await res.json();
+      const select = document.getElementById('procedimiento_id');
+      select.innerHTML = '';
+      data.forEach(proc => {
+        select.innerHTML += `<option value="${proc.id}">${proc.nombre} — $${proc.precio}</option>`;
+      });
+    }
+
     function abrirOrden(expediente_id, recibo_id) {
       document.getElementById('expediente_id').value = expediente_id;
       document.getElementById('folio_recibo').value = recibo_id;
       cargarProcedimientos();
+      new bootstrap.Modal(document.getElementById('modalOrden')).show();
+    }
+
+    function abrirConsultaEspecial(expediente_id, recibo_id) {
+      document.getElementById('expediente_id').value = expediente_id;
+      document.getElementById('folio_recibo').value = recibo_id;
+      cargarProcedimientosEspeciales();
       new bootstrap.Modal(document.getElementById('modalOrden')).show();
     }
 
@@ -210,7 +249,7 @@
         retina: document.getElementById('retina').value,
         macula: document.getElementById('macula').value,
         nervio_optico: document.getElementById('nervio_optico').value,
-        ciclopejia: document.getElementById('ciclopejia').value,
+        cicloplejia: document.getElementById('cicloplejia').value,
         hora_tp: document.getElementById('hora_tp').value,
         problemas: problemasSeleccionados,
         plan: document.getElementById('plan').value
