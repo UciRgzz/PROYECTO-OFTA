@@ -148,13 +148,22 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   
   <script>
-  // Sesión
+  // Sesión (Inicio)
   fetch('/api/check-session')
     .then(res => res.ok ? res.json() : Promise.reject())
     .then(data => {
       if (data.usuario) {
-        document.getElementById('main-content').innerHTML =
-          `<h1>Bienvenido al sistema Oftavisión</h1><p>Selecciona una opción del menú.</p>`;
+        document.getElementById('main-content').innerHTML = `
+          <div style="text-align:center; margin-top:40px;">
+            <h1>Bienvenido</h1>
+            <p>Selecciona una opción del menú.</p>
+            <div style="margin-top:80px; xtext-align:left;">
+              <img src="../uploads/logo-oftavision.png" 
+                  alt="Instituto Oftavisión" 
+                  style="max-width:900px; display:block; margin:0 auto;">
+            </div>
+          </div>
+        `;
       }
     })
     .catch(() => window.location.href = '/login/login.html');
@@ -165,7 +174,7 @@
     const paginas = {
       recibo: "/frontend/recibo.html",
       cierre: "/frontend/cierre-caja.html",
-      expedientes: null,
+      expedientes: "/frontend/expedientes.html",
       medico: "/frontend/medico.html",
       ordenes: "/frontend/ordenes.html",
       optometria: "/frontend/optometria.html",

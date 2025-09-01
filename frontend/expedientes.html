@@ -5,9 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Expedientes</title>
     <link rel="stylesheet" href="styles.css">
+
+    <!-- FontAwesome para íconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
         body { font-family: Arial, sans-serif; background: #f4f4f4; }
         .container { padding: 20px; max-width: 1200px; margin: auto; }
+
+        /* Encabezado estilo optometría */
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: linear-gradient(135deg,#2c3e50 0%,#3498db 100%);
+            color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        header h1 { margin: 0; font-size: 2rem; }
+
         .top-bar { display: flex; justify-content: space-between; margin-bottom: 20px; }
         .search-section { display: flex; gap: 5px; }
         .search-section input { padding: 5px; border: 1px solid #ccc; border-radius: 4px; }
@@ -17,45 +34,58 @@
         button { padding: 6px 12px; cursor: pointer; border: none; border-radius: 6px; transition: 0.3s; font-weight: 500; }
 
         /* 🎨 Botones con paleta profesional */
-        .btn-guardar { background: #2e7d32; color: white; }       /* Verde corporativo */
+        .btn-guardar { background: #2e7d32; color: white; }
         .btn-guardar:hover { background: #1b5e20; }
 
-        .btn-editar { background: #1976d2; color: white; }        /* Azul profesional */
+        .btn-editar { background: #1976d2; color: white; }
         .btn-editar:hover { background: #0d47a1; }
 
-        .btn-cancelar { background: #6c757d; color: white; }      /* Gris oscuro elegante */
+        .btn-cancelar { background: #6c757d; color: white; }
         .btn-cancelar:hover { background: #495057; }
 
-        .btn-medico { background: #009688; color: white; }        /* Turquesa */
+        .btn-medico { background: #009688; color: white; }
         .btn-medico:hover { background: #00695c; }
 
-        .btn-opto { background: #6a1b9a; color: white; }          /* Morado elegante */
+        .btn-opto { background: #6a1b9a; color: white; }
         .btn-opto:hover { background: #4a148c; }
 
-        #expedienteForm { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-        input, select { width: 100%; padding: 6px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        #expedienteForm {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        input, select {
+            width: 100%;
+            padding: 6px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
 
         /* Modal */
         #modalMedico {
-            display:none; 
-            position:fixed; 
-            top:5%; 
-            left:50%; 
-            transform:translateX(-50%); 
-            background:white; 
-            padding:20px; 
-            border:1px solid #ccc; 
-            border-radius:8px; 
-            width:80%; 
-            max-height:90%; 
-            overflow-y:auto; 
+            display:none;
+            position:fixed;
+            top:5%;
+            left:50%;
+            transform:translateX(-50%);
+            background:white;
+            padding:20px;
+            border:1px solid #ccc;
+            border-radius:8px;
+            width:80%;
+            max-height:90%;
+            overflow-y:auto;
             z-index:2000;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Gestión de Expedientes</h1>
+        <header>
+            <h1><i class="fas fa-folder"></i> Gestión de Expedientes</h1>
+        </header>
 
         <!-- Barra búsqueda -->
         <div class="top-bar">

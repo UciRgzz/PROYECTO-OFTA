@@ -189,9 +189,6 @@
               <button class="btn btn-primary btn-sm" onclick="abrirOrden(${exp.expediente_id}, ${exp.recibo_id})">
                 <i class="fas fa-stethoscope"></i> Atención Médica
               </button>
-              <button class="btn btn-warning btn-sm" onclick="abrirConsultaEspecial(${exp.expediente_id}, ${exp.recibo_id})">
-                <i class="fas fa-star"></i> Consulta Especial
-              </button>
             </td>
           </tr>`;
       });
@@ -207,27 +204,10 @@
       });
     }
 
-    async function cargarProcedimientosEspeciales() {
-      const res = await fetch('/api/procedimientos-especiales');
-      const data = await res.json();
-      const select = document.getElementById('procedimiento_id');
-      select.innerHTML = '';
-      data.forEach(proc => {
-        select.innerHTML += `<option value="${proc.id}">${proc.nombre} — $${proc.precio}</option>`;
-      });
-    }
-
     function abrirOrden(expediente_id, recibo_id) {
       document.getElementById('expediente_id').value = expediente_id;
       document.getElementById('folio_recibo').value = recibo_id;
       cargarProcedimientos();
-      new bootstrap.Modal(document.getElementById('modalOrden')).show();
-    }
-
-    function abrirConsultaEspecial(expediente_id, recibo_id) {
-      document.getElementById('expediente_id').value = expediente_id;
-      document.getElementById('folio_recibo').value = recibo_id;
-      cargarProcedimientosEspeciales();
       new bootstrap.Modal(document.getElementById('modalOrden')).show();
     }
 

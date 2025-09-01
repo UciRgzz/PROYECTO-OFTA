@@ -123,11 +123,7 @@
             <td>${o.diagnostico}</td>
             <td>${o.lado}</td>
             <td>${o.procedimiento}</td>
-            <td>
-              ${o.tipo === "Especial" 
-                ? `<span class="badge bg-danger">Especial</span>` 
-                : `<span class="badge bg-info">Normal</span>`}
-            </td>
+            <td><span class="badge bg-info">Normal</span></td>
             <td>$${parseFloat(o.precio).toFixed(2)}</td>
             <td>$${parseFloat(o.pagado).toFixed(2)}</td>
             <td>$${parseFloat(o.pendiente).toFixed(2)}</td>

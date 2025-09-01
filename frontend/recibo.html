@@ -62,7 +62,6 @@
             <label class="form-label">Tipo de Recibo:</label>
             <select id="tipoRecibo" class="form-select" required>
               <option value="Normal">Atención Médica</option>
-              <option value="Especial">Consulta Especial</option>
             </select>
           </div>
 
@@ -76,10 +75,11 @@
           </div>
 
           <!-- Precio normal o catálogo dinámico -->
-          <div class="col-md-4" id="precioContainer">
-            <label class="form-label">Precio (Total):</label>
-            <input type="number" id="precio" class="form-control" step="0.01" required>
+         <div class="col-md-4" id="precioContainer">
+            <label class="form-label">Procedimiento y Precio:</label>
+            <select id="precio" class="form-select" required></select>
           </div>
+
 
           <div class="col-md-4">
             <label class="form-label">Forma de Pago:</label>
@@ -135,32 +135,15 @@
 
     // Cargar catálogo de procedimientos
     async function cargarCatalogo() {
-      const res = await fetch("http://localhost:3000/api/procedimientos");
-      catalogo = await res.json();
-    }
+  const res = await fetch("http://localhost:3000/api/procedimientos");
+  catalogo = await res.json();
+  const select = document.getElementById("precio");
+  select.innerHTML = catalogo.map(c => 
+    `<option value="${c.precio}">${c.nombre} — $${c.precio}</option>`
+  ).join("");
+}
+
     cargarCatalogo();
-
-    // Cambiar entre Atención Médica y Consulta Especial
-    document.getElementById("tipoRecibo").addEventListener("change", () => {
-      const tipo = document.getElementById("tipoRecibo").value;
-      const container = document.getElementById("precioContainer");
-
-      if (tipo === "Especial") {
-        // Select con catálogo
-        container.innerHTML = `
-          <label class="form-label">Precio (Catálogo):</label>
-          <select id="precio" class="form-select" required>
-            ${catalogo.map(c => `<option value="${c.precio}">${c.nombre} - $${c.precio}</option>`).join("")}
-          </select>
-        `;
-      } else {
-        // Campo manual
-        container.innerHTML = `
-          <label class="form-label">Precio (Total):</label>
-          <input type="number" id="precio" class="form-control" step="0.01" required>
-        `;
-      }
-    });
 
     document.getElementById("folio").addEventListener("input", async () => {
       const folio = document.getElementById("folio").value;
@@ -235,7 +218,7 @@
           <td>${r.folio}</td>
           <td>${r.paciente}</td>
           <td>${r.procedimiento}</td>
-          <td>${r.tipo === "Especial" ? '<span class="badge bg-danger">Especial</span>' : '<span class="badge bg-info">Normal</span>'}</td>
+          <td><span class="badge bg-info">Normal</span></td>
           <td>${r.forma_pago}</td>
           <td><span class="badge bg-info">$${parseFloat(r.monto_pagado).toFixed(2)}</span></td>
           <td><span class="badge bg-success">$${parseFloat(r.precio).toFixed(2)}</span></td>
