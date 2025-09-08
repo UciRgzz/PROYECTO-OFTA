@@ -37,13 +37,21 @@ app.use(session({
     }
 }));
 
-// PostgreSQL
+/*// PostgreSQL
 const pool = new Pool({
     user: 'postgres',
     host: 'localhost',
     database: 'Optavision',
     password: '12345',
     port: 5432
+});*/
+
+const pool = new Pool({
+  user: 'optauser',
+  host: 'localhost',
+  database: 'optadb',
+  password: '12345',
+  port: 5432,
 });
 
 
