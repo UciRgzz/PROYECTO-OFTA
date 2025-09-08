@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestión de Usuarios</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+</head>
+<body class="container mt-5">
+  <h2>Administrar Usuarios</h2>
+
+  <!-- Formulario para crear usuario -->
+  <form id="addUserForm" class="mb-4">
+    <div class="mb-3">
+      <label for="nomina" class="form-label">Nómina</label>
+      <input type="text" class="form-control" id="nomina" required>
+    </div>
+    <div class="mb-3">
+      <label for="username" class="form-label">Usuario</label>
+      <input type="text" class="form-control" id="username" required>
+    </div>
+    <div class="mb-3">
+      <label for="password" class="form-label">Contraseña</label>
+      <input type="password" class="form-control" id="password" required>
+    </div>
+    <div class="mb-3">
+      <label for="rol" class="form-label">Rol</label>
+      <select class="form-control" id="rol" required>
+        <option value="usuario">Usuario</option>
+        <option value="admin">Administrador</option>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="departamento" class="form-label">Departamento</label>
+      <input type="text" class="form-control" id="departamento" placeholder="Ej. Reynosa, Yucatán">
+    </div>
+    <button type="submit" class="btn btn-primary">Crear Usuario</button>
+  </form>
+
+  <!-- Tabla de usuarios -->
+  <h4>Usuarios registrados</h4>
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Nómina</th>
+        <th>Usuario</th>
+        <th>Rol</th>
+        <th>Departamento</th>
+      </tr>
+    </thead>
+    <tbody id="usersTable"></tbody>
+  </table>
+
+  <script>
+    const form = document.getElementById('addUserForm');
+    const tableBody = document.getElementById('usersTable');
+
+    // Crear usuario
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = {
+        nomina: document.getElementById('nomina').value,
+        username: document.getElementById('username').value,
+        password: document.getElementById('password').value,
+        rol: document.getElementById('rol').value,
+        departamento: document.getElementById('departamento').value
+      };
+
+      const res = await fetch('/api/admin/add-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const result = await res.json();
+      alert(result.mensaje || result.error);
+      loadUsers();
+      form.reset();
+    });
+
+    // Listar usuarios
+    async function loadUsers() {
+      const res = await fetch('/api/admin/list-users');
+      const users = await res.json();
+      tableBody.innerHTML = users.map(u => `
+        <tr>
+          <td>${u.nomina}</td>
+          <td>${u.username}</td>
+          <td>${u.rol}</td>
+          <td>${u.departamento || ''}</td>
+        </tr>
+      `).join('');
+    }
+
+    loadUsers();
+  </script>
+</body>
+</html>

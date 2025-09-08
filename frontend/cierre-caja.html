@@ -87,7 +87,6 @@
 </style>
 </head>
 <body>
-
 <div class="container">
     <!-- Encabezado -->
     <div class="card shadow mb-4">
@@ -100,11 +99,13 @@
                     <label for="fechaCierre" class="form-label">Seleccionar Fecha:</label>
                     <input type="date" id="fechaCierre" class="form-control">
                 </div>
+
                 <div class="col-md-2">
                     <button class="btn btn-success w-100" onclick="cargarCierre()">
                         <i class="fas fa-chart-bar me-1"></i> Generar
                     </button>
                 </div>
+
                 <div class="col-md-2">
                     <button class="btn btn-primary w-100" onclick="exportarExcel()">
                         <i class="fas fa-file-excel me-1"></i> Exportar
@@ -120,16 +121,21 @@
             <h4 class="mb-0"><i class="fas fa-list me-2"></i> Resumen</h4>
         </div>
         <div class="card-body">
-            <table id="tablaResumen" class="table table-bordered table-hover text-center align-middle">
+           <table id="tablaResumen" class="table table-bordered table-hover text-center align-middle">
                 <thead>
-                    <tr>
-                        <th>Forma de Cobro</th>
-                        <th>Tipo de Procedimiento</th>
-                        <th>Total</th>
-                    </tr>
+                  <tr>
+                    <th>Forma de Cobro</th>
+                    <th>Consulta</th>
+                    <th>Cirugía</th>
+                    <th>Estudios</th>
+                    <th>Total</th>
+                  </tr>
                 </thead>
-                <tbody id="tablaCierre"></tbody>
-            </table>
+                <tbody id="tbodyResumen">
+                  <tr><td colspan="5">Sin datos</td></tr>
+                </tbody>
+              </table>
+
         </div>
     </div>
 
@@ -161,6 +167,7 @@
 <script>
 async function cargarCierre() {
     const fecha = document.getElementById("fechaCierre").value;
+
     if (!fecha) {
         alert("Selecciona una fecha");
         return;
@@ -170,13 +177,58 @@ async function cargarCierre() {
         // Resumen de cierre
         const resResumen = await fetch(`/api/cierre-caja?fecha=${fecha}`);
         const datosResumen = await resResumen.json();
-        document.getElementById("tablaCierre").innerHTML = datosResumen.map(d => `
-            <tr>
-                <td>${d.pago}</td>
-                <td>${d.procedimiento}</td>
-                <td><span class="badge bg-success">$${parseFloat(d.total).toFixed(2)}</span></td>
-            </tr>
-        `).join('');
+
+        if (!Array.isArray(datosResumen) || datosResumen.length === 0) {
+            document.getElementById("tbodyResumen").innerHTML = "<tr><td colspan='5'>Sin datos</td></tr>";
+            return;
+        }
+
+        // Procedimientos únicos
+        const procedimientos = [...new Set(datosResumen.map(d => d.procedimiento))];
+
+        // Agrupar pagos por procedimiento
+        const pagos = {};
+        datosResumen.forEach(d => {
+            if (!pagos[d.pago]) pagos[d.pago] = {};
+            if (!pagos[d.pago][d.procedimiento]) pagos[d.pago][d.procedimiento] = 0;
+            pagos[d.pago][d.procedimiento] += parseFloat(d.total);
+        });
+
+        // Encabezado dinámico
+        let thead = `<tr><th>Forma de Cobro</th>`;
+        procedimientos.forEach(p => { thead += `<th>${p}</th>`; });
+        thead += `<th>Total</th></tr>`;
+        document.querySelector("#tablaResumen thead").innerHTML = thead;
+
+        // Filas con totales por forma de pago
+        let tbody = "";
+        const totalesColumnas = {};
+        Object.keys(pagos).forEach(pago => {
+            let totalFila = 0;
+            let fila = `<tr><td>${pago}</td>`;
+            procedimientos.forEach(proc => {
+                const val = pagos[pago][proc] || 0;
+                totalFila += val;
+                totalesColumnas[proc] = (totalesColumnas[proc] || 0) + val;
+                fila += `<td>$${val.toFixed(2)}</td>`;
+            });
+            fila += `<td class="fw-bold">$${totalFila.toFixed(2)}</td></tr>`;
+            tbody += fila;
+        });
+
+        // Fila de totales generales
+        let filaTotal = `<tr class="table-dark"><td><b>Total</b></td>`;
+        let totalGeneral = 0;
+        procedimientos.forEach(proc => {
+            const val = totalesColumnas[proc] || 0;
+            totalGeneral += val;
+            filaTotal += `<td><b>$${val.toFixed(2)}</b></td>`;
+        });
+        filaTotal += `<td><b>$${totalGeneral.toFixed(2)}</b></td></tr>`;
+        tbody += filaTotal;
+
+        // Actualizar cuerpo de la tabla
+        document.getElementById("tbodyResumen").innerHTML = tbody;
 
         // Listado de pacientes
         const resPacientes = await fetch(`/api/listado-pacientes?fecha=${fecha}`);
@@ -208,7 +260,6 @@ function exportarExcel() {
 
     // Crear libro Excel
     const wb = XLSX.utils.book_new();
-
     const wsResumen = XLSX.utils.table_to_sheet(tablaResumen);
     const wsPacientes = XLSX.utils.table_to_sheet(tablaPacientes);
 

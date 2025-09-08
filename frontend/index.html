@@ -92,6 +92,23 @@
       color: #6c757d;
     }
 
+        /* Estilo para las opciones del selector de sucursal */
+    #sucursal-selector .dropdown-menu {
+      background-color: #fff;   /* Fondo blanco */
+      color: #000;              /* Texto negro */
+    }
+
+    #sucursal-selector .dropdown-item {
+      color: #000;              /* Texto negro */
+    }
+
+    #sucursal-selector .dropdown-item:hover {
+      background-color: #3498db; /* Fondo azul al pasar */
+      color: #fff;              /* Texto blanco */
+    }
+
+
+
     /* Botones personalizados */
     .btn-editar { background: #1976d2; color: white; }
     .btn-editar:hover { background: #0d47a1; }
@@ -105,8 +122,27 @@
 </head>
 <body>
   <!-- SIDEBAR -->
-  <div class="sidebar">
-    <h2>Menú</h2>
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <h2>Menú</h2>
+
+  <!-- Selector de sucursal (solo admin) -->
+    <div id="sucursal-selector" class="dropdown mb-3" style="display:none;">
+      <button class="btn btn-light w-100 dropdown-toggle d-flex align-items-center" 
+              type="button" data-bs-toggle="dropdown" aria-expanded="false" 
+              id="sucursalBtn">
+        <i class="material-icons me-2">business</i> <span id="sucursalTexto">Sucursal</span>
+      </button>
+      <ul class="dropdown-menu w-100">
+        <li><a class="dropdown-item" href="#" onclick="cambiarSucursal('admin')">Admin</a></li>
+        <li><a class="dropdown-item" href="#" onclick="cambiarSucursal('Reynosa')">Reynosa</a></li>
+        <li><a class="dropdown-item" href="#" onclick="cambiarSucursal('Yucatan')">Yucatán</a></li>
+        <li><a class="dropdown-item" href="#" onclick="cambiarSucursal('Monterrey')">Monterrey</a></li>
+      </ul>
+    </div>
+
+
+  <!-- Enlaces del menú -->
     <a href="#" onclick="mostrarSeccion('expedientes')"><i class="material-icons">folder</i> Expedientes</a>
     <a href="#" onclick="mostrarSeccion('optometria')"><i class="material-icons">visibility</i> Optometría</a>
     <a href="#" onclick="mostrarSeccion('recibo')"><i class="material-icons">receipt</i> Recibo</a>
@@ -148,11 +184,22 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   
   <script>
-  // Sesión (Inicio)
-  fetch('/api/check-session')
-    .then(res => res.ok ? res.json() : Promise.reject())
-    .then(data => {
-      if (data.usuario) {
+// Sesión (Inicio)
+fetch('/api/check-session')
+  .then(res => res.ok ? res.json() : Promise.reject())
+  .then(data => {
+    if (data.usuario) {
+      // 👇 Mostrar selector solo si es admin
+      if (data.usuario.rol === "admin") {
+        document.getElementById("sucursal-selector").style.display = "block";
+
+        // 👇 Mostrar la sucursal actual en el botón
+    const sucursalActual = data.usuario.departamento 
+                          || data.usuario.sucursalSeleccionada 
+                              || (data.usuario.rol === "admin" ? "Admin" : "Sucursal");
+        document.getElementById("sucursalTexto").textContent = sucursalActual;
+        }
+
         document.getElementById('main-content').innerHTML = `
           <div style="text-align:center; margin-top:40px;">
             <h1>Bienvenido</h1>
@@ -164,8 +211,8 @@
             </div>
           </div>
         `;
-      }
-    })
+        }
+        })
     .catch(() => window.location.href = '/login/login.html');
 
   // Router simple
@@ -349,7 +396,6 @@
   <button class="btn-medico" onclick="verOrdenes(${exp.numero_expediente}, '${exp.nombre_completo.replace(/'/g,"\\'")}')">Médico</button>
   <button class="btn-opto" onclick="verOptometria(${exp.numero_expediente}, '${exp.nombre_completo.replace(/'/g,"\\'")}')">Optometría</button>
 </td>
-
         </tr>`;
       });
       html += `</tbody></table>`;
@@ -392,7 +438,6 @@
               <tr><th>Estatus</th><td>${orden.estatus || 'Pendiente'}</td></tr>
               <tr><th>Fecha</th><td>${new Date(orden.fecha).toLocaleString()}</td></tr>
             </table>
-
             <h5 class="mt-3">Exploración Clínica</h5>
             <table class="table table-striped table-sm">
               <tr><th>Anexos</th><td>${orden.anexos || ''}</td></tr>
@@ -464,6 +509,52 @@
       alert('No se pudieron cargar las evaluaciones de optometría.');
     }
   }
+
+// ---------- Función para cambiar sucursal (solo admin) ----------
+async function cambiarSucursal(nombreSucursal) {
+  try {
+    const res = await fetch('/api/set-departamento', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ departamento: nombreSucursal })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      // 👇 Actualizar el texto del botón en el menú lateral
+      const sucursalTexto = document.getElementById("sucursalTexto");
+      if (sucursalTexto) {
+        sucursalTexto.textContent = (nombreSucursal === "admin") ? "Admin" : nombreSucursal;
+      }
+
+      if (nombreSucursal === "admin") {
+        // Si es admin, mostrar dashboard sin recargar
+        document.getElementById('main-content').innerHTML = `
+          <div style="text-align:center; margin-top:40px;">
+            <h1>Bienvenido</h1>
+            <p>Selecciona una opción del menú.</p>
+            <div style="margin-top:80px;">
+              <img src="../uploads/logo-oftavision.png" 
+                  alt="Instituto Oftavisión" 
+                  style="max-width:900px; display:block; margin:0 auto;">
+            </div>
+          </div>
+        `;
+      } else {
+        // Si es sucursal real, recargar para aplicar filtros de datos
+        location.reload();
+      }
+    } else {
+      alert(data.error || "Error al cambiar sucursal");
+    }
+  } catch (err) {
+    console.error("Error cambiando sucursal:", err);
+    alert("Error en la conexión con el servidor");
+  }
+}
   </script>
+
 </body>
+
 </html>

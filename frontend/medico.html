@@ -166,18 +166,22 @@
     </div>
   </div>
 
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    async function cargarPacientes() {
+ <script>
+  async function cargarPacientes() {
+    try {
       const res = await fetch('/api/pendientes-medico');
       const data = await res.json();
       const tbody = document.getElementById('lista-medica');
       tbody.innerHTML = '';
+
       data.forEach(exp => {
         let clase = "";
         if (exp.procedimiento === "Consulta") clase = "table-consulta";
         else if (exp.procedimiento === "Estudio") clase = "table-estudio";
         else if (exp.procedimiento === "Cirugía") clase = "table-cirugia";
+
         tbody.innerHTML += `
           <tr class="${clase}">
             <td>${exp.expediente_id}</td>
@@ -192,30 +196,40 @@
             </td>
           </tr>`;
       });
+    } catch (err) {
+      console.error("Error cargando pacientes:", err);
     }
+  }
 
-    async function cargarProcedimientos() {
+  async function cargarProcedimientos() {
+    try {
       const res = await fetch('/api/procedimientos');
       const data = await res.json();
       const select = document.getElementById('procedimiento_id');
       select.innerHTML = '';
       data.forEach(proc => {
-        select.innerHTML += `<option value="${proc.id}">${proc.nombre}</option>`;
+        select.innerHTML += `<option value="${proc.id}">${proc.nombre} — $${proc.precio}</option>`;
       });
+    } catch (err) {
+      console.error("Error cargando procedimientos:", err);
     }
+  }
 
-    function abrirOrden(expediente_id, recibo_id) {
-      document.getElementById('expediente_id').value = expediente_id;
-      document.getElementById('folio_recibo').value = recibo_id;
-      cargarProcedimientos();
-      new bootstrap.Modal(document.getElementById('modalOrden')).show();
-    }
+  function abrirOrden(expediente_id, recibo_id) {
+    document.getElementById('expediente_id').value = expediente_id;
+    document.getElementById('folio_recibo').value = recibo_id;
+    cargarProcedimientos();
+    new bootstrap.Modal(document.getElementById('modalOrden')).show();
+  }
 
-    document.getElementById('form-orden').addEventListener('submit', async e => {
-      e.preventDefault();
-      const problemasSeleccionados = Array.from(document.querySelectorAll('input[name="problemas"]:checked')).map(cb => cb.value).join(", ");
+  document.getElementById('form-orden').addEventListener('submit', async e => {
+    e.preventDefault();
+    try {
+      const problemasSeleccionados = Array.from(
+        document.querySelectorAll('input[name="problemas"]:checked')
+      ).map(cb => cb.value).join(", ");
+
       const data = {
-        expediente_id: document.getElementById('expediente_id').value,
         folio_recibo: document.getElementById('folio_recibo').value,
         medico: document.getElementById('medico').value,
         diagnostico: document.getElementById('diagnostico').value,
@@ -234,18 +248,27 @@
         problemas: problemasSeleccionados,
         plan: document.getElementById('plan').value
       };
+
       const res = await fetch('/api/ordenes_medicas', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
       });
       const json = await res.json();
       alert(json.mensaje || json.error);
+
       if (res.ok) {
         bootstrap.Modal.getInstance(document.getElementById('modalOrden')).hide();
         cargarPacientes();
       }
-    });
+    } catch (err) {
+      console.error("Error guardando orden:", err);
+    }
+  });
 
-    cargarPacientes();
-  </script>
-</body>
+  // Cargar pacientes al inicio
+  cargarPacientes();
+</script>
+
+
 </html>

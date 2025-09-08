@@ -61,7 +61,6 @@
             <input type="date" id="fechaInsumo" required>
             <input type="text" id="folio" placeholder="Folio" required>
             <input type="text" id="concepto" placeholder="Concepto" required>
-            <input type="number" id="cantidad" placeholder="Cantidad" min="1" required>
             <input type="number" id="monto" placeholder="Monto" step="0.01" required>
             <button type="submit" class="btn btn-add"><i class="fas fa-plus"></i> Agregar</button>
           </div>
@@ -87,7 +86,6 @@
               <th>Fecha</th>
               <th>Folio</th>
               <th>Concepto</th>
-              <th>Cantidad</th>
               <th>Monto</th>
               <th>Archivo</th>
               <th>Acciones</th>
@@ -127,7 +125,6 @@
         fecha: document.getElementById("fechaInsumo").value,
         folio: document.getElementById("folio").value,
         concepto: document.getElementById("concepto").value,
-        cantidad: document.getElementById("cantidad").value,
         monto: document.getElementById("monto").value
       };
       try {
@@ -180,7 +177,6 @@
               <td>${new Date(i.fecha).toLocaleDateString()}</td>
               <td>${i.folio}</td>
               <td>${i.concepto}</td>
-              <td>${i.cantidad}</td>
               <td>$${parseFloat(i.monto).toFixed(2)}</td>
               <td>${i.archivo ? `<a class="download-link" href="/uploads/${encodeURIComponent(i.archivo)}" download><i class="fas fa-download"></i> Descargar</a>` : "-"}</td>
               <td><button class="btn btn-delete" onclick="eliminarInsumo(${i.id})"><i class="fas fa-trash"></i></button></td>
@@ -251,7 +247,6 @@
               <div class="insumo-item">
                 <div class="insumo-name">${m.concepto}</div>
                 <div class="insumo-info">Folio: ${m.folio}</div>
-                <div class="insumo-info">Cantidad: ${m.cantidad}</div>
                 <div class="insumo-info">Monto: $${parseFloat(m.monto).toFixed(2)}</div>
               </div>`;
           });

@@ -1,3 +1,5 @@
-nomina,username,password
-2468,um,12345
-1256,admin,12345
+nomina,username,password,rol,departamento
+2468,um,12345,usuario,Reynosa
+1256,admin,12345,admin,
+1156,um2,12345,usuario,Yucatan
+1056,mty,12345,usuario,Monterrey

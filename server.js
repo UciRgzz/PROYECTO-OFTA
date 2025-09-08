@@ -8,6 +8,7 @@ const session = require('express-session');
 const crypto = require('crypto');
 const multer = require('multer');
 const xlsx = require('xlsx');
+const { deprecate } = require('util');
 
 
 const app = express();
@@ -20,6 +21,9 @@ app.use(cors({
     credentials: true                 // permitir envío de cookies de sesión
 }));
 app.use(bodyParser.json());
+
+
+
 
 // Sesiones
 app.use(session({
@@ -42,12 +46,6 @@ const pool = new Pool({
     port: 5432
 });
 
-//este es para la base en linea
-/*const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
-});
-*/
 
 pool.connect()
     .then(() => console.log('Conexión a PostgreSQL exitosa'))
@@ -59,6 +57,14 @@ function verificarSesion(req, res, next) {
         return next();
     }
     res.status(401).json({ error: 'No autorizado' });
+}
+
+// Middleware para restringir solo a admins
+function isAdmin(req, res, next) {
+    if (req.session.usuario?.rol === 'admin') {
+        return next();
+    }
+    return res.status(403).json({ error: 'No eres administrador, no puedes eliminar.' });
 }
 
 // ==================== CHECK SESSION ====================
@@ -83,21 +89,6 @@ app.get('/', (req, res) => {
 app.use('/login', express.static(path.join(__dirname, 'login')));
 app.use('/frontend', verificarSesion, express.static(path.join(__dirname, 'frontend')));
 
-// ==================== RUTA TEMPORAL PARA CREAR USUARIOS ====================
-app.post('/api/admin/add-user', async (req, res) => {
-    const { nomina, username, password } = req.body;
-    try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        await pool.query(
-            'INSERT INTO usuarios (nomina, username, password) VALUES ($1, $2, $3)',
-            [nomina, username, hashedPassword]
-        );
-        res.json({ mensaje: 'Usuario creado correctamente' });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Error creando usuario' });
-    }
-});
 
 // ==================== LOGIN ====================
 app.post('/api/login', async (req, res) => {
@@ -110,18 +101,29 @@ app.post('/api/login', async (req, res) => {
         if (result.rows.length === 0) {
             return res.status(401).json({ error: 'Usuario no encontrado' });
         }
+
         const usuario = result.rows[0];
         const valid = await bcrypt.compare(password, usuario.password);
         if (!valid) {
             return res.status(401).json({ error: 'Contraseña incorrecta' });
         }
-        req.session.usuario = username;
-        res.json({ mensaje: 'Login exitoso' });
+
+        // ✅ Guardamos toda la información en sesión
+        req.session.usuario = {
+            username: usuario.username,
+            rol: usuario.rol,
+            // Si es admin, no arranca con sucursal fija
+            departamento: usuario.rol === "admin" ? null : usuario.departamento
+        };
+
+
+        res.json({ mensaje: 'Login exitoso', usuario: req.session.usuario });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Error en el login' });
     }
 });
+
 
 // ==================== OLVIDAR CONTRASEÑA POR NÓMINA ====================
 app.post('/api/forgot-password', async (req, res) => {
@@ -175,233 +177,345 @@ app.post('/api/reset-password', async (req, res) => {
     }
 });
 
+
+
+// ==================== HELPER: Determinar sucursal activa ====================
+function getDepartamento(req) {
+  let depto = req.session.usuario.departamento;
+  if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
+    depto = req.session.usuario.sucursalSeleccionada;
+  }
+  return depto;
+}
+
 // ==================== CRUD EXPEDIENTES ====================
 
 // ==================== CREAR NUEVO EXPEDIENTE ====================
 app.post('/api/expedientes', verificarSesion, async (req, res) => {
-    const {
-        nombre_completo,
-        fecha_nacimiento,
-        edad,
-        padecimientos,
-        colonia,
-        ciudad,
-        telefono1,
-        telefono2
-    } = req.body;
+  const {
+    nombre_completo,
+    fecha_nacimiento,
+    edad,
+    padecimientos,
+    colonia,
+    ciudad,
+    telefono1,
+    telefono2
+  } = req.body;
 
-    try {
-        const result = await pool.query(
-            `INSERT INTO expedientes 
-             (nombre_completo, fecha_nacimiento, edad, padecimientos, colonia, ciudad, telefono1, telefono2) 
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8) 
-             RETURNING numero_expediente, nombre_completo, edad, padecimientos, colonia, ciudad, telefono1, telefono2`,
-            [nombre_completo, fecha_nacimiento, edad, padecimientos, colonia, ciudad, telefono1, telefono2]
-        );
+  const depto = getDepartamento(req);
 
-        res.json({ mensaje: "Expediente creado correctamente", expediente: result.rows[0] });
-    } catch (err) {
-        console.error("Error al crear expediente:", err);
-        res.status(500).json({ error: "Error al crear expediente" });
-    }
+  try {
+    // 📌 Buscar último número usado en esta sucursal
+    const lastFolio = await pool.query(
+      "SELECT COALESCE(MAX(numero_expediente), 0) + 1 AS next_id FROM expedientes WHERE departamento = $1",
+      [depto]
+    );
+    const nextId = lastFolio.rows[0].next_id;
+
+    // 📌 Insertar con folio único dentro de la sucursal
+    const result = await pool.query(
+      `INSERT INTO expedientes 
+       (numero_expediente, nombre_completo, fecha_nacimiento, edad, padecimientos, colonia, ciudad, telefono1, telefono2, departamento) 
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+      [nextId, nombre_completo, fecha_nacimiento, edad, padecimientos, colonia, ciudad, telefono1, telefono2, depto]
+    );
+
+    res.json({ mensaje: "Expediente creado correctamente", expediente: result.rows[0] });
+  } catch (err) {
+    console.error("Error al crear expediente:", err);
+    res.status(500).json({ error: "Error al crear expediente" });
+  }
 });
 
-// Obtener todos
+// ==================== OBTENER TODOS ====================
 app.get('/api/expedientes', verificarSesion, async (req, res) => {
-    try {
-        const result = await pool.query(
-            "SELECT * FROM expedientes ORDER BY numero_expediente ASC"
-        );
-        res.json(result.rows);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Error al obtener expedientes" });
-    }
+  try {
+    const depto = getDepartamento(req);
+
+    const result = await pool.query(
+      "SELECT * FROM expedientes WHERE departamento = $1 ORDER BY numero_expediente ASC",
+      [depto]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error al obtener expedientes" });
+  }
 });
 
-// Actualizar expediente
+// ==================== ACTUALIZAR EXPEDIENTE ====================
 app.put('/api/expedientes/:id', verificarSesion, async (req, res) => {
-    const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) {
-        return res.status(400).json({ error: "ID inválido" });
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) {
+    return res.status(400).json({ error: "ID inválido" });
+  }
+
+  const {
+    nombre_completo,
+    fecha_nacimiento,
+    edad,
+    padecimientos,
+    colonia,
+    ciudad,
+    telefono1,
+    telefono2
+  } = req.body;
+
+  const depto = getDepartamento(req);
+
+  try {
+    const result = await pool.query(
+      `UPDATE expedientes 
+       SET nombre_completo = $1,
+           fecha_nacimiento = $2,
+           edad = $3,
+           padecimientos = $4,
+           colonia = $5,
+           ciudad = $6,
+           telefono1 = $7,
+           telefono2 = $8
+       WHERE numero_expediente = $9 AND departamento = $10
+       RETURNING *`,
+      [nombre_completo, fecha_nacimiento, edad, padecimientos, colonia, ciudad, telefono1, telefono2, id, depto]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Expediente no encontrado" });
     }
 
-    const {
-        nombre_completo,
-        fecha_nacimiento,
-        edad,
-        padecimientos,
-        colonia,
-        ciudad,
-        telefono1,
-        telefono2
-    } = req.body;
-
-    try {
-        const result = await pool.query(
-            `UPDATE expedientes 
-             SET nombre_completo = $1,
-                 fecha_nacimiento = $2,
-                 edad = $3,
-                 padecimientos = $4,
-                 colonia = $5,
-                 ciudad = $6,
-                 telefono1 = $7,
-                 telefono2 = $8
-             WHERE numero_expediente = $9
-             RETURNING *`,
-            [nombre_completo, fecha_nacimiento, edad, padecimientos, colonia, ciudad, telefono1, telefono2, id]
-        );
-
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: "Expediente no encontrado" });
-        }
-
-        res.json({ mensaje: "Expediente actualizado correctamente", expediente: result.rows[0] });
-    } catch (err) {
-        console.error("Error al actualizar expediente:", err);
-        res.status(500).json({ error: "Error al actualizar expediente" });
-    }
+    res.json({ mensaje: "Expediente actualizado correctamente", expediente: result.rows[0] });
+  } catch (err) {
+    console.error("Error al actualizar expediente:", err);
+    res.status(500).json({ error: "Error al actualizar expediente" });
+  }
 });
 
-// Eliminar expediente
+// ==================== ELIMINAR EXPEDIENTE ====================
 app.delete('/api/expedientes/:id', verificarSesion, async (req, res) => {
-    const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) {
-        return res.status(400).json({ error: "ID inválido" });
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) {
+    return res.status(400).json({ error: "ID inválido" });
+  }
+
+  const depto = getDepartamento(req);
+
+  try {
+    const result = await pool.query(
+      "DELETE FROM expedientes WHERE numero_expediente = $1 AND departamento = $2 RETURNING *",
+      [id, depto]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Expediente no encontrado" });
     }
 
-    try {
-        const result = await pool.query(
-            "DELETE FROM expedientes WHERE numero_expediente = $1 RETURNING *",
-            [id]
-        );
-
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: "Expediente no encontrado" });
-        }
-
-        res.json({ mensaje: "Expediente eliminado correctamente" });
-    } catch (err) {
-        console.error("Error al eliminar expediente:", err);
-        res.status(500).json({ error: "Error al eliminar expediente" });
-    }
+    res.json({ mensaje: "Expediente eliminado correctamente" });
+  } catch (err) {
+    console.error("Error al eliminar expediente:", err);
+    res.status(500).json({ error: "Error al eliminar expediente" });
+  }
 });
 
-// Obtener expediente por ID (numero_expediente)
+// ==================== OBTENER EXPEDIENTE POR ID ====================
 app.get('/api/expedientes/:id', verificarSesion, async (req, res) => {
-    const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) {
-        return res.status(400).json({ error: "ID inválido" });
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) {
+    return res.status(400).json({ error: "ID inválido" });
+  }
+
+  const depto = getDepartamento(req);
+
+  try {
+    const result = await pool.query(
+      "SELECT * FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
+      [id, depto]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Expediente no encontrado" });
     }
 
-    try {
-        const result = await pool.query(
-            "SELECT * FROM expedientes WHERE numero_expediente = $1",
-            [id]
-        );
-
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: "Expediente no encontrado" });
-        }
-
-        res.json(result.rows[0]);
-    } catch (err) {
-        console.error("Error al obtener expediente:", err);
-        res.status(500).json({ error: "Error al obtener expediente" });
-    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Error al obtener expediente:", err);
+    res.status(500).json({ error: "Error al obtener expediente" });
+  }
 });
-
 
 // ==================== LISTA DE PACIENTES ====================
-app.get('/api/pacientes', async (req, res) => {
-    try {
-        const result = await pool.query(
-            "SELECT numero_expediente, nombre_completo FROM expedientes ORDER BY nombre_completo ASC"
-        );
-        res.json(result.rows);
-    } catch (err) {
-        console.error("Error al obtener pacientes:", err);
-        res.status(500).json({ error: "Error al obtener pacientes" });
-    }
+app.get('/api/pacientes', verificarSesion, async (req, res) => {
+  try {
+    const depto = getDepartamento(req);
+
+    const result = await pool.query(
+      "SELECT numero_expediente, nombre_completo FROM expedientes WHERE departamento = $1 ORDER BY nombre_completo ASC",
+      [depto]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error al obtener pacientes:", err);
+    res.status(500).json({ error: "Error al obtener pacientes" });
+  }
 });
+
+
 
 // ==================== RECIBOS ====================
 
-// Guardar recibo
+// Guardar recibo (folio = numero_expediente del paciente)
 app.post('/api/recibos', verificarSesion, async (req, res) => {
-    const { fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado } = req.body;
+  const { fecha, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo } = req.body;
 
-    try {
-        const result = await pool.query(
-            `INSERT INTO recibos (fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7, 'Normal') RETURNING *`,
-            [fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado]
-        );
+  // 📌 Determinar sucursal activa
+  let depto = req.session.usuario.departamento;
+  if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
+    depto = req.session.usuario.sucursalSeleccionada;
+  }
 
-        res.json({ mensaje: "Recibo guardado correctamente", recibo: result.rows[0] });
-    } catch (err) {
-        console.error("Error al guardar recibo:", err);
-        res.status(500).json({ error: "Error al guardar recibo" });
+  try {
+    // 📌 Verificar que el expediente exista en esta sucursal
+    const expediente = await pool.query(
+      "SELECT numero_expediente FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
+      [paciente_id, depto]
+    );
+
+    if (expediente.rows.length === 0) {
+      return res.status(400).json({ error: "El paciente no existe en esta sucursal" });
     }
+
+    const folio = expediente.rows[0].numero_expediente;
+
+    // 📌 Insertar el recibo con el folio ligado al expediente
+    const result = await pool.query(
+      `INSERT INTO recibos 
+        (fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, departamento) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+       RETURNING *`,
+      [fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, depto]
+    );
+
+    res.json({ mensaje: "Recibo guardado correctamente", recibo: result.rows[0] });
+  } catch (err) {
+    console.error("Error al guardar recibo:", err);
+    res.status(500).json({ error: "Error al guardar recibo" });
+  }
 });
 
-// Listar recibos
+// Listar recibos (pueden ver todos los usuarios autenticados)
 app.get('/api/recibos', verificarSesion, async (req, res) => {
-    try {
-        const result = await pool.query(`
-            SELECT r.id, r.fecha, r.folio, e.nombre_completo AS paciente,
-                   r.procedimiento, r.tipo, r.forma_pago, r.monto_pagado, r.precio, 
-                   (r.precio - r.monto_pagado) AS pendiente
-            FROM recibos r
-            JOIN expedientes e ON r.paciente_id = e.numero_expediente
-            ORDER BY r.fecha DESC
-        `);
-        res.json(result.rows);
-    } catch (err) {
-        console.error("Error al obtener recibos:", err);
-        res.status(500).json({ error: "Error al obtener recibos" });
+  try {
+    let depto = req.session.usuario.departamento;
+    if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
+      depto = req.session.usuario.sucursalSeleccionada;
     }
+
+    const result = await pool.query(`
+      SELECT r.id, r.fecha, r.folio, e.nombre_completo AS paciente,
+             r.procedimiento, r.tipo, r.forma_pago, r.monto_pagado, r.precio, 
+             (r.precio - r.monto_pagado) AS pendiente
+      FROM recibos r
+      JOIN expedientes e 
+        ON r.paciente_id = e.numero_expediente 
+       AND r.departamento = e.departamento
+      WHERE r.departamento = $1
+      ORDER BY r.fecha DESC
+    `, [depto]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error al obtener recibos:", err);
+    res.status(500).json({ error: "Error al obtener recibos" });
+  }
 });
 
-// Eliminar recibo
-app.delete('/api/recibos/:id', verificarSesion, async (req, res) => {
-    try {
-        const { id } = req.params;
-        await pool.query('DELETE FROM recibos WHERE id = $1', [id]);
-        res.json({ mensaje: "Recibo eliminado" });
-    } catch (err) {
-        console.error("Error eliminando recibo:", err);
-        res.status(500).json({ error: "Error eliminando recibo" });
+// Eliminar recibo (⚠️ solo admin puede eliminar y dentro de su sucursal)
+app.delete('/api/recibos/:id', isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    let depto = req.session.usuario.departamento;
+    if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
+      depto = req.session.usuario.sucursalSeleccionada;
     }
+
+    const result = await pool.query(
+      'DELETE FROM recibos WHERE id = $1 AND departamento = $2 RETURNING *',
+      [id, depto]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Recibo no encontrado o no pertenece a tu sucursal" });
+    }
+
+    res.json({ mensaje: "Recibo eliminado" });
+  } catch (err) {
+    console.error("Error eliminando recibo:", err);
+    res.status(500).json({ error: "Error eliminando recibo" });
+  }
+});
+// ==================== CATÁLOGO DE PROCEDIMIENTOS ====================
+app.get('/api/procedimientos', verificarSesion, async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT id, nombre, precio FROM catalogo_procedimientos ORDER BY nombre"
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error consultando procedimientos:", err);
+    res.status(500).json({ error: "Error consultando procedimientos" });
+  }
 });
 
+
+
+// ==================== MODULO MÉDICO ====================
 // ==================== BUSCAR PACIENTE POR FOLIO ====================
-app.get('/api/recibos/paciente/:folio', async (req, res) => {
-    const { folio } = req.params;
-    try {
-        const result = await pool.query(
-            `SELECT e.numero_expediente AS id, e.nombre_completo
-             FROM expedientes e
-             WHERE e.numero_expediente = $1
-             LIMIT 1`,
-            [folio]
-        );
+app.get('/api/recibos/paciente/:folio', verificarSesion, async (req, res) => {
+  const { folio } = req.params;
 
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: "No se encontró paciente con ese folio" });
-        }
+  // 📌 Determinar sucursal activa
+  let depto = req.session.usuario.departamento;
+  if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
+    depto = req.session.usuario.sucursalSeleccionada;
+  }
 
-        res.json(result.rows[0]); 
-    } catch (err) {
-        console.error("Error buscando paciente por folio:", err);
-        res.status(500).json({ error: "Error al buscar paciente" });
+  try {
+    const result = await pool.query(
+      `SELECT e.numero_expediente AS folio, e.nombre_completo
+       FROM expedientes e
+       WHERE e.numero_expediente = $1 AND e.departamento = $2
+       LIMIT 1`,
+      [folio, depto]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "No se encontró paciente con ese folio" });
     }
+
+    // ✅ devolver en el formato que espera el frontend
+    res.json({
+      id: result.rows[0].folio,                 // este será pacienteId en el frontend
+      nombre_completo: result.rows[0].nombre_completo
+    });
+  } catch (err) {
+    console.error("Error buscando paciente por folio:", err);
+    res.status(500).json({ error: "Error al buscar paciente" });
+  }
 });
 
-// ==================== MODULO MÉDICO ====================
-// Pacientes pendientes de atender
-app.get("/api/pendientes-medico", async (req, res) => {
+  
+
+// ==================== PACIENTES PENDIENTES DE ATENDER ====================
+app.get("/api/pendientes-medico", verificarSesion, async (req, res) => {
+  // 📌 Determinar sucursal activa
+  let depto = req.session.usuario.departamento;
+  if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
+    depto = req.session.usuario.sucursalSeleccionada;
+  }
+
   try {
     const result = await pool.query(`
       SELECT 
@@ -412,11 +526,17 @@ app.get("/api/pendientes-medico", async (req, res) => {
           e.padecimientos,
           r.procedimiento
       FROM recibos r
-      JOIN expedientes e ON r.paciente_id = e.numero_expediente
-      WHERE NOT EXISTS (
-          SELECT 1 FROM ordenes_medicas o WHERE o.folio_recibo = r.id
-      )
-    `);
+      JOIN expedientes e 
+        ON r.paciente_id = e.numero_expediente 
+       AND r.departamento = e.departamento   -- 👈 asegura misma sucursal
+      WHERE r.departamento = $1
+        AND NOT EXISTS (
+          SELECT 1 
+          FROM ordenes_medicas o 
+          WHERE o.folio_recibo = r.id         -- 👈 usar recibo en vez de expediente
+            AND o.departamento = r.departamento
+        )
+    `, [depto]);
 
     res.json(result.rows);
   } catch (err) {
@@ -425,45 +545,16 @@ app.get("/api/pendientes-medico", async (req, res) => {
   }
 });
 
-// ==================== MODULO DE ÓRDENES ========================================
-// ==================== MODULO MÉDICO ====================
-// Pacientes pendientes de atender
-app.get("/api/pendientes-medico", async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT 
-          r.id AS recibo_id, 
-          e.numero_expediente AS expediente_id,
-          e.nombre_completo, 
-          e.edad, 
-          e.padecimientos,
-          r.procedimiento
-      FROM recibos r
-      JOIN expedientes e ON r.paciente_id = e.numero_expediente
-      WHERE NOT EXISTS (
-          SELECT 1 FROM ordenes_medicas o WHERE o.folio_recibo = r.id
-      )
-    `);
 
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Error en /api/pendientes-medico:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ==================== MODULO DE ÓRDENES ========================================
-// ==================== MODULO DE ÓRDENES ========================================
 // ==================== GUARDAR ORDEN MÉDICA ====================
-app.post("/api/ordenes_medicas", async (req, res) => {
+app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
   try {
     const {
-      expediente_id,
       folio_recibo,
       medico,
       diagnostico,
       lado,
-      procedimiento_id,
+      procedimiento_id, 
       anexos,
       conjuntiva,
       cornea,
@@ -478,15 +569,20 @@ app.post("/api/ordenes_medicas", async (req, res) => {
       plan
     } = req.body;
 
+    let depto = req.session.usuario.departamento;
+    if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
+      depto = req.session.usuario.sucursalSeleccionada;
+    }
+
     const reciboResult = await pool.query(
-      `SELECT procedimiento, precio, monto_pagado, paciente_id 
+      `SELECT id, paciente_id, procedimiento, tipo, precio, monto_pagado 
        FROM recibos 
-       WHERE id = $1`,
-      [folio_recibo]
+       WHERE id = $1 AND departamento = $2`,
+      [folio_recibo, depto]
     );
 
     if (reciboResult.rows.length === 0) {
-      return res.status(404).json({ error: "No se encontró el recibo" });
+      return res.status(404).json({ error: "No se encontró el recibo en esta sucursal" });
     }
 
     const recibo = reciboResult.rows[0];
@@ -496,22 +592,23 @@ app.post("/api/ordenes_medicas", async (req, res) => {
         expediente_id, folio_recibo, medico, diagnostico, lado, procedimiento, tipo,
         anexos, conjuntiva, cornea, camara_anterior, cristalino,
         retina, macula, nervio_optico, ciclopejia, hora_tp,
-        problemas, plan, estatus, fecha
+        problemas, plan, estatus, fecha, departamento
       )
       VALUES (
-        $1,$2,$3,$4,$5,$6,'Normal',
-        $7,$8,$9,$10,$11,
-        $12,$13,$14,$15,$16,
-        $17,$18,'Pendiente',NOW()
+        $1,$2,$3,$4,$5,$6,$7,
+        $8,$9,$10,$11,$12,
+        $13,$14,$15,$16,$17,
+        $18,$19,'Pendiente',NOW(),$20
       )
       RETURNING *`,
       [
-        recibo.paciente_id,
-        folio_recibo, medico, diagnostico, lado,
-        recibo.procedimiento,
+        recibo.paciente_id, // expediente_id = numero_expediente
+        recibo.id,          // folio_recibo = id de recibo
+        medico, diagnostico, lado,
+        recibo.procedimiento, recibo.tipo,
         anexos, conjuntiva, cornea, camara_anterior, cristalino,
         retina, macula, nervio_optico, ciclopejia, hora_tp,
-        problemas, plan
+        problemas, plan, depto
       ]
     );
 
@@ -522,11 +619,16 @@ app.post("/api/ordenes_medicas", async (req, res) => {
   }
 });
 
-
 // ==================== ÓRDENES POR EXPEDIENTE ====================
-app.get("/api/expedientes/:id/ordenes", async (req, res) => {
+app.get("/api/expedientes/:id/ordenes", verificarSesion, async (req, res) => {
   try {
     const { id } = req.params;
+
+    let depto = req.session.usuario.departamento;
+    if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
+      depto = req.session.usuario.sucursalSeleccionada;
+    }
+
     const result = await pool.query(`
       SELECT 
         o.id AS numero_orden,
@@ -536,7 +638,7 @@ app.get("/api/expedientes/:id/ordenes", async (req, res) => {
         o.procedimiento,
         r.precio,
         r.monto_pagado AS pagado,
-        r.pendiente,
+        (r.precio - r.monto_pagado) AS pendiente,
         o.estatus,
         o.fecha,
         o.anexos,
@@ -552,10 +654,15 @@ app.get("/api/expedientes/:id/ordenes", async (req, res) => {
         o.problemas,
         o.plan
       FROM ordenes_medicas o
-      JOIN recibos r ON r.id = o.folio_recibo
-      WHERE o.expediente_id = $1
+      JOIN recibos r 
+        ON r.id = o.folio_recibo 
+       AND r.departamento = o.departamento
+      JOIN expedientes e
+        ON e.numero_expediente = o.expediente_id   -- 👈 corregido
+       AND e.departamento = o.departamento
+      WHERE o.expediente_id = $1 AND o.departamento = $2
       ORDER BY o.fecha DESC
-    `, [id]);
+    `, [id, depto]);
 
     res.json(result.rows);
   } catch (err) {
@@ -564,40 +671,38 @@ app.get("/api/expedientes/:id/ordenes", async (req, res) => {
   }
 });
 
-
 // ==================== LISTAR TODAS LAS ÓRDENES ====================
-app.get("/api/ordenes_medicas", async (req, res) => {
+app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
   try {
+    let depto = req.session.usuario.departamento;
+    if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
+      depto = req.session.usuario.sucursalSeleccionada;
+    }
+
     const result = await pool.query(`
       SELECT 
-        o.expediente_id AS numero_orden,
+        o.id AS numero_orden,
         e.nombre_completo AS paciente, 
         o.medico, 
         o.diagnostico, 
         o.lado, 
         o.procedimiento, 
+        o.tipo,
         r.precio,              
         r.monto_pagado AS pagado,
-        r.pendiente,
+        (r.precio - r.monto_pagado) AS pendiente,
         o.estatus,
-        o.fecha,
-        o.anexos,
-        o.conjuntiva,
-        o.cornea,
-        o.camara_anterior,
-        o.cristalino,
-        o.retina,
-        o.macula,
-        o.nervio_optico,
-        o.ciclopejia,
-        o.hora_tp,
-        o.problemas,
-        o.plan
+        o.fecha
       FROM ordenes_medicas o
-      JOIN recibos r ON r.id = o.folio_recibo
-      JOIN expedientes e ON e.numero_expediente = o.expediente_id
+      JOIN recibos r 
+        ON r.id = o.folio_recibo 
+       AND r.departamento = o.departamento
+      JOIN expedientes e 
+        ON e.numero_expediente = o.expediente_id   -- 👈 corregido
+       AND e.departamento = o.departamento
+      WHERE o.departamento = $1
       ORDER BY o.fecha DESC
-    `);
+    `, [depto]);
 
     res.json(result.rows);
   } catch (err) {
@@ -606,40 +711,28 @@ app.get("/api/ordenes_medicas", async (req, res) => {
   }
 });
 
-
-// ==================== LISTAR PROCEDIMIENTOS ====================
-app.get("/api/procedimientos", async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT id, nombre, precio 
-      FROM catalogo_procedimientos
-      ORDER BY id ASC
-    `);
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Error en /api/procedimientos:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-
-
 // ==================== PAGOS ====================
 // Registrar un pago para una orden
-app.post("/api/pagos", async (req, res) => {
+app.post("/api/pagos", verificarSesion, async (req, res) => {
   const client = await pool.connect();
+
+  // 📌 Determinar sucursal activa
+  let depto = req.session.usuario.departamento;
+  if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
+    depto = req.session.usuario.sucursalSeleccionada;
+  }
+
   try {
     const { orden_id, monto, forma_pago } = req.body;
 
     await client.query("BEGIN");
 
-    // 1. Obtener la orden y su recibo
+    // 1. Obtener la orden médica y su expediente
     const ordenResult = await client.query(
-      `SELECT o.id, o.folio_recibo, r.monto_pagado, r.precio, r.pendiente
+      `SELECT o.id, o.expediente_id, o.estatus
        FROM ordenes_medicas o
-       JOIN recibos r ON r.id = o.folio_recibo
-       WHERE o.id = $1`,
-      [orden_id]
+       WHERE o.id = $1 AND o.departamento = $2`,
+      [orden_id, depto]
     );
 
     if (ordenResult.rows.length === 0) {
@@ -648,39 +741,65 @@ app.post("/api/pagos", async (req, res) => {
     }
 
     const orden = ordenResult.rows[0];
-    let nuevoPagado = parseFloat(orden.monto_pagado) + parseFloat(monto);
 
-    // 2. Actualizar el recibo
-    await client.query(
-      `UPDATE recibos 
-       SET monto_pagado = $1, forma_pago = $2
-       WHERE id = $3`,
-      [nuevoPagado, forma_pago, orden.folio_recibo]
+    // 2. Registrar el pago en la tabla de pagos (historial)
+    const pagoResult = await client.query(
+      `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
+       VALUES ($1, $2, $3, $4, NOW(), $5)
+       RETURNING *`,
+      [orden_id, orden.expediente_id, monto, forma_pago, depto]
     );
 
-    // 3. Verificar si ya quedó en cero el pendiente
-    const checkRecibo = await client.query(
-      `SELECT pendiente FROM recibos WHERE id = $1`,
-      [orden.folio_recibo]
+    // 3. Calcular el total pagado de la orden sumando todos los pagos
+    const sumaPagos = await client.query(
+      `SELECT COALESCE(SUM(monto),0) AS total_pagado
+       FROM pagos
+       WHERE orden_id = $1 AND departamento = $2`,
+      [orden_id, depto]
     );
 
-    const pendienteFinal = parseFloat(checkRecibo.rows[0].pendiente);
+    const totalPagado = parseFloat(sumaPagos.rows[0].total_pagado);
 
-    // ⚡️ CORREGIDO: usar "estatus" en lugar de "status"
-    if (pendienteFinal === 0) {
-      await client.query(
-        `UPDATE ordenes_medicas 
-         SET estatus = 'Pagado'
-         WHERE id = $1`,
-        [orden_id]
-      );
+    // 4. Obtener el recibo asociado para precio
+    const precioOrden = await client.query(
+      `SELECT id, precio FROM recibos
+       WHERE paciente_id = $1 AND departamento = $2
+       ORDER BY fecha DESC LIMIT 1`,
+      [orden.expediente_id, depto]
+    );
+
+    if (precioOrden.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Recibo no encontrado" });
     }
 
+    const recibo = precioOrden.rows[0];
+    const precio = parseFloat(recibo.precio || 0);
+    const pendiente = Math.max(0, precio - totalPagado);
+
+    // 5. Actualizar acumulados en recibo (solo monto_pagado, pendiente es generado)
+    await client.query(
+      `UPDATE recibos
+       SET monto_pagado = $1
+       WHERE id = $2`,
+      [totalPagado, recibo.id]
+    );
+
+    // 6. Actualizar estatus de la orden médica
+    await client.query(
+      `UPDATE ordenes_medicas
+       SET estatus = CASE WHEN $1 = 0 THEN 'Pagado' ELSE 'Pendiente' END
+       WHERE id = $2 AND departamento = $3`,
+      [pendiente, orden_id, depto]
+    );
+
     await client.query("COMMIT");
+
     res.json({
       message: "Pago registrado con éxito",
-      pagado: nuevoPagado,
-      pendiente: pendienteFinal
+      pago: pagoResult.rows[0],
+      totalPagado,
+      pendiente
     });
 
   } catch (err) {
@@ -693,27 +812,36 @@ app.post("/api/pagos", async (req, res) => {
 });
 
 
-// ==================== CIERRE DE CAJA ====================
 
+// ==================== CIERRE DE CAJA ====================
 // Resumen por forma de pago y procedimiento
-app.get("/api/cierre-caja", async (req, res) => {
+app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
   try {
     const { fecha } = req.query;
+    let depto = req.session.usuario.departamento;
+
     if (!fecha) {
       return res.status(400).json({ error: "Falta fecha" });
     }
 
-    const result = await pool.query(`
-      SELECT 
-          r.forma_pago AS pago,
-          r.procedimiento,
-          SUM(r.precio) AS total
-      FROM recibos r
-      WHERE DATE(r.fecha) = $1
-      GROUP BY r.forma_pago, r.procedimiento
-      ORDER BY r.forma_pago, r.procedimiento
-    `, [fecha]);
+    // Si es admin y seleccionó sucursal -> filtrar
+    if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
+      depto = req.session.usuario.sucursalSeleccionada;
+    }
 
+    const query = `
+      SELECT 
+          p.forma_pago AS pago,
+          o.procedimiento,
+          SUM(p.monto) AS total
+      FROM pagos p
+      JOIN ordenes_medicas o ON o.id = p.orden_id
+      WHERE DATE(p.fecha) = $1 AND p.departamento = $2
+      GROUP BY p.forma_pago, o.procedimiento
+      ORDER BY p.forma_pago, o.procedimiento
+    `;
+
+    const result = await pool.query(query, [fecha, depto]);
     res.json(result.rows);
   } catch (err) {
     console.error("Error en /api/cierre-caja:", err);
@@ -721,33 +849,46 @@ app.get("/api/cierre-caja", async (req, res) => {
   }
 });
 
-// Listado de pacientes con recibos de ese día
-app.get("/api/listado-pacientes", async (req, res) => {
+
+// ==================== LISTADO DE PACIENTES ====================
+app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
   try {
     const { fecha } = req.query;
+    let depto = req.session.usuario.departamento;
+
     if (!fecha) {
       return res.status(400).json({ error: "Falta fecha" });
     }
 
-    const result = await pool.query(`
+    // Si es admin y seleccionó sucursal -> filtrar
+    if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
+      depto = req.session.usuario.sucursalSeleccionada;
+    }
+
+    const query = `
       SELECT 
-          r.fecha::date AS fecha,
-          r.id AS folio,
+          p.fecha::date AS fecha,
+          o.id AS orden_id,
+          e.numero_expediente AS folio,
           e.nombre_completo AS nombre,
-          r.procedimiento,
+          o.procedimiento,
           CASE 
-            WHEN (r.precio - r.monto_pagado) > 0 THEN 'Pago Pendiente'
+            WHEN (SUM(p.monto) < r.precio) THEN 'Pago Pendiente'
             ELSE 'Pagado'
           END AS status,
-          r.forma_pago AS pago,
+          STRING_AGG(DISTINCT p.forma_pago, ', ') AS pago,
           r.precio AS total,
-          (r.precio - r.monto_pagado) AS saldo
-      FROM recibos r
-      JOIN expedientes e ON r.paciente_id = e.numero_expediente
-      WHERE DATE(r.fecha) = $1
-      ORDER BY r.fecha, r.id
-    `, [fecha]);
+          (r.precio - COALESCE(SUM(p.monto),0)) AS saldo
+      FROM ordenes_medicas o
+      JOIN recibos r ON r.id = o.folio_recibo
+      JOIN expedientes e ON o.expediente_id = e.numero_expediente
+      LEFT JOIN pagos p ON p.orden_id = o.id
+      WHERE DATE(p.fecha) = $1 AND o.departamento = $2
+      GROUP BY p.fecha::date, o.id, e.numero_expediente, e.nombre_completo, o.procedimiento, r.precio
+      ORDER BY p.fecha, o.id
+    `;
 
+    const result = await pool.query(query, [fecha, depto]);
     res.json(result.rows);
   } catch (err) {
     console.error("Error en /api/listado-pacientes:", err);
@@ -755,10 +896,24 @@ app.get("/api/listado-pacientes", async (req, res) => {
   }
 });
 
+
+// ==================== ADMIN: Selección de sucursal ====================
+app.post("/api/seleccionar-sucursal", verificarSesion, (req, res) => {
+  if (req.session.usuario.rol !== "admin") {
+    return res.status(403).json({ error: "No autorizado" });
+  }
+  const { sucursal } = req.body;
+  if (!sucursal) {
+    return res.status(400).json({ error: "Debe indicar la sucursal" });
+  }
+  req.session.usuario.sucursalSeleccionada = sucursal;
+  res.json({ ok: true, sucursal });
+});
+
 // ==================== MÓDULO OPTOMETRÍA ====================
 
 // Guardar nueva evaluación de optometría
-app.post("/api/optometria", async (req, res) => {
+app.post("/api/optometria", verificarSesion, async (req, res) => {
   try {
     const {
       expediente_id,
@@ -767,19 +922,26 @@ app.post("/api/optometria", async (req, res) => {
       bmp, bmp_od, bmp_oi, fo, fo_od, fo_oi
     } = req.body;
 
+    // 📌 Determinar sucursal activa
+    let depto = req.session.usuario.departamento;
+    if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
+      depto = req.session.usuario.sucursalSeleccionada;
+    }
+
     const result = await pool.query(
       `INSERT INTO optometria (
         expediente_id, esfera_od, cilindro_od, eje_od, avcc_od, adicion_od, avcc2_od,
         esfera_oi, cilindro_oi, eje_oi, avcc_oi, adicion_oi, avcc2_oi,
-        bmp, bmp_od, bmp_oi, fo, fo_od, fo_oi, fecha
+        bmp, bmp_od, bmp_oi, fo, fo_od, fo_oi, fecha, departamento
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19, NOW())
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19, NOW(), $20)
       RETURNING *`,
       [
         expediente_id,
         esfera_od, cilindro_od, eje_od, avcc_od, adicion_od, avcc2_od,
         esfera_oi, cilindro_oi, eje_oi, avcc_oi, adicion_oi, avcc2_oi,
-        bmp, bmp_od, bmp_oi, fo, fo_od, fo_oi
+        bmp, bmp_od, bmp_oi, fo, fo_od, fo_oi,
+        depto
       ]
     );
 
@@ -790,15 +952,24 @@ app.post("/api/optometria", async (req, res) => {
   }
 });
 
+
 // Obtener todas las evaluaciones de optometría (con nombre de paciente)
-app.get("/api/optometria", async (req, res) => {
+app.get("/api/optometria", verificarSesion, async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT o.*, e.nombre_completo AS nombre
-      FROM optometria o
-      JOIN expedientes e ON o.expediente_id = e.numero_expediente
-      ORDER BY o.fecha DESC
-    `);
+    let depto = req.session.usuario.departamento;
+    if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
+      depto = req.session.usuario.sucursalSeleccionada;
+    }
+
+    const result = await pool.query(
+      `SELECT o.*, e.nombre_completo AS nombre
+       FROM optometria o
+       JOIN expedientes e ON o.expediente_id = e.numero_expediente
+       WHERE o.departamento = $1
+       ORDER BY o.fecha DESC`,
+      [depto]
+    );
+
     res.json(result.rows);
   } catch (err) {
     console.error("Error en /api/optometria:", err);
@@ -806,16 +977,23 @@ app.get("/api/optometria", async (req, res) => {
   }
 });
 
+
 // Obtener las evaluaciones de optometría de un expediente específico
-app.get("/api/expedientes/:id/optometria", async (req, res) => {
+app.get("/api/expedientes/:id/optometria", verificarSesion, async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query(`
-      SELECT *
-      FROM optometria
-      WHERE expediente_id = $1
-      ORDER BY fecha DESC
-    `, [id]);
+    let depto = req.session.usuario.departamento;
+    if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
+      depto = req.session.usuario.sucursalSeleccionada;
+    }
+
+    const result = await pool.query(
+      `SELECT *
+       FROM optometria
+       WHERE expediente_id = $1 AND departamento = $2
+       ORDER BY fecha DESC`,
+      [id, depto]
+    );
 
     res.json(result.rows);
   } catch (err) {
@@ -824,17 +1002,33 @@ app.get("/api/expedientes/:id/optometria", async (req, res) => {
   }
 });
 
+
 // Eliminar evaluación de optometría
-app.delete("/api/optometria/:id", async (req, res) => {
+app.delete("/api/optometria/:id", isAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    await pool.query("DELETE FROM optometria WHERE id = $1", [id]);
+    let depto = req.session.usuario.departamento;
+    if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
+      depto = req.session.usuario.sucursalSeleccionada;
+    }
+
+    const result = await pool.query(
+      "DELETE FROM optometria WHERE id = $1 AND departamento = $2 RETURNING *",
+      [id, depto]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Evaluación no encontrada o no pertenece a tu sucursal" });
+    }
+
     res.json({ mensaje: "🗑️ Evaluación de optometría eliminada" });
   } catch (err) {
     console.error("Error al eliminar optometría:", err);
     res.status(500).json({ error: err.message });
   }
 });
+
+
 // ==================== MÓDULO INSUMOS ====================
 
 // Configuración de multer para guardar con nombre único
@@ -854,14 +1048,27 @@ const upload = multer({ storage });
 // Servir los archivos subidos para poder descargarlos
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// 🔹 Helper para obtener el departamento actual
+function getDepto(req) {
+  if (req.session.usuario.rol === "admin") {
+    return req.session.usuario.sucursalSeleccionada || null; // null = todas
+  }
+  return req.session.usuario.departamento;
+}
+
 // 1. Guardar insumo manual
-app.post('/api/insumos', async (req, res) => {
+app.post('/api/insumos', verificarSesion, async (req, res) => {
   try {
-    const { fecha, folio, concepto, monto, cantidad } = req.body;
+    const { fecha, folio, concepto, monto, archivo } = req.body;
+    let depto = getDepto(req);
+    if (!depto) return res.status(400).json({ error: "Debes seleccionar una sucursal" });
+
     const result = await pool.query(
-      'INSERT INTO insumos (fecha, folio, concepto, monto, cantidad) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [fecha, folio, concepto, monto, cantidad]
+      `INSERT INTO insumos (fecha, folio, concepto, monto, archivo, departamento) 
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [fecha, folio, concepto, monto, archivo || null, depto]
     );
+
     res.json({ mensaje: '✅ Insumo agregado', insumo: result.rows[0] });
   } catch (err) {
     console.error("Error al guardar insumo:", err);
@@ -870,9 +1077,21 @@ app.post('/api/insumos', async (req, res) => {
 });
 
 // 2. Listar insumos
-app.get('/api/insumos', async (req, res) => {
+app.get('/api/insumos', verificarSesion, async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM insumos ORDER BY fecha ASC');
+    let depto = getDepto(req);
+
+    let query = 'SELECT * FROM insumos';
+    let params = [];
+
+    if (depto) {
+      query += ' WHERE departamento = $1 ORDER BY fecha ASC';
+      params.push(depto);
+    } else {
+      query += ' ORDER BY fecha ASC'; // admin sin sucursal → todos
+    }
+
+    const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
     console.error("Error al obtener insumos:", err);
@@ -881,32 +1100,27 @@ app.get('/api/insumos', async (req, res) => {
 });
 
 // 3. Subir Excel
-app.post('/api/insumos/upload', upload.single('excelFile'), async (req, res) => {
+app.post('/api/insumos/upload', verificarSesion, upload.single('excelFile'), async (req, res) => {
   try {
+    let depto = getDepto(req);
+    if (!depto) return res.status(400).json({ error: "Debes seleccionar una sucursal" });
+
     const workbook = xlsx.readFile(req.file.path);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const data = xlsx.utils.sheet_to_json(sheet);
 
     for (let row of data) {
-      // aceptar mayúsculas o minúsculas en encabezados
-      let fecha = row.fecha || row.Fecha;
-      const folio = row.folio || row.Folio;
-      const concepto = row.concepto || row.Concepto;
-      const cantidad = row.cantidad || row.Cantidad;
-      const monto = row.monto || row.Monto;
-
       // Convertir fecha si viene como número de Excel
+      let fecha = row.Fecha;
       if (typeof fecha === "number") {
         fecha = xlsx.SSF.format("yyyy-mm-dd", fecha);
       }
 
-      // Validación básica: no insertar filas vacías
-      if (fecha && concepto) {
-        await pool.query(
-          'INSERT INTO insumos (fecha, folio, concepto, cantidad, monto, archivo) VALUES ($1,$2,$3,$4,$5,$6)',
-          [fecha, folio, concepto, cantidad, monto, req.file.filename]
-        );
-      }
+      await pool.query(
+        `INSERT INTO insumos (fecha, folio, concepto, monto, archivo, departamento) 
+         VALUES ($1,$2,$3,$4,$5,$6)`,
+        [fecha, row.Folio || null, row.Concepto || null, row.Monto || 0, req.file.filename, depto]
+      );
     }
 
     res.json({ mensaje: '✅ Excel procesado y guardado' });
@@ -917,10 +1131,20 @@ app.post('/api/insumos/upload', upload.single('excelFile'), async (req, res) => 
 });
 
 // 4. Eliminar insumo
-app.delete('/api/insumos/:id', async (req, res) => {
+app.delete('/api/insumos/:id', isAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    await pool.query("DELETE FROM insumos WHERE id = $1", [id]);
+    let depto = getDepto(req);
+
+    const result = await pool.query(
+      "DELETE FROM insumos WHERE id = $1 AND departamento = $2 RETURNING *",
+      [id, depto]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Insumo no encontrado o no pertenece a tu sucursal" });
+    }
+
     res.json({ mensaje: "🗑️ Insumo eliminado correctamente" });
   } catch (err) {
     console.error("Error eliminando insumo:", err);
@@ -928,8 +1152,54 @@ app.delete('/api/insumos/:id', async (req, res) => {
   }
 });
 
-// Servir carpeta de uploads como pública
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+//==================== MÓDULO CREAR USUARIO ADMIN ====================//
+// Crear usuario
+app.post('/api/admin/add-user', isAdmin, async (req, res) => {
+    const { nomina, username, password, rol, departamento } = req.body;
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await pool.query(
+            'INSERT INTO usuarios (nomina, username, password, rol, departamento) VALUES ($1,$2,$3,$4,$5)',
+            [nomina, username, hashedPassword, rol, departamento]
+        );
+        res.json({ mensaje: 'Usuario creado correctamente' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Error creando usuario' });
+    }
+});
+
+// Listar usuarios
+app.get('/api/admin/list-users', isAdmin, async (req, res) => {
+    try {
+        const result = await pool.query('SELECT nomina, username, rol, departamento FROM usuarios ORDER BY username ASC');
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Error listando usuarios' });
+    }
+});
+
+// ==================== ADMIN CAMBIE DE SUCURSAL ====================
+// Cambiar sucursal activa (solo admin)
+app.post('/api/set-departamento', isAdmin, (req, res) => {
+  const { departamento } = req.body;
+  if (!departamento) {
+    return res.status(400).json({ error: 'Falta el nombre del departamento' });
+  }
+
+  if (departamento === "admin") {
+    // 👉 Regresa al modo admin sin sucursal activa
+    delete req.session.usuario.sucursalSeleccionada;
+    return res.json({ mensaje: "Regresaste al panel de Admin" });
+  }
+
+  // 👉 Guardamos la sucursal activa aparte, sin perder rol ni datos originales
+  req.session.usuario.sucursalSeleccionada = departamento;
+  res.json({ mensaje: `Sucursal cambiada a ${departamento}` });
+});
+
 
 
 
