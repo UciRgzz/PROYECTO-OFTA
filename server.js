@@ -117,11 +117,10 @@ app.post('/api/login', async (req, res) => {
         }
 
         // ✅ Guardamos toda la información en sesión
-        req.session.usuario = {
+                req.session.usuario = {
             username: usuario.username,
             rol: usuario.rol,
-            // Si es admin, no arranca con sucursal fija
-            departamento: usuario.rol === "admin" ? null : usuario.departamento
+            departamento: usuario.rol === "admin" ? "ADMIN" : usuario.departamento
         };
 
 
@@ -189,12 +188,13 @@ app.post('/api/reset-password', async (req, res) => {
 
 // ==================== HELPER: Determinar sucursal activa ====================
 function getDepartamento(req) {
-  let depto = req.session.usuario.departamento;
-  if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
-    depto = req.session.usuario.sucursalSeleccionada;
+  if (req.session.usuario.rol === "admin") {
+    // 👇 Si el admin no seleccionó sucursal, usamos "ADMIN" como valor especial
+    return req.session.usuario.sucursalSeleccionada || "ADMIN";
   }
-  return depto;
+  return req.session.usuario.departamento;
 }
+
 
 // ==================== CRUD EXPEDIENTES ====================
 
@@ -1059,9 +1059,11 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // 🔹 Helper para obtener el departamento actual
 function getDepto(req) {
   if (req.session.usuario.rol === "admin") {
-    return req.session.usuario.sucursalSeleccionada || null; // null = todas
+    // Si no seleccionó sucursal → trabajar con "ADMIN"
+    return req.session.usuario.sucursalSeleccionada || "ADMIN";
   }
   return req.session.usuario.departamento;
+
 }
 
 // 1. Guardar insumo manual
@@ -1069,7 +1071,7 @@ app.post('/api/insumos', verificarSesion, async (req, res) => {
   try {
     const { fecha, folio, concepto, monto, archivo } = req.body;
     let depto = getDepto(req);
-    if (!depto) return res.status(400).json({ error: "Debes seleccionar una sucursal" });
+
 
     const result = await pool.query(
       `INSERT INTO insumos (fecha, folio, concepto, monto, archivo, departamento) 
@@ -1221,10 +1223,6 @@ app.get('/api/logout', (req, res) => {
 app.listen(3000, "0.0.0.0", () => {
     console.log("Servidor corriendo en puerto 3000 en todas las interfaces");
 });
-
-
-
-
 
 /*
 app.listen(3000, () => {
