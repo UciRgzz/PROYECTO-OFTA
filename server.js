@@ -1218,9 +1218,10 @@ app.get('/api/logout', (req, res) => {
     });
 });
 
-app.listen(3000, "127.0.0.1", () => {
-    console.log("Servidor corriendo en puerto 3000");
+app.listen(3000, "0.0.0.0", () => {
+    console.log("Servidor corriendo en puerto 3000 en todas las interfaces");
 });
+
 
 
 
