@@ -664,7 +664,9 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
     
     const result = await pool.query(`
       SELECT 
-        e.numero_expediente AS numero_orden,   -- 👈 Ahora usa el expediente del paciente
+        o.id AS orden_id,          -- 👈 id de la orden
+        o.folio_recibo,            -- 👈 id del recibo (necesario para pagos)
+        e.numero_expediente AS numero_orden,
         e.nombre_completo AS paciente, 
         o.medico, 
         o.diagnostico, 
@@ -681,7 +683,7 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         ON r.id = o.folio_recibo 
        AND r.departamento = o.departamento
       JOIN expedientes e 
-        ON e.numero_expediente = o.expediente_id   -- 👈 Correcto: une con expediente
+        ON e.numero_expediente = o.expediente_id
        AND e.departamento = o.departamento
       WHERE o.departamento = $1
       ORDER BY o.fecha DESC
@@ -695,6 +697,7 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
 });
 
 
+
 // ==================== PAGOS ====================
 // Registrar un pago para una orden (usando folio_recibo en lugar de orden_id)
 app.post("/api/pagos", verificarSesion, async (req, res) => {
@@ -702,11 +705,19 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
   let depto = getDepartamento(req);
 
   try {
-    const { folio_recibo, monto, forma_pago } = req.body; // 👈 ahora recibimos folio_recibo
+    let { folio_recibo, monto, forma_pago } = req.body;
+
+    // 🔒 Validaciones iniciales
+    folio_recibo = parseInt(folio_recibo, 10);
+    monto = parseFloat(monto);
+
+    if (isNaN(folio_recibo) || isNaN(monto) || monto <= 0) {
+      return res.status(400).json({ error: "Datos de pago inválidos" });
+    }
 
     await client.query("BEGIN");
 
-    // 1. Obtener la orden médica vinculada a ese recibo
+    // 1. Obtener la orden médica vinculada al recibo
     const ordenResult = await client.query(
       `SELECT o.id, o.expediente_id, o.estatus
        FROM ordenes_medicas o
@@ -788,6 +799,7 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
     client.release();
   }
 });
+
 
 
 // ==================== CIERRE DE CAJA ====================
