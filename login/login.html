@@ -135,36 +135,41 @@
     });
 
     // LOGIN
-    loginForm.addEventListener('submit', async e => {
-        e.preventDefault();
-        const username = document.getElementById('loginUsername').value;
-        const password = document.getElementById('loginPassword').value;
+        loginForm.addEventListener('submit', async e => {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
 
-        const res = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                Swal.fire({
+                    title: 'Iniciando sesión...',
+                    text: 'Por favor espera',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                setTimeout(() => {
+                    window.location.href = '/frontend/index.html';
+                }, 1000); // 👈 tiempo de espera antes de redirigir
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.error || 'Usuario o contraseña incorrectos',
+                    confirmButtonColor: '#e74c3c'
+                });
+            }
         });
 
-        const data = await res.json();
-        if (res.ok) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Bienvenido',
-                text: 'Inicio de sesión correcto',
-                confirmButtonColor: '#27ae60'
-            }).then(() => {
-                window.location.href = '/frontend/index.html';
-            });
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: data.error || 'Usuario o contraseña incorrectos',
-                confirmButtonColor: '#e74c3c'
-            });
-        }
-    });
 
     // OLVIDAR CONTRASEÑA (NÓMINA)
     forgotForm.addEventListener('submit', async e => {
