@@ -147,7 +147,7 @@ async function cargarOrdenes() {
     function abrirPago(index) {
       const o = ordenesData[index];
       document.getElementById("formPago").reset();
-      document.getElementById("orden_id").value = o.numero_orden;
+      document.getElementById("orden_id").value = o.orden_id;
       document.getElementById("pacientePago").textContent = o.paciente;
       document.getElementById("procedimientoPago").textContent = o.procedimiento;
       document.getElementById("precioPago").textContent = o.precio;

@@ -722,11 +722,12 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 
     // 1. Obtener la orden médica y su expediente
     const ordenResult = await client.query(
-      `SELECT o.id, o.expediente_id, o.estatus
-       FROM ordenes_medicas o
-       WHERE o.id = $1 AND o.departamento = $2`,
-      [orden_id, depto]
-    );
+        `SELECT o.id, o.expediente_id, o.estatus
+        FROM ordenes_medicas o
+        WHERE o.expediente_id = $1 AND o.departamento = $2`,
+        [orden_id, depto]
+      );
+
 
     if (ordenResult.rows.length === 0) {
       await client.query("ROLLBACK");
