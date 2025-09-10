@@ -696,28 +696,27 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
 
 
 // ==================== PAGOS ====================
-// Registrar un pago para una orden
+// Registrar un pago para una orden (usando folio_recibo en lugar de orden_id)
 app.post("/api/pagos", verificarSesion, async (req, res) => {
   const client = await pool.connect();
   let depto = getDepartamento(req);
 
   try {
-    const { orden_id, monto, forma_pago } = req.body;
+    const { folio_recibo, monto, forma_pago } = req.body; // 👈 ahora recibimos folio_recibo
 
     await client.query("BEGIN");
 
-    // 1. Obtener la orden médica y su expediente
+    // 1. Obtener la orden médica vinculada a ese recibo
     const ordenResult = await client.query(
       `SELECT o.id, o.expediente_id, o.estatus
-      FROM ordenes_medicas o
-      WHERE o.id = $1 AND o.departamento = $2`,
-      [orden_id, depto]
+       FROM ordenes_medicas o
+       WHERE o.folio_recibo = $1 AND o.departamento = $2`,
+      [folio_recibo, depto]
     );
-
 
     if (ordenResult.rows.length === 0) {
       await client.query("ROLLBACK");
-      return res.status(404).json({ error: "Orden no encontrada" });
+      return res.status(404).json({ error: "Orden no encontrada para este recibo" });
     }
 
     const orden = ordenResult.rows[0];
@@ -727,28 +726,25 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
       `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
        VALUES ($1, $2, $3, $4, NOW(), $5)
        RETURNING *`,
-      [orden_id, orden.expediente_id, monto, forma_pago, depto]
+      [orden.id, orden.expediente_id, monto, forma_pago, depto]
     );
 
-    // 3. Calcular total pagado
+    // 3. Calcular total pagado hasta ahora
     const sumaPagos = await client.query(
       `SELECT COALESCE(SUM(monto),0) AS total_pagado
        FROM pagos
        WHERE orden_id = $1 AND departamento = $2`,
-      [orden_id, depto]
+      [orden.id, depto]
     );
     const totalPagado = parseFloat(sumaPagos.rows[0].total_pagado);
 
-   // 4. Obtener recibo asociado
-      const precioOrden = await client.query(
-        `SELECT id, precio FROM recibos
-        WHERE id = (
-          SELECT folio_recibo FROM ordenes_medicas
-          WHERE id = $1 AND departamento = $2
-        )`,
-        [orden_id, depto]
-      );
-
+    // 4. Obtener el recibo asociado
+    const precioOrden = await client.query(
+      `SELECT id, precio 
+       FROM recibos
+       WHERE id = $1 AND departamento = $2`,
+      [folio_recibo, depto]
+    );
 
     if (precioOrden.rows.length === 0) {
       await client.query("ROLLBACK");
@@ -759,20 +755,20 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
     const precio = parseFloat(recibo.precio || 0);
     const pendiente = Math.max(0, precio - totalPagado);
 
-    // 5. Actualizar acumulados
+    // 5. Actualizar acumulados en recibo
     await client.query(
       `UPDATE recibos
        SET monto_pagado = $1
-       WHERE id = $2`,
-      [totalPagado, recibo.id]
+       WHERE id = $2 AND departamento = $3`,
+      [totalPagado, recibo.id, depto]
     );
 
-    // 6. Actualizar estatus de orden
+    // 6. Actualizar estatus de la orden
     await client.query(
       `UPDATE ordenes_medicas
        SET estatus = CASE WHEN $1 = 0 THEN 'Pagado' ELSE 'Pendiente' END
        WHERE id = $2 AND departamento = $3`,
-      [pendiente, orden_id, depto]
+      [pendiente, orden.id, depto]
     );
 
     await client.query("COMMIT");
