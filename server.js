@@ -813,29 +813,33 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
   try {
     const { fecha } = req.query;
     let depto = req.session.usuario.departamento;
+    let params = [fecha];
 
     if (!fecha) {
       return res.status(400).json({ error: "Falta fecha" });
     }
 
-    // Si es admin y seleccionó sucursal -> filtrar
-    if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
-      depto = req.session.usuario.sucursalSeleccionada;
-    }
-
-    const query = `
+    let query = `
       SELECT 
           p.forma_pago AS pago,
           o.procedimiento,
           SUM(p.monto) AS total
       FROM pagos p
       JOIN ordenes_medicas o ON o.id = p.orden_id
-      WHERE p.fecha::date = $1 AND p.departamento = $2
-      GROUP BY p.forma_pago, o.procedimiento
-      ORDER BY p.forma_pago, o.procedimiento
+      WHERE p.fecha::date = $1
     `;
 
-    const result = await pool.query(query, [fecha, depto]);
+    if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
+      query += " AND p.departamento = $2";
+      params.push(req.session.usuario.sucursalSeleccionada);
+    } else if (req.session.usuario.rol !== "admin") {
+      query += " AND p.departamento = $2";
+      params.push(depto);
+    }
+
+    query += " GROUP BY p.forma_pago, o.procedimiento ORDER BY p.forma_pago, o.procedimiento";
+
+    const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
     console.error("Error en /api/cierre-caja:", err);
@@ -849,17 +853,13 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
   try {
     const { fecha } = req.query;
     let depto = req.session.usuario.departamento;
+    let params = [fecha];
 
     if (!fecha) {
       return res.status(400).json({ error: "Falta fecha" });
     }
 
-    // Si es admin y seleccionó sucursal -> filtrar
-    if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
-      depto = req.session.usuario.sucursalSeleccionada;
-    }
-
-    const query = `
+    let query = `
       SELECT 
           p.fecha::date AS fecha,
           o.id AS orden_id,
@@ -877,12 +877,23 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
       JOIN recibos r ON r.id = o.folio_recibo
       JOIN expedientes e ON o.expediente_id = e.numero_expediente
       LEFT JOIN pagos p ON p.orden_id = o.id
-      WHERE p.fecha::date = $1 AND o.departamento = $2
+      WHERE p.fecha::date = $1
+    `;
+
+    if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
+      query += " AND o.departamento = $2";
+      params.push(req.session.usuario.sucursalSeleccionada);
+    } else if (req.session.usuario.rol !== "admin") {
+      query += " AND o.departamento = $2";
+      params.push(depto);
+    }
+
+    query += `
       GROUP BY p.fecha::date, o.id, e.numero_expediente, e.nombre_completo, o.procedimiento, r.precio
       ORDER BY p.fecha, o.id
     `;
 
-    const result = await pool.query(query, [fecha, depto]);
+    const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
     console.error("Error en /api/listado-pacientes:", err);
