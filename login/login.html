@@ -97,6 +97,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     const loginForm = document.getElementById('loginForm');
     const forgotForm = document.getElementById('forgotForm');
@@ -147,9 +148,21 @@
 
         const data = await res.json();
         if (res.ok) {
-            window.location.href = '/frontend/index.html';
+            Swal.fire({
+                icon: 'success',
+                title: 'Bienvenido',
+                text: 'Inicio de sesión correcto',
+                confirmButtonColor: '#27ae60'
+            }).then(() => {
+                window.location.href = '/frontend/index.html';
+            });
         } else {
-            alert(data.error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.error || 'Usuario o contraseña incorrectos',
+                confirmButtonColor: '#e74c3c'
+            });
         }
     });
 
@@ -166,14 +179,25 @@
 
         const data = await res.json();
         if (res.ok) {
-            alert(`Tu código de recuperación es: ${data.token}`);
-            forgotForm.reset();
-            forgotForm.classList.add('d-none');
-            resetForm.classList.remove('d-none');
-            document.getElementById('resetNomina').value = nomina;
-            formTitle.textContent = 'Restablecer Contraseña';
+            Swal.fire({
+                icon: 'info',
+                title: 'Código de recuperación',
+                text: `Tu código es: ${data.token}`,
+                confirmButtonColor: '#3498db'
+            }).then(() => {
+                forgotForm.reset();
+                forgotForm.classList.add('d-none');
+                resetForm.classList.remove('d-none');
+                document.getElementById('resetNomina').value = nomina;
+                formTitle.textContent = 'Restablecer Contraseña';
+            });
         } else {
-            alert(data.error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.error || 'No se pudo generar el código',
+                confirmButtonColor: '#e74c3c'
+            });
         }
     });
 
@@ -191,10 +215,23 @@
         });
 
         const data = await res.json();
-        alert(data.mensaje || data.error);
         if (res.ok) {
-            resetForm.reset();
-            resetBackToLogin.click();
+            Swal.fire({
+                icon: 'success',
+                title: 'Contraseña actualizada',
+                text: data.mensaje || 'Tu contraseña fue restablecida correctamente',
+                confirmButtonColor: '#27ae60'
+            }).then(() => {
+                resetForm.reset();
+                resetBackToLogin.click();
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.error || 'No se pudo restablecer la contraseña',
+                confirmButtonColor: '#e74c3c'
+            });
         }
     });
 </script>
