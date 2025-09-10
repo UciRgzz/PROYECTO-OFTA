@@ -862,7 +862,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
 
     const query = `
       SELECT 
-          p.fecha::date AS fecha,
+          COALESCE(p.fecha::date, r.fecha::date) AS fecha,
           o.id AS orden_id,
           e.numero_expediente AS folio,
           e.nombre_completo AS nombre,
@@ -878,9 +878,9 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
       JOIN recibos r ON r.id = o.folio_recibo
       JOIN expedientes e ON o.expediente_id = e.numero_expediente
       LEFT JOIN pagos p ON p.orden_id = o.id
-      WHERE DATE(p.fecha) = $1 AND o.departamento = $2
-      GROUP BY p.fecha::date, o.id, e.numero_expediente, e.nombre_completo, o.procedimiento, r.precio
-      ORDER BY p.fecha, o.id
+      WHERE DATE(r.fecha) = $1 AND o.departamento = $2
+      GROUP BY COALESCE(p.fecha::date, r.fecha::date), o.id, e.numero_expediente, e.nombre_completo, o.procedimiento, r.precio
+      ORDER BY fecha, o.id
     `;
 
     const result = await pool.query(query, [fecha, depto]);
