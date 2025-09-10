@@ -809,7 +809,6 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 
 
 // ==================== CIERRE DE CAJA ====================
-// Resumen por forma de pago y procedimiento
 app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
   try {
     const { fecha } = req.query;
@@ -831,7 +830,7 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
           SUM(p.monto) AS total
       FROM pagos p
       JOIN ordenes_medicas o ON o.id = p.orden_id
-      WHERE DATE(p.fecha) = $1 AND p.departamento = $2
+      WHERE p.fecha::date = $1 AND p.departamento = $2
       GROUP BY p.forma_pago, o.procedimiento
       ORDER BY p.forma_pago, o.procedimiento
     `;
@@ -862,7 +861,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
 
     const query = `
       SELECT 
-          COALESCE(p.fecha::date, r.fecha::date) AS fecha,
+          p.fecha::date AS fecha,
           o.id AS orden_id,
           e.numero_expediente AS folio,
           e.nombre_completo AS nombre,
@@ -878,9 +877,9 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
       JOIN recibos r ON r.id = o.folio_recibo
       JOIN expedientes e ON o.expediente_id = e.numero_expediente
       LEFT JOIN pagos p ON p.orden_id = o.id
-      WHERE DATE(r.fecha) = $1 AND o.departamento = $2
-      GROUP BY COALESCE(p.fecha::date, r.fecha::date), o.id, e.numero_expediente, e.nombre_completo, o.procedimiento, r.precio
-      ORDER BY fecha, o.id
+      WHERE p.fecha::date = $1 AND o.departamento = $2
+      GROUP BY p.fecha::date, o.id, e.numero_expediente, e.nombre_completo, o.procedimiento, r.precio
+      ORDER BY p.fecha, o.id
     `;
 
     const result = await pool.query(query, [fecha, depto]);
