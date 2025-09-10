@@ -812,7 +812,7 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
   try {
     const { fecha } = req.query;
-    let depto = req.session.usuario.departamento;
+    let depto = req.session.usuario.departamento; // puede ser "ADMIN" o sucursal normal
     let params = [fecha];
 
     if (!fecha) {
@@ -831,11 +831,16 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
 
     if (req.session.usuario.rol === "admin") {
       if (req.session.usuario.sucursalSeleccionada) {
+        // 👇 Admin viendo una sucursal
         query += " AND p.departamento = $2";
         params.push(req.session.usuario.sucursalSeleccionada);
+      } else {
+        // 👇 Admin en su propia ventana → solo sus registros en depto = 'ADMIN'
+        query += " AND p.departamento = $2";
+        params.push("ADMIN");
       }
-      // si admin NO seleccionó sucursal -> no se añade filtro de depto
     } else {
+      // Usuario normal
       query += " AND p.departamento = $2";
       params.push(depto);
     }
@@ -887,8 +892,10 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
       if (req.session.usuario.sucursalSeleccionada) {
         query += " AND o.departamento = $2";
         params.push(req.session.usuario.sucursalSeleccionada);
+      } else {
+        query += " AND o.departamento = $2";
+        params.push("ADMIN");
       }
-      // si admin NO seleccionó sucursal -> no se añade filtro de depto
     } else {
       query += " AND o.departamento = $2";
       params.push(depto);

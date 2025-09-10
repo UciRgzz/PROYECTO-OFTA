@@ -11,6 +11,9 @@
 <!-- Librería Excel -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <style>
   body {
     font-family: 'Segoe UI', Tahoma, sans-serif;
@@ -169,7 +172,12 @@ async function cargarCierre() {
     const fecha = document.getElementById("fechaCierre").value;
 
     if (!fecha) {
-        alert("Selecciona una fecha");
+        Swal.fire({
+            icon: 'warning',
+            title: 'Fecha requerida',
+            text: 'Debes seleccionar una fecha para generar el reporte.',
+            confirmButtonColor: '#3085d6'
+        });
         return;
     }
 
@@ -180,6 +188,12 @@ async function cargarCierre() {
 
         if (!Array.isArray(datosResumen) || datosResumen.length === 0) {
             document.getElementById("tbodyResumen").innerHTML = "<tr><td colspan='5'>Sin datos</td></tr>";
+            Swal.fire({
+                icon: 'info',
+                title: 'Sin datos',
+                text: 'No se encontraron registros para la fecha seleccionada.',
+                confirmButtonColor: '#3085d6'
+            });
             return;
         }
 
@@ -247,7 +261,12 @@ async function cargarCierre() {
         `).join('');
     } catch (error) {
         console.error("Error cargando cierre de caja:", error);
-        alert("Error cargando datos del cierre.");
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Hubo un problema al cargar los datos del cierre.',
+            confirmButtonColor: '#d33'
+        });
     }
 }
 
