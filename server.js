@@ -831,13 +831,11 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
 
     if (req.session.usuario.rol === "admin") {
       if (req.session.usuario.sucursalSeleccionada) {
-        // Admin con sucursal seleccionada -> filtrar
         query += " AND p.departamento = $2";
         params.push(req.session.usuario.sucursalSeleccionada);
       }
-      // Si no seleccionó sucursal, ve todas (no agregamos filtro de departamento)
+      // si admin NO seleccionó sucursal -> no se añade filtro de depto
     } else {
-      // Usuario normal -> siempre filtra por su depto
       query += " AND p.departamento = $2";
       params.push(depto);
     }
@@ -887,13 +885,11 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
 
     if (req.session.usuario.rol === "admin") {
       if (req.session.usuario.sucursalSeleccionada) {
-        // Admin con sucursal seleccionada -> filtrar
         query += " AND o.departamento = $2";
         params.push(req.session.usuario.sucursalSeleccionada);
       }
-      // Si no seleccionó sucursal, ve todas (no agregamos filtro de departamento)
+      // si admin NO seleccionó sucursal -> no se añade filtro de depto
     } else {
-      // Usuario normal -> siempre filtra por su depto
       query += " AND o.departamento = $2";
       params.push(depto);
     }
