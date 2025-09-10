@@ -248,7 +248,7 @@ app.get('/api/expedientes', verificarSesion, async (req, res) => {
 
     res.json(result.rows);
   } catch (err) {
-    console.error(err);
+    console.error("Error en /api/expedientes:", err);
     res.status(500).json({ error: "Error al obtener expedientes" });
   }
 });
@@ -370,55 +370,45 @@ app.get('/api/pacientes', verificarSesion, async (req, res) => {
 });
 
 
-
-// ==================== RECIBOS ====================
-
-// Guardar recibo (folio = numero_expediente del paciente)
+// ==================== GUARDAR RECIBO ====================
 app.post('/api/recibos', verificarSesion, async (req, res) => {
   const { fecha, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo } = req.body;
-
-  // 📌 Determinar sucursal activa
-  let depto = req.session.usuario.departamento;
-  if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
-    depto = req.session.usuario.sucursalSeleccionada;
-  }
+  let depto = getDepartamento(req);
 
   try {
-    // 📌 Verificar que el expediente exista en esta sucursal
+    // 📌 Buscar expediente en la sucursal/departamento actual
     const expediente = await pool.query(
       "SELECT numero_expediente FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
       [paciente_id, depto]
     );
 
     if (expediente.rows.length === 0) {
-      return res.status(400).json({ error: "El paciente no existe en esta sucursal" });
+      return res.status(400).json({ error: "El paciente no existe en este departamento" });
     }
 
+    // 📌 Usar el número de expediente como folio
     const folio = expediente.rows[0].numero_expediente;
 
-    // 📌 Insertar el recibo con el folio ligado al expediente
     const result = await pool.query(
       `INSERT INTO recibos 
         (fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, departamento) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
        RETURNING *`,
       [fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, depto]
     );
 
-    res.json({ mensaje: "Recibo guardado correctamente", recibo: result.rows[0] });
+    res.json({ mensaje: "✅ Recibo guardado correctamente", recibo: result.rows[0] });
   } catch (err) {
     console.error("Error al guardar recibo:", err);
     res.status(500).json({ error: "Error al guardar recibo" });
   }
 });
 
-// Listar recibos (pueden ver todos los usuarios autenticados)
+
+// Listar recibos
 app.get('/api/recibos', verificarSesion, async (req, res) => {
   try {
-    let depto = req.session.usuario.departamento;
-    if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
-      depto = req.session.usuario.sucursalSeleccionada;
-    }
+    let depto = getDepartamento(req);
 
     const result = await pool.query(`
       SELECT r.id, r.fecha, r.folio, e.nombre_completo AS paciente,
@@ -439,15 +429,11 @@ app.get('/api/recibos', verificarSesion, async (req, res) => {
   }
 });
 
-// Eliminar recibo (⚠️ solo admin puede eliminar y dentro de su sucursal)
+// Eliminar recibo
 app.delete('/api/recibos/:id', isAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-
-    let depto = req.session.usuario.departamento;
-    if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
-      depto = req.session.usuario.sucursalSeleccionada;
-    }
+    let depto = getDepartamento(req);
 
     const result = await pool.query(
       'DELETE FROM recibos WHERE id = $1 AND departamento = $2 RETURNING *',
@@ -455,7 +441,7 @@ app.delete('/api/recibos/:id', isAdmin, async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Recibo no encontrado o no pertenece a tu sucursal" });
+      return res.status(404).json({ error: "Recibo no encontrado o no pertenece a este departamento" });
     }
 
     res.json({ mensaje: "Recibo eliminado" });
@@ -464,6 +450,9 @@ app.delete('/api/recibos/:id', isAdmin, async (req, res) => {
     res.status(500).json({ error: "Error eliminando recibo" });
   }
 });
+
+
+
 // ==================== CATÁLOGO DE PROCEDIMIENTOS ====================
 app.get('/api/procedimientos', verificarSesion, async (req, res) => {
   try {
@@ -723,12 +712,7 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
 // Registrar un pago para una orden
 app.post("/api/pagos", verificarSesion, async (req, res) => {
   const client = await pool.connect();
-
-  // 📌 Determinar sucursal activa
-  let depto = req.session.usuario.departamento;
-  if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
-    depto = req.session.usuario.sucursalSeleccionada;
-  }
+  let depto = getDepartamento(req);
 
   try {
     const { orden_id, monto, forma_pago } = req.body;
@@ -750,7 +734,7 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 
     const orden = ordenResult.rows[0];
 
-    // 2. Registrar el pago en la tabla de pagos (historial)
+    // 2. Registrar el pago
     const pagoResult = await client.query(
       `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
        VALUES ($1, $2, $3, $4, NOW(), $5)
@@ -758,17 +742,16 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
       [orden_id, orden.expediente_id, monto, forma_pago, depto]
     );
 
-    // 3. Calcular el total pagado de la orden sumando todos los pagos
+    // 3. Calcular total pagado
     const sumaPagos = await client.query(
       `SELECT COALESCE(SUM(monto),0) AS total_pagado
        FROM pagos
        WHERE orden_id = $1 AND departamento = $2`,
       [orden_id, depto]
     );
-
     const totalPagado = parseFloat(sumaPagos.rows[0].total_pagado);
 
-    // 4. Obtener el recibo asociado para precio
+    // 4. Obtener recibo asociado
     const precioOrden = await client.query(
       `SELECT id, precio FROM recibos
        WHERE paciente_id = $1 AND departamento = $2
@@ -785,7 +768,7 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
     const precio = parseFloat(recibo.precio || 0);
     const pendiente = Math.max(0, precio - totalPagado);
 
-    // 5. Actualizar acumulados en recibo (solo monto_pagado, pendiente es generado)
+    // 5. Actualizar acumulados
     await client.query(
       `UPDATE recibos
        SET monto_pagado = $1
@@ -793,7 +776,7 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
       [totalPagado, recibo.id]
     );
 
-    // 6. Actualizar estatus de la orden médica
+    // 6. Actualizar estatus de orden
     await client.query(
       `UPDATE ordenes_medicas
        SET estatus = CASE WHEN $1 = 0 THEN 'Pagado' ELSE 'Pendiente' END
@@ -818,7 +801,6 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
     client.release();
   }
 });
-
 
 
 // ==================== CIERRE DE CAJA ====================
@@ -918,8 +900,8 @@ app.post("/api/seleccionar-sucursal", verificarSesion, (req, res) => {
   res.json({ ok: true, sucursal });
 });
 
-// ==================== MÓDULO OPTOMETRÍA ====================
 
+// ==================== MÓDULO OPTOMETRÍA ====================
 // Guardar nueva evaluación de optometría
 app.post("/api/optometria", verificarSesion, async (req, res) => {
   try {
@@ -930,11 +912,7 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
       bmp, bmp_od, bmp_oi, fo, fo_od, fo_oi
     } = req.body;
 
-    // 📌 Determinar sucursal activa
-    let depto = req.session.usuario.departamento;
-    if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
-      depto = req.session.usuario.sucursalSeleccionada;
-    }
+    let depto = getDepartamento(req);
 
     const result = await pool.query(
       `INSERT INTO optometria (
@@ -960,19 +938,17 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
   }
 });
 
-
 // Obtener todas las evaluaciones de optometría (con nombre de paciente)
 app.get("/api/optometria", verificarSesion, async (req, res) => {
   try {
-    let depto = req.session.usuario.departamento;
-    if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
-      depto = req.session.usuario.sucursalSeleccionada;
-    }
+    let depto = getDepartamento(req);
 
     const result = await pool.query(
       `SELECT o.*, e.nombre_completo AS nombre
        FROM optometria o
-       JOIN expedientes e ON o.expediente_id = e.numero_expediente
+       JOIN expedientes e 
+         ON o.expediente_id = e.numero_expediente 
+        AND o.departamento = e.departamento
        WHERE o.departamento = $1
        ORDER BY o.fecha DESC`,
       [depto]
@@ -985,15 +961,11 @@ app.get("/api/optometria", verificarSesion, async (req, res) => {
   }
 });
 
-
 // Obtener las evaluaciones de optometría de un expediente específico
 app.get("/api/expedientes/:id/optometria", verificarSesion, async (req, res) => {
   try {
     const { id } = req.params;
-    let depto = req.session.usuario.departamento;
-    if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
-      depto = req.session.usuario.sucursalSeleccionada;
-    }
+    let depto = getDepartamento(req);
 
     const result = await pool.query(
       `SELECT *
@@ -1010,15 +982,11 @@ app.get("/api/expedientes/:id/optometria", verificarSesion, async (req, res) => 
   }
 });
 
-
 // Eliminar evaluación de optometría
 app.delete("/api/optometria/:id", isAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    let depto = req.session.usuario.departamento;
-    if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
-      depto = req.session.usuario.sucursalSeleccionada;
-    }
+    let depto = getDepartamento(req);
 
     const result = await pool.query(
       "DELETE FROM optometria WHERE id = $1 AND departamento = $2 RETURNING *",
@@ -1035,6 +1003,7 @@ app.delete("/api/optometria/:id", isAdmin, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 // ==================== MÓDULO INSUMOS ====================
@@ -1056,22 +1025,11 @@ const upload = multer({ storage });
 // Servir los archivos subidos para poder descargarlos
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// 🔹 Helper para obtener el departamento actual
-function getDepto(req) {
-  if (req.session.usuario.rol === "admin") {
-    // Si no seleccionó sucursal → trabajar con "ADMIN"
-    return req.session.usuario.sucursalSeleccionada || "ADMIN";
-  }
-  return req.session.usuario.departamento;
-
-}
-
 // 1. Guardar insumo manual
 app.post('/api/insumos', verificarSesion, async (req, res) => {
   try {
     const { fecha, folio, concepto, monto, archivo } = req.body;
-    let depto = getDepto(req);
-
+    let depto = getDepartamento(req);  // ✅ ahora siempre usa la misma función
 
     const result = await pool.query(
       `INSERT INTO insumos (fecha, folio, concepto, monto, archivo, departamento) 
@@ -1089,19 +1047,13 @@ app.post('/api/insumos', verificarSesion, async (req, res) => {
 // 2. Listar insumos
 app.get('/api/insumos', verificarSesion, async (req, res) => {
   try {
-    let depto = getDepto(req);
+    let depto = getDepartamento(req);  // ✅ unificado
 
-    let query = 'SELECT * FROM insumos';
-    let params = [];
+    const result = await pool.query(
+      'SELECT * FROM insumos WHERE departamento = $1 ORDER BY fecha ASC',
+      [depto]
+    );
 
-    if (depto) {
-      query += ' WHERE departamento = $1 ORDER BY fecha ASC';
-      params.push(depto);
-    } else {
-      query += ' ORDER BY fecha ASC'; // admin sin sucursal → todos
-    }
-
-    const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
     console.error("Error al obtener insumos:", err);
@@ -1112,8 +1064,7 @@ app.get('/api/insumos', verificarSesion, async (req, res) => {
 // 3. Subir Excel
 app.post('/api/insumos/upload', verificarSesion, upload.single('excelFile'), async (req, res) => {
   try {
-    let depto = getDepto(req);
-    if (!depto) return res.status(400).json({ error: "Debes seleccionar una sucursal" });
+    let depto = getDepartamento(req);  // ✅ unificado
 
     const workbook = xlsx.readFile(req.file.path);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -1144,7 +1095,7 @@ app.post('/api/insumos/upload', verificarSesion, upload.single('excelFile'), asy
 app.delete('/api/insumos/:id', isAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    let depto = getDepto(req);
+    let depto = getDepartamento(req);  // ✅ unificado
 
     const result = await pool.query(
       "DELETE FROM insumos WHERE id = $1 AND departamento = $2 RETURNING *",
