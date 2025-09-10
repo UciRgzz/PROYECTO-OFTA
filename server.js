@@ -829,10 +829,15 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
       WHERE p.fecha::date = $1
     `;
 
-    if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
-      query += " AND p.departamento = $2";
-      params.push(req.session.usuario.sucursalSeleccionada);
-    } else if (req.session.usuario.rol !== "admin") {
+    if (req.session.usuario.rol === "admin") {
+      if (req.session.usuario.sucursalSeleccionada) {
+        // Admin con sucursal seleccionada -> filtrar
+        query += " AND p.departamento = $2";
+        params.push(req.session.usuario.sucursalSeleccionada);
+      }
+      // Si no seleccionó sucursal, ve todas (no agregamos filtro de departamento)
+    } else {
+      // Usuario normal -> siempre filtra por su depto
       query += " AND p.departamento = $2";
       params.push(depto);
     }
@@ -880,10 +885,15 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
       WHERE p.fecha::date = $1
     `;
 
-    if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
-      query += " AND o.departamento = $2";
-      params.push(req.session.usuario.sucursalSeleccionada);
-    } else if (req.session.usuario.rol !== "admin") {
+    if (req.session.usuario.rol === "admin") {
+      if (req.session.usuario.sucursalSeleccionada) {
+        // Admin con sucursal seleccionada -> filtrar
+        query += " AND o.departamento = $2";
+        params.push(req.session.usuario.sucursalSeleccionada);
+      }
+      // Si no seleccionó sucursal, ve todas (no agregamos filtro de departamento)
+    } else {
+      // Usuario normal -> siempre filtra por su depto
       query += " AND o.departamento = $2";
       params.push(depto);
     }
@@ -914,7 +924,6 @@ app.post("/api/seleccionar-sucursal", verificarSesion, (req, res) => {
   req.session.usuario.sucursalSeleccionada = sucursal;
   res.json({ ok: true, sucursal });
 });
-
 
 // ==================== MÓDULO OPTOMETRÍA ====================
 // Guardar nueva evaluación de optometría
