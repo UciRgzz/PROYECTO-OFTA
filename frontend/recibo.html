@@ -125,6 +125,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
   let pacienteId = null;
   let catalogo = [];
@@ -186,57 +187,103 @@
       console.error("Error buscando paciente:", err);
     }
   });
-
-  // Guardar recibo
-  document.getElementById("formRecibo").addEventListener("submit", async function(e) {
-    e.preventDefault();
-    if (!pacienteId) {
-      alert("Debes ingresar un número de expediente válido");
-      return;
-    }
-     const datos = {
-          fecha: this.fecha.value,
-          paciente_id: pacienteId,
-          procedimiento: this.procedimiento.value,
-          precio: this.precio.value,
-          forma_pago: this.forma_pago.value,
-          monto_pagado: this.monto_pagado.value,
-          tipo: this.tipoRecibo.value
-        };
-
-    const res = await fetch('/api/recibos', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(datos)
+// Guardar recibo con SweetAlert2
+document.getElementById("formRecibo").addEventListener("submit", async function(e) {
+  e.preventDefault();
+  if (!pacienteId) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Atención',
+      text: 'Debes ingresar un número de expediente válido',
+      confirmButtonColor: '#f39c12'
     });
-    const data = await res.json();
-    if (res.ok) {
-      alert("✅ Recibo guardado correctamente");
-      this.reset();
-      document.getElementById("nombrePaciente").value = "";
-      cargarRecibos();
-      actualizarPrecios(); // reset catálogo
-    } else {
-      alert("❌ Error: " + data.error);
+    return;
+  }
+
+  const datos = {
+    fecha: this.fecha.value,
+    paciente_id: pacienteId,
+    procedimiento: this.procedimiento.value,
+    precio: this.precio.value,
+    forma_pago: this.forma_pago.value,
+    monto_pagado: this.monto_pagado.value,
+    tipo: this.tipoRecibo.value
+  };
+
+  const res = await fetch('/api/recibos', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(datos)
+  });
+  const data = await res.json();
+
+  if (res.ok) {
+    Swal.fire({
+      icon: 'success',
+      title: '¡Éxito!',
+      text: 'Recibo guardado correctamente',
+      confirmButtonColor: '#27ae60'
+    });
+    this.reset();
+    document.getElementById("nombrePaciente").value = "";
+    cargarRecibos();
+    actualizarPrecios();
+  } else {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: data.error || 'No se pudo guardar el recibo',
+      confirmButtonColor: '#e74c3c'
+    });
+  }
+});
+
+
+// Eliminar recibo con SweetAlert2
+async function eliminarRecibo(id) {
+  Swal.fire({
+    title: '¿Estás seguro?',
+    text: "No podrás revertir esta acción",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#e74c3c',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        const res = await fetch(`/api/recibos/${id}`, { method: "DELETE" });
+        const data = await res.json();
+        if (res.ok) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Eliminado',
+            text: 'El recibo fue eliminado correctamente',
+            confirmButtonColor: '#27ae60'
+          });
+          cargarRecibos();
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: data.error || 'No se pudo eliminar el recibo',
+            confirmButtonColor: '#e74c3c'
+          });
+        }
+      } catch (err) {
+        console.error("Error al eliminar recibo:", err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error inesperado',
+          text: 'Ocurrió un error eliminando el recibo',
+          confirmButtonColor: '#e74c3c'
+        });
+      }
     }
   });
+}
 
-  // Eliminar recibo
-  async function eliminarRecibo(id) {
-    if (!confirm("¿Seguro que deseas eliminar este recibo?")) return;
-    try {
-      const res = await fetch(`/api/recibos/${id}`, { method: "DELETE" });
-      const data = await res.json();
-      if (res.ok) {
-        alert("🗑️ Recibo eliminado");
-        cargarRecibos();
-      } else {
-        alert("❌ Error: " + data.error);
-      }
-    } catch (err) {
-      console.error("Error al eliminar recibo:", err);
-    }
-  }
 
   // Cargar lista de recibos
   async function cargarRecibos() {

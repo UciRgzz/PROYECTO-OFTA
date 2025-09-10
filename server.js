@@ -753,13 +753,16 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
     );
     const totalPagado = parseFloat(sumaPagos.rows[0].total_pagado);
 
-    // 4. Obtener recibo asociado
-    const precioOrden = await client.query(
-      `SELECT id, precio FROM recibos
-       WHERE paciente_id = $1 AND departamento = $2
-       ORDER BY fecha DESC LIMIT 1`,
-      [orden.expediente_id, depto]
-    );
+   // 4. Obtener recibo asociado
+      const precioOrden = await client.query(
+        `SELECT id, precio FROM recibos
+        WHERE id = (
+          SELECT folio_recibo FROM ordenes_medicas
+          WHERE id = $1 AND departamento = $2
+        )`,
+        [orden_id, depto]
+      );
+
 
     if (precioOrden.rows.length === 0) {
       await client.query("ROLLBACK");
