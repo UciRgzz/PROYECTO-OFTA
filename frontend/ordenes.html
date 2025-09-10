@@ -110,37 +110,39 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     let ordenesData = [];
+async function cargarOrdenes() {
+  try {
+    const res = await fetch("/api/ordenes_medicas");  // 👈 ruta relativa
+    ordenesData = await res.json();
+    document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
+      <tr>
+        <td>${o.numero_orden}</td>
+        <td>${o.paciente}</td>
+        <td>${o.medico}</td>
+        <td>${o.diagnostico}</td>
+        <td>${o.lado}</td>
+        <td>${o.procedimiento}</td>
+        <td><span class="badge bg-info">${o.tipo}</span></td>
+        <td>$${parseFloat(o.precio).toFixed(2)}</td>
+        <td>$${parseFloat(o.pagado).toFixed(2)}</td>
+        <td>$${parseFloat(o.pendiente).toFixed(2)}</td>
+        <td>
+          ${o.estatus === "Pagado"
+            ? `<span class="badge bg-success">Pagado</span>`
+            : `<span class="badge bg-warning">${o.estatus}</span>`}
+        </td>
+        <td>${new Date(o.fecha).toLocaleDateString()}</td>
+        <td>
+          ${o.estatus === "Pagado"
+            ? `<button class="btn btn-secondary btn-sm" disabled><i class="fas fa-check"></i> Pagado</button>`
+            : `<button class="btn btn-warning btn-sm" onclick="abrirPago(${i})"><i class="fas fa-dollar-sign"></i> Pagar</button>`}
+        </td>
+      </tr>`).join("");
+  } catch (err) { 
+    console.error("Error cargando órdenes:", err); 
+  }
+}
 
-    async function cargarOrdenes() {
-      try {
-        const res = await fetch("http://localhost:3000/api/ordenes_medicas");
-        ordenesData = await res.json();
-        document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
-          <tr>
-            <td>${o.numero_orden}</td>
-            <td>${o.paciente}</td>
-            <td>${o.medico}</td>
-            <td>${o.diagnostico}</td>
-            <td>${o.lado}</td>
-            <td>${o.procedimiento}</td>
-            <td><span class="badge bg-info">Normal</span></td>
-            <td>$${parseFloat(o.precio).toFixed(2)}</td>
-            <td>$${parseFloat(o.pagado).toFixed(2)}</td>
-            <td>$${parseFloat(o.pendiente).toFixed(2)}</td>
-            <td>
-              ${o.estatus === "Pagado"
-                ? `<span class="badge bg-success">Pagado</span>`
-                : `<span class="badge bg-warning">${o.estatus}</span>`}
-            </td>
-            <td>${new Date(o.fecha).toLocaleDateString()}</td>
-            <td>
-              ${o.estatus === "Pagado"
-                ? `<button class="btn btn-secondary btn-sm" disabled><i class="fas fa-check"></i> Pagado</button>`
-                : `<button class="btn btn-warning btn-sm" onclick="abrirPago(${i})"><i class="fas fa-dollar-sign"></i> Pagar</button>`}
-            </td>
-          </tr>`).join("");
-      } catch (err) { console.error("Error cargando órdenes:", err); }
-    }
 
     function abrirPago(index) {
       const o = ordenesData[index];
@@ -162,7 +164,7 @@
         monto: document.getElementById("montoLiquidar").value,
         forma_pago: document.getElementById("formaPago").value
       };
-      const res = await fetch("http://localhost:3000/api/pagos", {
+      const res = await fetch("/api/pagos",{
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data)
       });
       if (res.ok) {
