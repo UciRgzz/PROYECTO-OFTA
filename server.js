@@ -1163,7 +1163,7 @@ app.post('/api/set-departamento', isAdmin, (req, res) => {
     return res.status(400).json({ error: 'Falta el nombre del departamento' });
   }
 
-  if (departamento === "ADMIN") {
+  if (departamento === "admin") {
     // 👉 Regresa al modo admin sin sucursal activa
     delete req.session.usuario.sucursalSeleccionada;
     return res.json({ mensaje: "Regresaste al panel de Admin" });
