@@ -434,7 +434,6 @@ app.delete('/api/recibos/:id', isAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     let depto = getDepartamento(req);
-
     const result = await pool.query(
       'DELETE FROM recibos WHERE id = $1 AND departamento = $2 RETURNING *',
       [id, depto]
@@ -474,10 +473,7 @@ app.get('/api/recibos/paciente/:folio', verificarSesion, async (req, res) => {
   const { folio } = req.params;
 
   // 📌 Determinar sucursal activa
-  let depto = req.session.usuario.departamento;
-  if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
-    depto = req.session.usuario.sucursalSeleccionada;
-  }
+  let depto = getDepartamento(req);
 
   try {
     const result = await pool.query(
@@ -508,10 +504,7 @@ app.get('/api/recibos/paciente/:folio', verificarSesion, async (req, res) => {
 // ==================== PACIENTES PENDIENTES DE ATENDER ====================
 app.get("/api/pendientes-medico", verificarSesion, async (req, res) => {
   // 📌 Determinar sucursal activa
-  let depto = req.session.usuario.departamento;
-  if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
-    depto = req.session.usuario.sucursalSeleccionada;
-  }
+  let depto = getDepartamento(req);
 
   try {
     const result = await pool.query(`
@@ -566,10 +559,8 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
       plan
     } = req.body;
 
-    let depto = req.session.usuario.departamento;
-    if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
-      depto = req.session.usuario.sucursalSeleccionada;
-    }
+    let depto = getDepartamento(req);
+  
 
     const reciboResult = await pool.query(
       `SELECT id, paciente_id, procedimiento, tipo, precio, monto_pagado 
@@ -621,10 +612,8 @@ app.get("/api/expedientes/:id/ordenes", verificarSesion, async (req, res) => {
   try {
     const { id } = req.params;
 
-    let depto = req.session.usuario.departamento;
-    if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
-      depto = req.session.usuario.sucursalSeleccionada;
-    }
+    let depto = getDepartamento(req);
+
 
     const result = await pool.query(`
       SELECT 
@@ -671,11 +660,8 @@ app.get("/api/expedientes/:id/ordenes", verificarSesion, async (req, res) => {
 // ==================== LISTAR TODAS LAS ÓRDENES ====================
 app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
   try {
-    let depto = req.session.usuario.departamento;
-    if (req.session.usuario.rol === "admin" && req.session.usuario.sucursalSeleccionada) {
-      depto = req.session.usuario.sucursalSeleccionada;
-    }
-
+    let depto = getDepartamento(req);
+    
     const result = await pool.query(`
       SELECT 
         e.numero_expediente AS numero_orden,   -- 👈 Ahora usa el expediente del paciente
@@ -812,7 +798,7 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
   try {
     const { fecha } = req.query;
-    let depto = req.session.usuario.departamento; // puede ser "ADMIN" o sucursal normal
+   let depto = getDepartamento(req);
     let params = [fecha];
 
     if (!fecha) {
@@ -860,7 +846,7 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
 app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
   try {
     const { fecha } = req.query;
-    let depto = req.session.usuario.departamento;
+    let depto = getDepartamento(req);
     let params = [fecha];
 
     if (!fecha) {
@@ -1177,7 +1163,7 @@ app.post('/api/set-departamento', isAdmin, (req, res) => {
     return res.status(400).json({ error: 'Falta el nombre del departamento' });
   }
 
-  if (departamento === "admin") {
+  if (departamento === "ADMIN") {
     // 👉 Regresa al modo admin sin sucursal activa
     delete req.session.usuario.sucursalSeleccionada;
     return res.json({ mensaje: "Regresaste al panel de Admin" });
