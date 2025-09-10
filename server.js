@@ -678,7 +678,7 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
 
     const result = await pool.query(`
       SELECT 
-        o.id AS numero_orden,
+        e.numero_expediente AS numero_orden,   -- 👈 Ahora usa el expediente del paciente
         e.nombre_completo AS paciente, 
         o.medico, 
         o.diagnostico, 
@@ -695,7 +695,7 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         ON r.id = o.folio_recibo 
        AND r.departamento = o.departamento
       JOIN expedientes e 
-        ON e.numero_expediente = o.expediente_id   -- 👈 corregido
+        ON e.numero_expediente = o.expediente_id   -- 👈 Correcto: une con expediente
        AND e.departamento = o.departamento
       WHERE o.departamento = $1
       ORDER BY o.fecha DESC
@@ -707,6 +707,7 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // ==================== PAGOS ====================
 // Registrar un pago para una orden
