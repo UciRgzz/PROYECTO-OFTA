@@ -152,11 +152,12 @@
   function actualizarPrecios() {
     const proc = document.getElementById("procedimiento").value;
     const select = document.getElementById("precio");
-    const opciones = catalogo.filter(c => c.nombre === proc);
-    select.innerHTML = opciones.map(c =>
-      `<option value="${c.precio}">${c.nombre} — $${c.precio}</option>`
-    ).join("");
+    const elegido = catalogo.find(c => c.nombre === proc);
+    select.innerHTML = elegido 
+      ? `<option value="${elegido.precio}">${elegido.nombre} — $${elegido.precio}</option>`
+      : "";
   }
+
 
   // Escuchar cambio de procedimiento
   document.getElementById("procedimiento").addEventListener("change", actualizarPrecios);
