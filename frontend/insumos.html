@@ -110,6 +110,7 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
     let fechaActual = new Date();
 
@@ -118,28 +119,50 @@
       renderCalendar();
     });
 
-    // Registrar insumo
-    document.getElementById("agendaForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const datos = {
-        fecha: document.getElementById("fechaInsumo").value,
-        folio: document.getElementById("folio").value,
-        concepto: document.getElementById("concepto").value,
-        monto: document.getElementById("monto").value
-      };
-      try {
-        const res = await fetch("/api/insumos", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(datos)
-        });
-        const data = await res.json();
-        alert(data.mensaje || "Guardado");
-        cargarInsumos();
-        renderCalendar();
-        e.target.reset();
-      } catch (err) { console.error(err); }
+    // Registrar insumo 
+document.getElementById("agendaForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const datos = {
+    fecha: document.getElementById("fechaInsumo").value,
+    folio: document.getElementById("folio").value,
+    concepto: document.getElementById("concepto").value,
+    monto: document.getElementById("monto").value
+  };
+  try {
+    const res = await fetch("/api/insumos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(datos)
     });
+    const data = await res.json();
+    if (res.ok) {
+      Swal.fire({
+        icon: 'success',
+        title: '¡Éxito!',
+        text: data.mensaje || "Insumo guardado correctamente",
+        confirmButtonColor: '#27ae60'
+      });
+      cargarInsumos();
+      renderCalendar();
+      e.target.reset();
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: data.error || "No se pudo guardar el insumo",
+        confirmButtonColor: '#e74c3c'
+      });
+    }
+  } catch (err) { 
+    console.error(err); 
+    Swal.fire({
+      icon: 'error',
+      title: 'Error inesperado',
+      text: 'Ocurrió un problema al guardar el insumo',
+      confirmButtonColor: '#e74c3c'
+    });
+  }
+});
 
     // Subir Excel
     document.getElementById("uploadForm").addEventListener("change", async (e) => {
@@ -185,17 +208,51 @@
       } catch (err) { console.error(err); }
     }
 
-    // Eliminar
-    async function eliminarInsumo(id) {
-      if (!confirm("¿Seguro que deseas eliminar este insumo?")) return;
+    // Eliminar insumo 
+async function eliminarInsumo(id) {
+  Swal.fire({
+    title: '¿Estás seguro?',
+    text: "No podrás revertir esta acción",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#e74c3c',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
       try {
         const res = await fetch(`/api/insumos/${id}`, { method: "DELETE" });
         const data = await res.json();
-        alert(data.mensaje || "Eliminado");
-        cargarInsumos();
-        renderCalendar();
-      } catch (err) { console.error(err); }
+        if (res.ok) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Eliminado',
+            text: data.mensaje || "Insumo eliminado correctamente",
+            confirmButtonColor: '#27ae60'
+          });
+          cargarInsumos();
+          renderCalendar();
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: data.error || "No se pudo eliminar el insumo",
+            confirmButtonColor: '#e74c3c'
+          });
+        }
+      } catch (err) { 
+        console.error(err); 
+        Swal.fire({
+          icon: 'error',
+          title: 'Error inesperado',
+          text: 'Ocurrió un problema al eliminar el insumo',
+          confirmButtonColor: '#e74c3c'
+        });
+      }
     }
+  });
+}
 
     // Calendario dinámico
     async function renderCalendar() {
