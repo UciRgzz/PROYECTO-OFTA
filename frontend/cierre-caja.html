@@ -182,9 +182,22 @@ async function cargarCierre() {
     }
 
     try {
+        // 🔹 Mostrar loading
+        Swal.fire({
+            title: 'Generando cierre...',
+            text: 'Por favor espera',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
         // Resumen de cierre
         const resResumen = await fetch(`/api/cierre-caja?fecha=${fecha}`);
         const datosResumen = await resResumen.json();
+
+        // 🔹 Cerrar loading
+        Swal.close();
 
         if (!Array.isArray(datosResumen) || datosResumen.length === 0) {
             document.getElementById("tbodyResumen").innerHTML = "<tr><td colspan='5'>Sin datos</td></tr>";
@@ -287,6 +300,14 @@ function exportarExcel() {
 
     // Descargar
     XLSX.writeFile(wb, `cierre_${fecha}.xlsx`);
+
+    // 🔹 Aviso con SweetAlert2
+    Swal.fire({
+        icon: 'success',
+        title: 'Exportación completada',
+        text: `El archivo cierre_${fecha}.xlsx se descargó correctamente.`,
+        confirmButtonColor: '#27ae60'
+    });
 }
 </script>
 </body>
