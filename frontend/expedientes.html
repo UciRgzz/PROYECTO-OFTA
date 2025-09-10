@@ -159,7 +159,7 @@
         <div id="modalContenido"></div>
         <button onclick="cerrarModal()" class="btn-cancelar mt-2">Cerrar</button>
     </div>
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 async function cargarExpedientes() {
     const res = await fetch('/api/expedientes');
@@ -234,9 +234,19 @@ async function guardarExpediente(e) {
     const data = await res.json();
 
     if (res.ok) {
-        alert("✅ Expediente creado. Número: " + data.expediente.numero_expediente);
+        Swal.fire({
+            icon: 'success',
+            title: 'Expediente creado',
+            text: `Número: ${data.expediente.numero_expediente}`,
+            confirmButtonColor: '#3085d6'
+        });
     } else {
-        alert("❌ Error: " + (data.error || 'No se pudo crear el expediente'));
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: data.error || 'No se pudo crear el expediente',
+            confirmButtonColor: '#d33'
+        });
     }
 
     cargarExpedientes();
@@ -285,6 +295,11 @@ async function buscarExpediente() {
             </tr>
         `;
     } else {
+        Swal.fire({
+            icon: 'warning',
+            title: 'No encontrado',
+            text: 'No existe un expediente con ese folio'
+        });
         document.getElementById('listaExpedientes').innerHTML = `<tr><td colspan="9">No encontrado</td></tr>`;
     }
 }
@@ -295,7 +310,11 @@ async function verMedico(expedienteId, nombre) {
     const data = await res.json();
 
     if (!data.length) {
-        alert("❌ No hay órdenes médicas registradas para este expediente.");
+        Swal.fire({
+            icon: 'info',
+            title: 'Sin órdenes',
+            text: 'No hay órdenes médicas registradas para este expediente.'
+        });
         return;
     }
 
@@ -316,9 +335,12 @@ async function verMedico(expedienteId, nombre) {
         `;
     });
 
-    document.getElementById("modalTitulo").innerText = `Órdenes de ${nombre} (Expediente ${expedienteId})`;
-    document.getElementById("modalContenido").innerHTML = contenido;
-    document.getElementById("modalMedico").style.display = "block";
+    Swal.fire({
+        title: `Órdenes de ${nombre} (Expediente ${expedienteId})`,
+        html: contenido,
+        width: '60%',
+        confirmButtonText: 'Cerrar'
+    });
 }
 
 // === VER OPTOMETRÍA ===
@@ -327,7 +349,11 @@ async function verOptometria(expedienteId, nombre) {
     const data = await res.json();
 
     if (!data.length) {
-        alert("❌ No hay evaluaciones de optometría registradas para este expediente.");
+        Swal.fire({
+            icon: 'info',
+            title: 'Sin registros',
+            text: 'No hay evaluaciones de optometría registradas para este expediente.'
+        });
         return;
     }
 
@@ -352,9 +378,12 @@ async function verOptometria(expedienteId, nombre) {
         `;
     });
 
-    document.getElementById("modalTitulo").innerText = `Optometría de ${nombre} (Expediente ${expedienteId})`;
-    document.getElementById("modalContenido").innerHTML = contenido;
-    document.getElementById("modalMedico").style.display = "block";
+    Swal.fire({
+        title: `Optometría de ${nombre} (Expediente ${expedienteId})`,
+        html: contenido,
+        width: '60%',
+        confirmButtonText: 'Cerrar'
+    });
 }
 
 function cerrarModal() {
@@ -363,5 +392,3 @@ function cerrarModal() {
 
 cargarExpedientes();
 </script>
-</body>
-</html>
