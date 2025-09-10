@@ -67,13 +67,10 @@
           </div>
 
           <div class="col-md-4">
-              <label class="form-label">Procedimiento:</label>
-              <select id="procedimiento" class="form-select" required>
-                <option value="Consulta">Consulta</option>
-                <option value="Estudio">Estudio</option>
-                <option value="Cirugía">Cirugía</option>
-              </select>
-            </div>
+            <label class="form-label">Procedimiento:</label>
+            <select id="procedimiento" class="form-select" required></select>
+          </div>
+
 
             <div class="col-md-4" id="precioContainer">
               <label class="form-label">Procedimiento y Precio:</label>
@@ -137,11 +134,19 @@
     try {
       const res = await fetch("/api/procedimientos");
       catalogo = await res.json();
-      actualizarPrecios(); // inicializar precios según el procedimiento actual
+
+      // Rellenar el select de procedimiento con los valores de la BD
+      const procSelect = document.getElementById("procedimiento");
+      procSelect.innerHTML = catalogo.map(c =>
+        `<option value="${c.nombre}">${c.nombre}</option>`
+      ).join("");
+
+      actualizarPrecios();
     } catch (err) {
       console.error("Error cargando catálogo:", err);
     }
   }
+
 
   // Actualizar opciones de precios según el procedimiento elegido
   function actualizarPrecios() {
