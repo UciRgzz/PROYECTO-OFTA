@@ -36,11 +36,11 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: true,         // solo en producción con HTTPS
-        httpOnly: true,
-        sameSite: "none",     // permite enviar cookie en fetch con credentials: 'include'
-        maxAge: 1000 * 60 * 60
-    }
+    secure: process.env.NODE_ENV === "production",  // true solo en producción
+    httpOnly: true,
+    sameSite: "none",    // obligatorio si el frontend hace fetch con credentials: 'include'
+    maxAge: 1000 * 60 * 60
+}
 }));
 
 
