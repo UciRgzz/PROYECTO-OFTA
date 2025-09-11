@@ -827,13 +827,16 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
     // 👇 Filtrado por sucursal/departamento
     if (req.session.usuario.rol === "admin") {
       if (req.session.usuario.sucursalSeleccionada) {
-        // Admin con sucursal seleccionada → filtrar solo esa
+        // Admin con sucursal seleccionada → ver esa sucursal
         query += " AND p.departamento = $2";
         params.push(req.session.usuario.sucursalSeleccionada);
+      } else {
+        // Admin sin sucursal → funciona como una sucursal propia
+        query += " AND p.departamento = $2";
+        params.push("ADMIN");
       }
-      // Admin sin sucursal → ve todas las sucursales (no agregamos condición extra)
     } else {
-      // Usuario normal → solo su sucursal
+      // Usuario normal → solo su propio departamento
       query += " AND p.departamento = $2";
       params.push(getDepartamento(req));
     }
