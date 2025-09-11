@@ -35,9 +35,9 @@ app.use(session({
     secret: 'mi_secreto_super_seguro',
     resave: false,
     saveUninitialized: false,
-    proxy: false, // 👈 obligatorio detrás de nginx/https
+    proxy: true, // 👈 obligatorio detrás de nginx/https
     cookie: {
-        secure: true,
+        secure: false,
         httpOnly: true,
         sameSite: "none",   // 👈 None permite que se guarde siempre
         domain: "oftavision.shop", 
