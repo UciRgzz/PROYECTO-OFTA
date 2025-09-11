@@ -664,7 +664,8 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
     
     const result = await pool.query(`
       SELECT 
-        e.numero_expediente AS numero_orden,   -- 👈 Ahora usa el expediente del paciente
+        o.id AS orden_id,                      -- 👈 ID real de la orden (para pagos)
+        e.numero_expediente AS numero_expediente, -- expediente del paciente
         e.nombre_completo AS paciente, 
         o.medico, 
         o.diagnostico, 
@@ -676,7 +677,8 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         (r.precio - r.monto_pagado) AS pendiente,
         o.estatus,
         o.fecha
-      FROM ordenes_medicas o
+    FROM ordenes_medicas o
+
       JOIN recibos r 
         ON r.id = o.folio_recibo 
        AND r.departamento = o.departamento

@@ -186,7 +186,7 @@ async function cargarOrdenes() {
     confirmButtonColor: '#27ae60'
   });
   document.getElementById("formPago").reset();
-  document.getElementById("orden_id").value = "";
+  document.getElementById("orden_id").value = o.numero_orden;
   bootstrap.Modal.getInstance(document.getElementById("modalPago")).hide();
   cargarOrdenes();
 } else {
