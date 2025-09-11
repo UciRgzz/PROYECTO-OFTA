@@ -868,13 +868,13 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
 
     let query = `
       SELECT 
-          p.fecha::date AS fecha,
+          DATE(p.fecha) AS fecha,
           o.id AS orden_id,
           e.numero_expediente AS folio,
           e.nombre_completo AS nombre,
           o.procedimiento,
           CASE 
-            WHEN (SUM(p.monto) < r.precio) THEN 'Pago Pendiente'
+            WHEN (COALESCE(SUM(p.monto),0) < r.precio) THEN 'Pago Pendiente'
             ELSE 'Pagado'
           END AS status,
           STRING_AGG(DISTINCT p.forma_pago, ', ') AS pago,
@@ -883,16 +883,14 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
       FROM ordenes_medicas o
       JOIN recibos r 
         ON r.id = o.folio_recibo 
-      AND r.departamento = o.departamento
+       AND r.departamento = o.departamento
       JOIN expedientes e 
         ON o.expediente_id = e.numero_expediente 
-      AND e.departamento = o.departamento
+       AND e.departamento = o.departamento
       LEFT JOIN pagos p 
         ON p.orden_id = o.id 
-      AND p.departamento = o.departamento
-      AND DATE(p.fecha) = $1
-
-
+       AND p.departamento = o.departamento
+      WHERE DATE(p.fecha) = $1
     `;
 
     if (req.session.usuario.rol === "admin") {
@@ -909,8 +907,8 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
     }
 
     query += `
-      GROUP BY p.fecha::date, o.id, e.numero_expediente, e.nombre_completo, o.procedimiento, r.precio
-      ORDER BY p.fecha, o.id
+      GROUP BY DATE(p.fecha), o.id, e.numero_expediente, e.nombre_completo, o.procedimiento, r.precio
+      ORDER BY fecha, o.id
     `;
 
     const result = await pool.query(query, params);
