@@ -229,8 +229,14 @@
   }
 
   function abrirOrden(expediente_id, recibo_id) {
+    // 🔹 limpiar formulario y checkboxes al abrir modal
+    document.getElementById('form-orden').reset();
+    document.querySelectorAll('input[name="problemas"]').forEach(cb => cb.checked = false);
+
+    // 🔹 setear paciente actual
     document.getElementById('expediente_id').value = expediente_id;
     document.getElementById('folio_recibo').value = recibo_id;
+
     cargarProcedimientos();
     new bootstrap.Modal(document.getElementById('modalOrden')).show();
   }
@@ -276,6 +282,11 @@
           text: json.mensaje || 'Orden médica guardada correctamente',
           confirmButtonColor: '#27ae60'
         });
+
+        // 🔹 limpiar formulario después de guardar
+        document.getElementById("form-orden").reset();
+        document.querySelectorAll('input[name="problemas"]').forEach(cb => cb.checked = false);
+
         bootstrap.Modal.getInstance(document.getElementById('modalOrden')).hide();
         cargarPacientes();
       } else {
@@ -300,6 +311,3 @@
   // Cargar pacientes al inicio
   cargarPacientes();
 </script>
-
-
-</html>

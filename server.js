@@ -429,11 +429,30 @@ app.get('/api/recibos', verificarSesion, async (req, res) => {
   }
 });
 
-// Eliminar recibo
+// Eliminar recibo (con pagos y órdenes asociadas)
 app.delete('/api/recibos/:id', isAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     let depto = getDepartamento(req);
+
+    // 1. Eliminar pagos asociados a órdenes de este recibo
+    await pool.query(
+      `DELETE FROM pagos 
+       WHERE orden_id IN (
+         SELECT id FROM ordenes_medicas 
+         WHERE folio_recibo = $1 AND departamento = $2
+       ) AND departamento = $2`,
+      [id, depto]
+    );
+
+    // 2. Eliminar órdenes médicas asociadas al recibo
+    await pool.query(
+      `DELETE FROM ordenes_medicas 
+       WHERE folio_recibo = $1 AND departamento = $2`,
+      [id, depto]
+    );
+
+    // 3. Eliminar el recibo
     const result = await pool.query(
       'DELETE FROM recibos WHERE id = $1 AND departamento = $2 RETURNING *',
       [id, depto]
@@ -443,12 +462,13 @@ app.delete('/api/recibos/:id', isAdmin, async (req, res) => {
       return res.status(404).json({ error: "Recibo no encontrado o no pertenece a este departamento" });
     }
 
-    res.json({ mensaje: "Recibo eliminado" });
+    res.json({ mensaje: "🗑️ Recibo y registros asociados eliminados correctamente" });
   } catch (err) {
     console.error("Error eliminando recibo:", err);
     res.status(500).json({ error: "Error eliminando recibo" });
   }
 });
+
 
 
 
