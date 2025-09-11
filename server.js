@@ -35,14 +35,16 @@ app.use(session({
     secret: 'mi_secreto_super_seguro',
     resave: false,
     saveUninitialized: false,
+    proxy: true, // 👈 obligatorio detrás de nginx/https
     cookie: {
-        secure: true,        // requiere HTTPS real
+        secure: true,
         httpOnly: true,
-        sameSite: "lax",     // 👈 prueba con "lax" primero, más permisivo que "none"
-        domain: "oftavision.shop", // 👈 explícitamente tu dominio
+        sameSite: "none",   // 👈 None permite que se guarde siempre
+        domain: "oftavision.shop", 
         maxAge: 1000 * 60 * 60
     }
 }));
+
 
 
 /*// PostgreSQL
