@@ -684,8 +684,8 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
     
     const result = await pool.query(`
       SELECT 
-        o.id AS orden_id,                        -- ID real de la orden (para pagos)
-        e.numero_expediente AS numero_expediente, -- expediente del paciente
+        o.id AS orden_id,                          -- ID real de la orden (para pagos)
+        e.numero_expediente AS expediente_numero,  -- ✅ número de expediente del paciente
         e.nombre_completo AS paciente, 
         o.medico, 
         o.diagnostico, 
@@ -693,8 +693,8 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         o.procedimiento, 
         o.tipo,
         r.precio,
-        COALESCE(SUM(p.monto), 0) AS pagado,      -- ✅ suma real de los pagos
-        (r.precio - COALESCE(SUM(p.monto), 0)) AS pendiente, -- ✅ recalculado
+        COALESCE(SUM(p.monto), 0) AS pagado,      
+        (r.precio - COALESCE(SUM(p.monto), 0)) AS pendiente,
         o.estatus,
         o.fecha
       FROM ordenes_medicas o
