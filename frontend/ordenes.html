@@ -117,7 +117,7 @@ async function cargarOrdenes() {
     ordenesData = await res.json();
     document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
       <tr>
-        <td>${o.orden_id}</td>
+        <td>${o.expediente_numero}</td>
         <td>${o.paciente}</td>
         <td>${o.medico}</td>
         <td>${o.diagnostico}</td>
