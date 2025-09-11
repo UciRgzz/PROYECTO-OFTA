@@ -35,7 +35,7 @@ app.use(session({
     secret: 'mi_secreto_super_seguro',
     resave: false,
     saveUninitialized: false,
-    proxy: true, // 👈 obligatorio detrás de nginx/https
+    proxy: false, // 👈 obligatorio detrás de nginx/https
     cookie: {
         secure: true,
         httpOnly: true,
