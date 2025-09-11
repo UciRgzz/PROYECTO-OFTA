@@ -35,15 +35,14 @@ app.use(session({
     secret: 'mi_secreto_super_seguro',
     resave: false,
     saveUninitialized: false,
-    proxy: true, // 👈 obligatorio detrás de nginx/https
     cookie: {
-        secure: false,
+        secure: true,         // solo en producción con HTTPS
         httpOnly: true,
-        sameSite: "none",   // 👈 None permite que se guarde siempre
-        domain: "oftavision.shop", 
+        sameSite: "none",     // permite enviar cookie en fetch con credentials: 'include'
         maxAge: 1000 * 60 * 60
     }
 }));
+
 
 
 
