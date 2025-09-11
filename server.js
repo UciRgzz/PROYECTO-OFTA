@@ -43,8 +43,6 @@ app.use(session({
     }
 }));
 
-
-
 /*// PostgreSQL
 const pool = new Pool({
     user: 'postgres',
@@ -103,7 +101,8 @@ app.get('/', (req, res) => {
 
 // ✅ Servir archivos estáticos correctamente
 app.use('/login', express.static(path.join(__dirname, 'login')));
-app.use('/frontend', verificarSesion, express.static(path.join(__dirname, 'frontend')));
+app.use('/frontend', express.static(path.join(__dirname, 'frontend')));
+
 
 
 // ==================== LOGIN ====================
