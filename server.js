@@ -35,7 +35,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: true,        // solo HTTPS
+        secure: false,        // solo HTTPS
         httpOnly: true,      
         sameSite: "none",    // 👈 permite que se use en CORS
         maxAge: 1000 * 60 * 60 // 1 hora
