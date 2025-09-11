@@ -798,13 +798,14 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
   try {
     const { fecha } = req.query;
-   let depto = getDepartamento(req);
+    let depto = getDepartamento(req);
     let params = [fecha];
 
     if (!fecha) {
       return res.status(400).json({ error: "Falta fecha" });
     }
 
+    // 👇 Base del query sin repetir condiciones
     let query = `
       SELECT 
           p.forma_pago AS pago,
@@ -813,28 +814,29 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
       FROM pagos p
       JOIN ordenes_medicas o 
         ON o.id = p.orden_id 
-      AND o.departamento = p.departamento
-      WHERE p.fecha::date = $1
-
+       AND o.departamento = p.departamento
+      WHERE DATE(p.fecha) = $1
     `;
 
+    // 👇 Filtrado por sucursal/departamento
     if (req.session.usuario.rol === "admin") {
       if (req.session.usuario.sucursalSeleccionada) {
-        // 👇 Admin viendo una sucursal
         query += " AND p.departamento = $2";
         params.push(req.session.usuario.sucursalSeleccionada);
       } else {
-        // 👇 Admin en su propia ventana → solo sus registros en depto = 'ADMIN'
         query += " AND p.departamento = $2";
         params.push("ADMIN");
       }
     } else {
-      // Usuario normal
       query += " AND p.departamento = $2";
       params.push(depto);
     }
 
-    query += " GROUP BY p.forma_pago, o.procedimiento ORDER BY p.forma_pago, o.procedimiento";
+    // 👇 Agrupación final
+    query += `
+      GROUP BY p.forma_pago, o.procedimiento
+      ORDER BY p.forma_pago, o.procedimiento
+    `;
 
     const result = await pool.query(query, params);
     res.json(result.rows);
@@ -843,6 +845,7 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 // ==================== LISTADO DE PACIENTES ====================
@@ -880,7 +883,8 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
       LEFT JOIN pagos p 
         ON p.orden_id = o.id 
       AND p.departamento = o.departamento
-      WHERE p.fecha::date = $1
+      AND DATE(p.fecha) = $1
+
 
     `;
 
