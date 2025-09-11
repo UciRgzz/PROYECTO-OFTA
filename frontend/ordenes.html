@@ -113,7 +113,7 @@
     let ordenesData = [];
 async function cargarOrdenes() {
   try {
-    const res = await fetch("/api/ordenes_medicas");  // 👈 ruta relativa
+    const res = await fetch("/api/ordenes_medicas", { credentials: "include" });
     ordenesData = await res.json();
     document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
       <tr>
@@ -177,9 +177,13 @@ async function cargarOrdenes() {
           }
         });
 
-      const res = await fetch("/api/pagos",{
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data)
+      const res = await fetch("/api/pagos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include"
       });
+
       if (res.ok) {
   Swal.fire({
     icon: 'success',

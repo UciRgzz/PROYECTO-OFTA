@@ -188,7 +188,7 @@
 
 <script>
 // Sesión (Inicio)
-fetch('/api/check-session')
+fetch('/api/check-session', { credentials: 'include' })
   .then(res => res.ok ? res.json() : Promise.reject())
   .then(data => {
     if (data.usuario) {
@@ -291,7 +291,7 @@ function mostrarFormulario(expediente=null){
     </form>
   `;
 
-  fetch('/api/expedientes').then(r=>r.json()).then(arr=>{
+  fetch('/api/expedientes', { credentials: 'include' }).then(r=>r.json()).then(arr=>{
     const siguiente = expediente
       ? expediente.numero_expediente
       : (arr.length>0 ? arr[arr.length-1].numero_expediente+1 : 1).toString().padStart(4,'0');
@@ -369,7 +369,12 @@ async function guardarExpediente(e){
     telefono2:document.getElementById('telefono2').value
   };
 
-  const res = await fetch(url,{method:metodo,headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+const res = await fetch(url, {
+  method: metodo,
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(data),
+  credentials: 'include'
+});
   const json = await res.json();
 
   if(res.ok){
@@ -390,7 +395,7 @@ async function guardarExpediente(e){
 }
 
 function cargarLista(){
-  fetch('/api/expedientes').then(r=>r.json()).then(data=>{
+  fetch('/api/expedientes', { credentials: 'include' }).then(r=>r.json()).then(data=>{
     let html = `<table class="table table-bordered align-middle">
       <thead>
         <tr>
@@ -430,7 +435,7 @@ function filtrarLista(){
 // ---------- Modal: Ver todas las órdenes ----------
 async function verOrdenes(expedienteId, nombrePaciente=''){
   try{
-    const res = await fetch(`/api/expedientes/${expedienteId}/ordenes`);
+    const res = await fetch(`/api/expedientes/${expedienteId}/ordenes`, { credentials: 'include' });
     const ordenes = await res.json();
 
     const cont = document.getElementById('contenedorOrdenes');
@@ -491,7 +496,7 @@ async function verOrdenes(expedienteId, nombrePaciente=''){
 // ---------- Modal: Ver evaluaciones de optometría ----------
 async function verOptometria(expedienteId, nombrePaciente=''){
   try{
-    const res = await fetch(`/api/expedientes/${expedienteId}/optometria`);
+    const res = await fetch(`/api/expedientes/${expedienteId}/optometria`, { credentials: 'include' });
     const evaluaciones = await res.json();
 
     const cont = document.getElementById('contenedorOrdenes');
@@ -536,12 +541,14 @@ async function verOptometria(expedienteId, nombrePaciente=''){
 
 // ---------- Función para cambiar sucursal (solo admin) ----------
 async function cambiarSucursal(nombreSucursal) {
-  try {
-    const res = await fetch('/api/set-departamento', {
+      try {
+        const res = await fetch('/api/set-departamento', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ departamento: nombreSucursal })
+      body: JSON.stringify({ departamento: nombreSucursal }),
+      credentials: 'include'
     });
+
 
     const data = await res.json();
 

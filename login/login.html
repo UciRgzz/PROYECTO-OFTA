@@ -142,8 +142,10 @@ loginForm.addEventListener('submit', async e => {
     const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username, password }),
+        credentials: 'include'
     });
+
 
     const data = await res.json();
     if (res.ok) {
@@ -168,8 +170,10 @@ loginForm.addEventListener('submit', async e => {
         const res = await fetch('/api/forgot-password', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nomina })
+            body: JSON.stringify({ nomina }),
+            credentials: 'include'
         });
+
 
         const data = await res.json();
         if (res.ok) {
@@ -205,8 +209,10 @@ loginForm.addEventListener('submit', async e => {
         const res = await fetch('/api/reset-password', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nomina, token, password })
+            body: JSON.stringify({ nomina, token, password }),
+            credentials: 'include'
         });
+
 
         const data = await res.json();
         if (res.ok) {

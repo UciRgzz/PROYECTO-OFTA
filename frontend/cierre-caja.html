@@ -193,7 +193,9 @@ async function cargarCierre() {
         });
 
         // Resumen de cierre
-        const resResumen = await fetch(`/api/cierre-caja?fecha=${fecha}`);
+        const resResumen = await fetch(`/api/cierre-caja?fecha=${fecha}`, {
+          credentials: 'include'
+        });
         const datosResumen = await resResumen.json();
 
         // 🔹 Cerrar loading
@@ -258,8 +260,11 @@ async function cargarCierre() {
         document.getElementById("tbodyResumen").innerHTML = tbody;
 
         // Listado de pacientes
-        const resPacientes = await fetch(`/api/listado-pacientes?fecha=${fecha}`);
+        const resPacientes = await fetch(`/api/listado-pacientes?fecha=${fecha}`, {
+        credentials: 'include'
+        });
         const pacientes = await resPacientes.json();
+
         document.getElementById("tablaPacientes").innerHTML = pacientes.map(p => `
             <tr>
                 <td>${p.fecha}</td>

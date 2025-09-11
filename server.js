@@ -17,7 +17,10 @@ const app = express();
 
 // Middleware
 app.use(cors({
-    origin: "http://localhost:3000",  // URL de tu frontend
+    origin: [
+        "https://oftavision.shop",   // dominio en producción
+        "http://localhost:3000"    
+    ],
     credentials: true                 // permitir envío de cookies de sesión
 }));
 app.use(bodyParser.json());
@@ -26,12 +29,14 @@ app.use(bodyParser.json());
 
 
 // Sesiones
+
+app.set('trust proxy', 1);
 app.use(session({
     secret: 'mi_secreto_super_seguro',
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: true, // false porque usas http://localhost
+        secure: true, 
         httpOnly: true,
         maxAge: 1000 * 60 * 60 // 1 hora
     }

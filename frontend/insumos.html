@@ -132,8 +132,11 @@ document.getElementById("agendaForm").addEventListener("submit", async (e) => {
     const res = await fetch("/api/insumos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(datos)
+      body: JSON.stringify(datos),
+      credentials: "include"
     });
+
+
     const data = await res.json();
     if (res.ok) {
       Swal.fire({
@@ -169,7 +172,12 @@ document.getElementById("agendaForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const formData = new FormData(document.getElementById("uploadForm"));
       try {
-        const res = await fetch("/api/insumos/upload", { method: "POST", body: formData });
+        const res = await fetch("/api/insumos/upload", { 
+          method: "POST", 
+          body: formData,
+          credentials: "include"
+        });
+
         const data = await res.json();
         alert(data.mensaje || "Archivo subido");
         cargarInsumos();
@@ -181,7 +189,7 @@ document.getElementById("agendaForm").addEventListener("submit", async (e) => {
     async function cargarInsumos() {
       const tabla = document.getElementById("tablaInsumos");
       try {
-        const res = await fetch("/api/insumos");
+        const res = await fetch("/api/insumos", { credentials: "include" });
         const insumos = await res.json();
 
         const year = fechaActual.getFullYear();
@@ -222,7 +230,11 @@ async function eliminarInsumo(id) {
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
-        const res = await fetch(`/api/insumos/${id}`, { method: "DELETE" });
+        const res = await fetch(`/api/insumos/${id}`, { 
+          method: "DELETE",
+          credentials: "include"
+        });
+
         const data = await res.json();
         if (res.ok) {
           Swal.fire({

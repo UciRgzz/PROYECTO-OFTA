@@ -172,7 +172,7 @@
 <script>
   async function cargarPacientes() {
     try {
-      const res = await fetch('/api/pendientes-medico');
+      const res = await fetch('/api/pendientes-medico', { credentials: 'include' });
       const data = await res.json();
       const tbody = document.getElementById('lista-medica');
       tbody.innerHTML = '';
@@ -210,7 +210,7 @@
 
   async function cargarProcedimientos() {
     try {
-      const res = await fetch('/api/procedimientos');
+      const res = await fetch('/api/procedimientos', { credentials: 'include' });
       const data = await res.json();
       const select = document.getElementById('procedimiento_id');
       select.innerHTML = '';
@@ -265,8 +265,11 @@
       const res = await fetch('/api/ordenes_medicas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
+        credentials: 'include'
       });
+
+
       const json = await res.json();
 
       if (res.ok) {

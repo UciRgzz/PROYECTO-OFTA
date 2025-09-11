@@ -61,7 +61,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
   async function cargarOptometrias() {
-    const res = await fetch("/api/optometria");
+    const res = await fetch("/api/optometria", { credentials: "include" });
     const data = await res.json();
     let html = `
       <div class="card">
@@ -207,8 +207,13 @@
     e.preventDefault();
     const data = Object.fromEntries(new FormData(e.target).entries());
     const res = await fetch("/api/optometria", {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data)
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+      credentials: "include"
     });
+
+
     const json = await res.json();
 
     if (res.ok) {
@@ -232,7 +237,11 @@
 
     if (!confirmacion.isConfirmed) return;
 
-    const res = await fetch(`/api/optometria/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/optometria/${id}`, {
+      method: "DELETE",
+      credentials: "include"
+    });
+
     const json = await res.json();
 
     if (res.ok) {
