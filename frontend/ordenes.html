@@ -80,7 +80,7 @@
         </div>
         <div class="modal-body">
           <form id="formPago">
-            <input type="hidden" id="folio_recibo">
+            <input type="hidden" id="orden_id">
             <p><b>Paciente:</b> <span id="pacientePago"></span></p>
             <p><b>Procedimiento:</b> <span id="procedimientoPago"></span></p>
             <p><b>Precio:</b> $<span id="precioPago"></span></p>
@@ -113,7 +113,7 @@
     let ordenesData = [];
 async function cargarOrdenes() {
   try {
-    const res = await fetch("/api/ordenes_medicas", { credentials: "include" });
+    const res = await fetch("/api/ordenes_medicas");  // 👈 ruta relativa
     ordenesData = await res.json();
     document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
       <tr>
@@ -145,10 +145,10 @@ async function cargarOrdenes() {
 }
 
 
-        function abrirPago(index) {
+    function abrirPago(index) {
       const o = ordenesData[index];
       document.getElementById("formPago").reset();
-      document.getElementById("folio_recibo").value = o.folio_recibo;  
+      document.getElementById("orden_id").value = o.orden_id;
       document.getElementById("pacientePago").textContent = o.paciente;
       document.getElementById("procedimientoPago").textContent = o.procedimiento;
       document.getElementById("precioPago").textContent = o.precio;
@@ -158,15 +158,13 @@ async function cargarOrdenes() {
       new bootstrap.Modal(document.getElementById("modalPago")).show();
     }
 
-
     document.getElementById("formPago").addEventListener("submit", async (e) => {
       e.preventDefault();
       const data = {
-        folio_recibo: document.getElementById("folio_recibo").value,
+        orden_id: document.getElementById("orden_id").value,
         monto: document.getElementById("montoLiquidar").value,
         forma_pago: document.getElementById("formaPago").value
       };
-
 
       Swal.fire({
           title: 'Procesando...',
@@ -177,13 +175,9 @@ async function cargarOrdenes() {
           }
         });
 
-      const res = await fetch("/api/pagos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-        credentials: "include"
+      const res = await fetch("/api/pagos",{
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data)
       });
-
       if (res.ok) {
   Swal.fire({
     icon: 'success',
@@ -192,7 +186,7 @@ async function cargarOrdenes() {
     confirmButtonColor: '#27ae60'
   });
   document.getElementById("formPago").reset();
-  document.getElementById("folio_recibo").value = "";
+  document.getElementById("orden_id").value = "";
   bootstrap.Modal.getInstance(document.getElementById("modalPago")).hide();
   cargarOrdenes();
 } else {

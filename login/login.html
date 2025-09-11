@@ -139,16 +139,11 @@ loginForm.addEventListener('submit', async e => {
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
 
-    // LOGIN
-const res = await fetch('https://oftavision.shop/api/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password }),
-    credentials: 'include'
-});
-
-
-
+    const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+    });
 
     const data = await res.json();
     if (res.ok) {
@@ -170,14 +165,11 @@ const res = await fetch('https://oftavision.shop/api/login', {
         e.preventDefault();
         const nomina = document.getElementById('forgotNomina').value;
 
-        const res = await fetch('https://oftavision.shop/api/forgot-password', {
+        const res = await fetch('/api/forgot-password', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nomina }),
-            credentials: 'include'
+            body: JSON.stringify({ nomina })
         });
-
-
 
         const data = await res.json();
         if (res.ok) {
@@ -210,14 +202,11 @@ const res = await fetch('https://oftavision.shop/api/login', {
         const token = document.getElementById('resetToken').value;
         const password = document.getElementById('resetPassword').value;
 
-      
-        const res = await fetch('https://oftavision.shop/api/reset-password', {
+        const res = await fetch('/api/reset-password', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nomina, token, password }),
-            credentials: 'include'
+            body: JSON.stringify({ nomina, token, password })
         });
-
 
         const data = await res.json();
         if (res.ok) {

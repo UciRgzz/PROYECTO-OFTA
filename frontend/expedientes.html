@@ -162,7 +162,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 async function cargarExpedientes() {
-    const res = await fetch('/api/expedientes', { credentials: 'include' });
+    const res = await fetch('/api/expedientes');
     const data = await res.json();
     const tbody = document.getElementById('listaExpedientes');
     tbody.innerHTML = '';
@@ -226,12 +226,10 @@ async function guardarExpediente(e) {
     };
 
     const res = await fetch('/api/expedientes', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(expediente),
-    credentials: 'include'
-});
-
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(expediente)
+    });
 
     const data = await res.json();
 
@@ -256,7 +254,7 @@ async function guardarExpediente(e) {
 }
 
 async function editarExpediente(id) {
-    const res = await fetch(`/api/expedientes/${id}`, { credentials: 'include' });
+    const res = await fetch(`/api/expedientes/${id}`);
     const data = await res.json();
 
     document.getElementById('numero_expediente').value = data.numero_expediente;
@@ -276,7 +274,7 @@ async function buscarExpediente() {
     const folio = document.getElementById('buscarInput').value.trim();
     if (!folio) return cargarExpedientes();
 
-    const res = await fetch(`/api/expedientes/${folio}`, { credentials: 'include' });
+    const res = await fetch(`/api/expedientes/${folio}`);
     if (res.ok) {
         const data = await res.json();
         document.getElementById('listaExpedientes').innerHTML = `
@@ -308,7 +306,7 @@ async function buscarExpediente() {
 
 // === VER ORDENES MÉDICAS ===
 async function verMedico(expedienteId, nombre) {
-    const res = await fetch(`/api/expedientes/${expedienteId}/ordenes`, { credentials: 'include' });
+    const res = await fetch(`/api/expedientes/${expedienteId}/ordenes`);
     const data = await res.json();
 
     if (!data.length) {
@@ -347,7 +345,7 @@ async function verMedico(expedienteId, nombre) {
 
 // === VER OPTOMETRÍA ===
 async function verOptometria(expedienteId, nombre) {
-    const res = await fetch(`/api/expedientes/${expedienteId}/optometria`, { credentials: 'include' });
+    const res = await fetch(`/api/expedientes/${expedienteId}/optometria`);
     const data = await res.json();
 
     if (!data.length) {

@@ -133,7 +133,7 @@
   // Cargar catálogo de procedimientos
   async function cargarCatalogo() {
     try {
-      const res = await fetch("/api/procedimientos", { credentials: "include" });
+      const res = await fetch("/api/procedimientos");
       catalogo = await res.json();
 
       // Rellenar el select de procedimiento con los valores de la BD
@@ -174,7 +174,7 @@
       return;
     }
     try {
-      const res = await fetch(`/api/recibos/paciente/${folio}`, { credentials: "include" });
+      const res = await fetch(`/api/recibos/paciente/${folio}`);
       if (!res.ok) {
         document.getElementById("nombrePaciente").value = "No encontrado";
         pacienteId = null;
@@ -213,10 +213,8 @@ document.getElementById("formRecibo").addEventListener("submit", async function(
   const res = await fetch('/api/recibos', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(datos),
-    credentials: "include"
+    body: JSON.stringify(datos)
   });
-
   const data = await res.json();
 
   if (res.ok) {
@@ -255,7 +253,7 @@ async function eliminarRecibo(id) {
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
-        const res = await fetch(`/api/recibos/${id}`, { method: "DELETE", credentials: "include" });
+        const res = await fetch(`/api/recibos/${id}`, { method: "DELETE" });
         const data = await res.json();
         if (res.ok) {
           Swal.fire({
@@ -290,7 +288,7 @@ async function eliminarRecibo(id) {
   // Cargar lista de recibos
   async function cargarRecibos() {
     try {
-     const res = await fetch('/api/recibos', { credentials: "include" });
+     const res = await fetch('/api/recibos');
       const recibos = await res.json();
       document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
         <tr>

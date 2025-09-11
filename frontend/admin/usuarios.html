@@ -68,11 +68,8 @@
       const res = await fetch('/api/admin/add-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-        credentials: 'include'
+        body: JSON.stringify(data)
       });
-
-
       const result = await res.json();
       alert(result.mensaje || result.error);
       loadUsers();
@@ -81,7 +78,7 @@
 
     // Listar usuarios
     async function loadUsers() {
-      const res = await fetch('/api/admin/list-users', { credentials: 'include' });
+      const res = await fetch('/api/admin/list-users');
       const users = await res.json();
       tableBody.innerHTML = users.map(u => `
         <tr>

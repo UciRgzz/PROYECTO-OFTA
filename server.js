@@ -17,10 +17,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-    origin: [
-        "https://oftavision.shop",   // dominio en producción
-        "http://localhost:3000"    
-    ],
+    origin: "http://localhost:3000",  // URL de tu frontend
     credentials: true                 // permitir envío de cookies de sesión
 }));
 app.use(bodyParser.json());
@@ -29,22 +26,16 @@ app.use(bodyParser.json());
 
 
 // Sesiones
-app.set('trust proxy', 1);
-
 app.use(session({
     secret: 'mi_secreto_super_seguro',
     resave: false,
     saveUninitialized: false,
     cookie: {
-    secure: process.env.NODE_ENV === "production",  // true solo en producción
-    httpOnly: true,
-    sameSite: "none",    // obligatorio si el frontend hace fetch con credentials: 'include'
-    maxAge: 1000 * 60 * 60
-}
+        secure: false, // false porque usas http://localhost
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 // 1 hora
+    }
 }));
-
-
-
 
 /*// PostgreSQL
 const pool = new Pool({
@@ -104,8 +95,7 @@ app.get('/', (req, res) => {
 
 // ✅ Servir archivos estáticos correctamente
 app.use('/login', express.static(path.join(__dirname, 'login')));
-app.use('/frontend', express.static(path.join(__dirname, 'frontend')));
-
+app.use('/frontend', verificarSesion, express.static(path.join(__dirname, 'frontend')));
 
 
 // ==================== LOGIN ====================
@@ -674,9 +664,7 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
     
     const result = await pool.query(`
       SELECT 
-        o.id AS orden_id,          -- 👈 id de la orden
-        o.folio_recibo,            -- 👈 id del recibo (necesario para pagos)
-        e.numero_expediente AS numero_orden,
+        e.numero_expediente AS numero_orden,   -- 👈 Ahora usa el expediente del paciente
         e.nombre_completo AS paciente, 
         o.medico, 
         o.diagnostico, 
@@ -693,7 +681,7 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         ON r.id = o.folio_recibo 
        AND r.departamento = o.departamento
       JOIN expedientes e 
-        ON e.numero_expediente = o.expediente_id
+        ON e.numero_expediente = o.expediente_id   -- 👈 Correcto: une con expediente
        AND e.departamento = o.departamento
       WHERE o.departamento = $1
       ORDER BY o.fecha DESC
@@ -707,37 +695,29 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
 });
 
 
-
 // ==================== PAGOS ====================
-// Registrar un pago para una orden (usando folio_recibo en lugar de orden_id)
+// Registrar un pago para una orden
 app.post("/api/pagos", verificarSesion, async (req, res) => {
   const client = await pool.connect();
   let depto = getDepartamento(req);
 
   try {
-    let { folio_recibo, monto, forma_pago } = req.body;
-
-    // 🔒 Validaciones iniciales
-    folio_recibo = parseInt(folio_recibo, 10);
-    monto = parseFloat(monto);
-
-    if (isNaN(folio_recibo) || isNaN(monto) || monto <= 0) {
-      return res.status(400).json({ error: "Datos de pago inválidos" });
-    }
+    const { orden_id, monto, forma_pago } = req.body;
 
     await client.query("BEGIN");
 
-    // 1. Obtener la orden médica vinculada al recibo
+    // 1. Obtener la orden médica y su expediente
     const ordenResult = await client.query(
       `SELECT o.id, o.expediente_id, o.estatus
-       FROM ordenes_medicas o
-       WHERE o.folio_recibo = $1 AND o.departamento = $2`,
-      [folio_recibo, depto]
+      FROM ordenes_medicas o
+      WHERE o.id = $1 AND o.departamento = $2`,
+      [orden_id, depto]
     );
+
 
     if (ordenResult.rows.length === 0) {
       await client.query("ROLLBACK");
-      return res.status(404).json({ error: "Orden no encontrada para este recibo" });
+      return res.status(404).json({ error: "Orden no encontrada" });
     }
 
     const orden = ordenResult.rows[0];
@@ -747,25 +727,28 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
       `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
        VALUES ($1, $2, $3, $4, NOW(), $5)
        RETURNING *`,
-      [orden.id, orden.expediente_id, monto, forma_pago, depto]
+      [orden_id, orden.expediente_id, monto, forma_pago, depto]
     );
 
-    // 3. Calcular total pagado hasta ahora
+    // 3. Calcular total pagado
     const sumaPagos = await client.query(
       `SELECT COALESCE(SUM(monto),0) AS total_pagado
        FROM pagos
        WHERE orden_id = $1 AND departamento = $2`,
-      [orden.id, depto]
+      [orden_id, depto]
     );
     const totalPagado = parseFloat(sumaPagos.rows[0].total_pagado);
 
-    // 4. Obtener el recibo asociado
-    const precioOrden = await client.query(
-      `SELECT id, precio 
-       FROM recibos
-       WHERE id = $1 AND departamento = $2`,
-      [folio_recibo, depto]
-    );
+   // 4. Obtener recibo asociado
+      const precioOrden = await client.query(
+        `SELECT id, precio FROM recibos
+        WHERE id = (
+          SELECT folio_recibo FROM ordenes_medicas
+          WHERE id = $1 AND departamento = $2
+        )`,
+        [orden_id, depto]
+      );
+
 
     if (precioOrden.rows.length === 0) {
       await client.query("ROLLBACK");
@@ -776,20 +759,20 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
     const precio = parseFloat(recibo.precio || 0);
     const pendiente = Math.max(0, precio - totalPagado);
 
-    // 5. Actualizar acumulados en recibo
+    // 5. Actualizar acumulados
     await client.query(
       `UPDATE recibos
        SET monto_pagado = $1
-       WHERE id = $2 AND departamento = $3`,
-      [totalPagado, recibo.id, depto]
+       WHERE id = $2`,
+      [totalPagado, recibo.id]
     );
 
-    // 6. Actualizar estatus de la orden
+    // 6. Actualizar estatus de orden
     await client.query(
       `UPDATE ordenes_medicas
        SET estatus = CASE WHEN $1 = 0 THEN 'Pagado' ELSE 'Pendiente' END
        WHERE id = $2 AND departamento = $3`,
-      [pendiente, orden.id, depto]
+      [pendiente, orden_id, depto]
     );
 
     await client.query("COMMIT");
@@ -811,50 +794,44 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 });
 
 
-
 // ==================== CIERRE DE CAJA ====================
 app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
   try {
     const { fecha } = req.query;
-    let depto = getDepartamento(req);
+   let depto = getDepartamento(req);
     let params = [fecha];
 
     if (!fecha) {
       return res.status(400).json({ error: "Falta fecha" });
     }
 
-    // 👇 Base del query sin repetir condiciones
     let query = `
       SELECT 
           p.forma_pago AS pago,
           o.procedimiento,
           SUM(p.monto) AS total
       FROM pagos p
-      JOIN ordenes_medicas o 
-        ON o.id = p.orden_id 
-       AND o.departamento = p.departamento
-      WHERE DATE(p.fecha) = $1
+      JOIN ordenes_medicas o ON o.id = p.orden_id
+      WHERE p.fecha::date = $1
     `;
 
-    // 👇 Filtrado por sucursal/departamento
     if (req.session.usuario.rol === "admin") {
       if (req.session.usuario.sucursalSeleccionada) {
+        // 👇 Admin viendo una sucursal
         query += " AND p.departamento = $2";
         params.push(req.session.usuario.sucursalSeleccionada);
       } else {
+        // 👇 Admin en su propia ventana → solo sus registros en depto = 'ADMIN'
         query += " AND p.departamento = $2";
         params.push("ADMIN");
       }
     } else {
+      // Usuario normal
       query += " AND p.departamento = $2";
       params.push(depto);
     }
 
-    // 👇 Agrupación final
-    query += `
-      GROUP BY p.forma_pago, o.procedimiento
-      ORDER BY p.forma_pago, o.procedimiento
-    `;
+    query += " GROUP BY p.forma_pago, o.procedimiento ORDER BY p.forma_pago, o.procedimiento";
 
     const result = await pool.query(query, params);
     res.json(result.rows);
@@ -891,20 +868,10 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
           r.precio AS total,
           (r.precio - COALESCE(SUM(p.monto),0)) AS saldo
       FROM ordenes_medicas o
-      JOIN recibos r 
-        ON r.id = o.folio_recibo 
-      AND r.departamento = o.departamento
-      JOIN expedientes e 
-        ON o.expediente_id = e.numero_expediente 
-      AND e.departamento = o.departamento
-      LEFT JOIN pagos p 
-      ON p.orden_id = o.id 
-    AND p.departamento = o.departamento
-
-    WHERE o.departamento = $2
-      AND DATE(o.fecha) = $1   -- 👈 usar fecha de la orden
-
-
+      JOIN recibos r ON r.id = o.folio_recibo
+      JOIN expedientes e ON o.expediente_id = e.numero_expediente
+      LEFT JOIN pagos p ON p.orden_id = o.id
+      WHERE p.fecha::date = $1
     `;
 
     if (req.session.usuario.rol === "admin") {
