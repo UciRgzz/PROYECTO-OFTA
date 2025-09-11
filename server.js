@@ -30,17 +30,18 @@ app.use(bodyParser.json());
 
 // Sesiones
 
-app.set('trust proxy', 1);
 app.use(session({
     secret: 'mi_secreto_super_seguro',
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: true, 
-        httpOnly: true,
+        secure: true,        // solo HTTPS
+        httpOnly: true,      
+        sameSite: "none",    // 👈 permite que se use en CORS
         maxAge: 1000 * 60 * 60 // 1 hora
     }
 }));
+
 
 /*// PostgreSQL
 const pool = new Pool({
