@@ -868,7 +868,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
 
     let query = `
       SELECT 
-          DATE(p.fecha) AS fecha,
+          o.fecha::date AS fecha,          -- usamos la fecha de la orden
           o.id AS orden_id,
           e.numero_expediente AS folio,
           e.nombre_completo AS nombre,
@@ -890,7 +890,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
       LEFT JOIN pagos p 
         ON p.orden_id = o.id 
        AND p.departamento = o.departamento
-      WHERE DATE(p.fecha) = $1
+      WHERE o.fecha::date = $1       -- 👈 filtrar por fecha de la orden
     `;
 
     if (req.session.usuario.rol === "admin") {
@@ -907,8 +907,8 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
     }
 
     query += `
-      GROUP BY DATE(p.fecha), o.id, e.numero_expediente, e.nombre_completo, o.procedimiento, r.precio
-      ORDER BY fecha, o.id
+      GROUP BY o.fecha::date, o.id, e.numero_expediente, e.nombre_completo, o.procedimiento, r.precio
+      ORDER BY o.fecha, o.id
     `;
 
     const result = await pool.query(query, params);
