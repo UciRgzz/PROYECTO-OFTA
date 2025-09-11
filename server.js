@@ -807,14 +807,11 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
   try {
     const { fecha } = req.query;
-    let depto = getDepartamento(req);
-    let params = [fecha];
-
     if (!fecha) {
       return res.status(400).json({ error: "Falta fecha" });
     }
 
-    // 👇 Base del query sin repetir condiciones
+    let params = [fecha];
     let query = `
       SELECT 
           p.forma_pago AS pago,
@@ -830,18 +827,17 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
     // 👇 Filtrado por sucursal/departamento
     if (req.session.usuario.rol === "admin") {
       if (req.session.usuario.sucursalSeleccionada) {
+        // Admin con sucursal seleccionada → filtrar solo esa
         query += " AND p.departamento = $2";
         params.push(req.session.usuario.sucursalSeleccionada);
-      } else {
-        query += " AND p.departamento = $2";
-        params.push("ADMIN");
       }
+      // Admin sin sucursal → ve todas las sucursales (no agregamos condición extra)
     } else {
+      // Usuario normal → solo su sucursal
       query += " AND p.departamento = $2";
-      params.push(depto);
+      params.push(getDepartamento(req));
     }
 
-    // 👇 Agrupación final
     query += `
       GROUP BY p.forma_pago, o.procedimiento
       ORDER BY p.forma_pago, o.procedimiento
@@ -854,7 +850,6 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 
 // ==================== LISTADO DE PACIENTES ====================
