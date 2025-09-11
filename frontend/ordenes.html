@@ -117,7 +117,7 @@ async function cargarOrdenes() {
     ordenesData = await res.json();
     document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
       <tr>
-        <td>${o.numero_orden}</td>
+        <td>${o.orden_id}</td>
         <td>${o.paciente}</td>
         <td>${o.medico}</td>
         <td>${o.diagnostico}</td>
@@ -132,7 +132,7 @@ async function cargarOrdenes() {
             ? `<span class="badge bg-success">Pagado</span>`
             : `<span class="badge bg-warning">${o.estatus}</span>`}
         </td>
-        <td>${new Date(o.fecha).toLocaleDateString()}</td>
+        <td>${new Date(o.fecha).toLocaleDateString("es-MX")}</td>
         <td>
           ${o.estatus === "Pagado"
             ? `<button class="btn btn-secondary btn-sm" disabled><i class="fas fa-check"></i> Pagado</button>`
@@ -185,11 +185,15 @@ async function cargarOrdenes() {
     text: 'Pago registrado con éxito',
     confirmButtonColor: '#27ae60'
   });
+
+  // ✅ limpiar y cerrar modal
   document.getElementById("formPago").reset();
-  document.getElementById("orden_id").value = o.numero_orden;
   bootstrap.Modal.getInstance(document.getElementById("modalPago")).hide();
+
+  // ✅ refrescar lista de órdenes inmediatamente
   cargarOrdenes();
 } else {
+
   Swal.fire({
     icon: 'error',
     title: 'Error',

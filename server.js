@@ -735,13 +735,27 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 
     const orden = ordenResult.rows[0];
 
-    // 2. Registrar el pago
-    const pagoResult = await client.query(
-      `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
-       VALUES ($1, $2, $3, $4, NOW(), $5)
-       RETURNING *`,
-      [orden.id, orden.expediente_id, monto, forma_pago, depto]
-    );
+   // 2. Registrar el pago
+const pagoResult = await client.query(
+  `INSERT INTO pagos (
+      orden_id, expediente_id, monto, forma_pago, fecha, departamento
+   )
+   VALUES (
+      $1, $2, $3, $4, 
+      (SELECT fecha FROM recibos WHERE id = $5 AND departamento = $6), 
+      $6
+   )
+   RETURNING *`,
+  [
+    orden.id,            // $1 → orden_id
+    orden.expediente_id, // $2 → expediente_id
+    monto,               // $3 → monto
+    forma_pago,          // $4 → forma_pago
+    orden.folio_recibo,  // $5 → id del recibo
+    depto                // $6 → departamento
+  ]
+);
+
 
     // 3. Calcular total pagado
     const sumaPagos = await client.query(
