@@ -811,8 +811,11 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
           o.procedimiento,
           SUM(p.monto) AS total
       FROM pagos p
-      JOIN ordenes_medicas o ON o.id = p.orden_id
+      JOIN ordenes_medicas o 
+        ON o.id = p.orden_id 
+      AND o.departamento = p.departamento
       WHERE p.fecha::date = $1
+
     `;
 
     if (req.session.usuario.rol === "admin") {
@@ -868,10 +871,17 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
           r.precio AS total,
           (r.precio - COALESCE(SUM(p.monto),0)) AS saldo
       FROM ordenes_medicas o
-      JOIN recibos r ON r.id = o.folio_recibo
-      JOIN expedientes e ON o.expediente_id = e.numero_expediente
-      LEFT JOIN pagos p ON p.orden_id = o.id
+      JOIN recibos r 
+        ON r.id = o.folio_recibo 
+      AND r.departamento = o.departamento
+      JOIN expedientes e 
+        ON o.expediente_id = e.numero_expediente 
+      AND e.departamento = o.departamento
+      LEFT JOIN pagos p 
+        ON p.orden_id = o.id 
+      AND p.departamento = o.departamento
       WHERE p.fecha::date = $1
+
     `;
 
     if (req.session.usuario.rol === "admin") {
