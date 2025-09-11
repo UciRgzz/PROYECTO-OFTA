@@ -29,18 +29,20 @@ app.use(bodyParser.json());
 
 
 // Sesiones
+app.set('trust proxy', 1);
 
 app.use(session({
     secret: 'mi_secreto_super_seguro',
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: false,        // solo HTTPS
-        httpOnly: true,      
-        sameSite: "none",    // 👈 permite que se use en CORS
-        maxAge: 1000 * 60 * 60 // 1 hora
+        secure: true,        // requiere HTTPS real
+        httpOnly: true,
+        sameSite: "none",
+        maxAge: 1000 * 60 * 60
     }
 }));
+
 
 
 /*// PostgreSQL
