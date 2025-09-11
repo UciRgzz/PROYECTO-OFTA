@@ -38,10 +38,12 @@ app.use(session({
     cookie: {
         secure: true,        // requiere HTTPS real
         httpOnly: true,
-        sameSite: "none",
+        sameSite: "lax",     // 👈 prueba con "lax" primero, más permisivo que "none"
+        domain: "oftavision.shop", // 👈 explícitamente tu dominio
         maxAge: 1000 * 60 * 60
     }
 }));
+
 
 /*// PostgreSQL
 const pool = new Pool({
