@@ -195,26 +195,22 @@ fetch('/api/check-session')
       // Mostrar selector solo si es admin
       if (data.usuario.rol === "admin") {
         document.getElementById("sucursal-selector").style.display = "block";
+      }
 
-        // Mostrar la sucursal actual en el botón
-        // Mostrar la sucursal actual en el botón
+      // Mostrar la sucursal actual en el botón
       let sucursalActual;
       if (data.usuario.rol === "admin") {
-        // Para admin, usar primero la sucursal seleccionada, si no, "Admin"
         sucursalActual = data.usuario.sucursalSeleccionada || "Admin";
       } else {
-        // Para usuarios normales, usar su departamento fijo
         sucursalActual = data.usuario.departamento;
       }
       document.getElementById("sucursalTexto").textContent = sucursalActual;
-
-      }
 
       document.getElementById('main-content').innerHTML = `
         <div style="text-align:center; margin-top:40px;">
           <h1>Bienvenido</h1>
           <p>Selecciona una opción del menú.</p>
-          <div style="margin-top:80px; xtext-align:left;">
+          <div style="margin-top:80px; text-align:left;">
             <img src="../uploads/logo-oftavision.png" 
                 alt="Instituto Oftavisión" 
                 style="max-width:900px; display:block; margin:0 auto;">
@@ -224,6 +220,7 @@ fetch('/api/check-session')
     }
   })
   .catch(() => window.location.href = '/login/login.html');
+
 
 // Router simple
 async function mostrarSeccion(seccion){
