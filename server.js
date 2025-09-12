@@ -599,10 +599,10 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
     } = req.body;
 
     let depto = getDepartamento(req);
-  
 
+    // 1. Buscar recibo
     const reciboResult = await pool.query(
-      `SELECT id, paciente_id, procedimiento, tipo, precio, monto_pagado 
+      `SELECT id, paciente_id, tipo, precio, monto_pagado 
        FROM recibos 
        WHERE id = $1 AND departamento = $2`,
       [folio_recibo, depto]
@@ -614,6 +614,19 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
 
     const recibo = reciboResult.rows[0];
 
+    // 2. Buscar nombre del procedimiento en catálogo
+    const procResult = await pool.query(
+      `SELECT nombre FROM procedimientos WHERE id = $1`,
+      [procedimiento_id]
+    );
+
+    if (procResult.rows.length === 0) {
+      return res.status(400).json({ error: "Procedimiento no válido" });
+    }
+
+    const procedimientoNombre = procResult.rows[0].nombre;
+
+    // 3. Insertar orden con el nombre del procedimiento
     const result = await pool.query(
       `INSERT INTO ordenes_medicas (
         expediente_id, folio_recibo, medico, diagnostico, lado, procedimiento, tipo,
@@ -629,10 +642,10 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
       )
       RETURNING *`,
       [
-        recibo.paciente_id, // expediente_id = numero_expediente
-        recibo.id,          // folio_recibo = id de recibo
+        recibo.paciente_id,
+        recibo.id,
         medico, diagnostico, lado,
-        procedimiento_id, 
+        procedimientoNombre, // ✅ Guardamos SOLO el nombre
         recibo.tipo,
         anexos, conjuntiva, cornea, camara_anterior, cristalino,
         retina, macula, nervio_optico, ciclopejia, hora_tp,
@@ -646,6 +659,7 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // ==================== ÓRDENES POR EXPEDIENTE ====================
 app.get("/api/expedientes/:id/ordenes", verificarSesion, async (req, res) => {
