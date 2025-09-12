@@ -184,6 +184,26 @@ app.post('/api/reset-password', async (req, res) => {
     }
 });
 
+// Eliminar usuario (solo admin)
+app.delete('/api/admin/delete-user/:nomina', isAdmin, async (req, res) => {
+  try {
+    const { nomina } = req.params;
+    const result = await pool.query(
+      'DELETE FROM usuarios WHERE nomina = $1 RETURNING *',
+      [nomina]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    res.json({ mensaje: '🗑️ Usuario eliminado correctamente' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error eliminando usuario' });
+  }
+});
+
 
 
 // ==================== HELPER: Determinar sucursal activa ====================

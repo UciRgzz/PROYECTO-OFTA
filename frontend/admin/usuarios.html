@@ -45,6 +45,7 @@
         <th>Usuario</th>
         <th>Rol</th>
         <th>Departamento</th>
+        <th>Acciones</th>
       </tr>
     </thead>
     <tbody id="usersTable"></tbody>
@@ -85,18 +86,50 @@ form.addEventListener('submit', async (e) => {
 
 
     // Listar usuarios
-    async function loadUsers() {
-      const res = await fetch('/api/admin/list-users');
-      const users = await res.json();
-      tableBody.innerHTML = users.map(u => `
-        <tr>
-          <td>${u.nomina}</td>
-          <td>${u.username}</td>
-          <td>${u.rol}</td>
-          <td>${u.departamento || ''}</td>
-        </tr>
-      `).join('');
-    }
+async function loadUsers() {
+  const res = await fetch('/api/admin/list-users');
+  const users = await res.json();
+  tableBody.innerHTML = users.map(u => `
+    <tr>
+      <td>${u.nomina}</td>
+      <td>${u.username}</td>
+      <td>${u.rol}</td>
+      <td>${u.departamento || ''}</td>
+      <td>
+        <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.nomina}')">
+          Eliminar
+        </button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// Eliminar usuario
+async function deleteUser(nomina) {
+  const confirm = await Swal.fire({
+    title: '¿Estás seguro?',
+    text: `Eliminar usuario con nómina ${nomina}`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  });
+
+  if (!confirm.isConfirmed) return;
+
+  const res = await fetch(`/api/admin/delete-user/${nomina}`, {
+    method: 'DELETE'
+  });
+  const result = await res.json();
+
+  if (res.ok) {
+    Swal.fire('✅ Eliminado', result.mensaje, 'success');
+    loadUsers();
+  } else {
+    Swal.fire('❌ Error', result.error || 'No se pudo eliminar el usuario', 'error');
+  }
+}
+
 
     loadUsers();
   </script>
