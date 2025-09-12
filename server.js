@@ -1150,23 +1150,38 @@ app.get('/api/insumos', verificarSesion, async (req, res) => {
 // 3. Subir Excel
 app.post('/api/insumos/upload', verificarSesion, upload.single('excelFile'), async (req, res) => {
   try {
-    let depto = getDepartamento(req);  // ✅ unificado
+    let depto = getDepartamento(req);  
 
     const workbook = xlsx.readFile(req.file.path);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const data = xlsx.utils.sheet_to_json(sheet);
+    const data = xlsx.utils.sheet_to_json(sheet, { raw: false }); // raw:false convierte todo a texto legible
 
     for (let row of data) {
-      // Convertir fecha si viene como número de Excel
+      // ✅ Normalizar fecha
       let fecha = row.Fecha;
+      if (!fecha) continue; // saltar si no hay fecha
       if (typeof fecha === "number") {
         fecha = xlsx.SSF.format("yyyy-mm-dd", fecha);
+      } else {
+        // convertir string tipo "12/09/2025" → "2025-09-12"
+        const partes = fecha.split(/[\/\-]/);
+        if (partes.length === 3) {
+          fecha = `${partes[2]}-${partes[1].padStart(2,'0')}-${partes[0].padStart(2,'0')}`;
+        }
       }
 
+      // ✅ Limpiar folio (por si viene con vínculo de Excel)
+      let folio = row.Folio;
+      if (typeof folio === "object" && folio.text) {
+        folio = folio.text; // algunos Excels con vínculo lo guardan así
+      }
+      folio = String(folio || "").replace(/\D/g, ""); // solo dejar números
+
+      // ✅ Insertar en BD
       await pool.query(
         `INSERT INTO insumos (fecha, folio, concepto, monto, archivo, departamento) 
          VALUES ($1,$2,$3,$4,$5,$6)`,
-        [fecha, row.Folio || null, row.Concepto || null, row.Monto || 0, req.file.filename, depto]
+        [fecha, folio || null, row.Concepto || null, parseFloat((row.Monto+"").replace(/[^0-9.]/g,"")) || 0, req.file.filename, depto]
       );
     }
 
