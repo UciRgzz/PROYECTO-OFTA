@@ -583,7 +583,7 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
       medico,
       diagnostico,
       lado,
-      procedimiento_id, 
+      procedimiento_id, // 👈 viene como id desde el frontend
       anexos,
       conjuntiva,
       cornea,
@@ -600,9 +600,9 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
 
     let depto = getDepartamento(req);
 
-    // 1. Buscar recibo
+    // Buscar el recibo
     const reciboResult = await pool.query(
-      `SELECT id, paciente_id, tipo, precio, monto_pagado 
+      `SELECT id, paciente_id, tipo 
        FROM recibos 
        WHERE id = $1 AND departamento = $2`,
       [folio_recibo, depto]
@@ -611,22 +611,20 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
     if (reciboResult.rows.length === 0) {
       return res.status(404).json({ error: "No se encontró el recibo en esta sucursal" });
     }
-
     const recibo = reciboResult.rows[0];
 
-    // 2. Buscar nombre del procedimiento en catálogo
+    // Buscar el nombre del procedimiento en el catálogo
     const procResult = await pool.query(
-      `SELECT nombre FROM procedimientos WHERE id = $1`,
+      `SELECT nombre FROM catalogo_procedimientos WHERE id = $1`,
       [procedimiento_id]
     );
 
     if (procResult.rows.length === 0) {
-      return res.status(400).json({ error: "Procedimiento no válido" });
+      return res.status(404).json({ error: "No se encontró el procedimiento en el catálogo" });
     }
-
     const procedimientoNombre = procResult.rows[0].nombre;
 
-    // 3. Insertar orden con el nombre del procedimiento
+    // Guardar la orden usando el nombre en vez del id
     const result = await pool.query(
       `INSERT INTO ordenes_medicas (
         expediente_id, folio_recibo, medico, diagnostico, lado, procedimiento, tipo,
@@ -645,7 +643,7 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         recibo.paciente_id,
         recibo.id,
         medico, diagnostico, lado,
-        procedimientoNombre, // ✅ Guardamos SOLO el nombre
+        procedimientoNombre, // 👈 ahora guarda el nombre
         recibo.tipo,
         anexos, conjuntiva, cornea, camara_anterior, cristalino,
         retina, macula, nervio_optico, ciclopejia, hora_tp,
