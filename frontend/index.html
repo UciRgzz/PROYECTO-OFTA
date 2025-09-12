@@ -150,10 +150,19 @@
     <a href="#" onclick="mostrarSeccion('ordenes')"><i class="material-icons">assignment</i> Órdenes</a>
     <a href="#" onclick="mostrarSeccion('insumos')"><i class="material-icons">inventory_2</i> Insumos</a>
     <a href="#" onclick="mostrarSeccion('cierre')"><i class="material-icons">attach_money</i> Cierre de Caja</a>
-    <a href="#" onclick="mostrarSeccion('usuarios')"><i class="material-icons">person_add</i> Usuarios</a>
+
+    <!-- Solo visible para admin -->
+    <a href="#" onclick="mostrarSeccion('usuarios')" id="menuUsuarios" style="display:none;">
+      <i class="material-icons">person_add</i> Usuarios
+    </a>
+
     <hr>
-    <a href="/api/logout" class="text-danger mt-3 d-block"><i class="material-icons">exit_to_app</i> Cerrar Sesión</a>
-  </div>
+
+    <a href="/api/logout" class="text-danger mt-3 d-block">
+      <i class="material-icons">exit_to_app</i> Cerrar Sesión
+    </a>
+    </div>
+
 
   <!-- MAIN -->
   <div class="main" id="main-content">
@@ -194,9 +203,12 @@ fetch('/api/check-session')
   .then(data => {
     if (data.usuario) {
       // Mostrar selector solo si es admin
+            
       if (data.usuario.rol === "admin") {
         document.getElementById("sucursal-selector").style.display = "block";
+        document.getElementById("menuUsuarios").style.display = "block"; 
       }
+
 
       // Mostrar la sucursal actual en el botón
       let sucursalActual;
