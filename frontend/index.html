@@ -150,6 +150,7 @@
     <a href="#" onclick="mostrarSeccion('ordenes')"><i class="material-icons">assignment</i> Órdenes</a>
     <a href="#" onclick="mostrarSeccion('insumos')"><i class="material-icons">inventory_2</i> Insumos</a>
     <a href="#" onclick="mostrarSeccion('cierre')"><i class="material-icons">attach_money</i> Cierre de Caja</a>
+    <a href="#" onclick="mostrarSeccion('usuarios')"><i class="material-icons">person_add</i> Usuarios</a>
     <hr>
     <a href="/api/logout" class="text-danger mt-3 d-block"><i class="material-icons">exit_to_app</i> Cerrar Sesión</a>
   </div>
@@ -232,7 +233,8 @@ async function mostrarSeccion(seccion){
     medico: "/frontend/medico.html",
     ordenes: "/frontend/ordenes.html",
     optometria: "/frontend/optometria.html",
-    insumos: "/frontend/insumos.html"
+    insumos: "/frontend/insumos.html",
+    usuarios: "/frontend/admin/usuarios.html"
   };
 
   if(seccion === 'expedientes'){
