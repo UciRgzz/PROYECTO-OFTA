@@ -415,6 +415,7 @@ function cargarLista(){
 <button class="btn-editar" onclick='editarExpediente(${JSON.stringify(exp)})'>Editar</button>
 <button class="btn-medico" onclick="verOrdenes(${exp.numero_expediente}, '${exp.nombre_completo.replace(/'/g,"\\'")}')">Médico</button>
 <button class="btn-opto" onclick="verOptometria(${exp.numero_expediente}, '${exp.nombre_completo.replace(/'/g,"\\'")}')">Optometría</button>
+<button class="btn btn-danger" onclick="eliminarExpediente(${exp.numero_expediente})">Eliminar</button>
 </td>
       </tr>`;
     });
@@ -594,5 +595,29 @@ async function cambiarSucursal(nombreSucursal) {
     });
   }
 }
+// ---------- Función para eliminar expediente ----------
+async function eliminarExpediente(id){
+  const confirmacion = await Swal.fire({
+    title: '¿Estás seguro?',
+    text: 'Esto eliminará el expediente permanentemente',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Sí, eliminar'
+  });
+
+  if(confirmacion.isConfirmed){
+    const res = await fetch(`/api/expedientes/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if(res.ok){
+      Swal.fire('Eliminado', data.mensaje, 'success');
+      cargarLista();
+    }else{
+      Swal.fire('Error', data.error || 'No se pudo eliminar', 'error');
+    }
+  }
+}
+
 
 </script>
