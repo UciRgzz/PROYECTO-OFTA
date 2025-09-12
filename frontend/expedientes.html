@@ -182,6 +182,7 @@ async function cargarExpedientes() {
                     <button class="btn-editar" onclick="editarExpediente(${exp.numero_expediente})">Editar</button>
                     <button class="btn-medico" onclick="verMedico(${exp.numero_expediente}, '${exp.nombre_completo}')">Médico</button>
                     <button class="btn-opto" onclick="verOptometria(${exp.numero_expediente}, '${exp.nombre_completo}')">Optometría</button>
+                    <button class="btn-cancelar" onclick="eliminarExpediente(${exp.numero_expediente})">Eliminar</button>
                 </td>
             </tr>
         `;
@@ -391,4 +392,30 @@ function cerrarModal() {
 }
 
 cargarExpedientes();
+
+
+async function eliminarExpediente(id) {
+    const confirmacion = await Swal.fire({
+        title: '¿Estás seguro?',
+        text: "Esto eliminará el expediente permanentemente",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar'
+    });
+
+    if (confirmacion.isConfirmed) {
+        const res = await fetch(`/api/expedientes/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+
+        if (res.ok) {
+            Swal.fire('Eliminado', data.mensaje, 'success');
+            cargarExpedientes();
+        } else {
+            Swal.fire('Error', data.error || 'No se pudo eliminar', 'error');
+        }
+    }
+}
+
 </script>

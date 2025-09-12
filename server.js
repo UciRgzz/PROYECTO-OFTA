@@ -300,31 +300,30 @@ app.put('/api/expedientes/:id', verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== ELIMINAR EXPEDIENTE ====================
-app.delete('/api/expedientes/:id', verificarSesion, async (req, res) => {
+// ==================== ELIMINAR EXPEDIENTE (SOLO ADMIN) ====================
+app.delete('/api/expedientes/:id', verificarSesion, isAdmin, async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (isNaN(id)) {
     return res.status(400).json({ error: "ID inválido" });
   }
 
-  const depto = getDepartamento(req);
-
   try {
     const result = await pool.query(
-      "DELETE FROM expedientes WHERE numero_expediente = $1 AND departamento = $2 RETURNING *",
-      [id, depto]
+      "DELETE FROM expedientes WHERE numero_expediente = $1 RETURNING *",
+      [id]
     );
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Expediente no encontrado" });
     }
 
-    res.json({ mensaje: "Expediente eliminado correctamente" });
+    res.json({ mensaje: "🗑️ Expediente eliminado correctamente" });
   } catch (err) {
     console.error("Error al eliminar expediente:", err);
     res.status(500).json({ error: "Error al eliminar expediente" });
   }
 });
+
 
 // ==================== OBTENER EXPEDIENTE POR ID ====================
 app.get('/api/expedientes/:id', verificarSesion, async (req, res) => {
