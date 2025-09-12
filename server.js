@@ -1159,17 +1159,24 @@ app.post('/api/insumos/upload', verificarSesion, upload.single('excelFile'), asy
     for (let row of data) {
       // === Fecha ===
       let fecha = row.Fecha;
+
       if (typeof fecha === "number") {
-        // Excel date serial number
+        // Si viene como número de Excel
         fecha = xlsx.SSF.format("yyyy-mm-dd", fecha);
-      } else {
-        // Texto → normalizar a yyyy-mm-dd
-        let parsed = new Date(fecha);
-        if (!isNaN(parsed)) {
-          fecha = parsed.toISOString().split("T")[0];
+      } else if (typeof fecha === "string") {
+        // Si viene como texto (ej: "12/09/2025" o "12-09-2025")
+        const partes = fecha.split(/[/\-]/);
+        if (partes.length === 3) {
+          // Interpretar como DD/MM/YYYY
+          fecha = `${partes[2]}-${partes[1].padStart(2,"0")}-${partes[0].padStart(2,"0")}`;
         } else {
-          console.log("Fecha inválida:", row.Fecha);
-          continue;
+          let parsed = new Date(fecha);
+          if (!isNaN(parsed)) {
+            fecha = parsed.toISOString().split("T")[0];
+          } else {
+            console.log("Fecha inválida:", row.Fecha);
+            continue;
+          }
         }
       }
 
@@ -1205,6 +1212,7 @@ app.post('/api/insumos/upload', verificarSesion, upload.single('excelFile'), asy
     res.status(500).json({ error: 'Error procesando Excel' });
   }
 });
+
 
 // 4. Eliminar insumo
 app.delete('/api/insumos/:id', isAdmin, async (req, res) => {
