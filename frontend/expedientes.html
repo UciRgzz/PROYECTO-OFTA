@@ -292,7 +292,7 @@ async function buscarExpediente() {
                     <button class="btn-editar" onclick="editarExpediente(${data.numero_expediente})">Editar</button>
                     <button class="btn-medico" onclick="verMedico(${data.numero_expediente}, '${data.nombre_completo}')">Médico</button>
                     <button class="btn-opto" onclick="verOptometria(${data.numero_expediente}, '${data.nombre_completo}')">Optometría</button>
-                    <button class="btn-cancelar" onclick="eliminarExpediente(${exp.numero_expediente})">Eliminar</button>
+                    <button class="btn-cancelar" onclick="eliminarExpediente(${data.numero_expediente})">Eliminar</button>
 
                 </td>
             </tr>
