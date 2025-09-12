@@ -632,7 +632,8 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         recibo.paciente_id, // expediente_id = numero_expediente
         recibo.id,          // folio_recibo = id de recibo
         medico, diagnostico, lado,
-        recibo.procedimiento, recibo.tipo,
+        procedimiento_id, 
+        recibo.tipo,
         anexos, conjuntiva, cornea, camara_anterior, cristalino,
         retina, macula, nervio_optico, ciclopejia, hora_tp,
         problemas, plan, depto
