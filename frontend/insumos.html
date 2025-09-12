@@ -200,7 +200,7 @@ document.getElementById("agendaForm").addEventListener("submit", async (e) => {
               <td>${new Date(i.fecha).toLocaleDateString()}</td>
               <td>${i.folio}</td>
               <td>${i.concepto}</td>
-              <td>$${parseFloat(i.monto).toFixed(2)}</td>
+              <td>$${parseFloat(i.monto).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
               <td>${i.archivo ? `<a class="download-link" href="/uploads/${encodeURIComponent(i.archivo)}" download><i class="fas fa-download"></i> Descargar</a>` : "-"}</td>
               <td><button class="btn btn-delete" onclick="eliminarInsumo(${i.id})"><i class="fas fa-trash"></i></button></td>
             </tr>`;
@@ -304,7 +304,7 @@ async function eliminarInsumo(id) {
               <div class="insumo-item">
                 <div class="insumo-name">${m.concepto}</div>
                 <div class="insumo-info">Folio: ${m.folio}</div>
-                <div class="insumo-info">Monto: $${parseFloat(m.monto).toFixed(2)}</div>
+                <div class="insumo-info">Monto: $${parseFloat(m.monto).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
               </div>`;
           });
         }
