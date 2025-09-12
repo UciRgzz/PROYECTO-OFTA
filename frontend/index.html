@@ -192,15 +192,22 @@ fetch('/api/check-session')
   .then(res => res.ok ? res.json() : Promise.reject())
   .then(data => {
     if (data.usuario) {
-      // 👇 Mostrar selector solo si es admin
+      // Mostrar selector solo si es admin
       if (data.usuario.rol === "admin") {
         document.getElementById("sucursal-selector").style.display = "block";
 
-        // 👇 Mostrar la sucursal actual en el botón
-        const sucursalActual = data.usuario.departamento 
-                            || data.usuario.sucursalSeleccionada 
-                            || (data.usuario.rol === "admin" ? "Admin" : "Sucursal");
-        document.getElementById("sucursalTexto").textContent = sucursalActual;
+        // Mostrar la sucursal actual en el botón
+        // Mostrar la sucursal actual en el botón
+      let sucursalActual;
+      if (data.usuario.rol === "admin") {
+        // Para admin, usar primero la sucursal seleccionada, si no, "Admin"
+        sucursalActual = data.usuario.sucursalSeleccionada || "Admin";
+      } else {
+        // Para usuarios normales, usar su departamento fijo
+        sucursalActual = data.usuario.departamento;
+      }
+      document.getElementById("sucursalTexto").textContent = sucursalActual;
+
       }
 
       document.getElementById('main-content').innerHTML = `
