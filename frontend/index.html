@@ -570,8 +570,13 @@ async function cambiarSucursal(nombreSucursal) {
           </div>
         `;
       } else {
-        // Si es sucursal real, recargar para aplicar filtros de datos
-        location.reload();
+        // ✅ Cambiar sucursal al vuelo sin recargar toda la página
+        document.getElementById('main-content').innerHTML = `
+          <div style="text-align:center; margin-top:40px;">
+            <h1>Bienvenido a ${nombreSucursal}</h1>
+            <p>Selecciona una opción del menú.</p>
+          </div>
+        `;
       }
     } else {
       Swal.fire({
@@ -589,4 +594,5 @@ async function cambiarSucursal(nombreSucursal) {
     });
   }
 }
+
 </script>
