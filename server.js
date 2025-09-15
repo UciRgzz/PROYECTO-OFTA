@@ -331,14 +331,16 @@ app.delete('/api/expedientes/:id', verificarSesion, isAdmin, async (req, res) =>
     return res.status(400).json({ error: "ID inválido" });
   }
 
+  const depto = getDepartamento(req);
+
   try {
     const result = await pool.query(
-      "DELETE FROM expedientes WHERE numero_expediente = $1 RETURNING *",
-      [id]
+      "DELETE FROM expedientes WHERE numero_expediente = $1 AND departamento = $2 RETURNING *",
+      [id, depto]
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Expediente no encontrado" });
+      return res.status(404).json({ error: "Expediente no encontrado o no pertenece a tu sucursal" });
     }
 
     res.json({ mensaje: "🗑️ Expediente eliminado correctamente" });
@@ -413,11 +415,12 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
     const folio = expediente.rows[0].numero_expediente;
 
     const result = await pool.query(
-      `INSERT INTO recibos (fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, departamento) 
-      VALUES (DATE $1,$2,$3,$4,$5,$6,$7,$8,$9)
-       RETURNING *`,
-      [fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, depto]
-    );
+    `INSERT INTO recibos (fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, departamento) 
+    VALUES ($1::date, $2, $3, $4, $5, $6, $7, $8, $9)
+    RETURNING *`,
+    [fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, depto]
+  );
+
 
     res.json({ mensaje: "✅ Recibo guardado correctamente", recibo: result.rows[0] });
   } catch (err) {
