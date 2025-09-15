@@ -102,9 +102,12 @@
             <td>$${o.total - o.pagos}</td>
             <td>${o.status}</td>
             <td>
-              <input type="text" value="${o.tipo_lente || ''}" 
-                     onchange="actualizarLente(${o.id}, this.value)" />
+              <button class="btn btn-sm btn-secondary" 
+                      onclick="editarLente(${o.id}, '${o.tipo_lente || ''}')">
+                <i class="fas fa-plus-circle"></i> ${o.tipo_lente ? 'Editar Lente' : 'Añadir Lente'}
+              </button>
             </td>
+
             <td>
               ${o.fecha_cirugia ? 
                 '<span class="text-muted">Asignado</span>' : 
@@ -186,15 +189,21 @@
         let contenido = `<div class="calendar-day"><div class="day-number">${d}</div>`;
         if (programadas.length > 0) {
           programadas.forEach(c => {
-            contenido += `
+              contenido += `
               <div class="insumo-item ${getColorClass(c.procedimiento)}">
                 <div class="insumo-name">${c.nombre}</div>
                 <div class="insumo-info">Proc: ${c.procedimiento}</div>
                 <div class="insumo-info">Dr: ${c.medico}</div>
-                <button class="btn btn-sm btn-warning mt-1" onclick="editarCirugia(${c.id})">Editar</button>
-                <button class="btn btn-sm btn-danger mt-1" onclick="eliminarCirugia(${c.id})">Eliminar</button>
+                <button class="btn btn-sm btn-secondary mt-1" 
+                        onclick="editarLente(${c.id}, '${c.tipo_lente || ''}')">
+                  <i class="fas fa-plus-circle"></i> ${c.tipo_lente ? 'Editar Lente' : 'Añadir Lente'}
+                </button>
+                <button class="btn btn-sm btn-danger mt-1" onclick="eliminarCirugia(${c.id})">
+                  <i class="fas fa-trash"></i> Eliminar
+                </button>
               </div>`;
-          });
+      });
+
         }
         contenido += "</div>";
         calendario.innerHTML += contenido;
@@ -256,20 +265,72 @@
       });
     }
 
-    async function eliminarCirugia(idOrden) {
+// ==================== EDITAR TIPO DE LENTE ====================
+function editarLente(idOrden, tipoActual) {
+  Swal.fire({
+    title: tipoActual ? 'Editar Tipo de Lente' : 'Añadir Tipo de Lente',
+    input: 'text',
+    inputValue: tipoActual || '',
+    inputPlaceholder: 'Ejemplo: Lente Intraocular',
+    showCancelButton: true,
+    confirmButtonText: 'Guardar',
+    cancelButtonText: 'Cancelar',
+    preConfirm: (valor) => {
+      if (!valor.trim()) {
+        Swal.showValidationMessage('Debes ingresar un tipo de lente');
+      }
+      return valor;
+    }
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        await fetch(`/api/ordenes/${idOrden}/lente`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tipo_lente: result.value })
+        });
+        Swal.fire('✅ Guardado', 'El tipo de lente fue actualizado correctamente.', 'success');
+        cargarOrdenes(); // refrescar la tabla
+      } catch (err) {
+        console.error("Error al actualizar tipo de lente:", err);
+        Swal.fire('❌ Error', 'No se pudo actualizar el tipo de lente.', 'error');
+      }
+    }
+  });
+}
+
+// ==================== ELIMINAR CIRUGÍA (con confirmación) ====================
+function eliminarCirugia(idOrden) {
+  Swal.fire({
+    title: '¿Eliminar cirugía?',
+    text: "Esta acción no se puede deshacer.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
       try {
         await fetch(`/api/ordenes/${idOrden}/agendar`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ fecha_cirugia: null })
+          body: JSON.stringify({ fecha_cirugia: null }) // quitamos la fecha
         });
-        Swal.fire("🗑️ Cirugía eliminada del calendario");
+        Swal.fire('🗑️ Eliminada', 'Cirugía eliminada del calendario.', 'success');
         cargarOrdenes();
         renderCalendarCirugias();
       } catch (err) {
-        console.error("Error al eliminar:", err);
+        console.error("Error al eliminar cirugía:", err);
+        Swal.fire('❌ Error', 'No se pudo eliminar la cirugía.', 'error');
       }
     }
+  });
+}
+
+
+
   </script>
 </body>
 </html>
