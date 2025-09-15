@@ -122,19 +122,6 @@
       }
     }
 
-    async function actualizarLente(id, tipoLente) {
-      try {
-        await fetch(`/api/ordenes/${id}/lente`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tipo_lente: tipoLente })
-        });
-        Swal.fire("✅ Lente actualizado");
-      } catch (err) {
-        console.error("Error actualizando lente:", err);
-      }
-    }
-
     // ====================== CALENDARIO ======================
     let fechaCirugia = new Date();
 
@@ -186,23 +173,23 @@
         const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
         const programadas = filtradas.filter(c => c.fecha.startsWith(fechaDia));
 
-        let contenido = `<div class="calendar-day"><div class="day-number">${d}</div>`;
-        if (programadas.length > 0) {
-          programadas.forEach(c => {
-              contenido += `
-              <div class="insumo-item ${getColorClass(c.procedimiento)}">
-                <div class="insumo-name">${c.nombre}</div>
-                <div class="insumo-info">Proc: ${c.procedimiento}</div>
-                <div class="insumo-info">Dr: ${c.medico}</div>
-                <button class="btn btn-sm btn-secondary mt-1" 
-                        onclick="editarLente(${c.id}, '${c.tipo_lente || ''}')">
-                  <i class="fas fa-plus-circle"></i> ${c.tipo_lente ? 'Editar Lente' : 'Añadir Lente'}
-                </button>
-                <button class="btn btn-sm btn-danger mt-1" onclick="eliminarCirugia(${c.id})">
-                  <i class="fas fa-trash"></i> Eliminar
-                </button>
-              </div>`;
-      });
+       let contenido = `<div class="calendar-day"><div class="day-number">${d}</div>`;
+if (programadas.length > 0) {
+  programadas.forEach(c => {
+    contenido += `
+      <div class="insumo-item ${getColorClass(c.procedimiento)}">
+        <div class="insumo-name">${c.nombre}</div>
+        <div class="insumo-info">Proc: ${c.procedimiento}</div>
+        <div class="insumo-info">Dr: ${c.medico}</div>
+        ${c.tipo_lente ? `<div class="insumo-info">Lente: ${c.tipo_lente}</div>` : ""}
+        <button class="btn btn-sm btn-danger mt-1" onclick="eliminarCirugia(${c.id})">
+          <i class="fas fa-trash"></i> Eliminar
+        </button>
+      </div>`;
+  });
+}
+else {
+  contenido += `<div class="text-muted" style="font-size: 0.9rem; margin-top: 10px;">No hay cirugías</div>`;
 
         }
         contenido += "</div>";
