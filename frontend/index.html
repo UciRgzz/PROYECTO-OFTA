@@ -19,8 +19,7 @@
       background: #f0f5ff;
     }
 
-    /* Sidebar */
-    .sidebar {
+      .sidebar {
       width: 240px;
       background: linear-gradient(180deg, #1e2a32, #2c3e50);
       color: #fff;
@@ -28,8 +27,9 @@
       box-shadow: 3px 0 10px rgba(0,0,0,0.1);
       display: flex;
       flex-direction: column;
-      height: 100vh; /* ocupar toda la altura de la pantalla */
+      height: 100vh;          /* sidebar ocupa toda la altura */
     }
+
 
     .sidebar h2 {
       font-size: 18px;
@@ -123,49 +123,51 @@
 </head>
 <body>
   
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <h2>Menú</h2>
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <h2>Menú</h2>
 
-    <!-- Selector de sucursal (solo admin) -->
-    <div id="sucursal-selector" class="dropdown mb-3" style="display:none;">
-      <button class="btn btn-light w-100 dropdown-toggle d-flex align-items-center" 
-              type="button" data-bs-toggle="dropdown" aria-expanded="false" 
-              id="sucursalBtn">
-        <i class="material-icons me-2">business</i> <span id="sucursalTexto">Sucursal</span>
-      </button>
-      <ul class="dropdown-menu w-100">
-        <li><a class="dropdown-item" href="#" onclick="cambiarSucursal('admin')">Admin</a></li>
-        <li><a class="dropdown-item" href="#" onclick="cambiarSucursal('Reynosa')">Reynosa</a></li>
-        <li><a class="dropdown-item" href="#" onclick="cambiarSucursal('Yucatan')">Yucatán</a></li>
-        <li><a class="dropdown-item" href="#" onclick="cambiarSucursal('Monterrey')">Monterrey</a></li>
-      </ul>
-    </div>
-
-    <!-- Enlaces del menú -->
-    <a href="#" onclick="mostrarSeccion('expedientes')"><i class="material-icons">folder</i> Expedientes</a>
-    <a href="#" onclick="mostrarSeccion('optometria')"><i class="material-icons">visibility</i> Optometría</a>
-    <a href="#" onclick="mostrarSeccion('recibo')"><i class="material-icons">receipt</i> Recibo</a>
-    <a href="#" onclick="mostrarSeccion('medico')"><i class="material-icons">local_hospital</i> Módulo Médico</a>
-    <a href="#" onclick="mostrarSeccion('ordenes')"><i class="material-icons">assignment</i> Órdenes</a>
-    <a href="#" onclick="mostrarSeccion('agenda')"><i class="material-icons">event</i> Agenda Quirúrgica</a>
-    <a href="#" onclick="mostrarSeccion('insumos')"><i class="material-icons">inventory_2</i> Insumos</a>
-    <a href="#" onclick="mostrarSeccion('cierre')"><i class="material-icons">attach_money</i> Cierre de Caja</a>
-
-    <!-- Solo visible para admin -->
-    <a href="#" onclick="mostrarSeccion('usuarios')" id="menuUsuarios" style="display:none;">
-      <i class="material-icons">person_add</i> Usuarios
-    </a>
-
-    <!-- Logout fijo al fondo -->
-    <div class="mt-auto pt-3 border-top">
-      <a href="/api/logout" class="text-danger d-flex align-items-center">
-        <i class="material-icons">exit_to_app</i>
-        <span class="ms-2">Cerrar Sesión</span>
-      </a>
-    </div>
+  <!-- Selector de sucursal (solo admin) -->
+  <div id="sucursal-selector" class="dropdown mb-3" style="display:none;">
+    <button class="btn btn-light w-100 dropdown-toggle d-flex align-items-center" 
+            type="button" data-bs-toggle="dropdown" aria-expanded="false" 
+            id="sucursalBtn">
+      <i class="material-icons me-2">business</i> 
+      <span id="sucursalTexto">Sucursal</span>
+    </button>
+    <ul class="dropdown-menu w-100">
+      <li><a class="dropdown-item" href="#" onclick="cambiarSucursal('admin')">Admin</a></li>
+      <li><a class="dropdown-item" href="#" onclick="cambiarSucursal('Reynosa')">Reynosa</a></li>
+      <li><a class="dropdown-item" href="#" onclick="cambiarSucursal('Yucatan')">Yucatán</a></li>
+      <li><a class="dropdown-item" href="#" onclick="cambiarSucursal('Monterrey')">Monterrey</a></li>
+    </ul>
   </div>
-  
+
+  <!-- Enlaces del menú -->
+  <a href="#" onclick="mostrarSeccion('expedientes')"><i class="material-icons">folder</i> Expedientes</a>
+  <a href="#" onclick="mostrarSeccion('optometria')"><i class="material-icons">visibility</i> Optometría</a>
+  <a href="#" onclick="mostrarSeccion('recibo')"><i class="material-icons">receipt</i> Recibo</a>
+  <a href="#" onclick="mostrarSeccion('medico')"><i class="material-icons">local_hospital</i> Módulo Médico</a>
+  <a href="#" onclick="mostrarSeccion('ordenes')"><i class="material-icons">assignment</i> Órdenes</a>
+  <a href="#" onclick="mostrarSeccion('agenda')"><i class="material-icons">event</i> Agenda Quirúrgica</a>
+  <a href="#" onclick="mostrarSeccion('insumos')"><i class="material-icons">inventory_2</i> Insumos</a>
+  <a href="#" onclick="mostrarSeccion('cierre')"><i class="material-icons">attach_money</i> Cierre de Caja</a>
+
+  <!-- Solo visible para admin -->
+  <a href="#" onclick="mostrarSeccion('usuarios')" id="menuUsuarios" style="display:none;">
+    <i class="material-icons">person_add</i> Usuarios
+  </a>
+
+  <!-- Logout fijo al fondo -->
+  <div class="mt-auto pt-3 border-top">
+    <a href="/api/logout" class="text-danger d-flex align-items-center">
+      <i class="material-icons">exit_to_app</i>
+      <span class="ms-2">Cerrar Sesión</span>
+    </a>
+  </div>
+</div>
+
+
 
 
   <!-- MAIN -->
