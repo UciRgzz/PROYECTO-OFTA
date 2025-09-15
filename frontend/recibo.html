@@ -216,14 +216,15 @@ document.getElementById("formRecibo").addEventListener("submit", async function(
   const fechaNormalizada = `${yyyy}-${mm}-${dd}`;
 
   const datos = {
-    fecha: fechaNormalizada,
-    paciente_id: pacienteId,
-    procedimiento: this.procedimiento.value,
-    precio: this.precio.value,
-    forma_pago: this.forma_pago.value,
-    monto_pagado: this.monto_pagado.value,
-    tipo: this.tipoRecibo.value
-  };
+  fecha: fechaNormalizada,   // la fecha correcta normalizada
+  numero_expediente: document.getElementById("folio").value, // lo que espera el backend
+  procedimiento: this.procedimiento.value,
+  precio: this.precio.value,
+  forma_pago: this.forma_pago.value,
+  monto_pagado: this.monto_pagado.value,
+  tipo: this.tipoRecibo.value
+};
+
 
   const res = await fetch('/api/recibos', {
     method: 'POST',
