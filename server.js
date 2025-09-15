@@ -217,7 +217,6 @@ function getDepartamento(req) {
 
 
 // ==================== CRUD EXPEDIENTES ====================
-
 // ==================== CREAR NUEVO EXPEDIENTE ====================
 app.post('/api/expedientes', verificarSesion, async (req, res) => {
   const {
@@ -388,8 +387,8 @@ app.get('/api/pacientes', verificarSesion, async (req, res) => {
   }
 });
 
-
-// ==================== GUARDAR RECIBO ====================
+// ==================== MODULO RECIBOS ====================
+// ==================== Guardar recibo====================
 app.post('/api/recibos', verificarSesion, async (req, res) => {
   const { fecha, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo } = req.body;
   let depto = getDepartamento(req);
