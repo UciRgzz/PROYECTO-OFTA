@@ -286,7 +286,7 @@ async function eliminarRecibo(id) {
   });
 }
 
-// Generar PDF de un recibo con vista previa
+// Generar vista previa del recibo y confirmar impresión
 async function imprimirRecibo(id) {
   try {
     const res = await fetch(`/api/recibos/${id}`);
@@ -296,23 +296,24 @@ async function imprimirRecibo(id) {
     }
     const recibo = await res.json();
 
+    // Plantilla formal de recibo
     const contenido = `
-      <div style="font-family: Arial; padding:20px;">
+      <div style="font-family: Arial; padding:20px; width:100%; max-width:700px; margin:auto;">
         <div style="text-align:center; margin-bottom:20px;">
-          <img src="/uploads/logo-oftavision.png" alt="Logo" style="width:100px;height:auto;">
+          <img src="/uploads/logo-oftavision.png" alt="Logo" style="width:120px;height:auto;">
           <h2 style="margin:5px 0;">CLÍNICA OFTAVISION</h2>
-          <h4 style="margin:0;">RECIBO DE PAGO</h4>
+          <h4 style="margin:0; color:#444;">RECIBO DE PAGO</h4>
           <hr>
         </div>
 
-        <table style="width:100%; margin-bottom:20px; font-size:14px;">
+        <table style="width:100%; margin-bottom:15px; font-size:14px;">
           <tr>
             <td><b>Fecha:</b> ${new Date(recibo.fecha).toLocaleDateString()}</td>
-            <td><b>Recibo N°:</b> ${recibo.id}</td>
+            <td style="text-align:right;"><b>Recibo N°:</b> ${recibo.id}</td>
           </tr>
           <tr>
             <td><b>Folio Expediente:</b> ${recibo.folio}</td>
-            <td><b>Tipo:</b> ${recibo.tipo}</td>
+            <td style="text-align:right;"><b>Tipo:</b> ${recibo.tipo}</td>
           </tr>
           <tr>
             <td colspan="2"><b>Paciente:</b> ${recibo.paciente}</td>
@@ -341,26 +342,35 @@ async function imprimirRecibo(id) {
           </tbody>
         </table>
 
-        <div style="margin-top:30px; font-size:12px; text-align:center;">
+        <div style="margin-top:30px; font-size:12px; text-align:center; color:#555;">
           <p><b>CLÍNICA OFTAVISION</b> - Este recibo no es un comprobante fiscal.</p>
         </div>
       </div>
     `;
 
-    const opt = {
-      margin:       10,
-      filename:     `recibo_${recibo.id}.pdf`,
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2 },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
-    // 👉 Generar PDF como blob y abrirlo en nueva pestaña
-    const pdfBlob = await html2pdf().from(contenido).set(opt).outputPdf('blob');
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-
-    // abrir en nueva pestaña
-    window.open(pdfUrl, '_blank');
+    // Mostrar modal de confirmación con el recibo
+    Swal.fire({
+      title: 'Vista previa del recibo',
+      html: contenido,
+      width: 800,
+      showCancelButton: true,
+      confirmButtonText: 'Imprimir',
+      cancelButtonText: 'Cancelar',
+      customClass: {
+        popup: 'swal-wide'
+      },
+      preConfirm: () => {
+        // Generar el PDF solo si el usuario confirma
+        const opt = {
+          margin:       10,
+          filename:     `recibo_${recibo.id}.pdf`,
+          image:        { type: 'jpeg', quality: 0.98 },
+          html2canvas:  { scale: 2 },
+          jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().from(contenido).set(opt).save();
+      }
+    });
 
   } catch (err) {
     console.error("Error imprimiendo recibo:", err);
