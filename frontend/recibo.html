@@ -207,8 +207,15 @@ document.getElementById("formRecibo").addEventListener("submit", async function(
     return;
   }
 
+  // 👉 Normalizamos fecha al formato yyyy-mm-dd
+  const hoy = new Date(this.fecha.value);
+  const yyyy = hoy.getFullYear();
+  const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+  const dd = String(hoy.getDate()).padStart(2, '0');
+  const fechaNormalizada = `${yyyy}-${mm}-${dd}`;
+
   const datos = {
-    fecha: this.fecha.value,
+    fecha: fechaNormalizada,
     paciente_id: pacienteId,
     procedimiento: this.procedimiento.value,
     precio: this.precio.value,
@@ -231,8 +238,17 @@ document.getElementById("formRecibo").addEventListener("submit", async function(
       text: 'Recibo guardado correctamente',
       confirmButtonColor: '#27ae60'
     });
+    
     this.reset();
     document.getElementById("nombrePaciente").value = "";
+
+    // 👉 Volver a poner la fecha actual después de resetear
+    const hoy2 = new Date();
+    const yyyy2 = hoy2.getFullYear();
+    const mm2 = String(hoy2.getMonth() + 1).padStart(2, '0');
+    const dd2 = String(hoy2.getDate()).padStart(2, '0');
+    document.getElementById("fecha").value = `${yyyy2}-${mm2}-${dd2}`;
+
     cargarRecibos();
     actualizarPrecios();
   } else {
@@ -240,10 +256,11 @@ document.getElementById("formRecibo").addEventListener("submit", async function(
       icon: 'error',
       title: 'Error',
       text: data.error || 'No se pudo guardar el recibo',
-      confirmButtonColor: '#e74c3c'
+      confirmButtonColor: '#e74c3c' 
     });
   }
 });
+
 
 
 // Eliminar recibo con SweetAlert2
