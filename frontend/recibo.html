@@ -286,7 +286,7 @@ async function eliminarRecibo(id) {
   });
 }
 
-// Generar PDF de un recibo
+// Generar PDF de un recibo con vista previa
 async function imprimirRecibo(id) {
   try {
     const res = await fetch(`/api/recibos/${id}`);
@@ -297,19 +297,55 @@ async function imprimirRecibo(id) {
     const recibo = await res.json();
 
     const contenido = `
-  <div style="text-align:center; font-family: Arial; padding:20px;">
-    <img src="/uploads/logo-oftavision.png" alt="Logo" style="max-width:150px; margin-bottom:15px;">
-    <h2>Recibo Oftavision</h2>
-    <hr>
-    <p><b>Fecha:</b> ${recibo.fecha}</p>
-    <p><b>Paciente:</b> ${recibo.paciente}</p>
-    <p><b>Procedimiento:</b> ${recibo.procedimiento}</p>
-    <p><b>Monto Pagado:</b> $${parseFloat(recibo.monto_pagado).toFixed(2)}</p>
-    <p><b>Precio Total:</b> $${parseFloat(recibo.precio).toFixed(2)}</p>
-    <p><b>Pendiente:</b> $${parseFloat(recibo.precio - recibo.monto_pagado).toFixed(2)}</p>
-  </div>
-`;
+      <div style="font-family: Arial; padding:20px;">
+        <div style="text-align:center; margin-bottom:20px;">
+          <img src="/uploads/logo-oftavision.png" alt="Logo" style="width:100px;height:auto;">
+          <h2 style="margin:5px 0;">CLÍNICA OFTAVISION</h2>
+          <h4 style="margin:0;">RECIBO DE PAGO</h4>
+          <hr>
+        </div>
 
+        <table style="width:100%; margin-bottom:20px; font-size:14px;">
+          <tr>
+            <td><b>Fecha:</b> ${new Date(recibo.fecha).toLocaleDateString()}</td>
+            <td><b>Recibo N°:</b> ${recibo.id}</td>
+          </tr>
+          <tr>
+            <td><b>Folio Expediente:</b> ${recibo.folio}</td>
+            <td><b>Tipo:</b> ${recibo.tipo}</td>
+          </tr>
+          <tr>
+            <td colspan="2"><b>Paciente:</b> ${recibo.paciente}</td>
+          </tr>
+          <tr>
+            <td colspan="2"><b>Forma de Pago:</b> ${recibo.forma_pago}</td>
+          </tr>
+        </table>
+
+        <table style="width:100%; border-collapse:collapse; font-size:14px;" border="1">
+          <thead>
+            <tr style="background:#f0f0f0;">
+              <th style="padding:8px;">Concepto</th>
+              <th style="padding:8px;">Precio</th>
+              <th style="padding:8px;">Pagado</th>
+              <th style="padding:8px;">Pendiente</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding:8px;">${recibo.procedimiento}</td>
+              <td style="padding:8px; text-align:right;">$${parseFloat(recibo.precio).toFixed(2)}</td>
+              <td style="padding:8px; text-align:right;">$${parseFloat(recibo.monto_pagado).toFixed(2)}</td>
+              <td style="padding:8px; text-align:right;">$${parseFloat(recibo.pendiente).toFixed(2)}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="margin-top:30px; font-size:12px; text-align:center;">
+          <p><b>CLÍNICA OFTAVISION</b> - Este recibo no es un comprobante fiscal.</p>
+        </div>
+      </div>
+    `;
 
     const opt = {
       margin:       10,
@@ -319,13 +355,18 @@ async function imprimirRecibo(id) {
       jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    html2pdf().from(contenido).set(opt).save();
+    // 👉 Generar PDF como blob y abrirlo en nueva pestaña
+    const pdfBlob = await html2pdf().from(contenido).set(opt).outputPdf('blob');
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+
+    // abrir en nueva pestaña
+    window.open(pdfUrl, '_blank');
+
   } catch (err) {
     console.error("Error imprimiendo recibo:", err);
     Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo generar el PDF' });
   }
 }
-
 
   // Cargar lista de recibos
   async function cargarRecibos() {
