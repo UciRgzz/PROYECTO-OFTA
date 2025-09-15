@@ -26,12 +26,6 @@
       color: #fff;
       padding: 20px;
       box-shadow: 3px 0 10px rgba(0,0,0,0.1);
-
-      /* 👇 Ajustes para que el logout quede abajo */
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      min-height: 100vh;
     }
 
     .sidebar h2 {
@@ -67,18 +61,6 @@
       color: #ff6b6b !important;
     }
 
-    /* Botón de logout */
-    .sidebar a.text-danger {
-      color: #ff6b6b !important;
-      font-weight: bold;
-      margin-top: auto; /* 👈 fuerza que quede abajo */
-    }
-
-    .sidebar a.text-danger:hover {
-      background: #ff6b6b;
-      color: #fff !important;
-    }
-
     /* Main */
     .main {
       flex: 1;
@@ -110,20 +92,21 @@
       color: #6c757d;
     }
 
-    /* Estilo para las opciones del selector de sucursal */
+        /* Estilo para las opciones del selector de sucursal */
     #sucursal-selector .dropdown-menu {
-      background-color: #fff;
-      color: #000;
+      background-color: #fff;   /* Fondo blanco */
+      color: #000;              /* Texto negro */
     }
 
     #sucursal-selector .dropdown-item {
-      color: #000;
+      color: #000;              /* Texto negro */
     }
 
     #sucursal-selector .dropdown-item:hover {
-      background-color: #3498db;
-      color: #fff;
+      background-color: #3498db; /* Fondo azul al pasar */
+      color: #fff;              /* Texto blanco */
     }
+
 
     /* Botones personalizados */
     .btn-editar { background: #1976d2; color: white; }
@@ -138,17 +121,18 @@
 </head>
 <body>
 
-  <!-- SIDEBAR -->
 <!-- SIDEBAR -->
-<div class="sidebar">
-  <h2>Menú</h2>
+<div class="sidebar d-flex flex-column">
+  <div>
+    <h2>Menú</h2>
 
-  <!-- Selector de sucursal (solo admin) -->
+    <!-- Selector de sucursal (solo admin) -->
     <div id="sucursal-selector" class="dropdown mb-3" style="display:none;">
       <button class="btn btn-light w-100 dropdown-toggle d-flex align-items-center" 
               type="button" data-bs-toggle="dropdown" aria-expanded="false" 
               id="sucursalBtn">
-        <i class="material-icons me-2">business</i> <span id="sucursalTexto">Sucursal</span>
+        <i class="material-icons me-2">business</i> 
+        <span id="sucursalTexto">Sucursal</span>
       </button>
       <ul class="dropdown-menu w-100">
         <li><a class="dropdown-item" href="#" onclick="cambiarSucursal('admin')">Admin</a></li>
@@ -158,8 +142,7 @@
       </ul>
     </div>
 
-
-  <!-- Enlaces del menú -->
+    <!-- Enlaces del menú -->
     <a href="#" onclick="mostrarSeccion('expedientes')"><i class="material-icons">folder</i> Expedientes</a>
     <a href="#" onclick="mostrarSeccion('optometria')"><i class="material-icons">visibility</i> Optometría</a>
     <a href="#" onclick="mostrarSeccion('recibo')"><i class="material-icons">receipt</i> Recibo</a>
@@ -173,14 +156,16 @@
     <a href="#" onclick="mostrarSeccion('usuarios')" id="menuUsuarios" style="display:none;">
       <i class="material-icons">person_add</i> Usuarios
     </a>
+  </div>
 
-    <hr>
-
-    <a href="/api/logout" class="text-danger mt-3 d-block">
-      <i class="material-icons">exit_to_app</i> Cerrar Sesión
+  <!-- Logout fijo al fondo -->
+  <div class="mt-auto pt-3 border-top">
+    <a href="/api/logout" class="text-danger d-flex align-items-center">
+      <i class="material-icons">exit_to_app</i>
+      <span class="ms-2">Cerrar Sesión</span>
     </a>
-    </div>
-
+  </div>
+</div>
 
   <!-- MAIN -->
   <div class="main" id="main-content">
