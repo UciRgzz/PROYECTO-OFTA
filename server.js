@@ -393,31 +393,32 @@ app.get('/api/pacientes', verificarSesion, async (req, res) => {
 });
 
 // ==================== MODULO RECIBOS ====================
-// ==================== Guardar recibo====================
+// ==================== Guardar recibo ====================
 app.post('/api/recibos', verificarSesion, async (req, res) => {
-  const { fecha, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo } = req.body;
+  const { fecha, numero_expediente, procedimiento, precio, forma_pago, monto_pagado, tipo } = req.body;
   let depto = getDepartamento(req);
 
   try {
     // 📌 Buscar expediente en la sucursal/departamento actual
     const expediente = await pool.query(
-      "SELECT numero_expediente FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
-      [paciente_id, depto]
+      "SELECT id, numero_expediente FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
+      [numero_expediente, depto]
     );
 
     if (expediente.rows.length === 0) {
       return res.status(400).json({ error: "El paciente no existe en este departamento" });
     }
 
-    // 📌 Usar el número de expediente como folio
+    // 📌 Usar el número de expediente como folio y el id como paciente_id
     const folio = expediente.rows[0].numero_expediente;
+    const pacienteId = expediente.rows[0].id;
 
     const result = await pool.query(
       `INSERT INTO recibos 
         (fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, departamento) 
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
        RETURNING *`,
-      [fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, depto]
+      [fecha, folio, pacienteId, procedimiento, precio, forma_pago, monto_pagado, tipo, depto]
     );
 
     res.json({ mensaje: "✅ Recibo guardado correctamente", recibo: result.rows[0] });
@@ -439,7 +440,7 @@ app.get('/api/recibos', verificarSesion, async (req, res) => {
              (r.precio - r.monto_pagado) AS pendiente
       FROM recibos r
       JOIN expedientes e 
-        ON r.paciente_id = e.numero_expediente 
+        ON r.paciente_id = e.id 
        AND r.departamento = e.departamento
       WHERE r.departamento = $1
       ORDER BY r.fecha DESC
@@ -504,7 +505,7 @@ app.get('/api/recibos/:id', verificarSesion, async (req, res) => {
              (r.precio - r.monto_pagado) AS pendiente
       FROM recibos r
       JOIN expedientes e 
-        ON r.paciente_id = e.numero_expediente 
+        ON r.paciente_id = e.id 
        AND r.departamento = e.departamento
       WHERE r.id = $1 AND r.departamento = $2
       LIMIT 1
@@ -520,7 +521,6 @@ app.get('/api/recibos/:id', verificarSesion, async (req, res) => {
     res.status(500).json({ error: "Error al obtener recibo" });
   }
 });
-
 
 
 // ==================== CATÁLOGO DE PROCEDIMIENTOS ====================
