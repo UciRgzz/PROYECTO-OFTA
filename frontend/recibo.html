@@ -395,37 +395,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Cargar lista de recibos
   async function cargarRecibos() {
-    try {
-      const res = await fetch('/api/recibos');
-      const recibos = await res.json();
-      document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
-        <tr>
-          <td>${new Date(r.fecha).toLocaleDateString('es-MX')}</td>
-          <td>${r.folio}</td>
-          <td>${r.paciente}</td>
-          <td>${r.procedimiento}</td>
-          <td><span class="badge bg-info">${r.tipo}</span></td>
-          <td>${r.forma_pago}</td>
-          <td><span class="badge bg-info">$${parseFloat(r.monto_pagado).toFixed(2)}</span></td>
-          <td><span class="badge bg-success">$${parseFloat(r.precio).toFixed(2)}</span></td>
-          <td><span class="badge bg-warning">$${parseFloat(r.precio - r.monto_pagado).toFixed(2)}</span></td>
-          <td>
-            <button class="btn btn-primary btn-sm" onclick="imprimirRecibo(${r.id})">
-              <i class="fas fa-print"></i> Imprimir
-            </button>
-            ${userRole === "admin" ? `
-              <button class="btn btn-danger btn-sm" onclick="eliminarRecibo(${r.id})">
-                <i class="fas fa-trash"></i> Eliminar
-              </button>` : ""}
-          </td>
-        </tr>
-      `).join('');
-    } catch (err) {
-      console.error("Error cargando recibos:", err);
-    }
+  try {
+    const res = await fetch('/api/recibos');
+    const recibos = await res.json();
+    document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
+      <tr>
+        <td>${new Date(r.fecha).toLocaleDateString('es-MX')}</td>
+        <td>${r.folio}</td>
+        <td>${r.paciente}</td>
+        <td>${r.procedimiento}</td>
+        <td><span class="badge bg-info">${r.tipo}</span></td>
+        <td>${r.forma_pago}</td>
+        <td><span class="badge bg-info">$${parseFloat(r.monto_pagado).toFixed(2)}</span></td>
+        <td><span class="badge bg-success">$${parseFloat(r.precio).toFixed(2)}</span></td>
+        <td><span class="badge bg-warning">$${(parseFloat(r.precio) - parseFloat(r.monto_pagado)).toFixed(2)}</span></td>
+        <td>
+          <button class="btn btn-primary btn-sm" onclick="imprimirRecibo(${r.id})">
+            <i class="fas fa-print"></i> Imprimir
+          </button>
+          ${userRole === "admin" ? `
+            <button class="btn btn-danger btn-sm" onclick="eliminarRecibo(${r.id})">
+              <i class="fas fa-trash"></i> Eliminar
+            </button>` : ""}
+        </td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    console.error("Error cargando recibos:", err);
   }
-
-  cargarRecibos();
+}
 </script>
 </body>
 </html>
