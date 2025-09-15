@@ -194,9 +194,10 @@ let userRole = localStorage.getItem("rol") || "usuario";
       console.error("Error buscando paciente:", err);
     }
   });
-// Guardar recibo con SweetAlert2
+ // Guardar recibo con SweetAlert2
 document.getElementById("formRecibo").addEventListener("submit", async function(e) {
   e.preventDefault();
+
   if (!pacienteId) {
     Swal.fire({
       icon: 'warning',
@@ -229,6 +230,7 @@ document.getElementById("formRecibo").addEventListener("submit", async function(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(datos)
   });
+
   const data = await res.json();
 
   if (res.ok) {
@@ -238,7 +240,7 @@ document.getElementById("formRecibo").addEventListener("submit", async function(
       text: 'Recibo guardado correctamente',
       confirmButtonColor: '#27ae60'
     });
-    
+
     this.reset();
     document.getElementById("nombrePaciente").value = "";
 
@@ -256,7 +258,7 @@ document.getElementById("formRecibo").addEventListener("submit", async function(
       icon: 'error',
       title: 'Error',
       text: data.error || 'No se pudo guardar el recibo',
-      confirmButtonColor: '#e74c3c' 
+      confirmButtonColor: '#e74c3c'
     });
   }
 });

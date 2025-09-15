@@ -399,6 +399,9 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
   let depto = getDepartamento(req);
 
   try {
+    // 📌 Normalizar la fecha a formato yyyy-mm-dd
+    const fechaNormalizada = new Date(fecha).toISOString().split('T')[0];
+
     // 📌 Buscar expediente en la sucursal/departamento actual
     const expediente = await pool.query(
       "SELECT id, numero_expediente FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
@@ -418,7 +421,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
         (fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, departamento) 
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
        RETURNING *`,
-      [fecha, folio, pacienteId, procedimiento, precio, forma_pago, monto_pagado, tipo, depto]
+      [fechaNormalizada, folio, pacienteId, procedimiento, precio, forma_pago, monto_pagado, tipo, depto]
     );
 
     res.json({ mensaje: "✅ Recibo guardado correctamente", recibo: result.rows[0] });
