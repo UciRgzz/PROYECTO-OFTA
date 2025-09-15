@@ -487,6 +487,34 @@ app.delete('/api/recibos/:id', isAdmin, async (req, res) => {
   }
 });
 
+// ==================== Obtener un recibo por ID ====================
+app.get('/api/recibos/:id', verificarSesion, async (req, res) => {
+  try {
+    const { id } = req.params;
+    let depto = getDepartamento(req);
+
+    const result = await pool.query(`
+      SELECT r.id, r.fecha, r.folio, e.nombre_completo AS paciente,
+             r.procedimiento, r.tipo, r.forma_pago, r.monto_pagado, r.precio,
+             (r.precio - r.monto_pagado) AS pendiente
+      FROM recibos r
+      JOIN expedientes e 
+        ON r.paciente_id = e.numero_expediente 
+       AND r.departamento = e.departamento
+      WHERE r.id = $1 AND r.departamento = $2
+      LIMIT 1
+    `, [id, depto]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Recibo no encontrado" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Error al obtener recibo:", err);
+    res.status(500).json({ error: "Error al obtener recibo" });
+  }
+});
 
 
 
@@ -1121,6 +1149,7 @@ const upload = multer({ storage });
 
 // Servir los archivos subidos para poder descargarlos
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 // 1. Guardar insumo manual
 app.post('/api/insumos', verificarSesion, async (req, res) => {

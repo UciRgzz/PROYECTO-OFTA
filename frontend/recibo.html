@@ -297,17 +297,19 @@ async function imprimirRecibo(id) {
     const recibo = await res.json();
 
     const contenido = `
-      <div style="text-align:center; font-family: Arial; padding:20px;">
-        <h2>Recibo Oftavision</h2>
-        <hr>
-        <p><b>Fecha:</b> ${recibo.fecha}</p>
-        <p><b>Paciente:</b> ${recibo.paciente}</p>
-        <p><b>Procedimiento:</b> ${recibo.procedimiento}</p>
-        <p><b>Monto Pagado:</b> $${parseFloat(recibo.monto_pagado).toFixed(2)}</p>
-        <p><b>Precio Total:</b> $${parseFloat(recibo.precio).toFixed(2)}</p>
-        <p><b>Pendiente:</b> $${parseFloat(recibo.precio - recibo.monto_pagado).toFixed(2)}</p>
-      </div>
-    `;
+  <div style="text-align:center; font-family: Arial; padding:20px;">
+    <img src="/uploads/logo-oftavision.png" alt="Logo" style="max-width:150px; margin-bottom:15px;">
+    <h2>Recibo Oftavision</h2>
+    <hr>
+    <p><b>Fecha:</b> ${recibo.fecha}</p>
+    <p><b>Paciente:</b> ${recibo.paciente}</p>
+    <p><b>Procedimiento:</b> ${recibo.procedimiento}</p>
+    <p><b>Monto Pagado:</b> $${parseFloat(recibo.monto_pagado).toFixed(2)}</p>
+    <p><b>Precio Total:</b> $${parseFloat(recibo.precio).toFixed(2)}</p>
+    <p><b>Pendiente:</b> $${parseFloat(recibo.precio - recibo.monto_pagado).toFixed(2)}</p>
+  </div>
+`;
+
 
     const opt = {
       margin:       10,
