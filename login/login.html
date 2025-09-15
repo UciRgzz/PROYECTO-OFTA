@@ -166,30 +166,37 @@
         formTitle.textContent = 'Iniciar Sesión';
     });
 
-    // LOGIN
-    loginForm.addEventListener('submit', async e => {
-        e.preventDefault();
-        const username = document.getElementById('loginUsername').value;
-        const password = document.getElementById('loginPassword').value;
+// LOGIN
+loginForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
 
-        const res = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-        });
-
-        const data = await res.json();
-        if (res.ok) {
-            window.location.href = '/frontend/index.html';
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: data.error || 'Usuario o contraseña incorrectos',
-                confirmButtonColor: '#e74c3c'
-            });
-        }
+    const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
     });
+
+    const data = await res.json();
+    if (res.ok) {
+        // ✅ Guardar datos del usuario en localStorage
+        localStorage.setItem("rol", data.usuario.rol);
+        localStorage.setItem("usuario", data.usuario.username);
+        localStorage.setItem("departamento", data.usuario.departamento);
+
+        // Redirigir al sistema
+        window.location.href = '/frontend/index.html';
+    } else {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: data.error || 'Usuario o contraseña incorrectos',
+            confirmButtonColor: '#e74c3c'
+        });
+    }
+});
+
 
     // OLVIDAR CONTRASEÑA (NÓMINA)
     forgotForm.addEventListener('submit', async e => {

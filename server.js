@@ -124,7 +124,12 @@ app.post('/api/login', async (req, res) => {
         };
 
 
-        res.json({ mensaje: 'Login exitoso', usuario: req.session.usuario });
+        res.json({ 
+    mensaje: 'Login exitoso', 
+    usuario: req.session.usuario,
+    rol: usuario.rol   // 👈 añadimos el rol explícito
+});
+
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Error en el login' });
