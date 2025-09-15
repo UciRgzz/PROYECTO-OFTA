@@ -4,14 +4,25 @@
   <meta charset="UTF-8">
   <title>Agenda Quirúrgica</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
     body { background: #f5f8ff; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     .card { border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 25px; }
-    .card-header { background: #2c3e50; color: white; font-weight: bold; }
+    .card-header { background: #2c3e50; color: white; font-weight: bold; display: flex; align-items: center; }
     table th { background: #f0f2f5; }
-    #calendar { max-width: 100%; margin: auto; }
+    table td, table th { text-align: center; }
+
+    .calendar-nav { display: flex; justify-content: space-between; align-items: center; margin: 20px 0; padding: 15px; background: white; border-radius: 10px; }
+    .current-month { font-size: 1.5rem; font-weight: 600; color: #2c3e50; }
+    .nav-btn { background: #3498db; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+    .day-header { text-align: center; padding: 8px; background: #2c3e50; color: white; border-radius: 6px; }
+    .calendar-day { background: white; border-radius: 8px; min-height: 120px; padding: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+    .day-number { font-weight: 600; margin-bottom: 5px; color: #2c3e50; }
+    .insumo-item { background: #e3f2fd; padding: 6px; margin-bottom: 6px; border-radius: 5px; font-size: 0.85rem; border-left: 4px solid #2196f3; }
+    .insumo-name { font-weight: 600; }
+    .insumo-info { font-size: 0.8rem; color: #555; }
   </style>
 </head>
 <body>
@@ -22,9 +33,9 @@
 
     <!-- Tabla de órdenes -->
     <div class="card">
-      <div class="card-header"><i class="fas fa-list"></i> Órdenes de Cirugía</div>
+      <div class="card-header"><i class="fas fa-list me-2"></i> Órdenes de Cirugía</div>
       <div class="card-body">
-        <table class="table table-bordered table-striped text-center align-middle">
+        <table class="table table-bordered table-striped align-middle">
           <thead>
             <tr>
               <th>Expediente</th>
@@ -48,23 +59,32 @@
 
     <!-- Calendario -->
     <div class="card">
-      <div class="card-header"><i class="fas fa-calendar"></i> Calendario de Cirugías</div>
+      <div class="card-header"><i class="fas fa-calendar me-2"></i> Calendario de Cirugías</div>
       <div class="card-body">
-        <div id="calendar"></div>
+        <div class="calendar-nav">
+          <button class="nav-btn" onclick="cambiarMesCirugia(-1)">
+            <i class="fas fa-chevron-left"></i> Mes anterior
+          </button>
+          <div class="current-month" id="mesCirugia"></div>
+          <button class="nav-btn" onclick="cambiarMesCirugia(1)">
+            Mes siguiente <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+        <div class="calendar" id="calendarioCirugias"></div>
       </div>
     </div>
   </div>
 
   <!-- Librerías -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/js/all.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
   <script>
     // ====================== TABLA ======================
     async function cargarOrdenes() {
       try {
-        const res = await fetch('/api/ordenes'); // 👈 Backend debe devolver las órdenes
+        const res = await fetch('/api/ordenes');
         const ordenes = await res.json();
 
         document.getElementById("tablaOrdenes").innerHTML = ordenes.map(o => `
@@ -91,27 +111,78 @@
     }
 
     // ====================== CALENDARIO ======================
-    document.addEventListener('DOMContentLoaded', function () {
-      let calendarEl = document.getElementById('calendar');
-      let calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        selectable: true,
-        locale: "es",
-        dateClick: function(info) {
-          alert("Asignar cirugía para el día: " + info.dateStr);
-          // Aquí puedes abrir un modal para asignar paciente a ese día
-        },
-        events: '/api/cirugias' // 👈 Backend debe devolver las cirugías programadas
-      });
-      calendar.render();
+    let fechaCirugia = new Date();
+
+    document.addEventListener("DOMContentLoaded", () => {
+      cargarOrdenes();
+      renderCalendarCirugias();
     });
 
-    cargarOrdenes();
+    async function renderCalendarCirugias() {
+      const calendario = document.getElementById("calendarioCirugias");
+      const mesActual = document.getElementById("mesCirugia");
+
+      const year = fechaCirugia.getFullYear();
+      const month = fechaCirugia.getMonth();
+
+      mesActual.textContent = fechaCirugia.toLocaleString("es-ES", { month: "long", year: "numeric" });
+
+      const primerDia = new Date(year, month, 1).getDay() || 7;
+      const diasEnMes = new Date(year, month + 1, 0).getDate();
+
+      let cirugias = [];
+      try {
+        const res = await fetch("/api/cirugias");
+        cirugias = await res.json();
+      } catch (err) { console.error(err); }
+
+      const filtradas = cirugias.filter(c => {
+        const f = new Date(c.fecha);
+        return f.getFullYear() === year && f.getMonth() === month;
+      });
+
+      calendario.innerHTML = "";
+
+      ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"].forEach(d => {
+        calendario.innerHTML += `<div class="day-header">${d}</div>`;
+      });
+
+      for (let i = 1; i < primerDia; i++) {
+        calendario.innerHTML += `<div class="empty-day"></div>`;
+      }
+
+      for (let d = 1; d <= diasEnMes; d++) {
+        const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
+        const programadas = filtradas.filter(c => c.fecha.startsWith(fechaDia));
+
+        let contenido = `<div class="calendar-day"><div class="day-number">${d}</div>`;
+        if (programadas.length > 0) {
+          programadas.forEach(c => {
+            contenido += `
+              <div class="insumo-item">
+                <div class="insumo-name">${c.nombre}</div>
+                <div class="insumo-info">Proc: ${c.procedimiento}</div>
+                <div class="insumo-info">Dr: ${c.medico}</div>
+              </div>`;
+          });
+        }
+        contenido += "</div>";
+        calendario.innerHTML += contenido;
+      }
+    }
+
+    function cambiarMesCirugia(offset) {
+      fechaCirugia.setMonth(fechaCirugia.getMonth() + offset);
+      renderCalendarCirugias();
+    }
 
     // Función para agendar desde la tabla
     function agendarCirugia(idOrden) {
-      alert("Abrir modal para agendar la orden ID: " + idOrden);
-      // Aquí va un modal con select de fecha y tipo de lente
+      Swal.fire({
+        icon: 'info',
+        title: 'Agendar cirugía',
+        text: 'Aquí puedes abrir un modal para asignar fecha a la orden ID: ' + idOrden
+      });
     }
   </script>
 </body>
