@@ -321,7 +321,7 @@ async function imprimirRecibo(id) {
 
         <table style="width:100%; margin-bottom:15px; font-size:14px;">
           <tr>
-            <td><b>Fecha:</b> ${new Date(recibo.fecha).toLocaleDateString()}</td>
+            <td><b>Fecha:</b> ${new Date(recibo.fecha).toISOString().split("T")[0].split("-").reverse().join("/")}</td>
             <td style="text-align:right;"><b>Recibo N°:</b> ${recibo.id}</td>
           </tr>
           <tr>
