@@ -545,13 +545,11 @@ app.get('/api/procedimientos', verificarSesion, async (req, res) => {
 // ==================== BUSCAR PACIENTE POR FOLIO ====================
 app.get('/api/recibos/paciente/:folio', verificarSesion, async (req, res) => {
   const { folio } = req.params;
-
-  // 📌 Determinar sucursal activa
   let depto = getDepartamento(req);
 
   try {
     const result = await pool.query(
-      `SELECT e.numero_expediente AS folio, e.nombre_completo
+      `SELECT e.id, e.numero_expediente AS folio, e.nombre_completo
        FROM expedientes e
        WHERE e.numero_expediente = $1 AND e.departamento = $2
        LIMIT 1`,
@@ -562,9 +560,9 @@ app.get('/api/recibos/paciente/:folio', verificarSesion, async (req, res) => {
       return res.status(404).json({ error: "No se encontró paciente con ese folio" });
     }
 
-    // ✅ devolver en el formato que espera el frontend
     res.json({
-      id: result.rows[0].folio,                 // este será pacienteId en el frontend
+      id: result.rows[0].id,   // 👈 ahora devuelve el id real de la tabla
+      folio: result.rows[0].folio,
       nombre_completo: result.rows[0].nombre_completo
     });
   } catch (err) {
@@ -572,6 +570,7 @@ app.get('/api/recibos/paciente/:folio', verificarSesion, async (req, res) => {
     res.status(500).json({ error: "Error al buscar paciente" });
   }
 });
+
 
   
 
