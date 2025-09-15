@@ -233,6 +233,14 @@ document.getElementById("formRecibo").addEventListener("submit", async function(
     });
     this.reset();
     document.getElementById("nombrePaciente").value = "";
+
+    // 👇 volver a poner fecha actual
+    const hoy = new Date();
+    const yyyy = hoy.getFullYear();
+    const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+    const dd = String(hoy.getDate()).padStart(2, '0');
+    document.getElementById("fecha").value = `${yyyy}-${mm}-${dd}`;
+
     cargarRecibos();
     actualizarPrecios();
   } else {
