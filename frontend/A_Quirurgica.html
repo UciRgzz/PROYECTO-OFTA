@@ -175,15 +175,34 @@
       fechaCirugia.setMonth(fechaCirugia.getMonth() + offset);
       renderCalendarCirugias();
     }
-
-    // Función para agendar desde la tabla
-    function agendarCirugia(idOrden) {
-      Swal.fire({
-        icon: 'info',
-        title: 'Agendar cirugía',
-        text: 'Aquí puedes abrir un modal para asignar fecha a la orden ID: ' + idOrden
-      });
+    
+function agendarCirugia(idOrden) {
+  Swal.fire({
+    title: 'Asignar fecha de cirugía',
+    input: 'date',
+    showCancelButton: true,
+    confirmButtonText: 'Asignar',
+    cancelButtonText: 'Cancelar'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      const fecha = result.value;
+      try {
+        await fetch(`/api/ordenes/${idOrden}/agendar`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fecha_cirugia: fecha })
+        });
+        Swal.fire('✅ Cirugía agendada');
+        cargarOrdenes();
+        renderCalendarCirugias();
+      } catch (err) {
+        console.error("Error al agendar:", err);
+      }
     }
+  });
+}
+
+
   </script>
 </body>
 </html>
