@@ -1429,6 +1429,7 @@ app.get("/api/cirugias", verificarSesion, async (req, res) => {
         e.nombre_completo AS nombre,
         o.procedimiento,
         o.medico,
+        o.tipo_lente,
         o.fecha_cirugia AS fecha
       FROM ordenes_medicas o
       JOIN expedientes e 
@@ -1445,9 +1446,6 @@ app.get("/api/cirugias", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-
-
 
 // ==================== LOGOUT ====================
 app.get('/api/logout', (req, res) => {
