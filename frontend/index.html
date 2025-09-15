@@ -26,6 +26,12 @@
       color: #fff;
       padding: 20px;
       box-shadow: 3px 0 10px rgba(0,0,0,0.1);
+
+      /* 👇 Ajustes para que el logout quede abajo */
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 100vh;
     }
 
     .sidebar h2 {
@@ -61,6 +67,18 @@
       color: #ff6b6b !important;
     }
 
+    /* Botón de logout */
+    .sidebar a.text-danger {
+      color: #ff6b6b !important;
+      font-weight: bold;
+      margin-top: auto; /* 👈 fuerza que quede abajo */
+    }
+
+    .sidebar a.text-danger:hover {
+      background: #ff6b6b;
+      color: #fff !important;
+    }
+
     /* Main */
     .main {
       flex: 1;
@@ -92,31 +110,20 @@
       color: #6c757d;
     }
 
-        /* Estilo para las opciones del selector de sucursal */
+    /* Estilo para las opciones del selector de sucursal */
     #sucursal-selector .dropdown-menu {
-      background-color: #fff;   /* Fondo blanco */
-      color: #000;              /* Texto negro */
+      background-color: #fff;
+      color: #000;
     }
 
     #sucursal-selector .dropdown-item {
-      color: #000;              /* Texto negro */
+      color: #000;
     }
 
     #sucursal-selector .dropdown-item:hover {
-      background-color: #3498db; /* Fondo azul al pasar */
-      color: #fff;              /* Texto blanco */
+      background-color: #3498db;
+      color: #fff;
     }
-
-      .sidebar a.text-danger {
-        color: #ff6b6b !important; /* rojo visible */
-        font-weight: bold;
-      }
-
-      .sidebar a.text-danger:hover {
-        background: #ff6b6b;
-        color: #fff !important;
-      }
-
 
     /* Botones personalizados */
     .btn-editar { background: #1976d2; color: white; }
@@ -130,6 +137,7 @@
   </style>
 </head>
 <body>
+
   <!-- SIDEBAR -->
 <!-- SIDEBAR -->
 <div class="sidebar">
