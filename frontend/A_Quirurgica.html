@@ -113,7 +113,7 @@ async function cargarOrdenes(year, month) {
         <td>${o.status}</td>
         <td>
           ${o.tipo_lente 
-            ? `<span class="badge bg-info text-dark">${o.tipo_lente}</span>` 
+            ? `<span class="badge bg-info text-dark" style="cursor:pointer" onclick="editarLente(${o.id}, '${o.tipo_lente}')">${o.tipo_lente}</span>` 
             : `<button class="btn btn-sm btn-secondary" 
                       onclick="editarLente(${o.id}, '')">
                  <i class="fas fa-plus-circle"></i> Añadir Lente
@@ -137,7 +137,7 @@ async function cargarOrdenes(year, month) {
 let fechaCirugia = new Date();
 
 document.addEventListener("DOMContentLoaded", () => {
-  renderCalendarCirugias(); // carga tabla + calendario del mes actual
+  renderCalendarCirugias(); // carga inicial
 });
 
 function getColorClass(proc) {
@@ -202,7 +202,7 @@ async function renderCalendarCirugias() {
     calendario.innerHTML += contenido;
   }
 
-  // 🔹 También actualizamos la tabla para este mes
+  // 🔹 Refrescar la tabla también
   cargarOrdenes(year, month);
 }
 
@@ -228,7 +228,7 @@ function agendarCirugia(idOrden) {
           body: JSON.stringify({ fecha_cirugia: fecha })
         });
         Swal.fire('✅ Cirugía agendada');
-        renderCalendarCirugias(); // actualiza calendario + tabla
+        renderCalendarCirugias();
       } catch (err) {
         console.error("Error al agendar:", err);
       }
@@ -284,7 +284,7 @@ function editarLente(idOrden, tipoActual) {
           body: JSON.stringify({ tipo_lente: result.value })
         });
         Swal.fire('✅ Guardado', 'El tipo de lente fue actualizado correctamente.', 'success');
-        renderCalendarCirugias(); // actualiza todo
+        renderCalendarCirugias(); // refresca tabla y calendario
       } catch (err) {
         console.error("Error al actualizar tipo de lente:", err);
         Swal.fire('❌ Error', 'No se pudo actualizar el tipo de lente.', 'error');
@@ -313,7 +313,7 @@ function eliminarCirugia(idOrden) {
           body: JSON.stringify({ fecha_cirugia: null }) // quitamos la fecha
         });
         Swal.fire('🗑️ Eliminada', 'Cirugía eliminada del calendario.', 'success');
-        renderCalendarCirugias(); // calendario + tabla sincronizados
+        renderCalendarCirugias(); 
       } catch (err) {
         console.error("Error al eliminar cirugía:", err);
         Swal.fire('❌ Error', 'No se pudo eliminar la cirugía.', 'error');
@@ -323,6 +323,7 @@ function eliminarCirugia(idOrden) {
 }
 
 </script>
+
 
 </body>
 </html>
