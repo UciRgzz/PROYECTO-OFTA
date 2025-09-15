@@ -84,9 +84,9 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/js/all.min.js"></script>
 
-  <script>
+<script>
     
-    // ====================== TABLA ======================
+// ====================== TABLA ======================
 async function cargarOrdenes(year, month) {
   try {
     const res = await fetch('/api/ordenes');
@@ -133,131 +133,131 @@ async function cargarOrdenes(year, month) {
   }
 }
 
-    // ====================== CALENDARIO ======================
-    let fechaCirugia = new Date();
+// ====================== CALENDARIO ======================
+let fechaCirugia = new Date();
 
-    document.addEventListener("DOMContentLoaded", () => {
-      renderCalendarCirugias(); // ya llama a cargarOrdenes con el mes actual
-    });
+document.addEventListener("DOMContentLoaded", () => {
+  renderCalendarCirugias(); // carga tabla + calendario del mes actual
+});
 
-    function getColorClass(proc) {
-      if (proc.toLowerCase().includes("lente")) return "proc-lente";
-      if (proc.toLowerCase().includes("catarata")) return "proc-catarata";
-      return "proc-consulta";
-    }
+function getColorClass(proc) {
+  if (proc.toLowerCase().includes("lente")) return "proc-lente";
+  if (proc.toLowerCase().includes("catarata")) return "proc-catarata";
+  return "proc-consulta";
+}
 
-    async function renderCalendarCirugias() {
-      const calendario = document.getElementById("calendarioCirugias");
-      const mesActual = document.getElementById("mesCirugia");
+async function renderCalendarCirugias() {
+  const calendario = document.getElementById("calendarioCirugias");
+  const mesActual = document.getElementById("mesCirugia");
 
-      const year = fechaCirugia.getFullYear();
-      const month = fechaCirugia.getMonth();
+  const year = fechaCirugia.getFullYear();
+  const month = fechaCirugia.getMonth();
 
-      mesActual.textContent = fechaCirugia.toLocaleString("es-ES", { month: "long", year: "numeric" });
+  mesActual.textContent = fechaCirugia.toLocaleString("es-ES", { month: "long", year: "numeric" });
 
-      const primerDia = new Date(year, month, 1).getDay() || 7;
-      const diasEnMes = new Date(year, month + 1, 0).getDate();
+  const primerDia = new Date(year, month, 1).getDay() || 7;
+  const diasEnMes = new Date(year, month + 1, 0).getDate();
 
-      let cirugias = [];
-      try {
-        const res = await fetch("/api/cirugias");
-        cirugias = await res.json();
-      } catch (err) { console.error(err); }
+  let cirugias = [];
+  try {
+    const res = await fetch("/api/cirugias");
+    cirugias = await res.json();
+  } catch (err) { console.error(err); }
 
-      const filtradas = cirugias.filter(c => {
-        const f = new Date(c.fecha);
-        return f.getFullYear() === year && f.getMonth() === month;
-      });
-
-      calendario.innerHTML = "";
-
-      ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"].forEach(d => {
-        calendario.innerHTML += `<div class="day-header">${d}</div>`;
-      });
-
-      for (let i = 1; i < primerDia; i++) {
-        calendario.innerHTML += `<div class="empty-day"></div>`;
-      }
-
-      for (let d = 1; d <= diasEnMes; d++) {
-        const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
-        const programadas = filtradas.filter(c => c.fecha.startsWith(fechaDia));
-
-       let contenido = `<div class="calendar-day"><div class="day-number">${d}</div>`;
-if (programadas.length > 0) {
-  programadas.forEach(c => {
-    contenido += `
-      <div class="insumo-item ${getColorClass(c.procedimiento)}">
-        <div class="insumo-name">${c.nombre}</div>
-        <div class="insumo-info">Proc: ${c.procedimiento}</div>
-        <div class="insumo-info">Dr: ${c.medico}</div>
-        ${c.tipo_lente ? `<div class="insumo-info">Lente: ${c.tipo_lente}</div>` : ""}
-        <button class="btn btn-sm btn-danger mt-1" onclick="eliminarCirugia(${c.id})">
-          <i class="fas fa-trash"></i> Eliminar
-        </button>
-      </div>`;
+  const filtradas = cirugias.filter(c => {
+    const f = new Date(c.fecha);
+    return f.getFullYear() === year && f.getMonth() === month;
   });
 
-        }
-        contenido += "</div>";
-        calendario.innerHTML += contenido;
+  calendario.innerHTML = "";
+
+  ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"].forEach(d => {
+    calendario.innerHTML += `<div class="day-header">${d}</div>`;
+  });
+
+  for (let i = 1; i < primerDia; i++) {
+    calendario.innerHTML += `<div class="empty-day"></div>`;
+  }
+
+  for (let d = 1; d <= diasEnMes; d++) {
+    const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
+    const programadas = filtradas.filter(c => c.fecha.startsWith(fechaDia));
+
+    let contenido = `<div class="calendar-day"><div class="day-number">${d}</div>`;
+    if (programadas.length > 0) {
+      programadas.forEach(c => {
+        contenido += `
+          <div class="insumo-item ${getColorClass(c.procedimiento)}">
+            <div class="insumo-name">${c.nombre}</div>
+            <div class="insumo-info">Proc: ${c.procedimiento}</div>
+            <div class="insumo-info">Dr: ${c.medico}</div>
+            ${c.tipo_lente ? `<div class="insumo-info">Lente: ${c.tipo_lente}</div>` : ""}
+            <button class="btn btn-sm btn-danger mt-1" onclick="eliminarCirugia(${c.id})">
+              <i class="fas fa-trash"></i> Eliminar
+            </button>
+          </div>`;
+      });
+    }
+    contenido += "</div>";
+    calendario.innerHTML += contenido;
+  }
+
+  // 🔹 También actualizamos la tabla para este mes
+  cargarOrdenes(year, month);
+}
+
+function cambiarMesCirugia(offset) {
+  fechaCirugia.setMonth(fechaCirugia.getMonth() + offset);
+  renderCalendarCirugias();
+}
+
+function agendarCirugia(idOrden) {
+  Swal.fire({
+    title: 'Asignar fecha de cirugía',
+    input: 'date',
+    showCancelButton: true,
+    confirmButtonText: 'Asignar',
+    cancelButtonText: 'Cancelar'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      const fecha = result.value;
+      try {
+        await fetch(`/api/ordenes/${idOrden}/agendar`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fecha_cirugia: fecha })
+        });
+        Swal.fire('✅ Cirugía agendada');
+        renderCalendarCirugias(); // actualiza calendario + tabla
+      } catch (err) {
+        console.error("Error al agendar:", err);
       }
     }
+  });
+}
 
-    function cambiarMesCirugia(offset) {
-      fechaCirugia.setMonth(fechaCirugia.getMonth() + offset);
-      renderCalendarCirugias();
+function editarCirugia(idOrden) {
+  Swal.fire({
+    title: 'Reprogramar cirugía',
+    input: 'date',
+    showCancelButton: true,
+    confirmButtonText: 'Guardar'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        await fetch(`/api/ordenes/${idOrden}/agendar`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fecha_cirugia: result.value })
+        });
+        Swal.fire("✅ Cirugía reprogramada");
+        renderCalendarCirugias();
+      } catch (err) {
+        console.error("Error al editar:", err);
+      }
     }
-
-    function agendarCirugia(idOrden) {
-      Swal.fire({
-        title: 'Asignar fecha de cirugía',
-        input: 'date',
-        showCancelButton: true,
-        confirmButtonText: 'Asignar',
-        cancelButtonText: 'Cancelar'
-      }).then(async (result) => {
-        if (result.isConfirmed) {
-          const fecha = result.value;
-          try {
-            await fetch(`/api/ordenes/${idOrden}/agendar`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ fecha_cirugia: fecha })
-            });
-            Swal.fire('✅ Cirugía agendada');
-            cargarOrdenes();
-            renderCalendarCirugias();
-          } catch (err) {
-            console.error("Error al agendar:", err);
-          }
-        }
-      });
-    }
-
-    function editarCirugia(idOrden) {
-      Swal.fire({
-        title: 'Reprogramar cirugía',
-        input: 'date',
-        showCancelButton: true,
-        confirmButtonText: 'Guardar'
-      }).then(async (result) => {
-        if (result.isConfirmed) {
-          try {
-            await fetch(`/api/ordenes/${idOrden}/agendar`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ fecha_cirugia: result.value })
-            });
-            Swal.fire("✅ Cirugía reprogramada");
-            cargarOrdenes();
-            renderCalendarCirugias();
-          } catch (err) {
-            console.error("Error al editar:", err);
-          }
-        }
-      });
-    }
+  });
+}
 
 // ==================== EDITAR TIPO DE LENTE ====================
 function editarLente(idOrden, tipoActual) {
@@ -284,7 +284,7 @@ function editarLente(idOrden, tipoActual) {
           body: JSON.stringify({ tipo_lente: result.value })
         });
         Swal.fire('✅ Guardado', 'El tipo de lente fue actualizado correctamente.', 'success');
-        renderCalendarCirugias(); 
+        renderCalendarCirugias(); // actualiza todo
       } catch (err) {
         console.error("Error al actualizar tipo de lente:", err);
         Swal.fire('❌ Error', 'No se pudo actualizar el tipo de lente.', 'error');
@@ -313,7 +313,7 @@ function eliminarCirugia(idOrden) {
           body: JSON.stringify({ fecha_cirugia: null }) // quitamos la fecha
         });
         Swal.fire('🗑️ Eliminada', 'Cirugía eliminada del calendario.', 'success');
-        renderCalendarCirugias(); // mantiene tabla y calendario sincronizados
+        renderCalendarCirugias(); // calendario + tabla sincronizados
       } catch (err) {
         console.error("Error al eliminar cirugía:", err);
         Swal.fire('❌ Error', 'No se pudo eliminar la cirugía.', 'error');
@@ -322,8 +322,7 @@ function eliminarCirugia(idOrden) {
   });
 }
 
+</script>
 
-
-  </script>
 </body>
 </html>
