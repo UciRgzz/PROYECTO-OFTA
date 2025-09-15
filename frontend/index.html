@@ -26,6 +26,9 @@
       color: #fff;
       padding: 20px;
       box-shadow: 3px 0 10px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      height: 100vh; /* ocupar toda la altura de la pantalla */
     }
 
     .sidebar h2 {
@@ -92,7 +95,7 @@
       color: #6c757d;
     }
 
-        /* Estilo para las opciones del selector de sucursal */
+    /* Estilo para las opciones del selector de sucursal */
     #sucursal-selector .dropdown-menu {
       background-color: #fff;   /* Fondo blanco */
       color: #000;              /* Texto negro */
@@ -107,7 +110,6 @@
       color: #fff;              /* Texto blanco */
     }
 
-
     /* Botones personalizados */
     .btn-editar { background: #1976d2; color: white; }
     .btn-editar:hover { background: #0d47a1; }
@@ -120,10 +122,9 @@
   </style>
 </head>
 <body>
-
-<!-- SIDEBAR -->
-<div class="sidebar d-flex flex-column">
-  <div>
+  
+  <!-- SIDEBAR -->
+  <div class="sidebar">
     <h2>Menú</h2>
 
     <!-- Selector de sucursal (solo admin) -->
@@ -131,8 +132,7 @@
       <button class="btn btn-light w-100 dropdown-toggle d-flex align-items-center" 
               type="button" data-bs-toggle="dropdown" aria-expanded="false" 
               id="sucursalBtn">
-        <i class="material-icons me-2">business</i> 
-        <span id="sucursalTexto">Sucursal</span>
+        <i class="material-icons me-2">business</i> <span id="sucursalTexto">Sucursal</span>
       </button>
       <ul class="dropdown-menu w-100">
         <li><a class="dropdown-item" href="#" onclick="cambiarSucursal('admin')">Admin</a></li>
@@ -156,16 +156,15 @@
     <a href="#" onclick="mostrarSeccion('usuarios')" id="menuUsuarios" style="display:none;">
       <i class="material-icons">person_add</i> Usuarios
     </a>
-  </div>
 
-  <!-- Logout fijo al fondo -->
-  <div class="mt-auto pt-3 border-top">
-    <a href="/api/logout" class="text-danger d-flex align-items-center">
-      <i class="material-icons">exit_to_app</i>
-      <span class="ms-2">Cerrar Sesión</span>
-    </a>
-  </div>
-</div>
+    <!-- Logout fijo al fondo -->
+    <div class="mt-auto pt-3 border-top">
+      <a href="/api/logout" class="text-danger d-flex align-items-center">
+        <i class="material-icons">exit_to_app</i>
+        <span class="ms-2">Cerrar Sesión</span>
+      </a>
+    </div>
+
 
   <!-- MAIN -->
   <div class="main" id="main-content">
