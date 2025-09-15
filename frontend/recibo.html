@@ -46,7 +46,7 @@
         <form id="formRecibo" class="row g-3">
           <div class="col-md-3">
             <label class="form-label">Fecha:</label>
-            <input type="date" id="fecha" name="fecha" class="form-control" required>
+            <input type="date" id="fecha" name="fecha" class="form-control" required readonly>
           </div>
           <div class="col-md-3">
             <label class="form-label">Número de Expediente:</label>
@@ -377,6 +377,16 @@ async function imprimirRecibo(id) {
     Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo generar el PDF' });
   }
 }
+
+// Poner fecha actual automáticamente en el formulario
+document.addEventListener("DOMContentLoaded", () => {
+  const hoy = new Date();
+  const yyyy = hoy.getFullYear();
+  const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+  const dd = String(hoy.getDate()).padStart(2, '0');
+  document.getElementById("fecha").value = `${yyyy}-${mm}-${dd}`;
+});
+
 
   // Cargar lista de recibos
   async function cargarRecibos() {
