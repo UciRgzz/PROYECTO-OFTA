@@ -194,10 +194,9 @@ let userRole = localStorage.getItem("rol") || "usuario";
       console.error("Error buscando paciente:", err);
     }
   });
- // Guardar recibo con SweetAlert2
+// Guardar recibo con SweetAlert2
 document.getElementById("formRecibo").addEventListener("submit", async function(e) {
   e.preventDefault();
-
   if (!pacienteId) {
     Swal.fire({
       icon: 'warning',
@@ -208,30 +207,21 @@ document.getElementById("formRecibo").addEventListener("submit", async function(
     return;
   }
 
-  // 👉 Normalizamos fecha al formato yyyy-mm-dd
-  const hoy = new Date(this.fecha.value);
-  const yyyy = hoy.getFullYear();
-  const mm = String(hoy.getMonth() + 1).padStart(2, '0');
-  const dd = String(hoy.getDate()).padStart(2, '0');
-  const fechaNormalizada = `${yyyy}-${mm}-${dd}`;
-
   const datos = {
-  fecha: fechaNormalizada,   // la fecha correcta normalizada
-  numero_expediente: document.getElementById("folio").value, // lo que espera el backend
-  procedimiento: this.procedimiento.value,
-  precio: this.precio.value,
-  forma_pago: this.forma_pago.value,
-  monto_pagado: this.monto_pagado.value,
-  tipo: this.tipoRecibo.value
-};
-
+    fecha: this.fecha.value,
+    paciente_id: pacienteId,
+    procedimiento: this.procedimiento.value,
+    precio: this.precio.value,
+    forma_pago: this.forma_pago.value,
+    monto_pagado: this.monto_pagado.value,
+    tipo: this.tipoRecibo.value
+  };
 
   const res = await fetch('/api/recibos', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(datos)
   });
-
   const data = await res.json();
 
   if (res.ok) {
@@ -241,17 +231,8 @@ document.getElementById("formRecibo").addEventListener("submit", async function(
       text: 'Recibo guardado correctamente',
       confirmButtonColor: '#27ae60'
     });
-
     this.reset();
     document.getElementById("nombrePaciente").value = "";
-
-    // 👉 Volver a poner la fecha actual después de resetear
-    const hoy2 = new Date();
-    const yyyy2 = hoy2.getFullYear();
-    const mm2 = String(hoy2.getMonth() + 1).padStart(2, '0');
-    const dd2 = String(hoy2.getDate()).padStart(2, '0');
-    document.getElementById("fecha").value = `${yyyy2}-${mm2}-${dd2}`;
-
     cargarRecibos();
     actualizarPrecios();
   } else {
@@ -263,7 +244,6 @@ document.getElementById("formRecibo").addEventListener("submit", async function(
     });
   }
 });
-
 
 
 // Eliminar recibo con SweetAlert2
@@ -413,36 +393,38 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-    async function cargarRecibos() {
-  try {
-    const res = await fetch('/api/recibos');
-    const recibos = await res.json();
-    document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
-      <tr>
-        <td>${new Date(r.fecha).toLocaleDateString('es-MX')}</td>
-        <td>${r.folio}</td>
-        <td>${r.paciente}</td>
-        <td>${r.procedimiento}</td>
-        <td><span class="badge bg-info">${r.tipo}</span></td>
-        <td>${r.forma_pago}</td>
-        <td><span class="badge bg-info">$${parseFloat(r.monto_pagado).toFixed(2)}</span></td>
-        <td><span class="badge bg-success">$${parseFloat(r.precio).toFixed(2)}</span></td>
-        <td><span class="badge bg-warning">$${(parseFloat(r.precio) - parseFloat(r.monto_pagado)).toFixed(2)}</span></td>
-        <td>
-          <button class="btn btn-primary btn-sm" onclick="imprimirRecibo(${r.id})">
-            <i class="fas fa-print"></i> Imprimir
-          </button>
-          ${userRole === "admin" ? `
-            <button class="btn btn-danger btn-sm" onclick="eliminarRecibo(${r.id})">
-              <i class="fas fa-trash"></i> Eliminar
-            </button>` : ""}
-        </td>
-      </tr>
-    `).join('');
-  } catch (err) {
-    console.error("Error cargando recibos:", err);
+    // Cargar lista de recibos
+  async function cargarRecibos() {
+    try {
+      const res = await fetch('/api/recibos');
+      const recibos = await res.json();
+      document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
+        <tr>
+          <td>${r.fecha}</td>
+          <td>${r.folio}</td>
+          <td>${r.paciente}</td>
+          <td>${r.procedimiento}</td>
+          <td><span class="badge bg-info">${r.tipo}</span></td>
+          <td>${r.forma_pago}</td>
+          <td><span class="badge bg-info">$${parseFloat(r.monto_pagado).toFixed(2)}</span></td>
+          <td><span class="badge bg-success">$${parseFloat(r.precio).toFixed(2)}</span></td>
+          <td><span class="badge bg-warning">$${parseFloat(r.precio - r.monto_pagado).toFixed(2)}</span></td>
+          <td>
+            <button class="btn btn-primary btn-sm" onclick="imprimirRecibo(${r.id})">
+              <i class="fas fa-print"></i> Imprimir
+            </button>
+            ${userRole === "admin" ? `
+              <button class="btn btn-danger btn-sm" onclick="eliminarRecibo(${r.id})">
+                <i class="fas fa-trash"></i> Eliminar
+              </button>` : ""}
+          </td>
+        </tr>
+      `).join('');
+    } catch (err) {
+      console.error("Error cargando recibos:", err);
+    }
   }
-}
+
   cargarRecibos();
 </script>
 </body>
