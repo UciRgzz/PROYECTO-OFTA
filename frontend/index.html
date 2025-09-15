@@ -149,6 +149,7 @@
     <a href="#" onclick="mostrarSeccion('medico')"><i class="material-icons">local_hospital</i> Módulo Médico</a>
     <a href="#" onclick="mostrarSeccion('ordenes')"><i class="material-icons">assignment</i> Órdenes</a>
     <a href="#" onclick="mostrarSeccion('insumos')"><i class="material-icons">inventory_2</i> Insumos</a>
+    <a href="#" onclick="mostrarSeccion('agenda')"><i class="material-icons">event</i> Agenda Quirúrgica</a>
     <a href="#" onclick="mostrarSeccion('cierre')"><i class="material-icons">attach_money</i> Cierre de Caja</a>
 
     <!-- Solo visible para admin -->
@@ -246,7 +247,8 @@ async function mostrarSeccion(seccion){
     ordenes: "/frontend/ordenes.html",
     optometria: "/frontend/optometria.html",
     insumos: "/frontend/insumos.html",
-    usuarios: "/frontend/admin/usuarios.html"
+    usuarios: "/frontend/admin/usuarios.html",
+    agenda: "/frontend/A_Quirurgica.html"
   };
 
   if(seccion === 'expedientes'){
