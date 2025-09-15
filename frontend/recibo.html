@@ -313,9 +313,9 @@ async function imprimirRecibo(id) {
 
         <table style="width:100%; margin-bottom:15px; font-size:14px;">
           <tr>
-            <td><b>Fecha:</b> ${new Date(recibo.fecha).toLocaleDateString()}</td>
-            <td style="text-align:right;"><b>Recibo N°:</b> ${recibo.id}</td>
-          </tr>
+          <td><b>Fecha:</b> ${new Date(recibo.fecha + 'T00:00:00').toLocaleDateString('es-MX')}</td>
+          <td style="text-align:right;"><b>Recibo N°:</b> ${recibo.id}</td>
+        </tr>
           <tr>
             <td><b>Folio Expediente:</b> ${recibo.folio}</td>
             <td style="text-align:right;"><b>Tipo:</b> ${recibo.tipo}</td>
@@ -400,7 +400,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const recibos = await res.json();
       document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
         <tr>
-          <td>${r.fecha}</td>
+          <td>${new Date(r.fecha).toLocaleDateString('es-MX')}</td>
           <td>${r.folio}</td>
           <td>${r.paciente}</td>
           <td>${r.procedimiento}</td>
