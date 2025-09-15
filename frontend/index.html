@@ -601,11 +601,16 @@ async function cambiarSucursal(nombreSucursal) {
           </div>
         `;
       } else {
-        // ✅ Cambiar sucursal al vuelo sin recargar toda la página
+        // ✅ Cambiar sucursal al vuelo con logo incluido
         document.getElementById('main-content').innerHTML = `
           <div style="text-align:center; margin-top:40px;">
             <h1>Bienvenido a ${nombreSucursal}</h1>
             <p>Selecciona una opción del menú.</p>
+            <div style="margin-top:80px;">
+              <img src="../uploads/logo-oftavision.png" 
+                  alt="Instituto Oftavisión" 
+                  style="max-width:900px; display:block; margin:0 auto;">
+            </div>
           </div>
         `;
       }
@@ -625,6 +630,7 @@ async function cambiarSucursal(nombreSucursal) {
     });
   }
 }
+
 // ---------- Función para eliminar expediente ----------
 async function eliminarExpediente(id){
   const confirmacion = await Swal.fire({
