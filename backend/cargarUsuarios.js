@@ -5,7 +5,6 @@ const bcrypt = require('bcrypt');
 const csv = require('csv-parser');
 
 // ==================== CONFIGURACIÓN DE CONEXIÓN ====================
-//nota correr esto en la terminal para agg nuevos usuarios; node backend/cargarUsuarios.js//
 const pool = new Pool({
     user: 'postgres',
     host: 'localhost',
@@ -30,22 +29,25 @@ async function cargarUsuarios() {
             console.log(`📄 Leídos ${usuarios.length} usuarios desde CSV.`);
 
             try {
-                // ⚠️ OJO: esto borra todos los usuarios antes de cargar los nuevos
-                // Si no quieres borrar, comenta la siguiente línea
-                await pool.query('DELETE FROM usuarios');
-
                 for (let usuario of usuarios) {
                     const { nomina, username, password, rol = 'usuario', departamento = null } = usuario;
 
-                    const hashedPassword = await bcrypt.hash(password, 10);
+                    let finalPassword = password.trim();
+
+                    // 👉 Evitar doble hash
+                    if (!finalPassword.startsWith("$2b$")) {
+                        finalPassword = await bcrypt.hash(finalPassword, 10);
+                    }
 
                     await pool.query(
                         `INSERT INTO usuarios (nomina, username, password, rol, departamento) 
-                         VALUES ($1, $2, $3, $4, $5)`,
-                        [nomina.trim(), username.trim(), hashedPassword, rol.trim(), departamento ? departamento.trim() : null]
+                         VALUES ($1, $2, $3, $4, $5)
+                         ON CONFLICT (nomina)
+                         DO UPDATE SET username=$2, password=$3, rol=$4, departamento=$5`,
+                        [nomina.trim(), username.trim(), finalPassword, rol.trim(), departamento ? departamento.trim() : null]
                     );
 
-                    console.log(`✅ Usuario ${username} insertado correctamente.`);
+                    console.log(`✅ Usuario ${username} insertado/actualizado correctamente.`);
                 }
 
                 console.log("🚀 Carga de usuarios completada.");
