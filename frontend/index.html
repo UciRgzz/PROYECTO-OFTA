@@ -217,13 +217,14 @@ fetch('/api/check-session')
   .then(res => res.ok ? res.json() : Promise.reject())
   .then(data => {
     if (data.usuario) {
+      // 👇 Guardar el rol globalmente para usarlo en otras páginas
+      window.usuarioRol = data.usuario.rol;
+
       // Mostrar selector solo si es admin
-            
       if (data.usuario.rol === "admin") {
         document.getElementById("sucursal-selector").style.display = "block";
         document.getElementById("menuUsuarios").style.display = "block"; 
       }
-
 
       // Mostrar la sucursal actual en el botón
       let sucursalActual;
@@ -233,6 +234,7 @@ fetch('/api/check-session')
         sucursalActual = data.usuario.departamento;
       }
       document.getElementById("sucursalTexto").textContent = sucursalActual;
+
 
       document.getElementById('main-content').innerHTML = `
         <div style="text-align:center; margin-top:40px;">

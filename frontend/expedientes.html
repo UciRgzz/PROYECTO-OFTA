@@ -167,7 +167,7 @@ async function cargarExpedientes() {
     const tbody = document.getElementById('listaExpedientes');
     tbody.innerHTML = '';
 
-    const usuario = JSON.parse(localStorage.getItem("usuario")); // 🔑 obtener rol
+    const usuario = { rol: window.usuarioRol || "usuario" }; // usar rol global del index
 
 data.forEach(exp => {
     tbody.innerHTML += `
