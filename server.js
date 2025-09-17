@@ -25,18 +25,19 @@ app.use(bodyParser.json());
 
 
 
-
 // Sesiones
 app.use(session({
-    secret: 'mi_secreto_super_seguro',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        secure: false, // false porque usas http://localhost
-        httpOnly: true,
-        maxAge: 1000 * 60 * 60 // 1 hora
-    }
+  secret: 'mi_secreto_super_seguro',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === "production", // ✅ true solo en HTTPS
+    httpOnly: true,
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // ✅ compatibilidad cookies
+    maxAge: 1000 * 60 * 60 // 1 hora
+  }
 }));
+
 
 /*// PostgreSQL
 const pool = new Pool({
