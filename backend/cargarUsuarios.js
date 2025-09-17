@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt');
 const csv = require('csv-parser');
 
 // ==================== CONFIGURACIÓN DE CONEXIÓN ====================
+// nota; node backend/cargarUsuarios.js para añadir usuarios desde CSV
 const pool = new Pool({
     user: 'postgres',
     host: 'localhost',
