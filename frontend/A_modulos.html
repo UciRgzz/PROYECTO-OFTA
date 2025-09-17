@@ -8,7 +8,7 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f5ff; padding: 20px; color: #333; }
-    .container { max-width: 1200px; margin: 0 auto; }
+    .container { max-width: 1000px; margin: 0 auto; }
     header { text-align: center; margin-bottom: 30px; padding: 15px; background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); color: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
     h1 { font-size: 2.2rem; margin-bottom: 10px; }
     .description { font-size: 1.1rem; opacity: 0.9; }
@@ -17,69 +17,109 @@
     .card-header { background: #2c3e50; color: white; padding: 15px 20px; font-size: 1.2rem; font-weight: 600; display: flex; align-items: center; justify-content: space-between; }
     .card-header i { margin-right: 10px; }
     .card-body { padding: 20px; }
-    .form-group { margin-bottom: 15px; }
-    select, input, button { padding: 12px 15px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; width: 100%; }
-    .btn { cursor: pointer; font-weight: 600; transition: all 0.3s ease; border: none; }
-    .btn-save { background: #27ae60; color: white; }
-    .btn-save:hover { background: #219653; }
-    .form-check { margin-bottom: 10px; }
+
+    .form-group { margin-bottom: 20px; }
+    select, button { padding: 12px 15px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; width: 100%; }
+    .form-check { margin: 8px 0; }
+    .form-check input { margin-right: 8px; }
+
+    .btn { cursor: pointer; font-weight: 600; transition: all 0.3s ease; border: none; border-radius: 6px; padding: 12px 20px; }
+    .btn-primary { background: #3498db; color: white; }
+    .btn-primary:hover { background: #2c80b9; }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
       <h1>Asignación de Módulos</h1>
-      <p class="description">Define qué módulos puede usar cada usuario</p>
+      <p class="description">Selecciona un usuario y define qué módulos puede usar.</p>
     </header>
 
     <div class="card">
-      <div class="card-header"><i class="fas fa-user-cog"></i> Configuración</div>
+      <div class="card-header">
+        <i class="fas fa-user-cog"></i> Configuración
+      </div>
       <div class="card-body">
         <div class="form-group">
           <label for="usuario">Usuario</label>
           <select id="usuario"></select>
         </div>
 
-        <div class="form-group">
-          <label>Módulos disponibles</label>
-          <div class="form-check"><input type="checkbox" value="expedientes" id="modExp"><label for="modExp"> Expedientes</label></div>
-          <div class="form-check"><input type="checkbox" value="recibos" id="modRec"><label for="modRec"> Recibos</label></div>
-          <div class="form-check"><input type="checkbox" value="cierre" id="modCierre"><label for="modCierre"> Cierre de Caja</label></div>
-          <div class="form-check"><input type="checkbox" value="medico" id="modMedico"><label for="modMedico"> Módulo Médico</label></div>
-          <div class="form-check"><input type="checkbox" value="ordenes" id="modOrdenes"><label for="modOrdenes"> Órdenes</label></div>
-          <div class="form-check"><input type="checkbox" value="optometria" id="modOpto"><label for="modOpto"> Optometría</label></div>
-          <div class="form-check"><input type="checkbox" value="insumos" id="modInsumos"><label for="modInsumos"> Insumos</label></div>
-        </div>
+        <h3>Módulos disponibles</h3>
+        <div class="form-check"><input type="checkbox" value="expedientes"> Expedientes</div>
+        <div class="form-check"><input type="checkbox" value="recibos"> Recibos</div>
+        <div class="form-check"><input type="checkbox" value="cierre"> Cierre de Caja</div>
+        <div class="form-check"><input type="checkbox" value="medico"> Módulo Médico</div>
+        <div class="form-check"><input type="checkbox" value="ordenes"> Órdenes</div>
+        <div class="form-check"><input type="checkbox" value="optometria"> Optometría</div>
+        <div class="form-check"><input type="checkbox" value="insumos"> Insumos</div>
 
-        <button class="btn btn-save" onclick="guardarPermisos()"><i class="fas fa-save"></i> Guardar Permisos</button>
+        <button class="btn btn-primary" onclick="guardarPermisos()">Guardar Permisos</button>
       </div>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
-    // Cargar usuarios disponibles
+    // Cargar usuarios al iniciar
+    document.addEventListener("DOMContentLoaded", cargarUsuarios);
+
     async function cargarUsuarios(){
-      const res = await fetch('/api/usuarios');
-      const data = await res.json();
-      const sel = document.getElementById('usuario');
-      sel.innerHTML = '<option value="">Seleccione...</option>';
-      data.forEach(u => {
-        sel.innerHTML += `<option value="${u.nomina}">${u.username} (${u.departamento})</option>`;
-      });
+      const select = document.getElementById("usuario");
+      select.innerHTML = "<option value=''>Seleccione...</option>";
+      try {
+        const res = await fetch("/api/usuarios");
+        const data = await res.json();
+        if(res.ok){
+          data.forEach(u => {
+            select.innerHTML += `<option value="${u.nomina}">${u.username} (${u.departamento})</option>`;
+          });
+        } else {
+          Swal.fire("Error", data.error || "No se pudieron cargar usuarios", "error");
+        }
+      } catch(err){
+        console.error(err);
+        Swal.fire("Error", "Error de conexión al cargar usuarios", "error");
+      }
     }
+
+    // Cuando se elige usuario, cargar sus permisos
+    document.getElementById("usuario").addEventListener("change", async (e) => {
+      const nomina = e.target.value;
+      document.querySelectorAll(".form-check input").forEach(chk => chk.checked = false);
+      if(!nomina) return;
+      try {
+        const res = await fetch(`/api/permisos/${nomina}`);
+        const permisos = await res.json();
+        if(res.ok){
+          permisos.forEach(p => {
+            const chk = document.querySelector(`.form-check input[value="${p.modulo}"]`);
+            if(chk) chk.checked = p.permitido;
+          });
+        }
+      } catch(err){
+        console.error(err);
+      }
+    });
 
     // Guardar permisos
     async function guardarPermisos(){
       const usuario = document.getElementById('usuario').value;
-      const modulos = [];
-      document.querySelectorAll('.form-check input:checked').forEach(chk => modulos.push(chk.value));
+      if(!usuario){
+        Swal.fire('Error', 'Debes seleccionar un usuario', 'error');
+        return;
+      }
+
+      const permisos = [];
+      document.querySelectorAll('.form-check input').forEach(chk => {
+        permisos.push({ modulo: chk.value, permitido: chk.checked });
+      });
 
       try {
-        const res = await fetch('/api/permisos', {
+        const res = await fetch(`/api/permisos/${usuario}`, {
           method: 'POST',
           headers: { 'Content-Type':'application/json' },
-          body: JSON.stringify({ usuario, modulos })
+          body: JSON.stringify({ permisos })
         });
         const data = await res.json();
         if(res.ok){
@@ -91,8 +131,6 @@
         Swal.fire('Error', 'Fallo de conexión', 'error');
       }
     }
-
-    document.addEventListener('DOMContentLoaded', cargarUsuarios);
   </script>
 </body>
 </html>

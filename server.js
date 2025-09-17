@@ -1450,7 +1450,20 @@ app.get("/api/cirugias", verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== GESTIÓN DE PERMISOS ====================
+/// ==================== GESTIÓN DE PERMISOS ====================
+
+// Listar usuarios (para asignar módulos)
+app.get('/api/usuarios', isAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT nomina, username, departamento FROM usuarios ORDER BY username'
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error al listar usuarios:", err);
+    res.status(500).json({ error: "Error al listar usuarios" });
+  }
+});
 
 // Listar permisos de un usuario
 app.get('/api/permisos/:nomina', isAdmin, async (req, res) => {
@@ -1490,8 +1503,6 @@ app.post('/api/permisos/:nomina', isAdmin, async (req, res) => {
     res.status(500).json({ error: "Error al guardar permisos" });
   }
 });
-
-
 
 
 // ==================== LOGOUT ====================
