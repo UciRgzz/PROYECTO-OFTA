@@ -282,7 +282,7 @@ async function buscarExpediente() {
     const res = await fetch(`/api/expedientes/${folio}`);
     if (res.ok) {
         const data = await res.json();
-        const usuario = JSON.parse(localStorage.getItem("usuario")); // 🔑 recupera el rol del usuario
+        const usuario = { rol: window.usuarioRol || "usuario" }; // 🔑 usar rol global del index
 
         document.getElementById('listaExpedientes').innerHTML = `
             <tr>
@@ -298,7 +298,7 @@ async function buscarExpediente() {
                     <button class="btn-editar" onclick="editarExpediente(${data.numero_expediente})">Editar</button>
                     <button class="btn-medico" onclick="verMedico(${data.numero_expediente}, '${data.nombre_completo}')">Médico</button>
                     <button class="btn-opto" onclick="verOptometria(${data.numero_expediente}, '${data.nombre_completo}')">Optometría</button>
-                    ${usuario?.rol === "admin" 
+                    ${usuario.rol === "admin" 
                         ? `<button class="btn-cancelar" onclick="eliminarExpediente(${data.numero_expediente})">Eliminar</button>` 
                         : "" }
                 </td>
@@ -313,6 +313,7 @@ async function buscarExpediente() {
         document.getElementById('listaExpedientes').innerHTML = `<tr><td colspan="9">No encontrado</td></tr>`;
     }
 }
+
 
 
 // === VER ORDENES MÉDICAS ===
