@@ -167,26 +167,30 @@ async function cargarExpedientes() {
     const tbody = document.getElementById('listaExpedientes');
     tbody.innerHTML = '';
 
-    data.forEach(exp => {
-        tbody.innerHTML += `
-            <tr>
-                <td>${exp.numero_expediente}</td>
-                <td>${exp.nombre_completo}</td>
-                <td>${exp.edad}</td>
-                <td>${exp.padecimientos}</td>
-                <td>${exp.colonia}</td>
-                <td>${exp.ciudad}</td>
-                <td>${exp.telefono1}</td>
-                <td>${exp.telefono2 || ''}</td>
-                <td>
-                    <button class="btn-editar" onclick="editarExpediente(${exp.numero_expediente})">Editar</button>
-                    <button class="btn-medico" onclick="verMedico(${exp.numero_expediente}, '${exp.nombre_completo}')">Médico</button>
-                    <button class="btn-opto" onclick="verOptometria(${exp.numero_expediente}, '${exp.nombre_completo}')">Optometría</button>
-                    <button class="btn-cancelar" onclick="eliminarExpediente(${exp.numero_expediente})">Eliminar</button>
-                </td>
-            </tr>
-        `;
-    });
+    const usuario = JSON.parse(localStorage.getItem("usuario")); // 🔑 obtener rol
+
+data.forEach(exp => {
+    tbody.innerHTML += `
+        <tr>
+            <td>${exp.numero_expediente}</td>
+            <td>${exp.nombre_completo}</td>
+            <td>${exp.edad}</td>
+            <td>${exp.padecimientos}</td>
+            <td>${exp.colonia}</td>
+            <td>${exp.ciudad}</td>
+            <td>${exp.telefono1}</td>
+            <td>${exp.telefono2 || ''}</td>
+            <td>
+                <button class="btn-editar" onclick="editarExpediente(${exp.numero_expediente})">Editar</button>
+                <button class="btn-medico" onclick="verMedico(${exp.numero_expediente}, '${exp.nombre_completo}')">Médico</button>
+                <button class="btn-opto" onclick="verOptometria(${exp.numero_expediente}, '${exp.nombre_completo}')">Optometría</button>
+                ${usuario?.rol === "admin" 
+                    ? `<button class="btn-cancelar" onclick="eliminarExpediente(${exp.numero_expediente})">Eliminar</button>` 
+                    : "" }
+            </td>
+        </tr>
+    `;
+});
 }
 
 function nuevoExpediente() {
@@ -278,6 +282,8 @@ async function buscarExpediente() {
     const res = await fetch(`/api/expedientes/${folio}`);
     if (res.ok) {
         const data = await res.json();
+        const usuario = JSON.parse(localStorage.getItem("usuario")); // 🔑 recupera el rol del usuario
+
         document.getElementById('listaExpedientes').innerHTML = `
             <tr>
                 <td>${data.numero_expediente}</td>
@@ -292,8 +298,9 @@ async function buscarExpediente() {
                     <button class="btn-editar" onclick="editarExpediente(${data.numero_expediente})">Editar</button>
                     <button class="btn-medico" onclick="verMedico(${data.numero_expediente}, '${data.nombre_completo}')">Médico</button>
                     <button class="btn-opto" onclick="verOptometria(${data.numero_expediente}, '${data.nombre_completo}')">Optometría</button>
-                    <button class="btn-cancelar" onclick="eliminarExpediente(${data.numero_expediente})">Eliminar</button>
-
+                    ${usuario?.rol === "admin" 
+                        ? `<button class="btn-cancelar" onclick="eliminarExpediente(${data.numero_expediente})">Eliminar</button>` 
+                        : "" }
                 </td>
             </tr>
         `;
@@ -306,6 +313,7 @@ async function buscarExpediente() {
         document.getElementById('listaExpedientes').innerHTML = `<tr><td colspan="9">No encontrado</td></tr>`;
     }
 }
+
 
 // === VER ORDENES MÉDICAS ===
 async function verMedico(expedienteId, nombre) {
