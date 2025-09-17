@@ -196,7 +196,7 @@
 const mapaMenus = {
   expedientes: "menuExpedientes",
   optometria: "menuOptometria",
-  recibo: "menuRecibo",
+  recibos: "menuRecibos",   // 👈 corregido a plural
   medico: "menuMedico",
   agenda: "menuAgenda",
   ordenes: "menuOrdenes",
@@ -205,6 +205,7 @@ const mapaMenus = {
   usuarios: "menuUsuarios",
   Asignación: "menuAsignacion"
 };
+
 
 // Sesión (Inicio)
 fetch('/api/check-session')
@@ -248,23 +249,22 @@ fetch('/api/check-session')
   .catch(() => window.location.href = '/login/login.html');
 
 
-
-
 // Router simple
 async function mostrarSeccion(seccion){
   const main = document.getElementById('main-content');
   const paginas = {
-    recibo: "/frontend/recibos.html",
-    cierre: "/frontend/cierre-caja.html",
-    expedientes: "/frontend/expedientes.html",
-    medico: "/frontend/medico.html",
-    ordenes: "/frontend/ordenes.html",
-    optometria: "/frontend/optometria.html",
-    insumos: "/frontend/insumos.html",
-    usuarios: "/frontend/admin/usuarios.html",
-    agenda: "/frontend/A_Quirurgica.html",
-    Asignación: "/frontend/A_modulos.html"
-  };
+  recibos: "/frontend/recibos.html",   // 👈 corregido a plural
+  cierre: "/frontend/cierre-caja.html",
+  expedientes: "/frontend/expedientes.html",
+  medico: "/frontend/medico.html",
+  ordenes: "/frontend/ordenes.html",
+  optometria: "/frontend/optometria.html",
+  insumos: "/frontend/insumos.html",
+  usuarios: "/frontend/admin/usuarios.html",
+  agenda: "/frontend/A_Quirurgica.html",
+  Asignación: "/frontend/A_modulos.html"
+};
+
 
   if(seccion === 'expedientes'){
     main.innerHTML = `
