@@ -1467,7 +1467,27 @@ app.get('/api/usuarios', isAdmin, async (req, res) => {
   }
 });
 
-// Listar permisos de un usuario
+// 🔑 Mapeo de nombres de módulos para normalizar
+const mapModulo = (mod) => {
+  if (!mod) return '';
+  const clave = mod.toLowerCase().replace(/\s+/g, '').replace(/[^\w]/g, '');
+
+  const mapa = {
+    'cierrecaja': 'cierre',
+    'modulomedico': 'medico',
+    'expedientes': 'expedientes',
+    'recibos': 'recibos',
+    'ordenes': 'ordenes',
+    'optometria': 'optometria',
+    'insumos': 'insumos',
+    'usuarios': 'usuarios',
+    'asignacionmodulos': 'asignacion'
+  };
+
+  return mapa[clave] || clave;
+};
+
+// Listar permisos de un usuario (normalizados)
 app.get('/api/permisos/:nomina', verificarSesion, async (req, res) => {
   try {
     const { nomina } = req.params;
@@ -1481,15 +1501,21 @@ app.get('/api/permisos/:nomina', verificarSesion, async (req, res) => {
       'SELECT modulo, permitido FROM permisos WHERE usuario_nomina = $1',
       [nomina]
     );
-    res.json(result.rows);
+
+    // Normalizamos antes de enviar al frontend
+    const normalizados = result.rows.map(p => ({
+      modulo: mapModulo(p.modulo),
+      permitido: p.permitido
+    }));
+
+    res.json(normalizados);
   } catch (err) {
     console.error("Error al listar permisos:", err);
     res.status(500).json({ error: "Error al listar permisos" });
   }
 });
 
-
-// Guardar permisos de un usuario
+// Guardar permisos de un usuario (ya normalizados)
 app.post('/api/permisos/:nomina', isAdmin, async (req, res) => {
   try {
     const { nomina } = req.params;
@@ -1498,11 +1524,12 @@ app.post('/api/permisos/:nomina', isAdmin, async (req, res) => {
     // Borrar permisos anteriores
     await pool.query('DELETE FROM permisos WHERE usuario_nomina = $1', [nomina]);
 
-    // Insertar nuevos
+    // Insertar nuevos (normalizados)
     for (let p of permisos) {
+      const modulo = mapModulo(p.modulo);
       await pool.query(
         'INSERT INTO permisos (usuario_nomina, modulo, permitido) VALUES ($1,$2,$3)',
-        [nomina, p.modulo, p.permitido]
+        [nomina, modulo, p.permitido]
       );
     }
 

@@ -488,8 +488,6 @@ async function cargarMenuDinamico(usuario) {
 }
 
 
-
-
 function cargarLista(){
   fetch('/api/expedientes').then(r=>r.json()).then(data=>{
     let html = `<table class="table table-bordered align-middle">
