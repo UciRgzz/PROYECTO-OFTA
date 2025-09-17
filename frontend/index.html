@@ -164,6 +164,7 @@
     <a href="#" onclick="mostrarSeccion('ordenes')"><i class="material-icons">assignment</i> Órdenes</a>
     <a href="#" onclick="mostrarSeccion('insumos')"><i class="material-icons">inventory_2</i> Insumos</a>
     <a href="#" onclick="mostrarSeccion('cierre')"><i class="material-icons">attach_money</i> Cierre de Caja</a>
+    <a href="#" onclick="mostrarSeccion('Asignación')"><i class="material-icons">bar_chart</i> Asignación de Módulos</a>
 
     <!-- Solo visible para admin -->
     <a href="#" onclick="mostrarSeccion('usuarios')" id="menuUsuarios" style="display:none;">
@@ -264,7 +265,8 @@ async function mostrarSeccion(seccion){
     optometria: "/frontend/optometria.html",
     insumos: "/frontend/insumos.html",
     usuarios: "/frontend/admin/usuarios.html",
-    agenda: "/frontend/A_Quirurgica.html"
+    agenda: "/frontend/A_Quirurgica.html",
+    Asignación: "/frontend/asignacion.html"
   };
 
   if(seccion === 'expedientes'){

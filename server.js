@@ -1450,6 +1450,50 @@ app.get("/api/cirugias", verificarSesion, async (req, res) => {
   }
 });
 
+// ==================== GESTIÓN DE PERMISOS ====================
+
+// Listar permisos de un usuario
+app.get('/api/permisos/:nomina', isAdmin, async (req, res) => {
+  try {
+    const { nomina } = req.params;
+    const result = await pool.query(
+      'SELECT modulo, permitido FROM permisos WHERE usuario_nomina = $1',
+      [nomina]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error al listar permisos:", err);
+    res.status(500).json({ error: "Error al listar permisos" });
+  }
+});
+
+// Guardar permisos de un usuario
+app.post('/api/permisos/:nomina', isAdmin, async (req, res) => {
+  try {
+    const { nomina } = req.params;
+    const { permisos } = req.body; // [{modulo:'expedientes', permitido:true}, ...]
+
+    // Borrar permisos anteriores
+    await pool.query('DELETE FROM permisos WHERE usuario_nomina = $1', [nomina]);
+
+    // Insertar nuevos
+    for (let p of permisos) {
+      await pool.query(
+        'INSERT INTO permisos (usuario_nomina, modulo, permitido) VALUES ($1,$2,$3)',
+        [nomina, p.modulo, p.permitido]
+      );
+    }
+
+    res.json({ mensaje: "✅ Permisos actualizados" });
+  } catch (err) {
+    console.error("Error al guardar permisos:", err);
+    res.status(500).json({ error: "Error al guardar permisos" });
+  }
+});
+
+
+
+
 // ==================== LOGOUT ====================
 app.get('/api/logout', (req, res) => {
     req.session.destroy(() => {

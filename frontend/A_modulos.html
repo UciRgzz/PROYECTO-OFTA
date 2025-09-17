@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Asignación de Módulos</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+</head>
+<body class="p-4">
+  <div class="container">
+    <h2>Asignación de Módulos</h2>
+    <p class="text-muted">Selecciona un usuario y define qué módulos puede usar.</p>
+
+    <!-- Selector de usuario -->
+    <div class="mb-3">
+      <label class="form-label">Usuario</label>
+      <select id="usuarioSelect" class="form-select"></select>
+    </div>
+
+    <!-- Lista de módulos -->
+    <form id="formPermisos">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="expedientes" id="expedientes">
+        <label class="form-check-label" for="expedientes">Expedientes</label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="recibo" id="recibo">
+        <label class="form-check-label" for="recibo">Recibos</label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="cierre" id="cierre">
+        <label class="form-check-label" for="cierre">Cierre de Caja</label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="medico" id="medico">
+        <label class="form-check-label" for="medico">Módulo Médico</label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="ordenes" id="ordenes">
+        <label class="form-check-label" for="ordenes">Órdenes</label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="optometria" id="optometria">
+        <label class="form-check-label" for="optometria">Optometría</label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="insumos" id="insumos">
+        <label class="form-check-label" for="insumos">Insumos</label>
+      </div>
+      <button type="submit" class="btn btn-primary mt-3">Guardar Permisos</button>
+    </form>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    const usuarioSelect = document.getElementById("usuarioSelect");
+    const formPermisos = document.getElementById("formPermisos");
+
+    // Cargar usuarios al combo
+    fetch("/api/admin/list-users")
+      .then(r => r.json())
+      .then(users => {
+        usuarioSelect.innerHTML = '<option value="">Seleccione...</option>';
+        users.forEach(u => {
+          usuarioSelect.innerHTML += `<option value="${u.nomina}">${u.username} (${u.departamento})</option>`;
+        });
+      });
+
+    // Al seleccionar usuario, traer permisos
+    usuarioSelect.addEventListener("change", () => {
+      if (!usuarioSelect.value) return;
+      fetch(`/api/permisos/${usuarioSelect.value}`)
+        .then(r => r.json())
+        .then(data => {
+          // Resetear checks
+          formPermisos.querySelectorAll("input[type=checkbox]").forEach(cb => cb.checked = false);
+          data.forEach(p => {
+            const cb = document.getElementById(p.modulo);
+            if (cb) cb.checked = p.permitido;
+          });
+        });
+    });
+
+    // Guardar
+    formPermisos.addEventListener("submit", e => {
+      e.preventDefault();
+      if (!usuarioSelect.value) return Swal.fire("Error","Seleccione un usuario","error");
+
+      const permisos = [];
+      formPermisos.querySelectorAll("input[type=checkbox]").forEach(cb => {
+        permisos.push({ modulo: cb.value, permitido: cb.checked });
+      });
+
+      fetch(`/api/permisos/${usuarioSelect.value}`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ permisos })
+      })
+      .then(r => r.json())
+      .then(d => Swal.fire("OK", d.mensaje, "success"))
+      .catch(() => Swal.fire("Error","No se pudo guardar","error"));
+    });
+  </script>
+</body>
+</html>
