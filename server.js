@@ -1467,9 +1467,15 @@ app.get('/api/usuarios', isAdmin, async (req, res) => {
 });
 
 // Listar permisos de un usuario
-app.get('/api/permisos/:nomina', isAdmin, async (req, res) => {
+app.get('/api/permisos/:nomina', verificarSesion, async (req, res) => {
   try {
     const { nomina } = req.params;
+
+    // 🔒 Seguridad: si no es admin, solo puede consultar los suyos
+    if (req.session.usuario.rol !== 'admin' && req.session.usuario.nomina !== nomina) {
+      return res.status(403).json({ error: "No autorizado para ver permisos de otro usuario" });
+    }
+
     const result = await pool.query(
       'SELECT modulo, permitido FROM permisos WHERE usuario_nomina = $1',
       [nomina]
@@ -1480,6 +1486,7 @@ app.get('/api/permisos/:nomina', isAdmin, async (req, res) => {
     res.status(500).json({ error: "Error al listar permisos" });
   }
 });
+
 
 // Guardar permisos de un usuario
 app.post('/api/permisos/:nomina', isAdmin, async (req, res) => {
