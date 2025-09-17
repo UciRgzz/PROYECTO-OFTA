@@ -224,22 +224,21 @@ fetch('/api/check-session')
     if (data.usuario) {
       window.usuarioRol = data.usuario.rol;
 
-     // Mostrar selector solo si es admin
       if (data.usuario.rol === "admin") {
         document.getElementById("sucursal-selector").style.display = "block";
-      }
-
-      // Construir menú dinámico según el rol
-      cargarMenuDinamico(data.usuario);
-
-
-      // Mostrar la sucursal actual en el botón
-      let sucursalActual;
-      if (data.usuario.rol === "admin") {
-        sucursalActual = data.usuario.sucursalSeleccionada || "Admin";
+        // 🔹 Admin ve todo
+        construirMenuAdmin();
       } else {
-        sucursalActual = data.usuario.departamento;
+        // 🔹 Usuario normal → pedir permisos
+        const resPerm = await fetch(`/api/permisos/${data.usuario.nomina}`);
+        const permisos = await resPerm.json();
+        construirMenuUsuario(permisos);
       }
+
+      // Mostrar sucursal actual
+      let sucursalActual = (data.usuario.rol === "admin")
+          ? (data.usuario.sucursalSeleccionada || "Admin")
+          : data.usuario.departamento;
       document.getElementById("sucursalTexto").textContent = sucursalActual;
 
       // Pantalla de bienvenida
@@ -434,16 +433,13 @@ async function guardarExpediente(e){
   }
 }
 
-async function cargarMenuDinamico(usuario) {
+function construirMenuAdmin() {
   const cont = document.getElementById("menu-dinamico");
   cont.innerHTML = "";
-
-  // Si es admin → ve todos
-  if (usuario.rol === "admin") {
   const modulosAdmin = [
     { id:"expedientes", icon:"folder", texto:"Expedientes" },
     { id:"optometria", icon:"visibility", texto:"Optometría" },
-    { id:"recibos", icon:"receipt", texto:"Recibos" }, // 👈 plural
+    { id:"recibos", icon:"receipt", texto:"Recibos" },
     { id:"medico", icon:"local_hospital", texto:"Módulo Médico" },
     { id:"agenda", icon:"event", texto:"Agenda Quirúrgica" },
     { id:"ordenes", icon:"assignment", texto:"Órdenes" },
@@ -453,39 +449,38 @@ async function cargarMenuDinamico(usuario) {
     { id:"usuarios", icon:"person_add", texto:"Usuarios" }
   ];
 
-    modulosAdmin.forEach(m => {
-      cont.innerHTML += `
-        <a href="#" data-modulo="${m.id}" onclick="mostrarSeccion('${m.id}')">
-          <i class="material-icons">${m.icon}</i> ${m.texto}
-        </a>`;
-    });
-  } else {
-    // Si no es admin → pedir permisos
-    const resPerm = await fetch(`/api/permisos/${usuario.nomina}`);
-    const permisos = await resPerm.json();
-    permisos.forEach(p => {
-      if (p.permitido) {
-        let mapa = {
-          expedientes: { icon:"folder", texto:"Expedientes" },
-          optometria: { icon:"visibility", texto:"Optometría" },
-          recibos: { icon:"receipt", texto:"Recibos" }, // 👈 plural
-          medico: { icon:"local_hospital", texto:"Módulo Médico" },
-          agenda: { icon:"event", texto:"Agenda Quirúrgica" },
-          ordenes: { icon:"assignment", texto:"Órdenes" },
-          insumos: { icon:"inventory_2", texto:"Insumos" },
-          cierre: { icon:"attach_money", texto:"Cierre de Caja" }
-        };
-
-        if (mapa[p.modulo]) {
-          cont.innerHTML += `
-            <a href="#" data-modulo="${p.modulo}" onclick="mostrarSeccion('${p.modulo}')">
-              <i class="material-icons">${mapa[p.modulo].icon}</i> ${mapa[p.modulo].texto}
-            </a>`;
-        }
-      }
-    });
-  }
+  modulosAdmin.forEach(m => {
+    cont.innerHTML += `
+      <a href="#" onclick="mostrarSeccion('${m.id}')">
+        <i class="material-icons">${m.icon}</i> ${m.texto}
+      </a>`;
+  });
 }
+
+function construirMenuUsuario(permisos) {
+  const cont = document.getElementById("menu-dinamico");
+  cont.innerHTML = "";
+  const mapa = {
+    expedientes: { icon:"folder", texto:"Expedientes" },
+    optometria: { icon:"visibility", texto:"Optometría" },
+    recibos: { icon:"receipt", texto:"Recibos" },
+    medico: { icon:"local_hospital", texto:"Módulo Médico" },
+    agenda: { icon:"event", texto:"Agenda Quirúrgica" },
+    ordenes: { icon:"assignment", texto:"Órdenes" },
+    insumos: { icon:"inventory_2", texto:"Insumos" },
+    cierre: { icon:"attach_money", texto:"Cierre de Caja" }
+  };
+
+  permisos.forEach(p => {
+    if (p.permitido && mapa[p.modulo]) {
+      cont.innerHTML += `
+        <a href="#" onclick="mostrarSeccion('${p.modulo}')">
+          <i class="material-icons">${mapa[p.modulo].icon}</i> ${mapa[p.modulo].texto}
+        </a>`;
+    }
+  });
+}
+
 
 
 function cargarLista(){
