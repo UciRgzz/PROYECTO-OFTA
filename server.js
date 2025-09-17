@@ -32,7 +32,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: true, // false porque usas http://localhost
+        secure: false, // false porque usas http://localhost
         httpOnly: true,
         maxAge: 1000 * 60 * 60 // 1 hora
     }
