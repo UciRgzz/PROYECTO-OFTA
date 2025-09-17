@@ -164,7 +164,11 @@
     <a href="#" onclick="mostrarSeccion('ordenes')"><i class="material-icons">assignment</i> Órdenes</a>
     <a href="#" onclick="mostrarSeccion('insumos')"><i class="material-icons">inventory_2</i> Insumos</a>
     <a href="#" onclick="mostrarSeccion('cierre')"><i class="material-icons">attach_money</i> Cierre de Caja</a>
-    <a href="#" onclick="mostrarSeccion('Asignación')"><i class="material-icons">bar_chart</i> Asignación de Módulos</a>
+
+    <!-- Solo visible para admin -->
+    <a href="#" onclick="mostrarSeccion('Asignación')" id="menuAsignacion" style="display:none;">
+      <i class="material-icons">bar_chart</i> Asignación de Módulos
+    </a>
 
     <!-- Solo visible para admin -->
     <a href="#" onclick="mostrarSeccion('usuarios')" id="menuUsuarios" style="display:none;">
@@ -225,6 +229,7 @@ fetch('/api/check-session')
       if (data.usuario.rol === "admin") {
         document.getElementById("sucursal-selector").style.display = "block";
         document.getElementById("menuUsuarios").style.display = "block"; 
+        document.getElementById("menuAsignacion").style.display = "block";
       }
 
       // Mostrar la sucursal actual en el botón
