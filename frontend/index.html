@@ -254,7 +254,7 @@ fetch('/api/check-session')
 async function mostrarSeccion(seccion){
   const main = document.getElementById('main-content');
   const paginas = {
-    recibo: "/frontend/recibo.html",
+    recibo: "/frontend/recibos.html",
     cierre: "/frontend/cierre-caja.html",
     expedientes: "/frontend/expedientes.html",
     medico: "/frontend/medico.html",
@@ -430,18 +430,19 @@ async function cargarMenuDinamico(usuario) {
 
   // Si es admin → ve todos
   if (usuario.rol === "admin") {
-    const modulosAdmin = [
-      { id:"expedientes", icon:"folder", texto:"Expedientes" },
-      { id:"optometria", icon:"visibility", texto:"Optometría" },
-      { id:"recibo", icon:"receipt", texto:"Recibo" },
-      { id:"medico", icon:"local_hospital", texto:"Módulo Médico" },
-      { id:"agenda", icon:"event", texto:"Agenda Quirúrgica" },
-      { id:"ordenes", icon:"assignment", texto:"Órdenes" },
-      { id:"insumos", icon:"inventory_2", texto:"Insumos" },
-      { id:"cierre", icon:"attach_money", texto:"Cierre de Caja" },
-      { id:"Asignación", icon:"bar_chart", texto:"Asignación de Módulos" },
-      { id:"usuarios", icon:"person_add", texto:"Usuarios" }
-    ];
+  const modulosAdmin = [
+    { id:"expedientes", icon:"folder", texto:"Expedientes" },
+    { id:"optometria", icon:"visibility", texto:"Optometría" },
+    { id:"recibos", icon:"receipt", texto:"Recibos" }, // 👈 plural
+    { id:"medico", icon:"local_hospital", texto:"Módulo Médico" },
+    { id:"agenda", icon:"event", texto:"Agenda Quirúrgica" },
+    { id:"ordenes", icon:"assignment", texto:"Órdenes" },
+    { id:"insumos", icon:"inventory_2", texto:"Insumos" },
+    { id:"cierre", icon:"attach_money", texto:"Cierre de Caja" },
+    { id:"Asignación", icon:"bar_chart", texto:"Asignación de Módulos" },
+    { id:"usuarios", icon:"person_add", texto:"Usuarios" }
+  ];
+
     modulosAdmin.forEach(m => {
       cont.innerHTML += `
         <a href="#" data-modulo="${m.id}" onclick="mostrarSeccion('${m.id}')">
@@ -457,13 +458,14 @@ async function cargarMenuDinamico(usuario) {
         let mapa = {
           expedientes: { icon:"folder", texto:"Expedientes" },
           optometria: { icon:"visibility", texto:"Optometría" },
-          recibos: { icon:"receipt", texto:"Recibo" },
+          recibos: { icon:"receipt", texto:"Recibos" }, // 👈 plural
           medico: { icon:"local_hospital", texto:"Módulo Médico" },
           agenda: { icon:"event", texto:"Agenda Quirúrgica" },
           ordenes: { icon:"assignment", texto:"Órdenes" },
           insumos: { icon:"inventory_2", texto:"Insumos" },
           cierre: { icon:"attach_money", texto:"Cierre de Caja" }
         };
+
         if (mapa[p.modulo]) {
           cont.innerHTML += `
             <a href="#" data-modulo="${p.modulo}" onclick="mostrarSeccion('${p.modulo}')">
