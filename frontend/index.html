@@ -155,16 +155,38 @@
       </ul>
     </div>
 
-    <!-- Enlaces del menú -->
-    <a href="#" id="menuExpedientes" onclick="mostrarSeccion('expedientes')"><i class="material-icons">folder</i> Expedientes</a>
-    <a href="#" id="menuOptometria" onclick="mostrarSeccion('optometria')"><i class="material-icons">visibility</i> Optometría</a>
-    <a href="#" id="menuRecibo" onclick="mostrarSeccion('recibo')"><i class="material-icons">receipt</i> Recibo</a>
-    <a href="#" id="menuMedico" onclick="mostrarSeccion('medico')"><i class="material-icons">local_hospital</i> Módulo Médico</a>
-    <a href="#" id="menuAgenda" onclick="mostrarSeccion('agenda')"><i class="material-icons">event</i> Agenda Quirúrgica</a>
-    <a href="#" id="menuOrdenes" onclick="mostrarSeccion('ordenes')"><i class="material-icons">assignment</i> Órdenes</a>
-    <a href="#" id="menuInsumos" onclick="mostrarSeccion('insumos')"><i class="material-icons">inventory_2</i> Insumos</a>
-    <a href="#" id="menuCierre" onclick="mostrarSeccion('cierre')"><i class="material-icons">attach_money</i> Cierre de Caja</a>
+<!-- Enlaces del menú -->
+<a href="#" id="menuExpedientes" data-modulo="expedientes" onclick="mostrarSeccion('expedientes')">
+  <i class="material-icons">folder</i> Expedientes
+</a>
 
+<a href="#" id="menuOptometria" data-modulo="optometria" onclick="mostrarSeccion('optometria')">
+  <i class="material-icons">visibility</i> Optometría
+</a>
+
+<a href="#" id="menuRecibo" data-modulo="recibos" onclick="mostrarSeccion('recibo')">
+  <i class="material-icons">receipt</i> Recibo
+</a>
+
+<a href="#" id="menuMedico" data-modulo="medico" onclick="mostrarSeccion('medico')">
+  <i class="material-icons">local_hospital</i> Módulo Médico
+</a>
+
+<a href="#" id="menuAgenda" data-modulo="agenda" onclick="mostrarSeccion('agenda')">
+  <i class="material-icons">event</i> Agenda Quirúrgica
+</a>
+
+<a href="#" id="menuOrdenes" data-modulo="ordenes" onclick="mostrarSeccion('ordenes')">
+  <i class="material-icons">assignment</i> Órdenes
+</a>
+
+<a href="#" id="menuInsumos" data-modulo="insumos" onclick="mostrarSeccion('insumos')">
+  <i class="material-icons">inventory_2</i> Insumos
+</a>
+
+<a href="#" id="menuCierre" data-modulo="cierre" onclick="mostrarSeccion('cierre')">
+  <i class="material-icons">attach_money</i> Cierre de Caja
+</a>
 
     <!-- Solo visible para admin -->
     <a href="#" onclick="mostrarSeccion('Asignación')" id="menuAsignacion" style="display:none;">
@@ -235,9 +257,8 @@ const mapaMenus = {
 // Sesión (Inicio)
 fetch('/api/check-session')
   .then(res => res.ok ? res.json() : Promise.reject())
-  .then(data => {
+  .then(async data => {
     if (data.usuario) {
-      // 👇 Guardar el rol globalmente para usarlo en otras páginas
       window.usuarioRol = data.usuario.rol;
 
       // Mostrar selector solo si es admin
@@ -245,6 +266,23 @@ fetch('/api/check-session')
         document.getElementById("sucursal-selector").style.display = "block";
         document.getElementById("menuUsuarios").style.display = "block"; 
         document.getElementById("menuAsignacion").style.display = "block";
+
+        // 👉 Admin siempre ve todo, no filtramos nada
+      } else {
+        // 👉 Si NO es admin, pedimos sus permisos al backend
+        const resPerm = await fetch(`/api/permisos/${data.usuario.nomina}`);
+        const permisos = await resPerm.json();
+
+        // Ocultar todos los menús primero
+        document.querySelectorAll("#sidebar a").forEach(a => a.style.display = "none");
+
+        // Mostrar solo los permitidos
+        permisos.forEach(p => {
+          if (p.permitido) {
+            const enlace = document.querySelector(`[data-modulo='${p.modulo}']`);
+            if (enlace) enlace.style.display = "block";
+          }
+        });
       }
 
       // Mostrar la sucursal actual en el botón
@@ -256,27 +294,7 @@ fetch('/api/check-session')
       }
       document.getElementById("sucursalTexto").textContent = sucursalActual;
 
-      // 🔹 Cargar permisos del usuario desde el backend
-      fetch(`/api/permisos/${data.usuario.nomina}`)
-        .then(r => r.json())
-        .then(permisos => {
-          // Ocultar todos los menús al inicio
-          Object.values(mapaMenus).forEach(id => {
-            const elem = document.getElementById(id);
-            if (elem) elem.style.display = "none";
-          });
-
-          // Mostrar solo los permitidos
-          permisos.forEach(p => {
-            if (p.permitido && mapaMenus[p.modulo]) {
-              const elem = document.getElementById(mapaMenus[p.modulo]);
-              if (elem) elem.style.display = "block";
-            }
-          });
-        })
-        .catch(err => console.error("Error cargando permisos:", err));
-
-      // 👇 Bienvenida inicial
+      // Pantalla de bienvenida
       document.getElementById('main-content').innerHTML = `
         <div style="text-align:center; margin-top:40px;">
           <h1>Bienvenido</h1>
@@ -291,6 +309,7 @@ fetch('/api/check-session')
     }
   })
   .catch(() => window.location.href = '/login/login.html');
+
 
 
 

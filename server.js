@@ -118,7 +118,8 @@ app.post('/api/login', async (req, res) => {
         }
 
         // ✅ Guardamos toda la información en sesión
-                req.session.usuario = {
+          req.session.usuario = {
+            nomina: usuario.nomina,
             username: usuario.username,
             rol: usuario.rol,
             departamento: usuario.rol === "admin" ? "ADMIN" : usuario.departamento
