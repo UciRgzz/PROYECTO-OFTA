@@ -135,7 +135,7 @@
 <body>
   
 <!-- SIDEBAR -->
-<div class="sidebar" id="sidebar">
+<div class="sidebar">
   <div class="sidebar-content">
     <h2>Menú</h2>
 
@@ -156,23 +156,34 @@
     </div>
 
     <!-- Enlaces del menú -->
-    <div id="menu-dinamico"></div>
-  </div>
+    <a href="#" onclick="mostrarSeccion('expedientes')"><i class="material-icons">folder</i> Expedientes</a>
+    <a href="#" onclick="mostrarSeccion('optometria')"><i class="material-icons">visibility</i> Optometría</a>
+    <a href="#" onclick="mostrarSeccion('recibo')"><i class="material-icons">receipt</i> Recibo</a>
+    <a href="#" onclick="mostrarSeccion('medico')"><i class="material-icons">local_hospital</i> Módulo Médico</a>
+    <a href="#" onclick="mostrarSeccion('agenda')"><i class="material-icons">event</i> Agenda Quirúrgica</a>
+    <a href="#" onclick="mostrarSeccion('ordenes')"><i class="material-icons">assignment</i> Órdenes</a>
+    <a href="#" onclick="mostrarSeccion('insumos')"><i class="material-icons">inventory_2</i> Insumos</a>
+    <a href="#" onclick="mostrarSeccion('cierre')"><i class="material-icons">attach_money</i> Cierre de Caja</a>
+    <a href="#" onclick="mostrarSeccion('Asignación')"><i class="material-icons">bar_chart</i> Asignación de Módulos</a>
 
-  <!-- Botón de Cerrar Sesión (fijo abajo por seguridad) -->
-  <div class="logout">
-    <a href="/api/logout" class="text-danger d-flex align-items-center">
+    <!-- Solo visible para admin -->
+    <a href="#" onclick="mostrarSeccion('usuarios')" id="menuUsuarios" style="display:none;">
+      <i class="material-icons">person_add</i> Usuarios
+    </a>
+
+    <!-- Logout al final dentro del scroll -->
+    <a href="/api/logout" class="text-danger d-flex align-items-center mt-3 border-top pt-2">
       <i class="material-icons">exit_to_app</i>
       <span class="ms-2">Cerrar Sesión</span>
     </a>
   </div>
 </div>
 
-<!-- MAIN -->
-<div class="main" id="main-content">
-  <h1>Cargando...</h1>
-</div>
 
+  <!-- MAIN -->
+  <div class="main" id="main-content">
+    <h1>Cargando...</h1>
+  </div>
 
   <!-- MODAL ÓRDENES Y OPTOMETRÍA -->
   <div class="modal fade" id="modalOrdenes" tabindex="-1" aria-hidden="true">
@@ -202,46 +213,30 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-// 🔹 Mapa de equivalencias módulo → id del menú
-const mapaMenus = {
-  expedientes: "menuExpedientes",
-  optometria: "menuOptometria",
-  recibos: "menuRecibos",   // 👈 corregido a plural
-  medico: "menuMedico",
-  agenda: "menuAgenda",
-  ordenes: "menuOrdenes",
-  insumos: "menuInsumos",
-  cierre: "menuCierre",
-  usuarios: "menuUsuarios",
-  Asignación: "menuAsignacion"
-};
-
-
 // Sesión (Inicio)
 fetch('/api/check-session')
   .then(res => res.ok ? res.json() : Promise.reject())
-  .then(async data => {
+  .then(data => {
     if (data.usuario) {
+      // 👇 Guardar el rol globalmente para usarlo en otras páginas
       window.usuarioRol = data.usuario.rol;
 
+      // Mostrar selector solo si es admin
       if (data.usuario.rol === "admin") {
         document.getElementById("sucursal-selector").style.display = "block";
-        // 🔹 Admin ve todo
-        construirMenuAdmin();
-      } else {
-        // 🔹 Usuario normal → pedir permisos
-        const resPerm = await fetch(`/api/permisos/${data.usuario.nomina}`);
-        const permisos = await resPerm.json();
-        construirMenuUsuario(permisos);
+        document.getElementById("menuUsuarios").style.display = "block"; 
       }
 
-      // Mostrar sucursal actual
-      let sucursalActual = (data.usuario.rol === "admin")
-          ? (data.usuario.sucursalSeleccionada || "Admin")
-          : data.usuario.departamento;
+      // Mostrar la sucursal actual en el botón
+      let sucursalActual;
+      if (data.usuario.rol === "admin") {
+        sucursalActual = data.usuario.sucursalSeleccionada || "Admin";
+      } else {
+        sucursalActual = data.usuario.departamento;
+      }
       document.getElementById("sucursalTexto").textContent = sucursalActual;
 
-      // Pantalla de bienvenida
+
       document.getElementById('main-content').innerHTML = `
         <div style="text-align:center; margin-top:40px;">
           <h1>Bienvenido</h1>
@@ -262,18 +257,17 @@ fetch('/api/check-session')
 async function mostrarSeccion(seccion){
   const main = document.getElementById('main-content');
   const paginas = {
-  recibos: "/frontend/recibos.html",   // 👈 corregido a plural
-  cierre: "/frontend/cierre-caja.html",
-  expedientes: "/frontend/expedientes.html",
-  medico: "/frontend/medico.html",
-  ordenes: "/frontend/ordenes.html",
-  optometria: "/frontend/optometria.html",
-  insumos: "/frontend/insumos.html",
-  usuarios: "/frontend/admin/usuarios.html",
-  agenda: "/frontend/A_Quirurgica.html",
-  Asignación: "/frontend/A_modulos.html"
-};
-
+    recibo: "/frontend/recibo.html",
+    cierre: "/frontend/cierre-caja.html",
+    expedientes: "/frontend/expedientes.html",
+    medico: "/frontend/medico.html",
+    ordenes: "/frontend/ordenes.html",
+    optometria: "/frontend/optometria.html",
+    insumos: "/frontend/insumos.html",
+    usuarios: "/frontend/admin/usuarios.html",
+    agenda: "/frontend/A_Quirurgica.html",
+    Asignación: "/frontend/A_modulos.html"
+  };
 
   if(seccion === 'expedientes'){
     main.innerHTML = `
@@ -432,56 +426,6 @@ async function guardarExpediente(e){
     });
   }
 }
-
-function construirMenuAdmin() {
-  const cont = document.getElementById("menu-dinamico");
-  cont.innerHTML = "";
-  const modulosAdmin = [
-    { id:"expedientes", icon:"folder", texto:"Expedientes" },
-    { id:"optometria", icon:"visibility", texto:"Optometría" },
-    { id:"recibos", icon:"receipt", texto:"Recibos" },
-    { id:"medico", icon:"local_hospital", texto:"Módulo Médico" },
-    { id:"agenda", icon:"event", texto:"Agenda Quirúrgica" },
-    { id:"ordenes", icon:"assignment", texto:"Órdenes" },
-    { id:"insumos", icon:"inventory_2", texto:"Insumos" },
-    { id:"cierre", icon:"attach_money", texto:"Cierre de Caja" },
-    { id:"Asignación", icon:"bar_chart", texto:"Asignación de Módulos" },
-    { id:"usuarios", icon:"person_add", texto:"Usuarios" }
-  ];
-
-  modulosAdmin.forEach(m => {
-    cont.innerHTML += `
-      <a href="#" onclick="mostrarSeccion('${m.id}')">
-        <i class="material-icons">${m.icon}</i> ${m.texto}
-      </a>`;
-  });
-}
-
-function construirMenuUsuario(permisos) {
-  const cont = document.getElementById("menu-dinamico");
-  cont.innerHTML = "";
-  const mapa = {
-    expedientes: { icon:"folder", texto:"Expedientes" },
-    optometria: { icon:"visibility", texto:"Optometría" },
-    recibos: { icon:"receipt", texto:"Recibos" },
-    medico: { icon:"local_hospital", texto:"Módulo Médico" },
-    agenda: { icon:"event", texto:"Agenda Quirúrgica" },
-    ordenes: { icon:"assignment", texto:"Órdenes" },
-    insumos: { icon:"inventory_2", texto:"Insumos" },
-    cierre: { icon:"attach_money", texto:"Cierre de Caja" }
-  };
-
-  permisos.forEach(p => {
-    if (p.permitido && mapa[p.modulo]) {
-      cont.innerHTML += `
-        <a href="#" onclick="mostrarSeccion('${p.modulo}')">
-          <i class="material-icons">${mapa[p.modulo].icon}</i> ${mapa[p.modulo].texto}
-        </a>`;
-    }
-  });
-}
-
-
 
 function cargarLista(){
   fetch('/api/expedientes').then(r=>r.json()).then(data=>{

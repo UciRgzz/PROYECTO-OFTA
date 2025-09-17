@@ -17,27 +17,25 @@ const app = express();
 
 // Middleware
 app.use(cors({
-   /* origin: "http://localhost:3000", */ 
-     origin: "https://oftavision.shop",
+    origin: "http://localhost:3000",  
     credentials: true                 
 }));
 app.use(bodyParser.json());
 
 
 
+
 // Sesiones
 app.use(session({
-  secret: 'mi_secreto_super_seguro',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === "production", // ✅ true solo en HTTPS
-    httpOnly: true,
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // ✅ compatibilidad cookies
-    maxAge: 1000 * 60 * 60 // 1 hora
-  }
+    secret: 'mi_secreto_super_seguro',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: false, // false porque usas http://localhost
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 // 1 hora
+    }
 }));
-
 
 /*// PostgreSQL
 const pool = new Pool({
@@ -119,8 +117,7 @@ app.post('/api/login', async (req, res) => {
         }
 
         // ✅ Guardamos toda la información en sesión
-          req.session.usuario = {
-            nomina: usuario.nomina,
+                req.session.usuario = {
             username: usuario.username,
             rol: usuario.rol,
             departamento: usuario.rol === "admin" ? "ADMIN" : usuario.departamento
@@ -1468,55 +1465,22 @@ app.get('/api/usuarios', isAdmin, async (req, res) => {
   }
 });
 
-// 🔑 Mapeo de nombres de módulos para normalizar
-const mapModulo = (mod) => {
-  if (!mod) return '';
-  const clave = mod.toLowerCase().replace(/\s+/g, '').replace(/[^\w]/g, '');
-
-  const mapa = {
-    'cierrecaja': 'cierre',
-    'modulomedico': 'medico',
-    'expedientes': 'expedientes',
-    'recibos': 'recibos',
-    'ordenes': 'ordenes',
-    'optometria': 'optometria',
-    'insumos': 'insumos',
-    'usuarios': 'usuarios',
-    'asignacionmodulos': 'asignacion'
-  };
-
-  return mapa[clave] || clave;
-};
-
-// Listar permisos de un usuario (normalizados)
-app.get('/api/permisos/:nomina', verificarSesion, async (req, res) => {
+// Listar permisos de un usuario
+app.get('/api/permisos/:nomina', isAdmin, async (req, res) => {
   try {
     const { nomina } = req.params;
-
-    // 🔒 Seguridad: si no es admin, solo puede consultar los suyos
-    if (req.session.usuario.rol !== 'admin' && req.session.usuario.nomina !== nomina) {
-      return res.status(403).json({ error: "No autorizado para ver permisos de otro usuario" });
-    }
-
     const result = await pool.query(
       'SELECT modulo, permitido FROM permisos WHERE usuario_nomina = $1',
       [nomina]
     );
-
-    // Normalizamos antes de enviar al frontend
-    const normalizados = result.rows.map(p => ({
-      modulo: mapModulo(p.modulo),
-      permitido: p.permitido
-    }));
-
-    res.json(normalizados);
+    res.json(result.rows);
   } catch (err) {
     console.error("Error al listar permisos:", err);
     res.status(500).json({ error: "Error al listar permisos" });
   }
 });
 
-// Guardar permisos de un usuario (ya normalizados)
+// Guardar permisos de un usuario
 app.post('/api/permisos/:nomina', isAdmin, async (req, res) => {
   try {
     const { nomina } = req.params;
@@ -1525,12 +1489,11 @@ app.post('/api/permisos/:nomina', isAdmin, async (req, res) => {
     // Borrar permisos anteriores
     await pool.query('DELETE FROM permisos WHERE usuario_nomina = $1', [nomina]);
 
-    // Insertar nuevos (normalizados)
+    // Insertar nuevos
     for (let p of permisos) {
-      const modulo = mapModulo(p.modulo);
       await pool.query(
         'INSERT INTO permisos (usuario_nomina, modulo, permitido) VALUES ($1,$2,$3)',
-        [nomina, modulo, p.permitido]
+        [nomina, p.modulo, p.permitido]
       );
     }
 
