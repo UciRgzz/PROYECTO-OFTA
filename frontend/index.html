@@ -157,37 +157,45 @@
 
     <!-- 🔹 Aquí el menú se llenará dinámicamente -->
     <div id="menu-dinamico"></div>
+
+    <!-- 🔹 Botón de Cerrar Sesión (siempre visible) -->
+    <div class="mt-3 border-top pt-2">
+      <button class="btn btn-danger w-100 d-flex align-items-center" onclick="cerrarSesion()">
+        <i class="material-icons me-2">exit_to_app</i> 
+        Cerrar Sesión
+      </button>
+    </div>
   </div>
 </div>
 
-  <!-- MAIN -->
-  <div class="main" id="main-content">
-    <h1>Cargando...</h1>
-  </div>
+<!-- MAIN -->
+<div class="main" id="main-content">
+  <h1>Cargando...</h1>
+</div>
 
-  <!-- MODAL ÓRDENES Y OPTOMETRÍA -->
-  <div class="modal fade" id="modalOrdenes" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Órdenes del Paciente</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-        </div>
-        <div class="modal-body">
-          <div id="contenedorOrdenes"></div>
-        </div>
-        <div class="modal-footer">
-          <span class="small-muted me-auto">Se muestra primero el registro más reciente.</span>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-        </div>
+<!-- MODAL ÓRDENES Y OPTOMETRÍA -->
+<div class="modal fade" id="modalOrdenes" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Órdenes del Paciente</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div id="contenedorOrdenes"></div>
+      </div>
+      <div class="modal-footer">
+        <span class="small-muted me-auto">Se muestra primero el registro más reciente.</span>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
       </div>
     </div>
   </div>
+</div>
 
-   <!-- BOOTSTRAP SCRIPTS -->
+<!-- BOOTSTRAP SCRIPTS -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
- 
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -214,7 +222,6 @@ fetch('/api/check-session')
       }
       document.getElementById("sucursalTexto").textContent = sucursalActual;
 
-
       document.getElementById('main-content').innerHTML = `
         <div style="text-align:center; margin-top:40px;">
           <h1>Bienvenido</h1>
@@ -230,6 +237,13 @@ fetch('/api/check-session')
   })
   .catch(() => window.location.href = '/login/login.html');
 
+// Función cerrar sesión
+function cerrarSesion() {
+  fetch('/api/logout')
+    .then(() => window.location.href = '/login/login.html')
+    .catch(err => console.error("Error al cerrar sesión:", err));
+}
+
 
 // Router simple
 async function mostrarSeccion(seccion){
@@ -244,7 +258,7 @@ async function mostrarSeccion(seccion){
     insumos: "/frontend/insumos.html",
     usuarios: "/frontend/admin/usuarios.html",
     agenda: "/frontend/A_Quirurgica.html",
-    asignacion: "/frontend/A_Modulos.html"
+    asignacion: "/frontend/A_modulos.html"
   };
 
   if(seccion === 'expedientes'){
@@ -676,22 +690,14 @@ async function cargarMenu() {
     if (permisos.includes("asignacion")) {
       html += `<a href="#" onclick="mostrarSeccion('asignacion')"><i class="material-icons">admin_panel_settings</i> Asignar Módulos</a>`;
     }
-
-    // Logout fijo
-    html += `
-      <a href="/api/logout" class="text-danger d-flex align-items-center mt-3 border-top pt-2">
-        <i class="material-icons">exit_to_app</i>
-        <span class="ms-2">Cerrar Sesión</span>
-      </a>
-    `;
-
-    menu.innerHTML = html;
-  } catch (err) {
-    console.error("Error cargando menú dinámico:", err);
-  }
+    menu.innerHTML = html || "<p>No tienes permisos asignados.</p>";
+  } catch (err) { 
+    console.error("Error cargando menú:", err);
+    document.getElementById("menu-dinamico").innerHTML = "<p>Error cargando menú.</p>";
+  } 
 }
-
 document.addEventListener("DOMContentLoaded", cargarMenu);
+
 
 
 // ---------- Función para eliminar expediente ----------
