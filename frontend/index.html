@@ -667,36 +667,36 @@ async function cargarMenu() {
 
     let html = "";
 
-    if (permisos.includes("expedientes")) {
-      html += `<a href="#" onclick="mostrarSeccion('expedientes')"><i class="material-icons">folder</i> Expedientes</a>`;
-    }
-    if (permisos.includes("recibos")) {
-      html += `<a href="#" onclick="mostrarSeccion('recibo')"><i class="material-icons">receipt</i> Recibos</a>`;
-    }
-    if (permisos.includes("cierredecaja")) {
-      html += `<a href="#" onclick="mostrarSeccion('cierre')"><i class="material-icons">attach_money</i> Cierre de Caja</a>`;
-    }
-    if (permisos.includes("medico")) {
-      html += `<a href="#" onclick="mostrarSeccion('medico')"><i class="material-icons">healing</i> Módulo Médico</a>`;
-    }
-    if (permisos.includes("ordenes")) {
-      html += `<a href="#" onclick="mostrarSeccion('ordenes')"><i class="material-icons">assignment</i> Órdenes</a>`;
-    }
-    if (permisos.includes("optometria")) {
-      html += `<a href="#" onclick="mostrarSeccion('optometria')"><i class="material-icons">visibility</i> Optometría</a>`;
-    }
-    if (permisos.includes("insumos")) {
-      html += `<a href="#" onclick="mostrarSeccion('insumos')"><i class="material-icons">inventory_2</i> Insumos</a>`;
-    }
-    if (permisos.includes("usuarios")) {
-      html += `<a href="#" onclick="mostrarSeccion('usuarios')"><i class="material-icons">people</i> Usuarios</a>`;
-    }
-    if (permisos.includes("agendaquirurgica")) {
-      html += `<a href="#" onclick="mostrarSeccion('agenda')"><i class="material-icons">event</i> Agenda Quirúrgica</a>`;
-    }
-    if (permisos.includes("asignarmodulos")) {
-      html += `<a href="#" onclick="mostrarSeccion('asignacion')"><i class="material-icons">tune</i> Asignar Módulos</a>`;
-    }
+        if (permisos.includes("expedientes")) {
+          html += `<a href="#" onclick="mostrarSeccion('expedientes')"><i class="material-icons">folder</i> Expedientes</a>`;
+        }
+        if (permisos.includes("optometria")) {
+          html += `<a href="#" onclick="mostrarSeccion('optometria')"><i class="material-icons">visibility</i> Optometría</a>`;
+        }
+        if (permisos.includes("recibos")) {
+          html += `<a href="#" onclick="mostrarSeccion('recibo')"><i class="material-icons">receipt</i> Recibos</a>`;
+        }
+        if (permisos.includes("medico")) {
+          html += `<a href="#" onclick="mostrarSeccion('medico')"><i class="material-icons">healing</i> Módulo Médico</a>`;
+        }
+        if (permisos.includes("agendaquirurgica")) {
+          html += `<a href="#" onclick="mostrarSeccion('agenda')"><i class="material-icons">event</i> Agenda Quirúrgica</a>`;
+        }
+        if (permisos.includes("ordenes")) {
+          html += `<a href="#" onclick="mostrarSeccion('ordenes')"><i class="material-icons">assignment</i> Órdenes</a>`;
+        }
+        if (permisos.includes("insumos")) {
+          html += `<a href="#" onclick="mostrarSeccion('insumos')"><i class="material-icons">inventory_2</i> Insumos</a>`;
+        }
+        if (permisos.includes("cierredecaja")) {
+          html += `<a href="#" onclick="mostrarSeccion('cierre')"><i class="material-icons">attach_money</i> Cierre de Caja</a>`;
+        }
+        if (permisos.includes("usuarios")) {
+          html += `<a href="#" onclick="mostrarSeccion('usuarios')"><i class="material-icons">people</i> Usuarios</a>`;
+        }
+        if (permisos.includes("asignarmodulos")) {
+          html += `<a href="#" onclick="mostrarSeccion('asignacion')"><i class="material-icons">tune</i> Asignar Módulos</a>`;
+        }
 
     document.getElementById("menu-dinamico").innerHTML = html || "<p>No tienes permisos asignados.</p>";
 
