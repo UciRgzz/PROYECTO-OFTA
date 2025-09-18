@@ -632,15 +632,20 @@ async function cambiarSucursal(nombreSucursal) {
 
 async function cargarMenu() {
   try {
-    const resSesion = await fetch("/api/check-session");
-    const { usuario } = await resSesion.json();
+    // 🔹 Tomar usuario desde localStorage
+    const usuario = JSON.parse(localStorage.getItem("usuario"));
+    if (!usuario) {
+      // Si no hay usuario en localStorage, regresar al login
+      window.location.href = "/login/login.html";
+      return;
+    }
 
     let permisos = [];
     if (usuario.rol === "admin") {
       // Admin ve todos los módulos
       permisos = [
         "expedientes",
-        "recibos",
+        "recibo",       // 👈 corregido (antes "recibos")
         "cierre",
         "medico",
         "ordenes",
@@ -650,14 +655,14 @@ async function cargarMenu() {
         "agenda",
         "asignacion"
       ];
-    } else {
+    } else if (usuario.nomina) {
       // Usuario normal → permisos desde BD
       const resPermisos = await fetch(`/api/permisos/${usuario.nomina}`);
-        const data = await resPermisos.json();
+      const data = await resPermisos.json();
 
-        // Si viene como objeto con "permisos", usar esa propiedad
-        const lista = Array.isArray(data) ? data : data.permisos || [];
-        permisos = lista.filter(p => p.permitido).map(p => p.modulo);
+      // Si viene como objeto con "permisos", usar esa propiedad
+      const lista = Array.isArray(data) ? data : data.permisos || [];
+      permisos = lista.filter(p => p.permitido).map(p => p.modulo);
     }
 
     const menu = document.getElementById("menu-dinamico");
@@ -666,7 +671,7 @@ async function cargarMenu() {
     if (permisos.includes("expedientes")) {
       html += `<a href="#" onclick="mostrarSeccion('expedientes')"><i class="material-icons">folder</i> Expedientes</a>`;
     }
-    if (permisos.includes("recibos")) {
+    if (permisos.includes("recibo")) {   // 👈 corregido
       html += `<a href="#" onclick="mostrarSeccion('recibo')"><i class="material-icons">receipt</i> Recibo</a>`;
     }
     if (permisos.includes("cierre")) {
@@ -693,6 +698,7 @@ async function cargarMenu() {
     if (permisos.includes("asignacion")) {
       html += `<a href="#" onclick="mostrarSeccion('asignacion')"><i class="material-icons">admin_panel_settings</i> Asignar Módulos</a>`;
     }
+
     menu.innerHTML = html || "<p>No tienes permisos asignados.</p>";
   } catch (err) { 
     console.error("Error cargando menú:", err);
@@ -700,6 +706,7 @@ async function cargarMenu() {
   } 
 }
 document.addEventListener("DOMContentLoaded", cargarMenu);
+
 
 
 
