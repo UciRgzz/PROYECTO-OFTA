@@ -630,7 +630,6 @@ async function cambiarSucursal(nombreSucursal) {
   }
 }
 
-// ====================== MENÚ ======================
 async function cargarMenu() {
   try {
     const res = await fetch("/api/check-session");
@@ -643,13 +642,28 @@ async function cargarMenu() {
     }
 
     const data = await res.json();
+    let permisos = [];
 
-    // 🚀 Pedir permisos del usuario
-    const permisosRes = await fetch(`/api/permisos/${data.usuario.nomina}`);
-    const permisosData = await permisosRes.json();
-    const permisos = permisosData
-      .filter(p => p.permitido)
-      .map(p => p.modulo);
+    if (data.usuario.rol === "admin") {
+      // 🚀 Admin ve TODOS los módulos
+      permisos = [
+        "expedientes",
+        "recibos",
+        "cierredecaja",
+        "medico",
+        "ordenes",
+        "optometria",
+        "insumos",
+        "usuarios",
+        "agendaquirurgica",
+        "asignarmodulos"
+      ];
+    } else {
+      // Usuario normal → consultar en BD
+      const permisosRes = await fetch(`/api/permisos/${data.usuario.nomina}`);
+      const permisosData = await permisosRes.json();
+      permisos = permisosData.filter(p => p.permitido).map(p => p.modulo);
+    }
 
     let html = "";
 
@@ -662,7 +676,7 @@ async function cargarMenu() {
     if (permisos.includes("cierredecaja")) {
       html += `<a href="#" onclick="mostrarSeccion('cierre')"><i class="material-icons">attach_money</i> Cierre de Caja</a>`;
     }
-    if (permisos.includes("modulo")) {
+    if (permisos.includes("medico")) {
       html += `<a href="#" onclick="mostrarSeccion('medico')"><i class="material-icons">healing</i> Módulo Médico</a>`;
     }
     if (permisos.includes("ordenes")) {
@@ -691,7 +705,9 @@ async function cargarMenu() {
     document.getElementById("menu-dinamico").innerHTML = `<p>Error cargando menú.</p>`;
   }
 }
-cargarMenu(); 
+cargarMenu();
+
+
 
 
 // ---------- Función para eliminar expediente ----------
