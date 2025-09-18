@@ -53,6 +53,9 @@
         <div class="form-check"><input type="checkbox" value="ordenes"> Órdenes</div>
         <div class="form-check"><input type="checkbox" value="optometria"> Optometría</div>
         <div class="form-check"><input type="checkbox" value="insumos"> Insumos</div>
+        <div class="form-check"><input type="checkbox" value="agendaquirurgica"> Agenda Quirúrgica</div>
+        <div class="form-check"><input type="checkbox" value="asignarmodulos"> Asignar Módulos</div>
+        <div class="form-check"><input type="checkbox" value="usuarios"> Usuarios</div>
 
         <button class="btn btn-primary" onclick="guardarPermisos()">Guardar Permisos</button>
       </div>
@@ -61,7 +64,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
-    // Cargar usuarios al iniciar
     document.addEventListener("DOMContentLoaded", cargarUsuarios);
 
     async function cargarUsuarios(){
@@ -78,12 +80,10 @@
           Swal.fire("Error", data.error || "No se pudieron cargar usuarios", "error");
         }
       } catch(err){
-        console.error(err);
         Swal.fire("Error", "Error de conexión al cargar usuarios", "error");
       }
     }
 
-    // Cuando se elige usuario, cargar sus permisos
     document.getElementById("usuario").addEventListener("change", async (e) => {
       const nomina = e.target.value;
       document.querySelectorAll(".form-check input").forEach(chk => chk.checked = false);
@@ -93,7 +93,6 @@
         const res = await fetch(`/api/permisos/${nomina}`);
         const permisos = await res.json();
 
-        // ⚡ Si el usuario seleccionado es "admin", marcar todo a true
         const selectedText = e.target.options[e.target.selectedIndex].text.toLowerCase();
         if (selectedText.includes("admin")) {
           document.querySelectorAll(".form-check input").forEach(chk => chk.checked = true);
@@ -111,7 +110,6 @@
       }
     });
 
-    // Guardar permisos
     async function guardarPermisos(){
       const usuario = document.getElementById('usuario').value;
       if(!usuario){
