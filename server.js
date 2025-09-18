@@ -1450,7 +1450,7 @@ app.get("/api/cirugias", verificarSesion, async (req, res) => {
   }
 });
 
-/// ==================== GESTIÓN DE PERMISOS ====================
+// ==================== GESTIÓN DE PERMISOS ====================
 
 // Listar usuarios (para asignar módulos)
 app.get('/api/usuarios', isAdmin, async (req, res) => {
@@ -1465,7 +1465,7 @@ app.get('/api/usuarios', isAdmin, async (req, res) => {
   }
 });
 
-// Listar permisos de un usuario
+// Listar permisos de un usuario (vista admin)
 app.get('/api/permisos/:nomina', isAdmin, async (req, res) => {
   try {
     const { nomina } = req.params;
@@ -1474,9 +1474,8 @@ app.get('/api/permisos/:nomina', isAdmin, async (req, res) => {
       [nomina]
     );
 
-    // 🔹 Normalizar nombres: minúsculas y sin espacios
     const permisos = result.rows.map(p => ({
-      modulo: p.modulo.trim().toLowerCase().replace(/\s+/g, ''),
+      modulo: p.modulo ? p.modulo.trim().toLowerCase().replace(/\s+/g, '') : "",
       permitido: p.permitido
     }));
 
@@ -1493,10 +1492,8 @@ app.post('/api/permisos/:nomina', isAdmin, async (req, res) => {
     const { nomina } = req.params;
     const { permisos } = req.body; // [{modulo:'expedientes', permitido:true}, ...]
 
-    // Borrar permisos anteriores
     await pool.query('DELETE FROM permisos WHERE usuario_nomina = $1', [nomina]);
 
-    // Insertar nuevos (normalizados)
     for (let p of permisos) {
       await pool.query(
         'INSERT INTO permisos (usuario_nomina, modulo, permitido) VALUES ($1,$2,$3)',
@@ -1514,36 +1511,46 @@ app.post('/api/permisos/:nomina', isAdmin, async (req, res) => {
 // Obtener permisos del usuario actual
 app.get('/api/mis-permisos', verificarSesion, async (req, res) => {
   try {
-    const nomina = req.session.usuario.nomina;
+    const nomina = req.session.usuario?.nomina;
+    const rol = req.session.usuario?.rol;
 
-    // Si es admin, devolver todos los permisos como objetos
-    if (req.session.usuario.rol === "admin") {
+    if (!nomina) {
+      return res.status(400).json({ error: "Usuario sin nómina en sesión" });
+    }
+
+    // Admin => todos permitidos
+    if (rol === "admin") {
       const todosLosModulos = [
         "expedientes", "recibos", "cierredecaja", "medico",
         "ordenes", "optometria", "insumos", "usuarios",
         "agendaquirurgica", "asignarmodulos"
       ];
 
-      const permisosAdmin = todosLosModulos.map(modulo => ({
-        modulo,
+      return res.json(todosLosModulos.map(m => ({
+        modulo: m,
         permitido: true
-      }));
-
-      return res.json(permisosAdmin);
+      })));
     }
 
-    // Para usuarios normales, consultar la BD
+    // Usuario normal
     const result = await pool.query(
       'SELECT modulo, permitido FROM permisos WHERE usuario_nomina = $1',
       [nomina]
     );
 
-    res.json(result.rows);
+    // Normalizar y fallback vacío
+    const permisos = result.rows.map(p => ({
+      modulo: p.modulo ? p.modulo.trim().toLowerCase().replace(/\s+/g, '') : "",
+      permitido: p.permitido
+    }));
+
+    res.json(permisos.length ? permisos : []);
   } catch (err) {
     console.error("Error al obtener permisos:", err);
-    res.status(500).json({ error: "Error al cargar permisos" });
+    res.status(500).json([]);
   }
 });
+
 
 // ==================== LOGOUT ====================
 app.get('/api/logout', (req, res) => {
