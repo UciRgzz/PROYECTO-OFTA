@@ -1473,7 +1473,14 @@ app.get('/api/permisos/:nomina', isAdmin, async (req, res) => {
       'SELECT modulo, permitido FROM permisos WHERE usuario_nomina = $1',
       [nomina]
     );
-    res.json(result.rows);
+
+    // 🔹 Normalizar nombres: minúsculas y sin espacios
+    const permisos = result.rows.map(p => ({
+      modulo: p.modulo.trim().toLowerCase().replace(/\s+/g, ''),
+      permitido: p.permitido
+    }));
+
+    res.json(permisos);
   } catch (err) {
     console.error("Error al listar permisos:", err);
     res.status(500).json({ error: "Error al listar permisos" });
@@ -1489,11 +1496,11 @@ app.post('/api/permisos/:nomina', isAdmin, async (req, res) => {
     // Borrar permisos anteriores
     await pool.query('DELETE FROM permisos WHERE usuario_nomina = $1', [nomina]);
 
-    // Insertar nuevos
+    // Insertar nuevos (normalizados)
     for (let p of permisos) {
       await pool.query(
         'INSERT INTO permisos (usuario_nomina, modulo, permitido) VALUES ($1,$2,$3)',
-        [nomina, p.modulo, p.permitido]
+        [nomina, p.modulo.trim().toLowerCase().replace(/\s+/g, ''), p.permitido]
       );
     }
 
