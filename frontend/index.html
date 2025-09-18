@@ -247,7 +247,6 @@ function cerrarSesion() {
 
 // Router simple
 async function mostrarSeccion(seccion){
-  const main = document.getElementById('main-content');
   const paginas = {
   expedientes: "/frontend/expedientes.html",
   recibos: "/frontend/recibo.html",
@@ -256,11 +255,11 @@ async function mostrarSeccion(seccion){
   ordenes: "/frontend/ordenes.html",
   optometria: "/frontend/optometria.html",
   insumos: "/frontend/insumos.html",
-  usuarios: "/frontend/admin/usuarios.html",
+  usuarios: "/frontend/admin/usuarios.html",   // este sí está dentro de admin
   agendaquirurgica: "/frontend/A_Quirurgica.html",
-  asignarmodulos: "/frontend/admin/a_modulos.html"
+  asignarmodulos: "/frontend/a_modulos.html"   // en minúsculas como tu archivo
 };
-
+  const main = document.getElementById('main-content');
 
   if(seccion === 'expedientes'){
     main.innerHTML = `
@@ -635,7 +634,10 @@ async function cargarMenu() {
   try {
     const res = await fetch("/api/check-session");
     if (!res.ok) {
-      document.getElementById("menu-dinamico").innerHTML = `<p>Error cargando sesión.</p>`;
+      document.getElementById("menu-dinamico").innerHTML = `
+        <p>No tienes permisos asignados.</p>
+        <a href="/login/login.html" class="btn btn-danger">Iniciar Sesión</a>
+      `;
       return;
     }
 
@@ -643,60 +645,74 @@ async function cargarMenu() {
     let permisos = [];
 
     if (data.usuario.rol === "admin") {
-      // admin ve todo
-      permisos = ["expedientes","recibos","cierredecaja","medico","ordenes","optometria","insumos","agendaquirurgica","asignarmodulos","usuarios"];
+      // Admin ve TODOS los módulos
+      permisos = [
+        "expedientes","recibos","cierredecaja","medico",
+        "ordenes","optometria","insumos","usuarios",
+        "agendaquirurgica","asignarmodulos"
+      ];
     } else {
-      const permisosRes = await fetch(`/api/permisos/${data.usuario.username}`);
+      // Usuario normal → consultar sus permisos reales
+      const permisosRes = await fetch("/api/mis-permisos");
       if (!permisosRes.ok) {
-        document.getElementById("menu-dinamico").innerHTML = `<p>Error cargando permisos.</p>`;
+        document.getElementById("menu-dinamico").innerHTML = `
+          <p class="text-danger">Error cargando permisos. Contacta al administrador.</p>
+        `;
         return;
       }
+
       const permisosData = await permisosRes.json();
-      permisos = permisosData.filter(p => p.permitido).map(p => p.modulo);
+      permisos = Array.isArray(permisosData)
+        ? permisosData.filter(p => p.permitido).map(p => p.modulo)
+        : [];
     }
 
+    // Construir menú dinámico
     let html = "";
-    
-    if (permisos.includes("expedientes")) {
-  html += `<a href="#" onclick="mostrarSeccion('expedientes')"><i class="material-icons">folder</i> Expedientes</a>`;
-}
-if (permisos.includes("recibos")) {
-  html += `<a href="#" onclick="mostrarSeccion('recibos')"><i class="material-icons">receipt</i> Recibos</a>`;
-}
-if (permisos.includes("cierredecaja")) {
-  html += `<a href="#" onclick="mostrarSeccion('cierredecaja')"><i class="material-icons">attach_money</i> Cierre de Caja</a>`;
-}
-if (permisos.includes("medico")) {
-  html += `<a href="#" onclick="mostrarSeccion('medico')"><i class="material-icons">healing</i> Módulo Médico</a>`;
-}
-if (permisos.includes("ordenes")) {
-  html += `<a href="#" onclick="mostrarSeccion('ordenes')"><i class="material-icons">assignment</i> Órdenes</a>`;
-}
-if (permisos.includes("optometria")) {
-  html += `<a href="#" onclick="mostrarSeccion('optometria')"><i class="material-icons">visibility</i> Optometría</a>`;
-}
-if (permisos.includes("insumos")) {
-  html += `<a href="#" onclick="mostrarSeccion('insumos')"><i class="material-icons">inventory_2</i> Insumos</a>`;
-}
-if (permisos.includes("agendaquirurgica")) {
-  html += `<a href="#" onclick="mostrarSeccion('agendaquirurgica')"><i class="material-icons">event</i> Agenda Quirúrgica</a>`;
-}
-if (permisos.includes("asignarmodulos")) {
-  html += `<a href="#" onclick="mostrarSeccion('asignarmodulos')"><i class="material-icons">settings</i> Asignar Módulos</a>`;
-}
-if (permisos.includes("usuarios")) {
-  html += `<a href="#" onclick="mostrarSeccion('usuarios')"><i class="material-icons">group</i> Usuarios</a>`;
-}
 
-    document.getElementById("menu-dinamico").innerHTML = html;
+    if (permisos.includes("expedientes")) {
+      html += `<a href="#" onclick="mostrarSeccion('expedientes')"><i class="material-icons">folder</i> Expedientes</a>`;
+    }
+    if (permisos.includes("recibos")) {
+      html += `<a href="#" onclick="mostrarSeccion('recibos')"><i class="material-icons">receipt</i> Recibos</a>`;
+    }
+    if (permisos.includes("cierredecaja")) {
+      html += `<a href="#" onclick="mostrarSeccion('cierredecaja')"><i class="material-icons">attach_money</i> Cierre de Caja</a>`;
+    }
+    if (permisos.includes("medico")) {
+      html += `<a href="#" onclick="mostrarSeccion('medico')"><i class="material-icons">healing</i> Módulo Médico</a>`;
+    }
+    if (permisos.includes("ordenes")) {
+      html += `<a href="#" onclick="mostrarSeccion('ordenes')"><i class="material-icons">assignment</i> Órdenes</a>`;
+    }
+    if (permisos.includes("optometria")) {
+      html += `<a href="#" onclick="mostrarSeccion('optometria')"><i class="material-icons">visibility</i> Optometría</a>`;
+    }
+    if (permisos.includes("insumos")) {
+      html += `<a href="#" onclick="mostrarSeccion('insumos')"><i class="material-icons">inventory_2</i> Insumos</a>`;
+    }
+    if (permisos.includes("agendaquirurgica")) {
+      html += `<a href="#" onclick="mostrarSeccion('agendaquirurgica')"><i class="material-icons">event</i> Agenda Quirúrgica</a>`;
+    }
+    if (permisos.includes("asignarmodulos")) {
+      html += `<a href="#" onclick="mostrarSeccion('asignarmodulos')"><i class="material-icons">settings</i> Asignar Módulos</a>`;
+    }
+    if (permisos.includes("usuarios")) {
+      html += `<a href="#" onclick="mostrarSeccion('usuarios')"><i class="material-icons">group</i> Usuarios</a>`;
+    }
+
+    // Insertar el menú o mostrar advertencia si no tiene permisos
+    document.getElementById("menu-dinamico").innerHTML =
+      html || `<p class="text-warning">No tienes módulos asignados. Contacta al administrador.</p>`;
   } catch (err) {
-    document.getElementById("menu-dinamico").innerHTML = `<p>Error cargando menú.</p>`;
+    console.error("Error cargando menú:", err);
+    document.getElementById("menu-dinamico").innerHTML = `
+      <p class="text-danger">Error cargando menú. Intenta recargar la página.</p>
+    `;
   }
 }
 
 cargarMenu();
-
-
 
 
 // ---------- Función para eliminar expediente ----------

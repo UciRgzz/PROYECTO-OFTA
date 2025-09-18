@@ -1511,6 +1511,22 @@ app.post('/api/permisos/:nomina', isAdmin, async (req, res) => {
   }
 });
 
+app.get('/api/mis-permisos', verificarSesion, async (req, res) => {
+  const nomina = req.session.usuario.nomina;
+  if (req.session.usuario.rol === "admin") {
+    return res.json([
+      "expedientes","recibos","cierredecaja","medico",
+      "ordenes","optometria","insumos","usuarios",
+      "agendaquirurgica","asignarmodulos"
+    ].map(m => ({ modulo: m, permitido: true })));
+  }
+  const result = await pool.query(
+    'SELECT modulo, permitido FROM permisos WHERE usuario_nomina = $1',
+    [nomina]
+  );
+  res.json(result.rows);
+});
+
 
 // ==================== LOGOUT ====================
 app.get('/api/logout', (req, res) => {
