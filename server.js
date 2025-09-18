@@ -116,14 +116,14 @@ app.post('/api/login', async (req, res) => {
             return res.status(401).json({ error: 'Contraseña incorrecta' });
         }
 
-        // ✅ Guardamos toda la información en sesión
-                req.session.usuario = {
+        // LOGIN
+          req.session.usuario = {
+            nomina: usuario.nomina,   // 👈 agregar esto
             username: usuario.username,
             rol: usuario.rol,
             departamento: usuario.rol === "admin" ? "ADMIN" : usuario.departamento
-        };
-
-
+          };
+          
         res.json({ 
     mensaje: 'Login exitoso', 
     usuario: req.session.usuario,
