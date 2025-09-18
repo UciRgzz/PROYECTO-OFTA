@@ -653,8 +653,11 @@ async function cargarMenu() {
     } else {
       // Usuario normal → permisos desde BD
       const resPermisos = await fetch(`/api/permisos/${usuario.nomina}`);
-      const data = await resPermisos.json();
-      permisos = data.filter(p => p.permitido).map(p => p.modulo);
+        const data = await resPermisos.json();
+
+        // Si viene como objeto con "permisos", usar esa propiedad
+        const lista = Array.isArray(data) ? data : data.permisos || [];
+        permisos = lista.filter(p => p.permitido).map(p => p.modulo);
     }
 
     const menu = document.getElementById("menu-dinamico");
