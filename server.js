@@ -1288,18 +1288,42 @@ app.delete('/api/insumos/:id', isAdmin, async (req, res) => {
 // Crear usuario
 app.post('/api/admin/add-user', isAdmin, async (req, res) => {
     const { nomina, username, password, rol, departamento } = req.body;
+    const client = await pool.connect();
+
     try {
+        await client.query("BEGIN");
+
         const hashedPassword = await bcrypt.hash(password, 10);
-        await pool.query(
+        await client.query(
             'INSERT INTO usuarios (nomina, username, password, rol, departamento) VALUES ($1,$2,$3,$4,$5)',
             [nomina, username, hashedPassword, rol, departamento]
         );
-        res.json({ mensaje: 'Usuario creado correctamente' });
+
+        // 🔹 Insertar los 10 módulos por defecto (permitido = false)
+        const modulos = [
+            'expedientes', 'recibos', 'cierredecaja', 'medico',
+            'ordenes', 'optometria', 'insumos', 'usuarios',
+            'agendaquirurgica', 'asignarmodulos'
+        ];
+        for (const m of modulos) {
+            await client.query(
+                'INSERT INTO permisos (usuario_nomina, modulo, permitido) VALUES ($1,$2,$3)',
+                [nomina, m, false]
+            );
+        }
+
+        await client.query("COMMIT");
+        res.json({ mensaje: 'Usuario y permisos creados correctamente' });
+
     } catch (err) {
+        await client.query("ROLLBACK");
         console.error(err);
-        res.status(500).json({ error: 'Error creando usuario' });
+        res.status(500).json({ error: 'Error creando usuario con permisos' });
+    } finally {
+        client.release();
     }
 });
+
 
 // Listar usuarios
 app.get('/api/admin/list-users', isAdmin, async (req, res) => {
@@ -1550,6 +1574,7 @@ app.get('/api/mis-permisos', verificarSesion, async (req, res) => {
     res.status(500).json([]);
   }
 });
+
 
 
 // ==================== LOGOUT ====================
