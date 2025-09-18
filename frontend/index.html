@@ -630,54 +630,39 @@ async function cambiarSucursal(nombreSucursal) {
   }
 }
 
+// ====================== MENÚ ======================
 async function cargarMenu() {
   try {
-    // 🔹 Tomar usuario desde localStorage
-    const usuario = JSON.parse(localStorage.getItem("usuario"));
-    if (!usuario) {
-      // Si no hay usuario en localStorage, regresar al login
-      window.location.href = "/login/login.html";
+    const res = await fetch("/api/check-session");
+    if (!res.ok) {
+      document.getElementById("menu-dinamico").innerHTML = `
+        <p>No tienes permisos asignados.</p>
+        <a href="/login/login.html" class="btn btn-danger">Iniciar Sesión</a>
+      `;
       return;
     }
 
-    let permisos = [];
-    if (usuario.rol === "admin") {
-      // Admin ve todos los módulos
-      permisos = [
-        "expedientes",
-        "recibo",       // 👈 corregido (antes "recibos")
-        "cierre",
-        "medico",
-        "ordenes",
-        "optometria",
-        "insumos",
-        "usuarios",
-        "agenda",
-        "asignacion"
-      ];
-    } else if (usuario.nomina) {
-      // Usuario normal → permisos desde BD
-      const resPermisos = await fetch(`/api/permisos/${usuario.nomina}`);
-      const data = await resPermisos.json();
+    const data = await res.json();
 
-      // Si viene como objeto con "permisos", usar esa propiedad
-      const lista = Array.isArray(data) ? data : data.permisos || [];
-      permisos = lista.filter(p => p.permitido).map(p => p.modulo);
-    }
+    // 🚀 Pedir permisos del usuario
+    const permisosRes = await fetch(`/api/permisos/${data.usuario.nomina}`);
+    const permisosData = await permisosRes.json();
+    const permisos = permisosData
+      .filter(p => p.permitido)
+      .map(p => p.modulo);
 
-    const menu = document.getElementById("menu-dinamico");
     let html = "";
 
     if (permisos.includes("expedientes")) {
       html += `<a href="#" onclick="mostrarSeccion('expedientes')"><i class="material-icons">folder</i> Expedientes</a>`;
     }
-    if (permisos.includes("recibo")) {   // 👈 corregido
-      html += `<a href="#" onclick="mostrarSeccion('recibo')"><i class="material-icons">receipt</i> Recibo</a>`;
+    if (permisos.includes("recibos")) {
+      html += `<a href="#" onclick="mostrarSeccion('recibo')"><i class="material-icons">receipt</i> Recibos</a>`;
     }
-    if (permisos.includes("cierre")) {
+    if (permisos.includes("cierredecaja")) {
       html += `<a href="#" onclick="mostrarSeccion('cierre')"><i class="material-icons">attach_money</i> Cierre de Caja</a>`;
     }
-    if (permisos.includes("medico")) {
+    if (permisos.includes("modulo")) {
       html += `<a href="#" onclick="mostrarSeccion('medico')"><i class="material-icons">healing</i> Módulo Médico</a>`;
     }
     if (permisos.includes("ordenes")) {
@@ -690,24 +675,23 @@ async function cargarMenu() {
       html += `<a href="#" onclick="mostrarSeccion('insumos')"><i class="material-icons">inventory_2</i> Insumos</a>`;
     }
     if (permisos.includes("usuarios")) {
-      html += `<a href="#" onclick="mostrarSeccion('usuarios')"><i class="material-icons">group</i> Usuarios</a>`;
+      html += `<a href="#" onclick="mostrarSeccion('usuarios')"><i class="material-icons">people</i> Usuarios</a>`;
     }
-    if (permisos.includes("agenda")) {
+    if (permisos.includes("agendaquirurgica")) {
       html += `<a href="#" onclick="mostrarSeccion('agenda')"><i class="material-icons">event</i> Agenda Quirúrgica</a>`;
     }
-    if (permisos.includes("asignacion")) {
-      html += `<a href="#" onclick="mostrarSeccion('asignacion')"><i class="material-icons">admin_panel_settings</i> Asignar Módulos</a>`;
+    if (permisos.includes("asignarmodulos")) {
+      html += `<a href="#" onclick="mostrarSeccion('asignacion')"><i class="material-icons">tune</i> Asignar Módulos</a>`;
     }
 
-    menu.innerHTML = html || "<p>No tienes permisos asignados.</p>";
-  } catch (err) { 
+    document.getElementById("menu-dinamico").innerHTML = html || "<p>No tienes permisos asignados.</p>";
+
+  } catch (err) {
     console.error("Error cargando menú:", err);
-    document.getElementById("menu-dinamico").innerHTML = "<p>Error cargando menú.</p>";
-  } 
+    document.getElementById("menu-dinamico").innerHTML = `<p>Error cargando menú.</p>`;
+  }
 }
-document.addEventListener("DOMContentLoaded", cargarMenu);
-
-
+cargarMenu(); 
 
 
 // ---------- Función para eliminar expediente ----------
