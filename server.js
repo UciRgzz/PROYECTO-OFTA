@@ -1511,22 +1511,39 @@ app.post('/api/permisos/:nomina', isAdmin, async (req, res) => {
   }
 });
 
+// Obtener permisos del usuario actual
 app.get('/api/mis-permisos', verificarSesion, async (req, res) => {
-  const nomina = req.session.usuario.nomina;
-  if (req.session.usuario.rol === "admin") {
-    return res.json([
-      "expedientes","recibos","cierredecaja","medico",
-      "ordenes","optometria","insumos","usuarios",
-      "agendaquirurgica","asignarmodulos"
-    ].map(m => ({ modulo: m, permitido: true })));
-  }
-  const result = await pool.query(
-    'SELECT modulo, permitido FROM permisos WHERE usuario_nomina = $1',
-    [nomina]
-  );
-  res.json(result.rows);
-});
+  try {
+    const nomina = req.session.usuario.nomina;
 
+    // Si es admin, devolver todos los permisos como objetos
+    if (req.session.usuario.rol === "admin") {
+      const todosLosModulos = [
+        "expedientes", "recibos", "cierredecaja", "medico",
+        "ordenes", "optometria", "insumos", "usuarios",
+        "agendaquirurgica", "asignarmodulos"
+      ];
+
+      const permisosAdmin = todosLosModulos.map(modulo => ({
+        modulo,
+        permitido: true
+      }));
+
+      return res.json(permisosAdmin);
+    }
+
+    // Para usuarios normales, consultar la BD
+    const result = await pool.query(
+      'SELECT modulo, permitido FROM permisos WHERE usuario_nomina = $1',
+      [nomina]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error al obtener permisos:", err);
+    res.status(500).json({ error: "Error al cargar permisos" });
+  }
+});
 
 // ==================== LOGOUT ====================
 app.get('/api/logout', (req, res) => {
