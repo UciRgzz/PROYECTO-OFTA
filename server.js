@@ -1042,6 +1042,7 @@ app.post("/api/seleccionar-sucursal", verificarSesion, (req, res) => {
 });
 
 // ==================== MÓDULO OPTOMETRÍA ====================
+// ==================== MÓDULO OPTOMETRÍA ====================
 // Guardar nueva evaluación de optometría
 app.post("/api/optometria", verificarSesion, async (req, res) => {
   try {
