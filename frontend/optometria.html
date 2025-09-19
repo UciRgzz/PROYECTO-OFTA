@@ -370,6 +370,7 @@ document.getElementById("btnNuevo").addEventListener("click", () => {
   document.getElementById("formularioOpto").style.display = "block";
   document.getElementById("tablaOpto").style.display = "none";
   
+  
   document.getElementById("formularioOpto").innerHTML = `
 <div class="card">
   <div class="card-header custom-header text-white"><i class="fas fa-plus-circle"></i> Nueva Evaluación</div>
@@ -377,11 +378,7 @@ document.getElementById("btnNuevo").addEventListener("click", () => {
     <form id="formOptometria">
       <div class="mb-3">
         <label class="form-label">Número de Expediente</label>
-        <input type="number" id="expedienteInput" name="expediente_id" class="form-control" required>
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Nombre del Paciente</label>
-        <input type="text" id="nombrePaciente" class="form-control" readonly>
+        <input type="number" name="expediente_id" class="form-control" required>
       </div>
       <div class="table-responsive">
         <table class="table table-bordered text-center align-middle">
@@ -418,7 +415,60 @@ document.getElementById("btnNuevo").addEventListener("click", () => {
           </tbody>
         </table>
       </div>
-      <!-- resto del formulario igual que antes -->
+      <div class="row mt-4">
+        <div class="col-md-2"><label class="form-label">BMP</label><input type="text" name="bmp" class="form-control"></div>
+        <div class="col-md-2"><label class="form-label">BMP OD</label><input type="text" name="bmp_od" class="form-control"></div>
+        <div class="col-md-2"><label class="form-label">BMP OI</label><input type="text" name="bmp_oi" class="form-control"></div>
+        <div class="col-md-2"><label class="form-label">F.O</label><input type="text" name="fo" class="form-control"></div>
+        <div class="col-md-2"><label class="form-label">F.O OD</label><input type="text" name="fo_od" class="form-control"></div>
+        <div class="col-md-2"><label class="form-label">F.O OI</label><input type="text" name="fo_oi" class="form-control"></div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-md-6">
+          <label class="form-label">Cicloplejia</label>
+          <input type="text" name="cicloplejia" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Hora T.P.</label>
+          <input type="time" name="hora_tp" class="form-control">
+        </div>
+      </div>
+
+      <div class="table-responsive mt-4">
+        <table class="table table-bordered text-center align-middle">
+          <thead class="table-light">
+            <tr>
+              <th></th>
+              <th colspan="3">AV Lejos</th>
+              <th colspan="2">AV Cerca</th>
+              <th colspan="2">Con Lentes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>OD</strong></td>
+              <td><input type="text" name="av_lejos_od1" class="form-control"></td>
+              <td><input type="text" name="av_lejos_od2" class="form-control"></td>
+              <td><input type="text" name="av_lejos_od3" class="form-control"></td>
+              <td><input type="text" name="av_cerca_od1" class="form-control"></td>
+              <td><input type="text" name="av_cerca_od2" class="form-control"></td>
+              <td><input type="text" name="av_lentes_od1" class="form-control"></td>
+              <td><input type="text" name="av_lentes_od2" class="form-control"></td>
+            </tr>
+            <tr>
+              <td><strong>OI</strong></td>
+              <td><input type="text" name="av_lejos_oi1" class="form-control"></td>
+              <td><input type="text" name="av_lejos_oi2" class="form-control"></td>
+              <td><input type="text" name="av_lejos_oi3" class="form-control"></td>
+              <td><input type="text" name="av_cerca_oi1" class="form-control"></td>
+              <td><input type="text" name="av_cerca_oi2" class="form-control"></td>
+              <td><input type="text" name="av_lentes_oi1" class="form-control"></td>
+              <td><input type="text" name="av_lentes_oi2" class="form-control"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       
       <div class="d-flex justify-content-end mt-4">
         <button type="button" class="btn btn-secondary me-2" onclick="cancelarFormulario()">
@@ -432,27 +482,6 @@ document.getElementById("btnNuevo").addEventListener("click", () => {
   </div>
 </div>
   `;
-
-  // 👀 Buscar nombre del paciente al poner número de expediente
-  document.getElementById("expedienteInput").addEventListener("change", async (e) => {
-    const id = e.target.value;
-    if (!id) {
-      document.getElementById("nombrePaciente").value = "";
-      return;
-    }
-    try {
-      const res = await fetch(`/api/expedientes/${id}`);
-      if (res.ok) {
-        const data = await res.json();
-        document.getElementById("nombrePaciente").value = data.nombre_completo || "No encontrado";
-      } else {
-        document.getElementById("nombrePaciente").value = "No encontrado";
-      }
-    } catch (err) {
-      console.error("Error cargando expediente:", err);
-      document.getElementById("nombrePaciente").value = "Error al buscar";
-    }
-  });
 
   document.getElementById("formOptometria").addEventListener("submit", guardarOpto);
 });
