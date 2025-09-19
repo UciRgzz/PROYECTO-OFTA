@@ -378,12 +378,35 @@ async function verOptometria(expedienteId, nombre) {
             <tr><th>OD Cilindro</th><td>${opto.cilindro_od || ''}</td></tr>
             <tr><th>OD Eje</th><td>${opto.eje_od || ''}</td></tr>
             <tr><th>OD AVcC</th><td>${opto.avcc_od || ''}</td></tr>
+            <tr><th>OD Adición</th><td>${opto.adicion_od || ''}</td></tr>
+            <tr><th>OD AVcC2</th><td>${opto.avcc2_od || ''}</td></tr>
+            
             <tr><th>OI Esfera</th><td>${opto.esfera_oi || ''}</td></tr>
             <tr><th>OI Cilindro</th><td>${opto.cilindro_oi || ''}</td></tr>
             <tr><th>OI Eje</th><td>${opto.eje_oi || ''}</td></tr>
             <tr><th>OI AVcC</th><td>${opto.avcc_oi || ''}</td></tr>
+            <tr><th>OI Adición</th><td>${opto.adicion_oi || ''}</td></tr>
+            <tr><th>OI AVcC2</th><td>${opto.avcc2_oi || ''}</td></tr>
+
             <tr><th>BMP</th><td>${opto.bmp || ''}</td></tr>
+            <tr><th>BMP OD</th><td>${opto.bmp_od || ''}</td></tr>
+            <tr><th>BMP OI</th><td>${opto.bmp_oi || ''}</td></tr>
+            
             <tr><th>F.O</th><td>${opto.fo || ''}</td></tr>
+            <tr><th>F.O OD</th><td>${opto.fo_od || ''}</td></tr>
+            <tr><th>F.O OI</th><td>${opto.fo_oi || ''}</td></tr>
+
+            <tr><th>Cicloplejia</th><td>${opto.cicloplejia || ''}</td></tr>
+            <tr><th>Hora T.P.</th><td>${opto.hora_tp || ''}</td></tr>
+
+            <tr><th>AV Lejos OD</th><td>${opto.av_lejos_od1 || ''} - ${opto.av_lejos_od2 || ''} - ${opto.av_lejos_od3 || ''}</td></tr>
+            <tr><th>AV Cerca OD</th><td>${opto.av_cerca_od1 || ''} - ${opto.av_cerca_od2 || ''}</td></tr>
+            <tr><th>AV Con Lentes OD</th><td>${opto.av_lentes_od1 || ''} - ${opto.av_lentes_od2 || ''}</td></tr>
+
+            <tr><th>AV Lejos OI</th><td>${opto.av_lejos_oi1 || ''} - ${opto.av_lejos_oi2 || ''} - ${opto.av_lejos_oi3 || ''}</td></tr>
+            <tr><th>AV Cerca OI</th><td>${opto.av_cerca_oi1 || ''} - ${opto.av_cerca_oi2 || ''}</td></tr>
+            <tr><th>AV Con Lentes OI</th><td>${opto.av_lentes_oi1 || ''} - ${opto.av_lentes_oi2 || ''}</td></tr>
+
             <tr><th>Fecha</th><td>${new Date(opto.fecha).toLocaleString()}</td></tr>
         </table>
         <hr/>
@@ -393,7 +416,7 @@ async function verOptometria(expedienteId, nombre) {
     Swal.fire({
         title: `Optometría de ${nombre} (Expediente ${expedienteId})`,
         html: contenido,
-        width: '60%',
+        width: '70%',
         confirmButtonText: 'Cerrar'
     });
 }
