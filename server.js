@@ -99,11 +99,20 @@ app.get('/api/logout', (req, res) => {
     });
 });
 
-
 // ==================== SERVIR PÁGINAS ====================
 // 👇 siempre al final
 app.use('/login', express.static(path.join(__dirname, 'login')));
 app.use('/frontend', verificarSesion, express.static(path.join(__dirname, 'frontend')));
+
+// ==================== SERVIR RAÍZ ====================
+app.get('/', (req, res) => {
+  // Si no está logueado → redirigir al login
+  if (!req.session.usuario) {
+    return res.redirect('/login/login.html');
+  }
+  // Si ya está logueado → redirigir al frontend
+  return res.redirect('/frontend/index.html');
+});
 
 
 
