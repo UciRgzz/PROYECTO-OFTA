@@ -38,6 +38,38 @@ app.use(session({
     }
 }));
 
+// ==================== MIDDLEWARE: Auto-crear permisos para usuarios no admin ====================
+app.use(async (req, res, next) => {
+  if (req.session.usuario && req.session.usuario.rol !== 'admin') {
+    const nomina = req.session.usuario.nomina;
+    try {
+      const result = await pool.query(
+        'SELECT COUNT(*) FROM permisos WHERE usuario_nomina = $1',
+        [nomina]
+      );
+      
+      if (parseInt(result.rows[0].count) === 0) {
+        const modulos = [
+          'expedientes', 'recibos', 'cierredecaja', 'medico',
+          'ordenes', 'optometria', 'insumos', 'usuarios',
+          'agendaquirurgica', 'asignarmodulos'
+        ];
+        
+        for (const modulo of modulos) {
+          await pool.query(
+            'INSERT INTO permisos (usuario_nomina, modulo, permitido) VALUES ($1, $2, $3)',
+            [nomina, modulo, false]
+          );
+        }
+        console.log(`✅ Permisos creados para usuario: ${nomina}`);
+      }
+    } catch (err) {
+      console.error("Error en middleware de permisos:", err);
+    }
+  }
+  next();
+});
+
 /*// PostgreSQL
 const pool = new Pool({
     user: 'postgres',
@@ -601,12 +633,12 @@ app.get("/api/pendientes-medico", verificarSesion, async (req, res) => {
       FROM recibos r
       JOIN expedientes e 
         ON r.paciente_id = e.numero_expediente 
-       AND r.departamento = e.departamento   -- 👈 asegura misma sucursal
+       AND r.departamento = e.departamento   // 👈 asegura misma sucursal
       WHERE r.departamento = $1
         AND NOT EXISTS (
           SELECT 1 
           FROM ordenes_medicas o 
-          WHERE o.folio_recibo = r.id         -- 👈 usar recibo en vez de expediente
+          WHERE o.folio_recibo = r.id         // 👈 usar recibo en vez de expediente
             AND o.departamento = r.departamento
         )
     `, [depto]);
@@ -740,7 +772,7 @@ app.get("/api/expedientes/:id/ordenes", verificarSesion, async (req, res) => {
         ON r.id = o.folio_recibo 
        AND r.departamento = o.departamento
       JOIN expedientes e
-        ON e.numero_expediente = o.expediente_id   -- 👈 corregido
+        ON e.numero_expediente = o.expediente_id   // 👈 corregido
        AND e.departamento = o.departamento
       WHERE o.expediente_id = $1 AND o.departamento = $2
       ORDER BY o.fecha DESC
@@ -760,8 +792,8 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
     
     const result = await pool.query(`
       SELECT 
-        o.id AS orden_id,                          -- ID real de la orden (para pagos)
-        e.numero_expediente AS expediente_numero,  -- ✅ número de expediente del paciente
+        o.id AS orden_id,                          // ID real de la orden (para pagos)
+        e.numero_expediente AS expediente_numero,  // ✅ número de expediente del paciente
         e.nombre_completo AS paciente, 
         o.medico, 
         o.diagnostico, 
