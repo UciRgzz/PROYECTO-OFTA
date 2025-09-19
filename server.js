@@ -63,7 +63,8 @@ pool.connect()
     .then(() => console.log('Conexión a PostgreSQL exitosa'))
     .catch(err => console.error('Error conectando a PostgreSQL', err));
 
-// Middleware para proteger rutas
+// ==================== MIDDLEWARE ====================
+// Proteger rutas con sesión
 function verificarSesion(req, res, next) {
     if (req.session && req.session.usuario) {
         return next();
@@ -71,7 +72,7 @@ function verificarSesion(req, res, next) {
     res.status(401).json({ error: 'No autorizado' });
 }
 
-// Middleware para restringir solo a admins
+// Restringir solo a admins
 function isAdmin(req, res, next) {
     if (req.session.usuario?.rol === 'admin') {
         return next();
@@ -88,7 +89,6 @@ app.get('/api/check-session', (req, res) => {
     }
 });
 
-
 // ==================== LOGOUT ====================
 app.get('/api/logout', (req, res) => {
     req.session.destroy(() => {
@@ -96,14 +96,15 @@ app.get('/api/logout', (req, res) => {
     });
 });
 
-
 // ==================== SERVIR PÁGINAS ====================
 // 👇 siempre al final
 app.use('/login', express.static(path.join(__dirname, 'login')));
 app.use('/frontend', verificarSesion, express.static(path.join(__dirname, 'frontend')));
 
-
-
+// 👉 Redirigir la raíz al login
+app.get('/', (req, res) => {
+    res.redirect('/login/login.html');
+});
 
 // ==================== LOGIN ====================
 app.post('/api/login', async (req, res) => {
@@ -123,19 +124,19 @@ app.post('/api/login', async (req, res) => {
             return res.status(401).json({ error: 'Contraseña incorrecta' });
         }
 
-        // LOGIN
-          req.session.usuario = {
-            nomina: usuario.nomina,   // 👈 agregar esto
+        // ✅ Guardar datos en sesión
+        req.session.usuario = {
+            nomina: usuario.nomina,
             username: usuario.username,
             rol: usuario.rol,
             departamento: usuario.rol === "admin" ? "ADMIN" : usuario.departamento
-          };
+        };
           
         res.json({ 
-    mensaje: 'Login exitoso', 
-    usuario: req.session.usuario,
-    rol: usuario.rol   // 👈 añadimos el rol explícito
-});
+            mensaje: 'Login exitoso', 
+            usuario: req.session.usuario,
+            rol: usuario.rol
+        });
 
     } catch (err) {
         console.error(err);
