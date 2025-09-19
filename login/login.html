@@ -172,30 +172,40 @@ loginForm.addEventListener('submit', async e => {
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
 
-    const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-    });
+    try {
+        const res = await fetch('https://oftavision.shop/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password }),
+            credentials: "include"   // 👈 obligatorio para sesiones
+        });
 
-    const data = await res.json();
-    if (res.ok) {
-    // ✅ Guardar el objeto completo de usuario, incluyendo la nómina
-    localStorage.setItem("usuario", JSON.stringify(data.usuario));
+        const data = await res.json();
+        if (res.ok) {
+            // ✅ Guardar usuario en localStorage
+            localStorage.setItem("usuario", JSON.stringify(data.usuario));
 
-    // Redirigir al sistema
-    window.location.href = '/frontend/index.html';
-
-
-    } else {
+            // Redirigir al dashboard
+            window.location.href = '/frontend/index.html';
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.error || 'Usuario o contraseña incorrectos',
+                confirmButtonColor: '#e74c3c'
+            });
+        }
+    } catch (err) {
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: data.error || 'Usuario o contraseña incorrectos',
+            text: 'No se pudo conectar con el servidor',
             confirmButtonColor: '#e74c3c'
         });
+        console.error("Error login:", err);
     }
 });
+
 
 
     // OLVIDAR CONTRASEÑA (NÓMINA)
