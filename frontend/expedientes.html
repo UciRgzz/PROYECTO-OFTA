@@ -379,9 +379,9 @@ async function verOptometria(expedienteId, nombre) {
             <tr><th>Esfera</th><td>${opto.esfera_od || ''}</td></tr>
             <tr><th>Cilindro</th><td>${opto.cilindro_od || ''}</td></tr>
             <tr><th>Eje</th><td>${opto.eje_od || ''}</td></tr>
-            <tr><th>AV cC</th><td>${opto.avcc_od || ''}</td></tr>
+            <tr><th>AVcC</th><td>${opto.avcc_od || ''}</td></tr>
             <tr><th>Adición</th><td>${opto.adicion_od || ''}</td></tr>
-            <tr><th>AV cC2</th><td>${opto.avcc2_od || ''}</td></tr>
+            <tr><th>AVcC2</th><td>${opto.avcc2_od || ''}</td></tr>
             <tr><th>AV Lejos</th><td>${opto.av_lejos_od1 || ''} - ${opto.av_lejos_od2 || ''} - ${opto.av_lejos_od3 || ''}</td></tr>
             <tr><th>AV Cerca</th><td>${opto.av_cerca_od1 || ''} - ${opto.av_cerca_od2 || ''}</td></tr>
             <tr><th>AV Con Lentes</th><td>${opto.av_lentes_od1 || ''} - ${opto.av_lentes_od2 || ''}</td></tr>
@@ -391,9 +391,9 @@ async function verOptometria(expedienteId, nombre) {
             <tr><th>Esfera</th><td>${opto.esfera_oi || ''}</td></tr>
             <tr><th>Cilindro</th><td>${opto.cilindro_oi || ''}</td></tr>
             <tr><th>Eje</th><td>${opto.eje_oi || ''}</td></tr>
-            <tr><th>AV cC</th><td>${opto.avcc_oi || ''}</td></tr>
+            <tr><th>AVcC</th><td>${opto.avcc_oi || ''}</td></tr>
             <tr><th>Adición</th><td>${opto.adicion_oi || ''}</td></tr>
-            <tr><th>AV cC2</th><td>${opto.avcc2_oi || ''}</td></tr>
+            <tr><th>AVcC2</th><td>${opto.avcc2_oi || ''}</td></tr>
             <tr><th>AV Lejos</th><td>${opto.av_lejos_oi1 || ''} - ${opto.av_lejos_oi2 || ''} - ${opto.av_lejos_oi3 || ''}</td></tr>
             <tr><th>AV Cerca</th><td>${opto.av_cerca_oi1 || ''} - ${opto.av_cerca_oi2 || ''}</td></tr>
             <tr><th>AV Con Lentes</th><td>${opto.av_lentes_oi1 || ''} - ${opto.av_lentes_oi2 || ''}</td></tr>
@@ -424,11 +424,6 @@ async function verOptometria(expedienteId, nombre) {
     });
 }
 
-function cerrarModal() {
-    document.getElementById("modalMedico").style.display = "none";
-}
-
-cargarExpedientes();
 
 
 // === ELIMINAR EXPEDIENTE ===//
