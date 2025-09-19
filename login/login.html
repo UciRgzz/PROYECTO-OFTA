@@ -173,12 +173,13 @@ loginForm.addEventListener('submit', async e => {
     const password = document.getElementById('loginPassword').value;
 
     try {
-        const res = await fetch('https://oftavision.shop:3000/api/login', {
+       const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
-        credentials: "include"   // 👈 obligatorio para sesiones
+        credentials: "include"
     });
+
 
 
         const data = await res.json();

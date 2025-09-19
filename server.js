@@ -24,8 +24,6 @@ app.use(cors({
 app.use(bodyParser.json());
 
 
-
-
 // Sesiones
 app.use(session({
     secret: 'mi_secreto_super_seguro',
