@@ -4,248 +4,129 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - OFTASIS</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/litera/bootstrap.min.css">
     <style>
-        :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --text-color: #2c3e50;
-            --light-gray: #f5f7fa;
-            --border-color: #dce4ec;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #e8f4f8 0%, #d6e4f0 100%);
-            min-height: 100vh;
+        body { 
+            background: url('/uploads/fondo_oftavision.jpg') no-repeat center center fixed; 
+            background-size: cover; 
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            min-height: 100vh;
+            position: relative;
         }
-        
-        .login-container {
-            width: 100%;
-            max-width: 400px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-            overflow: hidden;
+
+        /* Overlay oscuro */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); /* negro con opacidad */
+            z-index: 0;
         }
-        
-        .login-header {
-            background: var(--primary-color);
-            color: white;
-            padding: 25px;
+
+        .card { 
+            border-radius: 20px; 
+            z-index: 2; 
+            background: rgba(255, 255, 255, 0.95); /* un poco translúcida */
+        }
+        .icon-circle {
+            background-color: #dde8f0;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            margin: 0 auto 20px auto;
+            color: #505458;
+        }
+        .btn-custom { border-radius: 50px; font-weight: bold; }
+        .form-control { border-radius: 50px; padding-left: 40px; }
+        .input-group-text { border-radius: 50px 0 0 50px; background-color: #f0f0f0; }
+        .header-title {
             text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            text-shadow: 1px 1px 5px rgba(0,0,0,0.9);
+            z-index: 2;
+            position: relative;
         }
-        
-        .system-name {
-            font-size: 2rem;
-            font-weight: 600;
-            margin-bottom: 5px;
+        .header-title h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
         }
-        
-        .system-subtitle {
-            font-size: 1rem;
+        .header-title p {
+            font-size: 1.1rem;
             opacity: 0.9;
-        }
-        
-        .login-body {
-            padding: 30px;
-        }
-        
-        .form-title {
-            text-align: center;
-            color: var(--text-color);
-            margin-bottom: 25px;
-            font-size: 1.4rem;
-            font-weight: 500;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--text-color);
-        }
-        
-        .form-input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 1rem;
-            transition: all 0.3s;
-        }
-        
-        .form-input:focus {
-            border-color: var(--secondary-color);
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-        }
-        
-        .btn {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 6px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .btn-primary {
-            background: var(--secondary-color);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #2980b9;
-        }
-        
-        .form-footer {
-            text-align: center;
-            margin-top: 20px;
-        }
-        
-        .form-switch {
-            color: var(--secondary-color);
-            background: none;
-            border: none;
-            cursor: pointer;
-            text-decoration: underline;
-        }
-        
-        .form-switch:hover {
-            color: #2980b9;
-        }
-        
-        .copyright {
-            text-align: center;
-            margin-top: 30px;
-            color: #7f8c8d;
-            font-size: 0.85rem;
-        }
-        
-        .form-switcher {
-            display: none;
-        }
-        
-        /* Estilos específicos para PC */
-        @media (min-width: 1024px) {
-            .login-container {
-                max-width: 450px;
-            }
-            
-            .login-header {
-                padding: 30px;
-            }
-            
-            .system-name {
-                font-size: 2.2rem;
-            }
-            
-            .login-body {
-                padding: 35px;
-            }
-            
-            .form-input {
-                padding: 14px 15px;
-            }
-            
-            .btn {
-                padding: 14px;
-            }
         }
     </style>
 </head>
-<body>
+<body class="d-flex flex-column justify-content-center align-items-center vh-100">
 
-<div class="login-container">
-    <!-- Header -->
-    <div class="login-header">
-        <h1 class="system-name">OFTASIS</h1>
-        <p class="system-subtitle">Gestor Electrónico</p>
-    </div>
-    
-    <!-- Body -->
-    <div class="login-body">
-        <h2 class="form-title" id="formTitle">Inicio de Sesión</h2>
-
-        <!-- LOGIN FORM -->
-        <form id="loginForm">
-            <div class="form-group">
-                <label class="form-label">Usuario</label>
-                <input type="text" id="loginUsername" class="form-input" placeholder="Ingresa tu usuario" required>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Contraseña</label>
-                <input type="password" id="loginPassword" class="form-input" placeholder="Ingresa tu contraseña" required>
-            </div>
-            
-            <button type="submit" class="btn btn-primary">Ingresar</button>
-            
-            <div class="form-footer">
-                <button type="button" class="form-switch" id="showForgot">¿Olvidaste tu contraseña?</button>
-            </div>
-        </form>
-
-        <!-- FORGOT PASSWORD FORM -->
-        <form id="forgotForm" class="form-switcher">
-            <div class="form-group">
-                <label class="form-label">Número de nómina</label>
-                <input type="text" id="forgotNomina" class="form-input" placeholder="Ingresa tu nómina" required>
-            </div>
-            
-            <button type="submit" class="btn btn-primary">Generar código de recuperación</button>
-            
-            <div class="form-footer">
-                <button type="button" class="form-switch" id="backToLogin">Volver al inicio de sesión</button>
-            </div>
-        </form>
-
-        <!-- RESET PASSWORD FORM -->
-        <form id="resetForm" class="form-switcher">
-            <div class="form-group">
-                <label class="form-label">Número de nómina</label>
-                <input type="text" id="resetNomina" class="form-input" placeholder="Ingresa tu nómina" required>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Código de recuperación</label>
-                <input type="text" id="resetToken" class="form-input" placeholder="Ingresa el código" required>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Nueva contraseña</label>
-                <input type="password" id="resetPassword" class="form-input" placeholder="Ingresa nueva contraseña" required>
-            </div>
-            
-            <button type="submit" class="btn btn-primary">Restablecer contraseña</button>
-            
-            <div class="form-footer">
-                <button type="button" class="form-switch" id="resetBackToLogin">Volver al inicio de sesión</button>
-            </div>
-        </form>
-
-        <div class="copyright">
-            <p>© 2023 OFTASIS - Sistema integral de Oftavisión</p>
-        </div>
-    </div>
+<!-- Encabezado -->
+<div class="header-title">
+    <h1>OFTASIS</h1>
+    <p>Sistema Integral de Oftavisión</p>
 </div>
+
+<!-- Tarjeta Login -->
+<div class="card shadow-sm p-4" style="width: 350px;">
+    <div class="icon-circle">
+        <i class="bi bi-person"></i>
+    </div>
+    <h4 class="text-center mb-4" id="formTitle">Iniciar Sesión</h4>
+
+    <!-- LOGIN -->
+    <form id="loginForm">
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-person"></i></span>
+            <input type="text" id="loginUsername" class="form-control" placeholder="Usuario" required>
+        </div>
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+            <input type="password" id="loginPassword" class="form-control" placeholder="Contraseña" required>
+        </div>
+        <button class="btn btn-primary w-100 btn-custom">Ingresar</button>
+        <button type="button" class="btn btn-link w-100 mt-2" id="showForgot">¿Olvidaste tu contraseña?</button>
+    </form>
+
+    <!-- OLVIDAR CONTRASEÑA -->
+    <form id="forgotForm" class="d-none">
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-hash"></i></span>
+            <input type="text" id="forgotNomina" class="form-control" placeholder="Número de nómina" required>
+        </div>
+        <button class="btn btn-warning w-100 btn-custom">Generar código de recuperación</button>
+        <button type="button" class="btn btn-link w-100 mt-2" id="backToLogin">Volver</button>
+    </form>
+
+    <!-- RESTABLECER CONTRASEÑA -->
+    <form id="resetForm" class="d-none">
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-hash"></i></span>
+            <input type="text" id="resetNomina" class="form-control" placeholder="Número de nómina" required>
+        </div>
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-key"></i></span>
+            <input type="text" id="resetToken" class="form-control" placeholder="Código de recuperación" required>
+        </div>
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+            <input type="password" id="resetPassword" class="form-control" placeholder="Nueva contraseña" required>
+        </div>
+        <button class="btn btn-success w-100 btn-custom">Restablecer contraseña</button>
+        <button type="button" class="btn btn-link w-100 mt-2" id="resetBackToLogin">Volver</button>
+    </form>
+</div>
+<!-- Logo -->
+    <div class="mt-4">
+        <img src="/uploads/logo-oftavision.png" alt="Logo Oftavisión" style="width: 120px; opacity: 0.9;">
+    </div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
@@ -259,69 +140,70 @@
 
     // Mostrar formulario "Recuperar Contraseña"
     showForgot.addEventListener('click', () => {
-        loginForm.classList.add('form-switcher');
-        resetForm.classList.add('form-switcher');
-        forgotForm.classList.remove('form-switcher');
+        loginForm.reset();
+        loginForm.classList.add('d-none');
+        resetForm.classList.add('d-none');
+        forgotForm.classList.remove('d-none');
         formTitle.textContent = 'Recuperar Contraseña';
     });
 
     // Volver a Login desde "Recuperar Contraseña"
     backToLogin.addEventListener('click', () => {
         forgotForm.reset();
-        forgotForm.classList.add('form-switcher');
-        resetForm.classList.add('form-switcher');
-        loginForm.classList.remove('form-switcher');
-        formTitle.textContent = 'Inicio de Sesión';
+        forgotForm.classList.add('d-none');
+        resetForm.classList.add('d-none');
+        loginForm.classList.remove('d-none');
+        formTitle.textContent = 'Iniciar Sesión';
     });
 
     // Volver a Login desde "Restablecer Contraseña"
     resetBackToLogin.addEventListener('click', () => {
         resetForm.reset();
-        resetForm.classList.add('form-switcher');
-        forgotForm.classList.add('form-switcher');
-        loginForm.classList.remove('form-switcher');
-        formTitle.textContent = 'Inicio de Sesión';
+        resetForm.classList.add('d-none');
+        forgotForm.classList.add('d-none');
+        loginForm.classList.remove('d-none');
+        formTitle.textContent = 'Iniciar Sesión';
     });
 
-    // LOGIN
-    loginForm.addEventListener('submit', async e => {
-        e.preventDefault();
-        const username = document.getElementById('loginUsername').value;
-        const password = document.getElementById('loginPassword').value;
+// LOGIN
+loginForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
 
-        try {
-           const res = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password }),
-            credentials: "include"
-        });
+    try {
+       const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+        credentials: "include"
+    });
 
-            const data = await res.json();
-            if (res.ok) {
-                // ✅ Guardar usuario en localStorage
-                localStorage.setItem("usuario", JSON.stringify(data.usuario));
+        const data = await res.json();
+        if (res.ok) {
+            // ✅ Guardar usuario en localStorage
+            localStorage.setItem("usuario", JSON.stringify(data.usuario));
 
-                // Redirigir al dashboard
-                window.location.href = '/frontend/index.html';
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: data.error || 'Usuario o contraseña incorrectos',
-                    confirmButtonColor: '#e74c3c'
-                });
-            }
-        } catch (err) {
+            // Redirigir al dashboard
+            window.location.href = '/frontend/index.html';
+        } else {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'No se pudo conectar con el servidor',
+                text: data.error || 'Usuario o contraseña incorrectos',
                 confirmButtonColor: '#e74c3c'
             });
-            console.error("Error login:", err);
         }
-    });
+    } catch (err) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo conectar con el servidor',
+            confirmButtonColor: '#e74c3c'
+        });
+        console.error("Error login:", err);
+    }
+});
 
     // OLVIDAR CONTRASEÑA (NÓMINA)
     forgotForm.addEventListener('submit', async e => {
@@ -343,8 +225,8 @@
                 confirmButtonColor: '#3498db'
             }).then(() => {
                 forgotForm.reset();
-                forgotForm.classList.add('form-switcher');
-                resetForm.classList.remove('form-switcher');
+                forgotForm.classList.add('d-none');
+                resetForm.classList.remove('d-none');
                 document.getElementById('resetNomina').value = nomina;
                 formTitle.textContent = 'Restablecer Contraseña';
             });
@@ -393,5 +275,7 @@
     });
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </body>
 </html>
