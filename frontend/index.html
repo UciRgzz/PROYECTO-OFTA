@@ -653,30 +653,19 @@ async function cargarMenu() {
       ];
     } else {
       // Usuario normal → consultar sus permisos reales
-      app.get('/api/mis-permisos', verificarSesion, async (req, res) => {
-  try {
-    // 👇 DEBUG: Verifica qué hay en la sesión
-    console.log("👉 Sesión en /api/mis-permisos:", req.session.usuario);
-
-    const nomina = req.session.usuario?.nomina;
-    const rol = req.session.usuario?.rol;
-
-    if (!nomina) {
-      return res.status(400).json({ error: "Usuario sin nómina en sesión" });
-    }
-    // ... resto del código
-  } catch (err) {
-    console.error("Error al obtener permisos:", err);
-    res.status(500).json([]);
-  }
-});
       const permisosRes = await fetch("/api/mis-permisos");
-      if (permisosRes.ok) {
-        permisos = await permisosRes.json();
-      } else {
-        console.error("Error al obtener permisos:", permisosRes.statusText);
+      if (!permisosRes.ok) {
+        document.getElementById("menu-dinamico").innerHTML = `
+          <p class="text-danger">Error cargando permisos. Contacta al administrador.</p>
+        `;
+        return;
       }
-    }   
+
+      const permisosData = await permisosRes.json();
+      permisos = Array.isArray(permisosData)
+        ? permisosData.filter(p => p.permitido).map(p => p.modulo)
+        : [];
+    }
 
     // Construir menú dinámico
     let html = "";
