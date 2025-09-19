@@ -4,68 +4,202 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - OFTASIS</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/litera/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --light-color: #f8f9fa;
+        }
+        
         body { 
-            background: url('/uploads/fondo_oftavision.jpg') no-repeat center center fixed; 
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.7) 0%, rgba(44, 62, 80, 0.8) 100%), 
+                       url('/uploads/fondo_oftavision.jpg') no-repeat center center fixed; 
             background-size: cover; 
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            position: relative;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* Overlay oscuro */
-        body::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.5); /* negro con opacidad */
-            z-index: 0;
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            z-index: 2;
         }
 
         .card { 
-            border-radius: 20px; 
-            z-index: 2; 
-            background: rgba(255, 255, 255, 0.95); /* un poco translúcida */
+            border-radius: 15px; 
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            border: none;
         }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            border-bottom: none;
+        }
+        
+        .card-body {
+            padding: 25px;
+        }
+        
         .icon-circle {
-            background-color: #dde8f0;
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #2c80b9 100%);
             width: 80px;
             height: 80px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 40px;
-            margin: 0 auto 20px auto;
-            color: #505458;
+            font-size: 35px;
+            margin: -40px auto 20px auto;
+            color: white;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+            border: 4px solid white;
         }
-        .btn-custom { border-radius: 50px; font-weight: bold; }
-        .form-control { border-radius: 50px; padding-left: 40px; }
-        .input-group-text { border-radius: 50px 0 0 50px; background-color: #f0f0f0; }
+        
+        .form-title {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group-text {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
+            color: white;
+            border: none;
+            border-radius: 8px 0 0 8px;
+            width: 45px;
+            justify-content: center;
+        }
+        
+        .form-control {
+            border-radius: 0 8px 8px 0;
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        
+        .btn {
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #2c80b9 100%);
+            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-color) 0%, #e67e22 100%);
+            box-shadow: 0 4px 10px rgba(243, 156, 18, 0.3);
+        }
+        
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(243, 156, 18, 0.4);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color) 0%, #219653 100%);
+            box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(39, 174, 96, 0.4);
+        }
+        
+        .btn-link {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .btn-link:hover {
+            color: #2c80b9;
+            text-decoration: underline;
+        }
+        
         .header-title {
             text-align: center;
             color: white;
             margin-bottom: 30px;
-            text-shadow: 1px 1px 5px rgba(0,0,0,0.9);
+            text-shadow: 1px 1px 5px rgba(0,0,0,0.3);
             z-index: 2;
-            position: relative;
         }
+        
         .header-title h1 {
-            font-size: 2.5rem;
-            font-weight: bold;
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
         }
+        
         .header-title p {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             opacity: 0.9;
+        }
+        
+        .logo-container {
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .logo-container img {
+            width: 140px;
+            opacity: 0.9;
+            filter: brightness(0) invert(1);
+        }
+        
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 0 15px;
+            }
+            
+            .card {
+                border-radius: 10px;
+            }
+            
+            .header-title h1 {
+                font-size: 2.2rem;
+            }
+            
+            .header-title p {
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
-<body class="d-flex flex-column justify-content-center align-items-center vh-100">
+<body>
 
 <!-- Encabezado -->
 <div class="header-title">
@@ -73,62 +207,69 @@
     <p>Sistema Integral de Oftavisión</p>
 </div>
 
-<!-- Tarjeta Login -->
-<div class="card shadow-sm p-4" style="width: 350px;">
-    <div class="icon-circle">
-        <i class="bi bi-person"></i>
+<!-- Contenedor Login -->
+<div class="login-container">
+    <div class="card shadow">
+        <div class="card-header">
+            <div class="icon-circle">
+                <i class="fas fa-user"></i>
+            </div>
+        </div>
+        <div class="card-body">
+            <h4 class="form-title" id="formTitle">Iniciar Sesión</h4>
+
+            <!-- LOGIN -->
+            <form id="loginForm">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                    <input type="text" id="loginUsername" class="form-control" placeholder="Usuario" required>
+                </div>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                    <input type="password" id="loginPassword" class="form-control" placeholder="Contraseña" required>
+                </div>
+                <button class="btn btn-primary w-100 mb-3">Ingresar</button>
+                <button type="button" class="btn btn-link w-100" id="showForgot">¿Olvidaste tu contraseña?</button>
+            </form>
+
+            <!-- OLVIDAR CONTRASEÑA -->
+            <form id="forgotForm" class="d-none">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                    <input type="text" id="forgotNomina" class="form-control" placeholder="Número de nómina" required>
+                </div>
+                <button class="btn btn-warning w-100 mb-3">Generar código de recuperación</button>
+                <button type="button" class="btn btn-link w-100" id="backToLogin">Volver</button>
+            </form>
+
+            <!-- RESTABLECER CONTRASEÑA -->
+            <form id="resetForm" class="d-none">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                    <input type="text" id="resetNomina" class="form-control" placeholder="Número de nómina" required>
+                </div>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-key"></i></span>
+                    <input type="text" id="resetToken" class="form-control" placeholder="Código de recuperación" required>
+                </div>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                    <input type="password" id="resetPassword" class="form-control" placeholder="Nueva contraseña" required>
+                </div>
+                <button class="btn btn-success w-100 mb-3">Restablecer contraseña</button>
+                <button type="button" class="btn btn-link w-100" id="resetBackToLogin">Volver</button>
+            </form>
+        </div>
     </div>
-    <h4 class="text-center mb-4" id="formTitle">Iniciar Sesión</h4>
-
-    <!-- LOGIN -->
-    <form id="loginForm">
-        <div class="input-group mb-3">
-            <span class="input-group-text"><i class="bi bi-person"></i></span>
-            <input type="text" id="loginUsername" class="form-control" placeholder="Usuario" required>
-        </div>
-        <div class="input-group mb-3">
-            <span class="input-group-text"><i class="bi bi-lock"></i></span>
-            <input type="password" id="loginPassword" class="form-control" placeholder="Contraseña" required>
-        </div>
-        <button class="btn btn-primary w-100 btn-custom">Ingresar</button>
-        <button type="button" class="btn btn-link w-100 mt-2" id="showForgot">¿Olvidaste tu contraseña?</button>
-    </form>
-
-    <!-- OLVIDAR CONTRASEÑA -->
-    <form id="forgotForm" class="d-none">
-        <div class="input-group mb-3">
-            <span class="input-group-text"><i class="bi bi-hash"></i></span>
-            <input type="text" id="forgotNomina" class="form-control" placeholder="Número de nómina" required>
-        </div>
-        <button class="btn btn-warning w-100 btn-custom">Generar código de recuperación</button>
-        <button type="button" class="btn btn-link w-100 mt-2" id="backToLogin">Volver</button>
-    </form>
-
-    <!-- RESTABLECER CONTRASEÑA -->
-    <form id="resetForm" class="d-none">
-        <div class="input-group mb-3">
-            <span class="input-group-text"><i class="bi bi-hash"></i></span>
-            <input type="text" id="resetNomina" class="form-control" placeholder="Número de nómina" required>
-        </div>
-        <div class="input-group mb-3">
-            <span class="input-group-text"><i class="bi bi-key"></i></span>
-            <input type="text" id="resetToken" class="form-control" placeholder="Código de recuperación" required>
-        </div>
-        <div class="input-group mb-3">
-            <span class="input-group-text"><i class="bi bi-lock"></i></span>
-            <input type="password" id="resetPassword" class="form-control" placeholder="Nueva contraseña" required>
-        </div>
-        <button class="btn btn-success w-100 btn-custom">Restablecer contraseña</button>
-        <button type="button" class="btn btn-link w-100 mt-2" id="resetBackToLogin">Volver</button>
-    </form>
 </div>
-<!-- Logo -->
-    <div class="mt-4">
-        <img src="/uploads/logo-oftavision.png" alt="Logo Oftavisión" style="width: 120px; opacity: 0.9;">
-    </div>
 
+<!-- Logo -->
+<div class="logo-container">
+    <img src="/uploads/logo-oftavision.png" alt="Logo Oftavisión">
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     const loginForm = document.getElementById('loginForm');
     const forgotForm = document.getElementById('forgotForm');
@@ -165,45 +306,45 @@
         formTitle.textContent = 'Iniciar Sesión';
     });
 
-// LOGIN
-loginForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    const username = document.getElementById('loginUsername').value;
-    const password = document.getElementById('loginPassword').value;
+    // LOGIN
+    loginForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        const username = document.getElementById('loginUsername').value;
+        const password = document.getElementById('loginPassword').value;
 
-    try {
-       const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-        credentials: "include"
-    });
+        try {
+           const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password }),
+            credentials: "include"
+        });
 
-        const data = await res.json();
-        if (res.ok) {
-            // ✅ Guardar usuario en localStorage
-            localStorage.setItem("usuario", JSON.stringify(data.usuario));
+            const data = await res.json();
+            if (res.ok) {
+                // ✅ Guardar usuario en localStorage
+                localStorage.setItem("usuario", JSON.stringify(data.usuario));
 
-            // Redirigir al dashboard
-            window.location.href = '/frontend/index.html';
-        } else {
+                // Redirigir al dashboard
+                window.location.href = '/frontend/index.html';
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.error || 'Usuario o contraseña incorrectos',
+                    confirmButtonColor: '#e74c3c'
+                });
+            }
+        } catch (err) {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: data.error || 'Usuario o contraseña incorrectos',
+                text: 'No se pudo conectar con el servidor',
                 confirmButtonColor: '#e74c3c'
             });
+            console.error("Error login:", err);
         }
-    } catch (err) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'No se pudo conectar con el servidor',
-            confirmButtonColor: '#e74c3c'
-        });
-        console.error("Error login:", err);
-    }
-});
+    });
 
     // OLVIDAR CONTRASEÑA (NÓMINA)
     forgotForm.addEventListener('submit', async e => {
@@ -275,7 +416,5 @@ loginForm.addEventListener('submit', async e => {
     });
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </body>
 </html>
