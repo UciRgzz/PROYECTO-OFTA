@@ -366,10 +366,21 @@ async function cargarOptometrias() {
   document.getElementById("tablaOpto").innerHTML = html;
 }
 
-document.getElementById("btnNuevo").addEventListener("click", () => {
+document.getElementById("btnNuevo").addEventListener("click", async () => {
   document.getElementById("formularioOpto").style.display = "block";
   document.getElementById("tablaOpto").style.display = "none";
-  
+
+  // 🔹 Cargar expedientes disponibles
+  const resExp = await fetch("/api/expedientes");
+  const expedientes = await resExp.json();
+
+  let opciones = '<option value="">Seleccione...</option>';
+  expedientes.forEach(exp => {
+    opciones += `<option value="${exp.numero_expediente}" data-nombre="${exp.nombre_completo}">
+      ${exp.numero_expediente} - ${exp.nombre_completo}
+    </option>`;
+  });
+
   document.getElementById("formularioOpto").innerHTML = `
 <div class="card">
   <div class="card-header custom-header text-white"><i class="fas fa-plus-circle"></i> Nueva Evaluación</div>
@@ -377,7 +388,13 @@ document.getElementById("btnNuevo").addEventListener("click", () => {
     <form id="formOptometria">
       <div class="mb-3">
         <label class="form-label">Número de Expediente</label>
-        <input type="number" name="expediente_id" class="form-control" required>
+        <select name="expediente_id" id="expedienteSelect" class="form-control" required>
+          ${opciones}
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Nombre del Paciente</label>
+        <input type="text" id="nombrePaciente" class="form-control" readonly>
       </div>
       <div class="table-responsive">
         <table class="table table-bordered text-center align-middle">
@@ -482,6 +499,12 @@ document.getElementById("btnNuevo").addEventListener("click", () => {
 </div>
   `;
 
+  // 🔹 Al seleccionar expediente, mostrar nombre del paciente
+  document.getElementById("expedienteSelect").addEventListener("change", e => {
+    const nombre = e.target.selectedOptions[0]?.getAttribute("data-nombre") || "";
+    document.getElementById("nombrePaciente").value = nombre;
+  });
+
   document.getElementById("formOptometria").addEventListener("submit", guardarOpto);
 });
 
@@ -489,6 +512,7 @@ function cancelarFormulario() {
   document.getElementById("formularioOpto").style.display = "none";
   document.getElementById("tablaOpto").style.display = "block";
 }
+
 
 
     // Guardar nueva evaluación
