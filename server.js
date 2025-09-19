@@ -17,24 +17,28 @@ const app = express();
 
 // Middleware
 app.use(cors({
-    origin: "https://oftavision.shop",  
+    origin: ["https://oftavision.shop", "http://localhost:3000"],
     credentials: true
 }));
+
 
 app.use(bodyParser.json());
 
 
 // Sesiones
+app.set('trust proxy', 1); // 👈 necesario en producción detrás de proxy/https
 app.use(session({
     secret: 'mi_secreto_super_seguro',
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: true, // false porque usas http://localhost
+        secure: process.env.NODE_ENV === "production", // true solo en prod
         httpOnly: true,
+        sameSite: "lax",
         maxAge: 1000 * 60 * 60 // 1 hora
     }
 }));
+
 
 /*// PostgreSQL
 const pool = new Pool({
