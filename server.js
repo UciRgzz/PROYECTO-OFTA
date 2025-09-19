@@ -1547,6 +1547,9 @@ app.post('/api/permisos/:nomina', isAdmin, async (req, res) => {
 // Obtener permisos del usuario actual (para frontend)
 app.get('/api/mis-permisos', verificarSesion, async (req, res) => {
   try {
+    // 👀 DEBUG
+    console.log("👉 Sesión en /api/mis-permisos:", req.session);
+
     const nomina = req.session.usuario?.nomina;
     const rol = req.session.usuario?.rol;
 
