@@ -325,12 +325,32 @@ async function cargarOptometrias() {
         <td>${o.fo || ""}</td>
         <td>${o.fo_od || ""}</td>
         <td>${o.fo_oi || ""}</td>
-        <td>${[o.av_lejos_od1, o.av_lejos_od2, o.av_lejos_od3].filter(Boolean).join(" - ")}</td>
-        <td>${[o.av_cerca_od1, o.av_cerca_od2].filter(Boolean).join(" - ")}</td>
-        <td>${[o.av_lentes_od1, o.av_lentes_od2].filter(Boolean).join(" - ")}</td>
-        <td>${[o.av_lejos_oi1, o.av_lejos_oi2, o.av_lejos_oi3].filter(Boolean).join(" - ")}</td>
-        <td>${[o.av_cerca_oi1, o.av_cerca_oi2].filter(Boolean).join(" - ")}</td>
-        <td>${[o.av_lentes_oi1, o.av_lentes_oi2].filter(Boolean).join(" - ")}</td>
+        <td>
+          ${(o.av_lejos_od1 || "")}<br>
+          ${(o.av_lejos_od2 || "")}<br>
+          ${(o.av_lejos_od3 || "")}
+        </td>
+        <td>
+          ${(o.av_cerca_od1 || "")}<br>
+          ${(o.av_cerca_od2 || "")}
+        </td>
+        <td>
+          ${(o.av_lentes_od1 || "")}<br>
+          ${(o.av_lentes_od2 || "")}
+        </td>
+        <td>
+          ${(o.av_lejos_oi1 || "")}<br>
+          ${(o.av_lejos_oi2 || "")}<br>
+          ${(o.av_lejos_oi3 || "")}
+        </td>
+        <td>
+          ${(o.av_cerca_oi1 || "")}<br>
+          ${(o.av_cerca_oi2 || "")}
+        </td>
+        <td>
+          ${(o.av_lentes_oi1 || "")}<br>
+          ${(o.av_lentes_oi2 || "")}
+        </td>
         <td>${o.cicloplejia || ""}</td>
         <td>${o.hora_tp || ""}</td>
         <td>${new Date(o.fecha).toLocaleString()}</td>
