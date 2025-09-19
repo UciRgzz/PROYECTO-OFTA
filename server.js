@@ -85,18 +85,27 @@ app.get('/api/check-session', (req, res) => {
     }
 });
 
-// ==================== SERVIR PÁGINAS ====================
-app.get('/', (req, res) => {
-    if (req.session && req.session.usuario) {
-        res.redirect('/frontend/index.html');
-    } else {
-        res.sendFile(path.join(__dirname, 'login', 'login.html'));
-    }
+// ==================== LOGIN ====================
+app.post('/api/login', async (req, res) => {
+   // 👆 aquí va el código completo del login (no los 3 puntos)
 });
 
-// ✅ Servir archivos estáticos correctamente
+// ⚠️ todas tus rutas API van aquí (permisos, expedientes, recibos, etc)
+
+// ==================== LOGOUT ====================
+app.get('/api/logout', (req, res) => {
+    req.session.destroy(() => {
+        res.redirect('/login/login.html');
+    });
+});
+
+
+// ==================== SERVIR PÁGINAS ====================
+// 👇 siempre al final
 app.use('/login', express.static(path.join(__dirname, 'login')));
 app.use('/frontend', verificarSesion, express.static(path.join(__dirname, 'frontend')));
+
+
 
 
 // ==================== LOGIN ====================
@@ -1481,7 +1490,7 @@ app.get("/api/cirugias", verificarSesion, async (req, res) => {
 app.get('/api/usuarios', isAdmin, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT nomina, username, departamento FROM usuarios ORDER BY username'
+      'SELECT nomina, username, rol, departamento FROM usuarios ORDER BY username ASC'
     );
     res.json(result.rows);
   } catch (err) {
@@ -1517,8 +1526,10 @@ app.post('/api/permisos/:nomina', isAdmin, async (req, res) => {
     const { nomina } = req.params;
     const { permisos } = req.body; // [{modulo:'expedientes', permitido:true}, ...]
 
+    // 🔹 Limpiar permisos previos
     await pool.query('DELETE FROM permisos WHERE usuario_nomina = $1', [nomina]);
 
+    // 🔹 Insertar los nuevos permisos
     for (let p of permisos) {
       await pool.query(
         'INSERT INTO permisos (usuario_nomina, modulo, permitido) VALUES ($1,$2,$3)',
@@ -1533,7 +1544,7 @@ app.post('/api/permisos/:nomina', isAdmin, async (req, res) => {
   }
 });
 
-// Obtener permisos del usuario actual
+// Obtener permisos del usuario actual (para frontend)
 app.get('/api/mis-permisos', verificarSesion, async (req, res) => {
   try {
     const nomina = req.session.usuario?.nomina;
@@ -1543,7 +1554,7 @@ app.get('/api/mis-permisos', verificarSesion, async (req, res) => {
       return res.status(400).json({ error: "Usuario sin nómina en sesión" });
     }
 
-    // Admin => todos permitidos
+    // 🔹 Admin => acceso a todos los módulos
     if (rol === "admin") {
       const todosLosModulos = [
         "expedientes", "recibos", "cierredecaja", "medico",
@@ -1557,25 +1568,24 @@ app.get('/api/mis-permisos', verificarSesion, async (req, res) => {
       })));
     }
 
-    // Usuario normal
+    // 🔹 Usuario normal => permisos según BD
     const result = await pool.query(
       'SELECT modulo, permitido FROM permisos WHERE usuario_nomina = $1',
       [nomina]
     );
 
-    // Normalizar y fallback vacío
     const permisos = result.rows.map(p => ({
       modulo: p.modulo ? p.modulo.trim().toLowerCase().replace(/\s+/g, '') : "",
       permitido: p.permitido
     }));
 
+    // Si no tiene ninguno → devolver arreglo vacío
     res.json(permisos.length ? permisos : []);
   } catch (err) {
     console.error("Error al obtener permisos:", err);
     res.status(500).json([]);
   }
 });
-
 
 
 // ==================== LOGOUT ====================
