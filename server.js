@@ -1049,7 +1049,14 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
       expediente_id,
       esfera_od, cilindro_od, eje_od, avcc_od, adicion_od, avcc2_od,
       esfera_oi, cilindro_oi, eje_oi, avcc_oi, adicion_oi, avcc2_oi,
-      bmp, bmp_od, bmp_oi, fo, fo_od, fo_oi
+      bmp, bmp_od, bmp_oi, fo, fo_od, fo_oi,
+      cicloplejia, hora_tp,
+      av_lejos_od1, av_lejos_od2, av_lejos_od3,
+      av_cerca_od1, av_cerca_od2,
+      av_lentes_od1, av_lentes_od2,
+      av_lejos_oi1, av_lejos_oi2, av_lejos_oi3,
+      av_cerca_oi1, av_cerca_oi2,
+      av_lentes_oi1, av_lentes_oi2
     } = req.body;
 
     let depto = getDepartamento(req);
@@ -1058,15 +1065,42 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
       `INSERT INTO optometria (
         expediente_id, esfera_od, cilindro_od, eje_od, avcc_od, adicion_od, avcc2_od,
         esfera_oi, cilindro_oi, eje_oi, avcc_oi, adicion_oi, avcc2_oi,
-        bmp, bmp_od, bmp_oi, fo, fo_od, fo_oi, fecha, departamento
+        bmp, bmp_od, bmp_oi, fo, fo_od, fo_oi,
+        cicloplejia, hora_tp,
+        av_lejos_od1, av_lejos_od2, av_lejos_od3,
+        av_cerca_od1, av_cerca_od2,
+        av_lentes_od1, av_lentes_od2,
+        av_lejos_oi1, av_lejos_oi2, av_lejos_oi3,
+        av_cerca_oi1, av_cerca_oi2,
+        av_lentes_oi1, av_lentes_oi2,
+        fecha, departamento
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19, NOW(), $20)
+      VALUES (
+        $1,$2,$3,$4,$5,$6,$7,
+        $8,$9,$10,$11,$12,$13,
+        $14,$15,$16,$17,$18,$19,
+        $20,$21,
+        $22,$23,$24,
+        $25,$26,
+        $27,$28,
+        $29,$30,$31,
+        $32,$33,
+        $34,$35,
+        NOW(), $36
+      )
       RETURNING *`,
       [
         expediente_id,
         esfera_od, cilindro_od, eje_od, avcc_od, adicion_od, avcc2_od,
         esfera_oi, cilindro_oi, eje_oi, avcc_oi, adicion_oi, avcc2_oi,
         bmp, bmp_od, bmp_oi, fo, fo_od, fo_oi,
+        cicloplejia, hora_tp,
+        av_lejos_od1, av_lejos_od2, av_lejos_od3,
+        av_cerca_od1, av_cerca_od2,
+        av_lentes_od1, av_lentes_od2,
+        av_lejos_oi1, av_lejos_oi2, av_lejos_oi3,
+        av_cerca_oi1, av_cerca_oi2,
+        av_lentes_oi1, av_lentes_oi2,
         depto
       ]
     );
@@ -1143,6 +1177,7 @@ app.delete("/api/optometria/:id", isAdmin, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 

@@ -2,136 +2,426 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestión de Usuarios</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #2c3e50;
+      --secondary-color: #3498db;
+      --accent-color: #e74c3c;
+      --light-color: #f8f9fa;
+      --dark-color: #343a40;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f0f5ff 0%, #e3f2fd 100%);
+      padding: 20px;
+      color: #333;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      color: white;
+      border-radius: 10px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+    
+    .description {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      margin-bottom: 30px;
+      overflow: hidden;
+      border: none;
+    }
+    
+    .card-header {
+      background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
+      color: white;
+      padding: 18px 25px;
+      font-size: 1.3rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+    }
+    
+    .card-header i {
+      margin-right: 12px;
+      font-size: 1.5rem;
+    }
+    
+    .card-body {
+      padding: 25px;
+    }
+    
+    .form-group {
+      margin-bottom: 25px;
+    }
+    
+    label {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--primary-color);
+    }
+    
+    input, select {
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      width: 100%;
+      transition: all 0.3s;
+    }
+    
+    input:focus, select:focus {
+      border-color: var(--secondary-color);
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+      outline: none;
+    }
+    
+    .btn {
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: none;
+      border-radius: 8px;
+      padding: 14px 25px;
+      font-size: 1.1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--secondary-color) 0%, #2c80b9 100%);
+      color: white;
+      box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4);
+    }
+    
+    .btn-primary i {
+      margin-right: 8px;
+    }
+    
+    .btn-danger {
+      background: linear-gradient(135deg, var(--accent-color) 0%, #c0392b 100%);
+      color: white;
+      box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
+    }
+    
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(231, 76, 60, 0.4);
+    }
+    
+    .btn-sm {
+      padding: 8px 15px;
+      font-size: 0.9rem;
+    }
+    
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    }
+    
+    .table th {
+      background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
+      color: white;
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+    }
+    
+    .table td {
+      padding: 15px;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .table tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .table tr:hover {
+      background-color: #f8f9fa;
+    }
+    
+    .success-alert {
+      display: none;
+      padding: 15px;
+      background: #d4edda;
+      color: #155724;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      color: #6c757d;
+      font-size: 0.9rem;
+    }
+    
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2rem;
+      }
+      
+      .table-responsive {
+        overflow-x: auto;
+      }
+    }
+  </style>
 </head>
-<body class="container mt-5">
-  <h2>Administrar Usuarios</h2>
+<body>
+  <div class="container">
+    <header>
+      <h1><i class="fas fa-users"></i> Gestión de Usuarios</h1>
+      <p class="description">Administra los usuarios del sistema Oftavisión.</p>
+    </header>
 
-  <!-- Formulario para crear usuario -->
-  <form id="addUserForm" class="mb-4">
-    <div class="mb-3">
-      <label for="nomina" class="form-label">Nómina</label>
-      <input type="text" class="form-control" id="nomina" required>
+    <div class="success-alert" id="successAlert">
+      <i class="fas fa-check-circle"></i> <span id="successMessage">Usuario creado correctamente.</span>
     </div>
-    <div class="mb-3">
-      <label for="username" class="form-label">Usuario</label>
-      <input type="text" class="form-control" id="username" required>
-    </div>
-    <div class="mb-3">
-      <label for="password" class="form-label">Contraseña</label>
-      <input type="password" class="form-control" id="password" required>
-    </div>
-    <div class="mb-3">
-      <label for="rol" class="form-label">Rol</label>
-      <select class="form-control" id="rol" required>
-        <option value="usuario">Usuario</option>
-        <option value="admin">Administrador</option>
-      </select>
-    </div>
-    <div class="mb-3">
-      <label for="departamento" class="form-label">Departamento</label>
-      <input type="text" class="form-control" id="departamento" placeholder="Ej. Reynosa, Yucatán">
-    </div>
-    <button type="submit" class="btn btn-primary">Crear Usuario</button>
-  </form>
 
-  <!-- Tabla de usuarios -->
-  <h4>Usuarios registrados</h4>
-  <table class="table table-bordered">
-    <thead>
-      <tr>
-        <th>Nómina</th>
-        <th>Usuario</th>
-        <th>Rol</th>
-        <th>Departamento</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody id="usersTable"></tbody>
-  </table>
+    <div class="card">
+      <div class="card-header">
+        <i class="fas fa-user-plus"></i> Crear Nuevo Usuario
+      </div>
+      <div class="card-body">
+        <!-- Formulario para crear usuario -->
+        <form id="addUserForm">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="nomina" class="form-label">Nómina</label>
+                <input type="text" class="form-control" id="nomina" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="username" class="form-label">Usuario</label>
+                <input type="text" class="form-control" id="username" required>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="password" class="form-label">Contraseña</label>
+                <input type="password" class="form-control" id="password" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="rol" class="form-label">Rol</label>
+                <select class="form-control" id="rol" required>
+                  <option value="usuario">Usuario</option>
+                  <option value="admin">Administrador</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="departamento" class="form-label">Departamento</label>
+            <input type="text" class="form-control" id="departamento" placeholder="Ej. Reynosa, Yucatán">
+          </div>
+          
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-plus-circle"></i> Crear Usuario
+          </button>
+        </form>
+      </div>
+    </div>
 
+    <div class="card">
+      <div class="card-header">
+        <i class="fas fa-list-alt"></i> Usuarios Registrados
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Nómina</th>
+                <th>Usuario</th>
+                <th>Rol</th>
+                <th>Departamento</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="usersTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p>Sistema de Gestión Oftavisión &copy; 2025</p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
     const form = document.getElementById('addUserForm');
     const tableBody = document.getElementById('usersTable');
 
     // Crear usuario con SweetAlert
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const data = {
-    nomina: document.getElementById('nomina').value.trim(),
-    username: document.getElementById('username').value.trim(),
-    password: document.getElementById('password').value,
-    rol: document.getElementById('rol').value,
-    departamento: document.getElementById('departamento').value.trim()
-  };
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = {
+        nomina: document.getElementById('nomina').value.trim(),
+        username: document.getElementById('username').value.trim(),
+        password: document.getElementById('password').value,
+        rol: document.getElementById('rol').value,
+        departamento: document.getElementById('departamento').value.trim()
+      };
 
-  const res = await fetch('/api/admin/add-user', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
+      const res = await fetch('/api/admin/add-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
 
-  const result = await res.json();
+      const result = await res.json();
 
-  if (res.ok) {
-    Swal.fire('✅ Éxito', result.mensaje, 'success');
-    loadUsers();
-    form.reset();
-  } else {
-    Swal.fire('❌ Error', result.error || 'No se pudo crear el usuario', 'error');
-  }
-});
-
+      if (res.ok) {
+        mostrarExito("Usuario creado", result.mensaje);
+        loadUsers();
+        form.reset();
+      } else {
+        mostrarError("Error al crear usuario", result.error || 'No se pudo crear el usuario');
+      }
+    });
 
     // Listar usuarios
-async function loadUsers() {
-  const res = await fetch('/api/admin/list-users');
-  const users = await res.json();
-  tableBody.innerHTML = users.map(u => `
-    <tr>
-      <td>${u.nomina}</td>
-      <td>${u.username}</td>
-      <td>${u.rol}</td>
-      <td>${u.departamento || ''}</td>
-      <td>
-        <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.nomina}')">
-          Eliminar
-        </button>
-      </td>
-    </tr>
-  `).join('');
-}
+    async function loadUsers() {
+      try {
+        const res = await fetch('/api/admin/list-users');
+        const users = await res.json();
+        
+        if (res.ok) {
+          tableBody.innerHTML = users.map(u => `
+            <tr>
+              <td>${u.nomina}</td>
+              <td>${u.username}</td>
+              <td><span class="badge bg-${u.rol === 'admin' ? 'primary' : 'secondary'}">${u.rol}</span></td>
+              <td>${u.departamento || ''}</td>
+              <td>
+                <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.nomina}')">
+                  <i class="fas fa-trash-alt"></i> Eliminar
+                </button>
+              </td>
+            </tr>
+          `).join('');
+        } else {
+          mostrarError("Error", "No se pudieron cargar los usuarios");
+        }
+      } catch (err) {
+        console.error(err);
+        mostrarError("Error de conexión", "No se pudo conectar al servidor");
+      }
+    }
 
-// Eliminar usuario
-async function deleteUser(nomina) {
-  const confirm = await Swal.fire({
-    title: '¿Estás seguro?',
-    text: `Eliminar usuario con nómina ${nomina}`,
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'Sí, eliminar',
-    cancelButtonText: 'Cancelar'
-  });
+    // Eliminar usuario
+    async function deleteUser(nomina) {
+      const confirm = await Swal.fire({
+        title: '¿Estás seguro?',
+        text: `Eliminar usuario con nómina ${nomina}`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#e74c3c'
+      });
 
-  if (!confirm.isConfirmed) return;
+      if (!confirm.isConfirmed) return;
 
-  const res = await fetch(`/api/admin/delete-user/${nomina}`, {
-    method: 'DELETE'
-  });
-  const result = await res.json();
+      try {
+        const res = await fetch(`/api/admin/delete-user/${nomina}`, {
+          method: 'DELETE'
+        });
+        const result = await res.json();
 
-  if (res.ok) {
-    Swal.fire('✅ Eliminado', result.mensaje, 'success');
-    loadUsers();
-  } else {
-    Swal.fire('❌ Error', result.error || 'No se pudo eliminar el usuario', 'error');
-  }
-}
+        if (res.ok) {
+          mostrarExito("Usuario eliminado", result.mensaje);
+          loadUsers();
+        } else {
+          mostrarError("Error al eliminar", result.error || 'No se pudo eliminar el usuario');
+        }
+      } catch (err) {
+        console.error(err);
+        mostrarError("Error de conexión", "No se pudo conectar al servidor");
+      }
+    }
 
+    // Mostrar mensaje de éxito
+    function mostrarExito(titulo, mensaje) {
+      document.getElementById('successMessage').textContent = mensaje;
+      document.getElementById('successAlert').style.display = 'block';
+      
+      // Ocultar después de 5 segundos
+      setTimeout(() => {
+        document.getElementById('successAlert').style.display = 'none';
+      }, 5000);
+      
+      Swal.fire({
+        icon: 'success',
+        title: titulo,
+        text: mensaje,
+        timer: 3000,
+        showConfirmButton: false
+      });
+    }
 
-    loadUsers();
+    // Mostrar error
+    function mostrarError(titulo, mensaje) {
+      Swal.fire({
+        icon: 'error',
+        title: titulo,
+        text: mensaje
+      });
+    }
+
+    // Cargar usuarios al iniciar
+    document.addEventListener("DOMContentLoaded", function() {
+      loadUsers();
+    });
   </script>
 </body>
 </html>
