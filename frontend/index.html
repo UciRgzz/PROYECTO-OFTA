@@ -730,6 +730,10 @@ async function cargarMenu() {
       if (permisos.includes("insumos")) {
         html += `<a href="#" onclick="mostrarSeccion('insumos')"><i class="material-icons">inventory</i> Insumos</a>`;
       }
+      // 🔹 Separador para gestión de cuentas
+      if (permisos.includes("asignarmodulos") || permisos.includes("usuarios")) {
+        html += `<hr class="text-white opacity-50">`;
+      }
       if (permisos.includes("asignarmodulos")) {
         html += `<a href="#" onclick="mostrarSeccion('asignarmodulos')"><i class="material-icons">settings</i> Asignar Módulos</a>`;
       }
