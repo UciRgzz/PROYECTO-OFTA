@@ -3,17 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OFTASIS - Centro de Acceso</title>
+    <title>OFTASIS - Acceso al Sistema</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary-dark: #1a1f36;
-            --secondary-dark: #2d3748;
-            --accent-blue: #3182ce;
-            --light-blue: #90cdf4;
+            --primary-dark: #1a1f2e;
+            --secondary-dark: #2d3447;
+            --accent-blue: #2563eb;
+            --light-blue: #60a5fa;
+            --medical-green: #10b981;
             --pure-white: #ffffff;
-            --gray-light: #e2e8f0;
-            --gray-medium: #a0aec0;
+            --gray-light: #f1f5f9;
+            --gray-medium: #94a3b8;
+            --gray-dark: #475569;
         }
 
         * {
@@ -27,136 +29,113 @@
             background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 100%);
             min-height: 100vh;
             display: flex;
-            color: var(--pure-white);
-        }
-
-        /* Layout de dos columnas */
-        .container {
-            display: flex;
-            width: 100%;
-            min-height: 100vh;
-        }
-
-        /* Columna izquierda - Navegación */
-        .sidebar {
-            width: 280px;
-            background: rgba(26, 31, 54, 0.95);
-            padding: 40px 30px;
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .logo {
-            display: flex;
             align-items: center;
-            margin-bottom: 50px;
-            font-size: 24px;
-            font-weight: 700;
-        }
-
-        .logo i {
-            color: var(--light-blue);
-            margin-right: 12px;
-            font-size: 28px;
-        }
-
-        .nav-section {
-            margin-bottom: 40px;
-        }
-
-        .nav-title {
-            color: var(--gray-medium);
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 20px;
-            font-weight: 600;
-        }
-
-        .nav-links {
-            list-style: none;
-        }
-
-        .nav-links li {
-            margin-bottom: 15px;
-        }
-
-        .nav-links a {
-            color: var(--gray-light);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            padding: 12px 15px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .nav-links a:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--pure-white);
-        }
-
-        .nav-links a i {
-            margin-right: 12px;
-            width: 20px;
-            text-align: center;
-        }
-
-        .nav-links a.active {
-            background: var(--accent-blue);
-            color: var(--pure-white);
-        }
-
-        /* Columna derecha - Login */
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
             justify-content: center;
-            align-items: center;
-            padding: 40px;
+            color: var(--pure-white);
             position: relative;
+            overflow: hidden;
         }
 
-        .login-container {
+        /* Efectos de fondo */
+        .background-effects {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            max-width: 400px;
+            height: 100%;
+            z-index: 1;
         }
 
-        .welcome-text {
-            margin-bottom: 40px;
+        .grid-pattern {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        /* Container principal */
+        .login-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 440px;
+            margin: 20px;
+        }
+
+        /* Header del sistema */
+        .system-header {
             text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.8s ease-out;
         }
 
-        .welcome-text h1 {
-            font-size: 2.5rem;
-            font-weight: 300;
-            margin-bottom: 10px;
+        .system-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--medical-green));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
+        }
+
+        .system-icon i {
+            font-size: 36px;
+            color: white;
+        }
+
+        .system-header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
             background: linear-gradient(45deg, var(--pure-white), var(--light-blue));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
-        .welcome-text p {
+        .system-header p {
             color: var(--gray-medium);
-            font-size: 1.1rem;
+            font-size: 1rem;
+            font-weight: 400;
         }
 
         /* Tarjeta de login */
         .login-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
+            background: rgba(30, 35, 50, 0.95);
+            backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 16px;
             padding: 40px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 0.8s ease-out 0.2s both;
         }
 
+        .card-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .card-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--pure-white);
+            margin-bottom: 8px;
+        }
+
+        .card-header p {
+            color: var(--gray-medium);
+            font-size: 0.95rem;
+        }
+
+        /* Formularios */
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 24px;
         }
 
         .form-label {
@@ -165,6 +144,8 @@
             color: var(--gray-light);
             font-size: 0.9rem;
             font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .input-with-icon {
@@ -173,19 +154,20 @@
 
         .input-icon {
             position: absolute;
-            left: 15px;
+            left: 16px;
             top: 50%;
             transform: translateY(-50%);
             color: var(--gray-medium);
             z-index: 2;
+            font-size: 1.1rem;
         }
 
         .form-input {
             width: 100%;
-            padding: 15px 15px 15px 45px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
+            padding: 14px 16px 14px 48px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
             color: var(--pure-white);
             font-size: 1rem;
             transition: all 0.3s ease;
@@ -194,33 +176,40 @@
         .form-input:focus {
             outline: none;
             border-color: var(--accent-blue);
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
         .form-input::placeholder {
             color: var(--gray-medium);
         }
 
-        .btn-login {
+        /* Botones */
+        .btn-system {
             width: 100%;
-            padding: 15px;
-            background: var(--accent-blue);
+            padding: 14px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--medical-green));
             color: var(--pure-white);
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .btn-login:hover {
-            background: #2c6cb0;
+        .btn-system:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(49, 130, 206, 0.4);
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
         }
 
+        .btn-system:active {
+            transform: translateY(0);
+        }
+
+        /* Links de formulario */
         .form-links {
             display: flex;
             justify-content: space-between;
@@ -232,7 +221,8 @@
             color: var(--light-blue);
             text-decoration: none;
             cursor: pointer;
-            transition: color 0.3s ease;
+            transition: all 0.3s ease;
+            font-weight: 500;
         }
 
         .form-link:hover {
@@ -240,234 +230,253 @@
             text-decoration: underline;
         }
 
-        /* Sección de ayuda */
-        .help-section {
-            margin-top: 40px;
+        /* Footer del sistema */
+        .system-footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding-top: 30px;
-        }
-
-        .help-title {
             color: var(--gray-medium);
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 20px;
-            font-weight: 600;
+            font-size: 0.85rem;
+            animation: fadeIn 1s ease-out 0.6s both;
         }
 
-        .help-links {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .help-link {
-            display: flex;
-            align-items: center;
-            color: var(--gray-light);
-            text-decoration: none;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
-
-        .help-link:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--pure-white);
-        }
-
-        .help-link i {
-            margin-right: 10px;
-            color: var(--light-blue);
-        }
-
-        /* Formularios ocultos */
+        /* Estados de formulario */
         .form-hidden {
             display: none;
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-            }
-            
-            .sidebar {
-                width: 100%;
-                border-right: none;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            }
-            
-            .main-content {
-                padding: 20px;
-            }
-            
-            .help-links {
-                grid-template-columns: 1fr;
-            }
-        }
-
         /* Animaciones */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        .fade-in {
-            animation: fadeIn 0.6s ease-out;
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Efectos de partículas médicas */
+        .medical-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            background: var(--medical-green);
+            border-radius: 50%;
+            animation: medical-float 15s infinite linear;
+            opacity: 0.1;
+        }
+
+        @keyframes medical-float {
+            0% { transform: translateY(100vh) rotate(0deg); }
+            100% { transform: translateY(-100px) rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .login-container {
+                margin: 15px;
+            }
+            
+            .login-card {
+                padding: 30px 25px;
+            }
+            
+            .system-header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .form-links {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+        }
+
+        /* Efecto de carga */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Columna izquierda - Navegación -->
-        <div class="sidebar">
-            <div class="logo">
+    <!-- Efectos de fondo -->
+    <div class="background-effects">
+        <div class="grid-pattern"></div>
+        <div class="medical-particles" id="medicalParticles"></div>
+    </div>
+
+    <!-- Container principal -->
+    <div class="login-container">
+        <!-- Header del sistema -->
+        <div class="system-header">
+            <div class="system-icon">
                 <i class="fas fa-eye"></i>
-                OFTASIS
             </div>
-
-            <div class="nav-section">
-                <div class="nav-title">Navegación Principal</div>
-                <ul class="nav-links">
-                    <li><a href="#" class="active"><i class="fas fa-home"></i> Inicio</a></li>
-                    <li><a href="#"><i class="fas fa-info-circle"></i> Sobre Nosotros</a></li>
-                    <li><a href="#"><i class="fas fa-concierge-bell"></i> Nuestros Servicios</a></li>
-                    <li><a href="#"><i class="fas fa-address-book"></i> Contacto</a></li>
-                </ul>
-            </div>
-
-            <div class="nav-section">
-                <div class="nav-title">Centro de Acceso</div>
-                <ul class="nav-links">
-                    <li><a href="#"><i class="fas fa-sign-in-alt"></i> Login Principal</a></li>
-                    <li><a href="#"><i class="fas fa-user-plus"></i> Registro</a></li>
-                    <li><a href="#"><i class="fas fa-question-circle"></i> Soporte</a></li>
-                </ul>
-            </div>
+            <h1>OFTASIS</h1>
+            <p>Sistema de Gestión Oftavisión</p>
         </div>
 
-        <!-- Columna derecha - Contenido principal -->
-        <div class="main-content">
-            <div class="login-container fade-in">
-                <div class="welcome-text">
-                    <h1>BIENVENIDO DE NUEVO</h1>
-                    <p>Centro de Gestión Oftalmológica</p>
-                </div>
+        <!-- Tarjeta de login -->
+        <div class="login-card">
+            <div class="card-header">
+                <h2>Acceso al Sistema</h2>
+                <p>Ingrese sus credenciales para continuar</p>
+            </div>
 
-                <!-- Formulario de Login -->
-                <div class="login-card">
-                    <form id="loginForm">
-                        <div class="form-group">
-                            <label class="form-label">Usuario</label>
-                            <div class="input-with-icon">
-                                <i class="fas fa-user input-icon"></i>
-                                <input type="text" id="loginUsername" class="form-input" placeholder="Ingrese su usuario" required>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Contraseña</label>
-                            <div class="input-with-icon">
-                                <i class="fas fa-lock input-icon"></i>
-                                <input type="password" id="loginPassword" class="form-input" placeholder="Ingrese su contraseña" required>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn-login">Acceder al Sistema</button>
-
-                        <div class="form-links">
-                            <a class="form-link" id="showForgot">¿Olvidó su contraseña?</a>
-                            <a class="form-link" id="showRegister">Crear cuenta nueva</a>
-                        </div>
-                    </form>
-
-                    <!-- Formulario de Recuperación -->
-                    <form id="forgotForm" class="form-hidden">
-                        <div class="form-group">
-                            <label class="form-label">Número de Nómina</label>
-                            <div class="input-with-icon">
-                                <i class="fas fa-id-card input-icon"></i>
-                                <input type="text" id="forgotNomina" class="form-input" placeholder="Ingrese su nómina" required>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn-login">Generar Código de Recuperación</button>
-
-                        <div class="form-links">
-                            <a class="form-link" id="backToLogin">Volver al login</a>
-                        </div>
-                    </form>
-
-                    <!-- Formulario de Restablecimiento -->
-                    <form id="resetForm" class="form-hidden">
-                        <div class="form-group">
-                            <label class="form-label">Número de Nómina</label>
-                            <div class="input-with-icon">
-                                <i class="fas fa-id-card input-icon"></i>
-                                <input type="text" id="resetNomina" class="form-input" placeholder="Ingrese su nómina" required>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Código de Recuperación</label>
-                            <div class="input-with-icon">
-                                <i class="fas fa-key input-icon"></i>
-                                <input type="text" id="resetToken" class="form-input" placeholder="Ingrese el código" required>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Nueva Contraseña</label>
-                            <div class="input-with-icon">
-                                <i class="fas fa-shield-alt input-icon"></i>
-                                <input type="password" id="resetPassword" class="form-input" placeholder="Nueva contraseña" required>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn-login">Restablecer Contraseña</button>
-
-                        <div class="form-links">
-                            <a class="form-link" id="resetBackToLogin">Volver al login</a>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Sección de ayuda -->
-                <div class="help-section">
-                    <div class="help-title">Recursos de Ayuda</div>
-                    <div class="help-links">
-                        <a href="#" class="help-link">
-                            <i class="fas fa-mobile-alt"></i>
-                            App Móvil
-                        </a>
-                        <a href="#" class="help-link">
-                            <i class="fas fa-code"></i>
-                            API Docs
-                        </a>
-                        <a href="#" class="help-link">
-                            <i class="fas fa-cogs"></i>
-                            Gestión API
-                        </a>
-                        <a href="#" class="help-link">
-                            <i class="fas fa-headset"></i>
-                            Soporte Técnico
-                        </a>
+            <!-- Formulario de Login -->
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label" for="loginUsername">Usuario</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-user input-icon"></i>
+                        <input type="text" id="loginUsername" class="form-input" placeholder="Ingrese su usuario" required>
                     </div>
                 </div>
-            </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="loginPassword">Contraseña</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" id="loginPassword" class="form-input" placeholder="Ingrese su contraseña" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-system" id="loginButton">
+                    <span class="button-text">Acceder al Sistema</span>
+                </button>
+
+                <div class="form-links">
+                    <a class="form-link" id="showForgot">¿Olvidó su contraseña?</a>
+                    <a class="form-link" id="showHelp">Ayuda técnica</a>
+                </div>
+            </form>
+
+            <!-- Formulario de Recuperación -->
+            <form id="forgotForm" class="form-hidden">
+                <div class="form-group">
+                    <label class="form-label" for="forgotNomina">Número de Nómina</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-id-card input-icon"></i>
+                        <input type="text" id="forgotNomina" class="form-input" placeholder="Ingrese su número de nómina" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-system">
+                    Generar Código de Recuperación
+                </button>
+
+                <div class="form-links">
+                    <a class="form-link" id="backToLogin">Volver al inicio de sesión</a>
+                </div>
+            </form>
+
+            <!-- Formulario de Restablecimiento -->
+            <form id="resetForm" class="form-hidden">
+                <div class="form-group">
+                    <label class="form-label" for="resetNomina">Número de Nómina</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-id-card input-icon"></i>
+                        <input type="text" id="resetNomina" class="form-input" placeholder="Ingrese su número de nómina" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="resetToken">Código de Recuperación</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-key input-icon"></i>
+                        <input type="text" id="resetToken" class="form-input" placeholder="Ingrese el código de recuperación" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="resetPassword">Nueva Contraseña</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-shield-alt input-icon"></i>
+                        <input type="password" id="resetPassword" class="form-input" placeholder="Ingrese nueva contraseña" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-system">
+                    Restablecer Contraseña
+                </button>
+
+                <div class="form-links">
+                    <a class="form-link" id="resetBackToLogin">Volver al inicio de sesión</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Footer del sistema -->
+        <div class="system-footer">
+            Sistema de Gestión Oftavisión © 2025
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // Crear partículas médicas
+        function createMedicalParticles() {
+            const container = document.getElementById('medicalParticles');
+            const particles = 8;
+            
+            for (let i = 0; i < particles; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.width = `${Math.random() * 8 + 4}px`;
+                particle.style.height = particle.style.width;
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.animationDelay = `${Math.random() * 15}s`;
+                particle.style.animationDuration = `${Math.random() * 10 + 10}s`;
+                container.appendChild(particle);
+            }
+        }
+
+        // Inicializar partículas
+        createMedicalParticles();
+
         // MANTENIENDO TUS FUNCIONES ORIGINALES
         const loginForm = document.getElementById('loginForm');
         const forgotForm = document.getElementById('forgotForm');
         const resetForm = document.getElementById('resetForm');
+        const loginButton = document.getElementById('loginButton');
         const showForgot = document.getElementById('showForgot');
         const backToLogin = document.getElementById('backToLogin');
         const resetBackToLogin = document.getElementById('resetBackToLogin');
@@ -480,12 +489,14 @@
         });
 
         backToLogin.addEventListener('click', () => {
+            forgotForm.reset();
             forgotForm.classList.add('form-hidden');
             resetForm.classList.add('form-hidden');
             loginForm.classList.remove('form-hidden');
         });
 
         resetBackToLogin.addEventListener('click', () => {
+            resetForm.reset();
             resetForm.classList.add('form-hidden');
             forgotForm.classList.add('form-hidden');
             loginForm.classList.remove('form-hidden');
@@ -496,6 +507,12 @@
             e.preventDefault();
             const username = document.getElementById('loginUsername').value;
             const password = document.getElementById('loginPassword').value;
+
+            // Mostrar loading
+            const buttonText = loginButton.querySelector('.button-text');
+            const originalText = buttonText.textContent;
+            buttonText.innerHTML = '<div class="loading"></div>Accediendo...';
+            loginButton.disabled = true;
 
             try {
                const res = await fetch('/api/login', {
@@ -512,19 +529,23 @@
                 } else {
                     Swal.fire({
                         icon: 'error',
-                        title: 'Error',
+                        title: 'Error de acceso',
                         text: data.error || 'Usuario o contraseña incorrectos',
-                        confirmButtonColor: '#e74c3c'
+                        confirmButtonColor: '#ef4444'
                     });
                 }
             } catch (err) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Error',
+                    title: 'Error de conexión',
                     text: 'No se pudo conectar con el servidor',
-                    confirmButtonColor: '#e74c3c'
+                    confirmButtonColor: '#ef4444'
                 });
                 console.error("Error login:", err);
+            } finally {
+                // Restaurar botón
+                buttonText.textContent = originalText;
+                loginButton.disabled = false;
             }
         });
 
@@ -542,10 +563,10 @@
             const data = await res.json();
             if (res.ok) {
                 Swal.fire({
-                    icon: 'info',
-                    title: 'Código de recuperación',
-                    text: `Tu código es: ${data.token}`,
-                    confirmButtonColor: '#3498db'
+                    icon: 'success',
+                    title: 'Código generado',
+                    text: `Su código de recuperación es: ${data.token}`,
+                    confirmButtonColor: '#10b981'
                 }).then(() => {
                     forgotForm.classList.add('form-hidden');
                     resetForm.classList.remove('form-hidden');
@@ -556,7 +577,7 @@
                     icon: 'error',
                     title: 'Error',
                     text: data.error || 'No se pudo generar el código',
-                    confirmButtonColor: '#e74c3c'
+                    confirmButtonColor: '#ef4444'
                 });
             }
         });
@@ -579,8 +600,8 @@
                 Swal.fire({
                     icon: 'success',
                     title: 'Contraseña actualizada',
-                    text: data.mensaje || 'Tu contraseña fue restablecida correctamente',
-                    confirmButtonColor: '#27ae60'
+                    text: data.mensaje || 'Su contraseña fue restablecida correctamente',
+                    confirmButtonColor: '#10b981'
                 }).then(() => {
                     resetForm.classList.add('form-hidden');
                     loginForm.classList.remove('form-hidden');
@@ -590,9 +611,26 @@
                     icon: 'error',
                     title: 'Error',
                     text: data.error || 'No se pudo restablecer la contraseña',
-                    confirmButtonColor: '#e74c3c'
+                    confirmButtonColor: '#ef4444'
                 });
             }
+        });
+
+        // Ayuda técnica
+        document.getElementById('showHelp').addEventListener('click', () => {
+            Swal.fire({
+                title: 'Soporte Técnico',
+                html: `
+                    <div style="text-align: left;">
+                        <p><strong>Para asistencia técnica:</strong></p>
+                        <p>📞 Teléfono: (555) 123-4567</p>
+                        <p>✉️ Email: soporte@oftavision.com</p>
+                        <p>🕒 Horario: Lunes a Viernes 8:00 - 18:00</p>
+                    </div>
+                `,
+                icon: 'info',
+                confirmButtonColor: '#2563eb'
+            });
         });
     </script>
 </body>
