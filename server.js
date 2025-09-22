@@ -857,29 +857,30 @@ const pagoResult = await client.query(
     );
     const totalPagado = parseFloat(sumaPagos.rows[0].total_pagado);
 
-    // 4. Obtener recibo asociado
-    const precioOrden = await client.query(
-      `SELECT id, precio FROM recibos
-       WHERE id = $1 AND departamento = $2`,
-      [orden.folio_recibo, depto]
-    );
+// 4. Obtener precio de la orden médica
+const ordenPrecioResult = await client.query(
+  `SELECT precio, folio_recibo 
+   FROM ordenes_medicas 
+   WHERE id = $1 AND departamento = $2`,
+  [orden.id, depto]
+);
 
-    if (precioOrden.rows.length === 0) {
-      await client.query("ROLLBACK");
-      return res.status(404).json({ error: "Recibo no encontrado" });
-    }
+if (ordenPrecioResult.rows.length === 0) {
+  await client.query("ROLLBACK");
+  return res.status(404).json({ error: "Orden no encontrada para calcular precio" });
+}
 
-    const recibo = precioOrden.rows[0];
-    const precio = parseFloat(recibo.precio || 0);
-    const pendiente = Math.max(0, precio - totalPagado);
+const precioOrden = parseFloat(ordenPrecioResult.rows[0].precio || 0);
+const pendiente = Math.max(0, precioOrden - totalPagado);
 
-    // 5. Actualizar acumulados
-    await client.query(
-      `UPDATE recibos
-       SET monto_pagado = $1
-       WHERE id = $2 AND departamento = $3`,
-      [totalPagado, recibo.id, depto]
-    );
+// 5. Actualizar acumulado en el recibo (sumar pagos globales)
+await client.query(
+  `UPDATE recibos
+   SET monto_pagado = monto_pagado + $1
+   WHERE id = $2 AND departamento = $3`,
+  [monto, ordenPrecioResult.rows[0].folio_recibo, depto]
+);
+
 
     // 6. Actualizar estatus de orden
     await client.query(
