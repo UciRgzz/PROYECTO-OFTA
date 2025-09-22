@@ -916,7 +916,9 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
       return res.status(400).json({ error: "Falta fecha" });
     }
 
-    let params = [fecha];
+    let depto = getDepartamento(req);
+    let params = [fecha, depto];
+
     let query = `
       SELECT 
           p.forma_pago AS pago,
@@ -927,23 +929,7 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
         ON o.id = p.orden_id 
        AND o.departamento = p.departamento
       WHERE DATE(p.fecha) = $1
-    `;
-
-    // 👇 Filtrado por sucursal/departamento
-    if (req.session.usuario.rol === "admin") {
-      if (req.session.usuario.sucursalSeleccionada) {
-        query += " AND p.departamento = $2";
-        params.push(req.session.usuario.sucursalSeleccionada);
-      } else {
-        query += " AND p.departamento = $2";
-        params.push("ADMIN");
-      }
-    } else {
-      query += " AND p.departamento = $2";
-      params.push(getDepartamento(req));
-    }
-
-    query += `
+        AND p.departamento = $2
       GROUP BY p.forma_pago, o.procedimiento
       ORDER BY p.forma_pago, o.procedimiento
     `;
@@ -961,12 +947,12 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
 app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
   try {
     const { fecha } = req.query;
-    let depto = getDepartamento(req);
-    let params = [fecha];
-
     if (!fecha) {
       return res.status(400).json({ error: "Falta fecha" });
     }
+
+    let depto = getDepartamento(req);
+    let params = [fecha, depto];
 
     let query = `
       SELECT 
@@ -987,27 +973,13 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
         ON r.id = o.folio_recibo 
        AND r.departamento = o.departamento
       JOIN expedientes e 
-        ON o.expediente_id = e.numero_expediente   -- ✅ ya no filtra aquí por depto
+        ON o.expediente_id = e.numero_expediente 
+       AND e.departamento = o.departamento   -- ✅ FILTRO CORRECTO
       LEFT JOIN pagos p 
         ON p.orden_id = o.id 
        AND p.departamento = o.departamento
       WHERE o.fecha::date = $1
-    `;
-
-    if (req.session.usuario.rol === "admin") {
-      if (req.session.usuario.sucursalSeleccionada) {
-        query += " AND o.departamento = $2";
-        params.push(req.session.usuario.sucursalSeleccionada);
-      } else {
-        query += " AND o.departamento = $2";
-        params.push("ADMIN");
-      }
-    } else {
-      query += " AND o.departamento = $2";
-      params.push(depto);
-    }
-
-    query += `
+        AND o.departamento = $2              -- ✅ SOLO SUCURSAL ACTUAL
       GROUP BY o.fecha::date, o.id, e.numero_expediente, e.nombre_completo, o.procedimiento, r.precio
       ORDER BY o.fecha, o.id
     `;
