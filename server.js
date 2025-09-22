@@ -438,17 +438,25 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 });
 
 
-// Listar recibos
+// ==================== Listar recibos ====================
 app.get('/api/recibos', verificarSesion, async (req, res) => {
   try {
     let depto = getDepartamento(req);
 
     const result = await pool.query(`
-      SELECT r.id, r.fecha, r.folio, e.nombre_completo AS paciente,
-             r.procedimiento, r.tipo, r.forma_pago, r.monto_pagado, r.precio, 
-             (r.precio - r.monto_pagado) AS pendiente
+      SELECT 
+        r.id,
+        r.fecha,
+        r.folio,
+        e.nombre_completo AS paciente,
+        r.procedimiento,
+        r.tipo,
+        r.forma_pago,
+        r.monto_pagado,
+        r.precio,
+        (r.precio - r.monto_pagado) AS pendiente
       FROM recibos r
-      JOIN expedientes e 
+      LEFT JOIN expedientes e 
         ON r.paciente_id = e.numero_expediente 
        AND r.departamento = e.departamento
       WHERE r.departamento = $1
