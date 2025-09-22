@@ -1,211 +1,281 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - OFTASIS</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-  <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      font-family: 'Segoe UI', Tahoma, sans-serif;
-      overflow: hidden;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - OFTASIS</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/litera/bootstrap.min.css">
+    <style>
+        body { 
+            background: url('/uploads/fondo_oftavision.jpg') no-repeat center center fixed; 
+            background-size: cover; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            position: relative;
+        }
 
-    /* Fondo con círculos decorativos */
-    .background-shapes {
-      position: absolute;
-      inset: 0;
-      overflow: hidden;
-      z-index: 1;
-    }
-    .circle {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(100px);
-      opacity: 0.6;
-    }
-    .circle.blue {
-      width: 400px; height: 400px;
-      background: #3498db;
-      top: -100px; left: -150px;
-    }
-    .circle.green {
-      width: 300px; height: 300px;
-      background: #27ae60;
-      bottom: -80px; right: -100px;
-    }
+        /* Overlay oscuro */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); /* negro con opacidad */
+            z-index: 0;
+        }
 
-    /* Card con efecto vidrio */
-    .login-card {
-      position: relative;
-      z-index: 2;
-      width: 380px;
-      padding: 40px 30px;
-      border-radius: 20px;
-      background: rgba(255, 255, 255, 0.12);
-      backdrop-filter: blur(15px);
-      box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-      text-align: center;
-      color: #fff;
-      animation: fadeInUp 1s ease;
-    }
-
-    .login-card .icon {
-      font-size: 60px;
-      margin-bottom: 15px;
-      color: #00d4ff;
-    }
-
-    .login-card h2 {
-      font-size: 1.8rem;
-      font-weight: 700;
-      margin-bottom: 25px;
-    }
-
-    .form-group {
-      margin-bottom: 18px;
-      text-align: left;
-    }
-
-    .form-group input {
-      width: 100%;
-      padding: 12px 15px;
-      border-radius: 10px;
-      border: none;
-      outline: none;
-      font-size: 1rem;
-      background: rgba(255,255,255,0.15);
-      color: #fff;
-      transition: all .3s ease;
-    }
-    .form-group input:focus {
-      background: rgba(255,255,255,0.25);
-      box-shadow: 0 0 0 2px #00d4ff;
-    }
-
-    .btn {
-      width: 100%;
-      border: none;
-      padding: 12px;
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      background: linear-gradient(135deg, #00d4ff, #3498db);
-      color: #fff;
-      transition: transform .2s, box-shadow .2s;
-    }
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 15px rgba(0, 212, 255, 0.4);
-    }
-
-    .link {
-      display: block;
-      margin-top: 15px;
-      color: #00d4ff;
-      font-size: .9rem;
-      text-decoration: none;
-      transition: color .2s;
-    }
-    .link:hover { color: #1abc9c; }
-
-    .logo {
-      margin-top: 25px;
-      width: 130px;
-      opacity: .9;
-    }
-
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(40px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-  </style>
+        .card { 
+            border-radius: 20px; 
+            z-index: 2; 
+            background: rgba(255, 255, 255, 0.95); /* un poco translúcida */
+        }
+        .icon-circle {
+            background-color: #dde8f0;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            margin: 0 auto 20px auto;
+            color: #505458;
+        }
+        .btn-custom { border-radius: 50px; font-weight: bold; }
+        .form-control { border-radius: 50px; padding-left: 40px; }
+        .input-group-text { border-radius: 50px 0 0 50px; background-color: #f0f0f0; }
+        .header-title {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            text-shadow: 1px 1px 5px rgba(0,0,0,0.9);
+            z-index: 2;
+            position: relative;
+        }
+        .header-title h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+        .header-title p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+    </style>
 </head>
-<body>
-  <div class="background-shapes">
-    <div class="circle blue"></div>
-    <div class="circle green"></div>
-  </div>
+<body class="d-flex flex-column justify-content-center align-items-center vh-100">
 
-  <div class="login-card">
-    <div class="icon"><i class="bi bi-eye"></i></div>
-    <h2 id="formTitle">Iniciar Sesión</h2>
+<!-- Encabezado -->
+<div class="header-title">
+    <h1>OFTASIS</h1>
+    <p>Sistema Integral de Oftavisión</p>
+</div>
 
-    <!-- Login -->
+<!-- Tarjeta Login -->
+<div class="card shadow-sm p-4" style="width: 350px;">
+    <div class="icon-circle">
+        <i class="bi bi-person"></i>
+    </div>
+    <h4 class="text-center mb-4" id="formTitle">Iniciar Sesión</h4>
+
+    <!-- LOGIN -->
     <form id="loginForm">
-      <div class="form-group">
-        <input type="text" id="loginUsername" placeholder="Usuario" required>
-      </div>
-      <div class="form-group">
-        <input type="password" id="loginPassword" placeholder="Contraseña" required>
-      </div>
-      <button class="btn mb-3">Ingresar</button>
-      <a href="#" class="link" id="showForgot">¿Olvidaste tu contraseña?</a>
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-person"></i></span>
+            <input type="text" id="loginUsername" class="form-control" placeholder="Usuario" required>
+        </div>
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+            <input type="password" id="loginPassword" class="form-control" placeholder="Contraseña" required>
+        </div>
+        <button class="btn btn-primary w-100 btn-custom">Ingresar</button>
+        <button type="button" class="btn btn-link w-100 mt-2" id="showForgot">¿Olvidaste tu contraseña?</button>
     </form>
 
-    <!-- Forgot -->
+    <!-- OLVIDAR CONTRASEÑA -->
     <form id="forgotForm" class="d-none">
-      <div class="form-group">
-        <input type="text" id="forgotNomina" placeholder="Número de nómina" required>
-      </div>
-      <button class="btn mb-3" style="background:linear-gradient(135deg,#f39c12,#f1c40f)">Generar código</button>
-      <a href="#" class="link" id="backToLogin">Volver al inicio</a>
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-hash"></i></span>
+            <input type="text" id="forgotNomina" class="form-control" placeholder="Número de nómina" required>
+        </div>
+        <button class="btn btn-warning w-100 btn-custom">Generar código de recuperación</button>
+        <button type="button" class="btn btn-link w-100 mt-2" id="backToLogin">Volver</button>
     </form>
 
-    <!-- Reset -->
+    <!-- RESTABLECER CONTRASEÑA -->
     <form id="resetForm" class="d-none">
-      <div class="form-group">
-        <input type="text" id="resetNomina" placeholder="Número de nómina" required>
-      </div>
-      <div class="form-group">
-        <input type="text" id="resetToken" placeholder="Código de recuperación" required>
-      </div>
-      <div class="form-group">
-        <input type="password" id="resetPassword" placeholder="Nueva contraseña" required>
-      </div>
-      <button class="btn mb-3" style="background:linear-gradient(135deg,#27ae60,#2ecc71)">Restablecer</button>
-      <a href="#" class="link" id="resetBackToLogin">Volver al inicio</a>
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-hash"></i></span>
+            <input type="text" id="resetNomina" class="form-control" placeholder="Número de nómina" required>
+        </div>
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-key"></i></span>
+            <input type="text" id="resetToken" class="form-control" placeholder="Código de recuperación" required>
+        </div>
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+            <input type="password" id="resetPassword" class="form-control" placeholder="Nueva contraseña" required>
+        </div>
+        <button class="btn btn-success w-100 btn-custom">Restablecer contraseña</button>
+        <button type="button" class="btn btn-link w-100 mt-2" id="resetBackToLogin">Volver</button>
     </form>
+</div>
+<!-- Logo -->
+    <div class="mt-4">
+        <img src="/uploads/logo-oftavision.png" alt="Logo Oftavisión" style="width: 120px; opacity: 0.9;">
+    </div>
 
-    <img src="/uploads/logo-oftavision.png" alt="Logo" class="logo">
-  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script>
-    // Forms
-    const loginForm=document.getElementById('loginForm');
-    const forgotForm=document.getElementById('forgotForm');
-    const resetForm=document.getElementById('resetForm');
-    const formTitle=document.getElementById('formTitle');
-    const showForgot=document.getElementById('showForgot');
-    const backToLogin=document.getElementById('backToLogin');
-    const resetBackToLogin=document.getElementById('resetBackToLogin');
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    const loginForm = document.getElementById('loginForm');
+    const forgotForm = document.getElementById('forgotForm');
+    const resetForm = document.getElementById('resetForm');
+    const formTitle = document.getElementById('formTitle');
+    const showForgot = document.getElementById('showForgot');
+    const backToLogin = document.getElementById('backToLogin');
+    const resetBackToLogin = document.getElementById('resetBackToLogin');
 
-    showForgot.addEventListener('click',()=>{
-      loginForm.classList.add('d-none');
-      resetForm.classList.add('d-none');
-      forgotForm.classList.remove('d-none');
-      formTitle.textContent='Recuperar Contraseña';
+    // Mostrar formulario "Recuperar Contraseña"
+    showForgot.addEventListener('click', () => {
+        loginForm.reset();
+        loginForm.classList.add('d-none');
+        resetForm.classList.add('d-none');
+        forgotForm.classList.remove('d-none');
+        formTitle.textContent = 'Recuperar Contraseña';
     });
-    backToLogin.addEventListener('click',()=>{
-      forgotForm.classList.add('d-none');
-      resetForm.classList.add('d-none');
-      loginForm.classList.remove('d-none');
-      formTitle.textContent='Iniciar Sesión';
+
+    // Volver a Login desde "Recuperar Contraseña"
+    backToLogin.addEventListener('click', () => {
+        forgotForm.reset();
+        forgotForm.classList.add('d-none');
+        resetForm.classList.add('d-none');
+        loginForm.classList.remove('d-none');
+        formTitle.textContent = 'Iniciar Sesión';
     });
-    resetBackToLogin.addEventListener('click',()=>{
-      resetForm.classList.add('d-none');
-      forgotForm.classList.add('d-none');
-      loginForm.classList.remove('d-none');
-      formTitle.textContent='Iniciar Sesión';
+
+    // Volver a Login desde "Restablecer Contraseña"
+    resetBackToLogin.addEventListener('click', () => {
+        resetForm.reset();
+        resetForm.classList.add('d-none');
+        forgotForm.classList.add('d-none');
+        loginForm.classList.remove('d-none');
+        formTitle.textContent = 'Iniciar Sesión';
     });
-  </script>
+
+// LOGIN
+loginForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
+
+    try {
+       const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+        credentials: "include"
+    });
+
+        const data = await res.json();
+        if (res.ok) {
+            // ✅ Guardar usuario en localStorage
+            localStorage.setItem("usuario", JSON.stringify(data.usuario));
+
+            // Redirigir al dashboard
+            window.location.href = '/frontend/index.html';
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.error || 'Usuario o contraseña incorrectos',
+                confirmButtonColor: '#e74c3c'
+            });
+        }
+    } catch (err) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo conectar con el servidor',
+            confirmButtonColor: '#e74c3c'
+        });
+        console.error("Error login:", err);
+    }
+});
+
+    // OLVIDAR CONTRASEÑA (NÓMINA)
+    forgotForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        const nomina = document.getElementById('forgotNomina').value;
+
+        const res = await fetch('/api/forgot-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nomina })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+            Swal.fire({
+                icon: 'info',
+                title: 'Código de recuperación',
+                text: `Tu código es: ${data.token}`,
+                confirmButtonColor: '#3498db'
+            }).then(() => {
+                forgotForm.reset();
+                forgotForm.classList.add('d-none');
+                resetForm.classList.remove('d-none');
+                document.getElementById('resetNomina').value = nomina;
+                formTitle.textContent = 'Restablecer Contraseña';
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.error || 'No se pudo generar el código',
+                confirmButtonColor: '#e74c3c'
+            });
+        }
+    });
+
+    // RESTABLECER CONTRASEÑA
+    resetForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        const nomina = document.getElementById('resetNomina').value;
+        const token = document.getElementById('resetToken').value;
+        const password = document.getElementById('resetPassword').value;
+
+        const res = await fetch('/api/reset-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nomina, token, password })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Contraseña actualizada',
+                text: data.mensaje || 'Tu contraseña fue restablecida correctamente',
+                confirmButtonColor: '#27ae60'
+            }).then(() => {
+                resetForm.reset();
+                resetBackToLogin.click();
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.error || 'No se pudo restablecer la contraseña',
+                confirmButtonColor: '#e74c3c'
+            });
+        }
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </body>
 </html>
