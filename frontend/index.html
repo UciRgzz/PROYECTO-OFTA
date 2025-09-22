@@ -259,16 +259,31 @@ async function mostrarSeccion(seccion){
   agendaquirurgica: "/frontend/A_Quirurgica.html",
   asignarmodulos: "/frontend/A_modulos.html"
 };
-const main = document.getElementById('main-content');
+  const main = document.getElementById('main-content');
 
-if (seccion === 'expedientes') {
-  main.innerHTML = `<iframe src="/frontend/expedientes.html"></iframe>`;
-} else if (paginas[seccion]) {
-  main.innerHTML = `<iframe src="${paginas[seccion]}"></iframe>`;
-} else {
-  main.innerHTML = `<h2>${seccion}</h2><p>Contenido de ${seccion} aquí...</p>`;
+  if(seccion === 'expedientes'){
+    main.innerHTML = `
+      <h2>Gestión de Expedientes</h2>
+      <div class="d-flex justify-content-between mb-3">
+        <input type="text" id="buscarExp" class="form-control w-50" placeholder="Buscar por nombre o número">
+        <button class="btn btn-primary" id="btnNuevo">Nuevo Expediente</button>
+      </div>
+      <div id="formulario-expediente" style="display:none;"></div>
+      <div id="lista-expedientes"></div>
+    `;
+    document.getElementById('btnNuevo').addEventListener('click', () => {
+      document.getElementById('lista-expedientes').style.display = 'none';
+      mostrarFormulario();
+    });
+    document.getElementById('buscarExp').addEventListener('input', filtrarLista);
+    cargarLista();
+  }else if(paginas[seccion]){
+    main.innerHTML = `<iframe src="${paginas[seccion]}"></iframe>`;
+  }else{
+    main.innerHTML = `<h2>${seccion}</h2><p>Contenido de ${seccion} aquí...</p>`;
+  }
 }
-}
+
 // Expedientes
 function mostrarFormulario(expediente=null){
   const cont = document.getElementById('formulario-expediente');
