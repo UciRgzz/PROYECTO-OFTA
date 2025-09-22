@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/litera/bootstrap.min.css">
     <style>
         body { 
-            background: url('/uploads/fondo_oftavision.jpg') no-repeat center center fixed; 
+            background: url('/uploads/fondo_oftavision1.jpg') no-repeat center center fixed; 
             background-size: cover; 
             display: flex;
             flex-direction: column;
@@ -239,24 +239,6 @@ loginForm.addEventListener('submit', async e => {
             });
         }
     });
-
-     // Ayuda técnica
-        document.getElementById('showHelp').addEventListener('click', () => {
-            Swal.fire({
-                title: 'Soporte Técnico',
-                html: `
-                    <div style="text-align: left;">
-                        <p><strong>Para asistencia técnica:</strong></p>
-                        <p>📞 Teléfono: (555) 123-4567</p>
-                        <p>✉️ Email: soporte@oftavision.com</p>
-                        <p>🕒 Horario: Lunes a Viernes 8:00 - 18:00</p>
-                    </div>
-                `,
-                icon: 'info',
-                confirmButtonColor: '#2563eb'
-            });
-        });
-
 
     // RESTABLECER CONTRASEÑA
     resetForm.addEventListener('submit', async e => {
