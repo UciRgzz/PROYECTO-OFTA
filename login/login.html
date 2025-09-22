@@ -4,285 +4,181 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - OFTASIS</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/litera/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
   <style>
-    :root {
-      --primary: #2c3e50;
-      --secondary: #3498db;
-      --accent: #2980b9;
-      --success: #27ae60;
-      --warning: #f39c12;
-      --danger: #e74c3c;
-      --light: #e8f4fc;
-    }
-
     body {
-      background: radial-gradient(circle at center, #1a2a3a 0%, #2c3e50 100%);
+      margin: 0;
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      font-family: 'Segoe UI', Tahoma, sans-serif;
       overflow: hidden;
     }
 
-    .floating-particles {
+    /* Fondo con círculos decorativos */
+    .background-shapes {
       position: absolute;
       inset: 0;
-      z-index: 1;
       overflow: hidden;
+      z-index: 1;
     }
-
-    .particle {
+    .circle {
       position: absolute;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.08);
-      animation: float 15s infinite linear;
+      filter: blur(100px);
+      opacity: 0.6;
+    }
+    .circle.blue {
+      width: 400px; height: 400px;
+      background: #3498db;
+      top: -100px; left: -150px;
+    }
+    .circle.green {
+      width: 300px; height: 300px;
+      background: #27ae60;
+      bottom: -80px; right: -100px;
     }
 
-    @keyframes float {
-      0%   { transform: translateY(0) translateX(0) rotate(0deg); }
-      100% { transform: translateY(-900px) translateX(400px) rotate(720deg); }
-    }
-
-    .container {
+    /* Card con efecto vidrio */
+    .login-card {
       position: relative;
       z-index: 2;
-      max-width: 420px;
-      width: 100%;
-    }
-
-    .header-title {
+      width: 380px;
+      padding: 40px 30px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(15px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.3);
       text-align: center;
       color: #fff;
-      margin-bottom: 25px;
-      animation: fadeInDown 1s ease;
-    }
-
-    .header-title h1 {
-      font-size: 2.5rem;
-      font-weight: 700;
-      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-    }
-
-    .header-title p {
-      font-size: 1rem;
-      opacity: .85;
-    }
-
-    .card {
-      border: none;
-      border-radius: 18px;
-      backdrop-filter: blur(8px);
-      background: rgba(255,255,255,0.95);
-      box-shadow: 0 12px 32px rgba(0,0,0,0.2);
       animation: fadeInUp 1s ease;
-      overflow: hidden;
     }
 
-    .card-header {
-      background: linear-gradient(135deg, var(--secondary), var(--accent));
-      color: #fff;
-      text-align: center;
-      padding: 25px 20px;
-      border: none;
-      position: relative;
+    .login-card .icon {
+      font-size: 60px;
+      margin-bottom: 15px;
+      color: #00d4ff;
     }
 
-    .card-header::after {
-      content: "";
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      height: 4px;
+    .login-card h2 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 25px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+      text-align: left;
+    }
+
+    .form-group input {
       width: 100%;
-      background: rgba(255,255,255,0.3);
-    }
-
-    .icon-circle {
-      width: 80px;
-      height: 80px;
-      margin: 0 auto 15px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 35px;
-      color: #fff;
-      background: linear-gradient(135deg, var(--success), var(--secondary));
-      box-shadow: 0 0 15px rgba(41,128,185,0.5);
-    }
-
-    .card-body { padding: 30px; }
-
-    .input-group { margin-bottom: 18px; }
-
-    .input-group-text {
-      background: var(--light);
+      padding: 12px 15px;
+      border-radius: 10px;
       border: none;
-      border-radius: 10px 0 0 10px;
-      color: var(--secondary);
-      width: 45px;
-      justify-content: center;
-    }
-
-    .form-control {
-      border: 2px solid #eef2f7;
-      border-radius: 0 10px 10px 0;
-      padding: 12px;
+      outline: none;
       font-size: 1rem;
-      transition: .3s;
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      transition: all .3s ease;
+    }
+    .form-group input:focus {
+      background: rgba(255,255,255,0.25);
+      box-shadow: 0 0 0 2px #00d4ff;
     }
 
-    .form-control:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 12px rgba(41,128,185,0.6);
-    }
-
-    .btn-custom {
+    .btn {
+      width: 100%;
+      border: none;
+      padding: 12px;
       border-radius: 10px;
       font-weight: 600;
-      padding: 12px;
-      border: none;
       font-size: 1rem;
-      transition: .3s;
+      cursor: pointer;
+      background: linear-gradient(135deg, #00d4ff, #3498db);
+      color: #fff;
+      transition: transform .2s, box-shadow .2s;
     }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--secondary), var(--success));
-    }
-    .btn-primary:hover {
-      box-shadow: 0 0 15px rgba(39,174,96,.6);
+    .btn:hover {
       transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0, 212, 255, 0.4);
     }
 
-    .btn-link {
-      color: var(--secondary);
-      font-weight: 500;
+    .link {
+      display: block;
+      margin-top: 15px;
+      color: #00d4ff;
+      font-size: .9rem;
       text-decoration: none;
+      transition: color .2s;
     }
-    .btn-link:hover {
-      color: var(--accent);
-      text-decoration: underline;
-    }
-
-    .logo-container {
-      margin-top: 25px;
-      text-align: center;
-      animation: fadeIn 1.5s ease;
-    }
+    .link:hover { color: #1abc9c; }
 
     .logo {
+      margin-top: 25px;
       width: 130px;
-      filter: drop-shadow(0 0 8px rgba(255,255,255,.8));
-      animation: pulse 2s infinite;
+      opacity: .9;
     }
 
-    @keyframes pulse {
-      0%,100% { transform: scale(1); }
-      50%     { transform: scale(1.05); }
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to   { opacity: 1; }
-    }
     @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes fadeInDown {
-      from { opacity: 0; transform: translateY(-30px); }
+      from { opacity: 0; transform: translateY(40px); }
       to   { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
-  <div class="floating-particles" id="particles"></div>
+  <div class="background-shapes">
+    <div class="circle blue"></div>
+    <div class="circle green"></div>
+  </div>
 
-  <div class="container">
-    <div class="header-title">
-      <h1>OFTASIS</h1>
-      <p>Sistema Integral de Oftavisión</p>
-    </div>
+  <div class="login-card">
+    <div class="icon"><i class="bi bi-eye"></i></div>
+    <h2 id="formTitle">Iniciar Sesión</h2>
 
-    <div class="card">
-      <div class="card-header">
-        <div class="icon-circle"><i class="bi bi-eye"></i></div>
-        <h4 class="mb-0" id="formTitle">Iniciar Sesión</h4>
+    <!-- Login -->
+    <form id="loginForm">
+      <div class="form-group">
+        <input type="text" id="loginUsername" placeholder="Usuario" required>
       </div>
-      <div class="card-body">
-        <!-- Login -->
-        <form id="loginForm">
-          <div class="input-group">
-            <span class="input-group-text"><i class="bi bi-person"></i></span>
-            <input type="text" id="loginUsername" class="form-control" placeholder="Usuario" required>
-          </div>
-          <div class="input-group">
-            <span class="input-group-text"><i class="bi bi-lock"></i></span>
-            <input type="password" id="loginPassword" class="form-control" placeholder="Contraseña" required>
-          </div>
-          <button class="btn btn-primary w-100 btn-custom mb-3">Ingresar</button>
-          <button type="button" class="btn btn-link w-100" id="showForgot">¿Olvidaste tu contraseña?</button>
-        </form>
-
-        <!-- Forgot -->
-        <form id="forgotForm" class="d-none">
-          <div class="input-group">
-            <span class="input-group-text"><i class="bi bi-hash"></i></span>
-            <input type="text" id="forgotNomina" class="form-control" placeholder="Número de nómina" required>
-          </div>
-          <button class="btn btn-warning w-100 btn-custom mb-3">Generar código de recuperación</button>
-          <button type="button" class="btn btn-link w-100" id="backToLogin">Volver al inicio de sesión</button>
-        </form>
-
-        <!-- Reset -->
-        <form id="resetForm" class="d-none">
-          <div class="input-group">
-            <span class="input-group-text"><i class="bi bi-hash"></i></span>
-            <input type="text" id="resetNomina" class="form-control" placeholder="Número de nómina" required>
-          </div>
-          <div class="input-group">
-            <span class="input-group-text"><i class="bi bi-key"></i></span>
-            <input type="text" id="resetToken" class="form-control" placeholder="Código de recuperación" required>
-          </div>
-          <div class="input-group">
-            <span class="input-group-text"><i class="bi bi-lock"></i></span>
-            <input type="password" id="resetPassword" class="form-control" placeholder="Nueva contraseña" required>
-          </div>
-          <button class="btn btn-success w-100 btn-custom mb-3">Restablecer contraseña</button>
-          <button type="button" class="btn btn-link w-100" id="resetBackToLogin">Volver al inicio de sesión</button>
-        </form>
+      <div class="form-group">
+        <input type="password" id="loginPassword" placeholder="Contraseña" required>
       </div>
-    </div>
+      <button class="btn mb-3">Ingresar</button>
+      <a href="#" class="link" id="showForgot">¿Olvidaste tu contraseña?</a>
+    </form>
 
-    <div class="logo-container">
-      <img src="/uploads/logo-oftavision.png" alt="Logo Oftavisión" class="logo">
-    </div>
+    <!-- Forgot -->
+    <form id="forgotForm" class="d-none">
+      <div class="form-group">
+        <input type="text" id="forgotNomina" placeholder="Número de nómina" required>
+      </div>
+      <button class="btn mb-3" style="background:linear-gradient(135deg,#f39c12,#f1c40f)">Generar código</button>
+      <a href="#" class="link" id="backToLogin">Volver al inicio</a>
+    </form>
+
+    <!-- Reset -->
+    <form id="resetForm" class="d-none">
+      <div class="form-group">
+        <input type="text" id="resetNomina" placeholder="Número de nómina" required>
+      </div>
+      <div class="form-group">
+        <input type="text" id="resetToken" placeholder="Código de recuperación" required>
+      </div>
+      <div class="form-group">
+        <input type="password" id="resetPassword" placeholder="Nueva contraseña" required>
+      </div>
+      <button class="btn mb-3" style="background:linear-gradient(135deg,#27ae60,#2ecc71)">Restablecer</button>
+      <a href="#" class="link" id="resetBackToLogin">Volver al inicio</a>
+    </form>
+
+    <img src="/uploads/logo-oftavision.png" alt="Logo" class="logo">
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // Partículas
-    function createParticles() {
-      const container = document.getElementById('particles');
-      const total = 15;
-      for (let i=0;i<total;i++) {
-        const p = document.createElement('div');
-        p.classList.add('particle');
-        const size = Math.random()*80+20;
-        p.style.width = size+'px';
-        p.style.height = size+'px';
-        p.style.left = Math.random()*100+'%';
-        p.style.top = Math.random()*100+'%';
-        p.style.animationDelay = Math.random()*20+'s';
-        container.appendChild(p);
-      }
-    }
-    document.addEventListener('DOMContentLoaded', createParticles);
-
     // Forms
     const loginForm=document.getElementById('loginForm');
     const forgotForm=document.getElementById('forgotForm');
@@ -293,95 +189,22 @@
     const resetBackToLogin=document.getElementById('resetBackToLogin');
 
     showForgot.addEventListener('click',()=>{
-      loginForm.reset();
       loginForm.classList.add('d-none');
       resetForm.classList.add('d-none');
       forgotForm.classList.remove('d-none');
       formTitle.textContent='Recuperar Contraseña';
     });
     backToLogin.addEventListener('click',()=>{
-      forgotForm.reset();
       forgotForm.classList.add('d-none');
       resetForm.classList.add('d-none');
       loginForm.classList.remove('d-none');
       formTitle.textContent='Iniciar Sesión';
     });
     resetBackToLogin.addEventListener('click',()=>{
-      resetForm.reset();
       resetForm.classList.add('d-none');
       forgotForm.classList.add('d-none');
       loginForm.classList.remove('d-none');
       formTitle.textContent='Iniciar Sesión';
-    });
-
-    loginForm.addEventListener('submit',async e=>{
-      e.preventDefault();
-      const username=document.getElementById('loginUsername').value;
-      const password=document.getElementById('loginPassword').value;
-      try{
-        const res=await fetch('/api/login',{
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({username,password}),
-          credentials:'include'
-        });
-        const data=await res.json();
-        if(res.ok){
-          localStorage.setItem("usuario",JSON.stringify(data.usuario));
-          Swal.fire({icon:'success',title:'¡Bienvenido!',text:'Inicio de sesión exitoso',timer:1500,showConfirmButton:false})
-            .then(()=>{window.location.href='/frontend/index.html';});
-        }else{
-          Swal.fire({icon:'error',title:'Error',text:data.error||'Usuario o contraseña incorrectos'});
-        }
-      }catch(err){
-        Swal.fire({icon:'error',title:'Error',text:'No se pudo conectar con el servidor'});
-        console.error("Error login:",err);
-      }
-    });
-
-    forgotForm.addEventListener('submit',async e=>{
-      e.preventDefault();
-      const nomina=document.getElementById('forgotNomina').value;
-      const res=await fetch('/api/forgot-password',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({nomina})
-      });
-      const data=await res.json();
-      if(res.ok){
-        Swal.fire({icon:'info',title:'Código de recuperación',text:`Tu código es: ${data.token}`})
-          .then(()=>{
-            forgotForm.reset();
-            forgotForm.classList.add('d-none');
-            resetForm.classList.remove('d-none');
-            document.getElementById('resetNomina').value=nomina;
-            formTitle.textContent='Restablecer Contraseña';
-          });
-      }else{
-        Swal.fire({icon:'error',title:'Error',text:data.error||'No se pudo generar el código'});
-      }
-    });
-
-    resetForm.addEventListener('submit',async e=>{
-      e.preventDefault();
-      const nomina=document.getElementById('resetNomina').value;
-      const token=document.getElementById('resetToken').value;
-      const password=document.getElementById('resetPassword').value;
-      const res=await fetch('/api/reset-password',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({nomina,token,password})
-      });
-      const data=await res.json();
-      if(res.ok){
-        Swal.fire({icon:'success',title:'Contraseña actualizada',text:data.mensaje||'Tu contraseña fue restablecida correctamente'})
-          .then(()=>{
-            resetForm.reset();
-            resetBackToLogin.click();
-          });
-      }else{
-        Swal.fire({icon:'error',title:'Error',text:data.error||'No se pudo restablecer la contraseña'});
-      }
     });
   </script>
 </body>
