@@ -77,7 +77,7 @@ function isAdmin(req, res, next) {
     if (req.session.usuario?.rol === 'admin') {
         return next();
     }
-    return res.status(403).json({ error: 'No eres administrador, no puedes eliminar.' });
+    return res.status(403).json({ error: 'Tu cuenta no es de administrador, no puedes eliminar.' });
 }
 
 // ==================== CHECK SESSION ====================
