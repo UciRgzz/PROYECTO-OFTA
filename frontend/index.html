@@ -278,17 +278,12 @@ async function mostrarSeccion(seccion){
     document.getElementById('buscarExp').addEventListener('input', filtrarLista);
     cargarLista();
   }else if(paginas[seccion]){
-      fetch(paginas[seccion])
-        .then(res => res.text())
-        .then(html => {
-          main.innerHTML = html;
-        })
-        .catch(() => {
-          main.innerHTML = `<p class="text-danger">Error al cargar ${seccion}</p>`;
-        });
-    }else{
-      main.innerHTML = `<h2>${seccion}</h2><p>Contenido de ${seccion} aquí...</p>`;
+  // abrir página completa con su propio estilo
+  window.location.href = paginas[seccion];
+}else{
+  main.innerHTML = `<h2>${seccion}</h2><p>Contenido de ${seccion} aquí...</p>`;
 }
+
 }
 
 // Expedientes
