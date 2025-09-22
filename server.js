@@ -932,16 +932,13 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
     // 👇 Filtrado por sucursal/departamento
     if (req.session.usuario.rol === "admin") {
       if (req.session.usuario.sucursalSeleccionada) {
-        // Admin con sucursal seleccionada → ver esa sucursal
         query += " AND p.departamento = $2";
         params.push(req.session.usuario.sucursalSeleccionada);
       } else {
-        // Admin sin sucursal → funciona como una sucursal propia
         query += " AND p.departamento = $2";
         params.push("ADMIN");
       }
     } else {
-      // Usuario normal → solo su propio departamento
       query += " AND p.departamento = $2";
       params.push(getDepartamento(req));
     }
@@ -973,7 +970,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
 
     let query = `
       SELECT 
-          o.fecha::date AS fecha,          -- usamos la fecha de la orden
+          o.fecha::date AS fecha,
           o.id AS orden_id,
           e.numero_expediente AS folio,
           e.nombre_completo AS nombre,
@@ -990,12 +987,11 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
         ON r.id = o.folio_recibo 
        AND r.departamento = o.departamento
       JOIN expedientes e 
-        ON o.expediente_id = e.numero_expediente 
-       AND e.departamento = o.departamento
+        ON o.expediente_id = e.numero_expediente   -- 👈 quitamos depto para evitar nulls
       LEFT JOIN pagos p 
         ON p.orden_id = o.id 
        AND p.departamento = o.departamento
-      WHERE o.fecha::date = $1       -- 👈 filtrar por fecha de la orden
+      WHERE o.fecha::date = $1
     `;
 
     if (req.session.usuario.rol === "admin") {
@@ -1023,6 +1019,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 // ==================== ADMIN: Selección de sucursal ====================
