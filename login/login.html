@@ -3,620 +3,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OFTASIS - Acceso al Sistema</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Login - OFTASIS</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/litera/bootstrap.min.css">
     <style>
-        :root {
-            --primary-dark: #1a1f2e;
-            --secondary-dark: #2d3447;
-            --accent-blue: #2563eb;
-            --light-blue: #60a5fa;
-            --medical-green: #10b981;
-            --pure-white: #ffffff;
-            --gray-light: #f1f5f9;
-            --gray-medium: #94a3b8;
-            --gray-dark: #475569;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-        }
-
-        body {
-            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 100%);
-            min-height: 100vh;
+        body { 
+            background: url('/uploads/fondo_oftavision.jpg') no-repeat center center fixed; 
+            background-size: cover; 
             display: flex;
-            align-items: center;
+            flex-direction: column;
             justify-content: center;
-            color: var(--pure-white);
+            align-items: center;
+            min-height: 100vh;
             position: relative;
-            overflow: hidden;
         }
 
-        /* Efectos de fondo */
-        .background-effects {
+        /* Overlay oscuro */
+        body::before {
+            content: "";
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); /* negro con opacidad */
+            z-index: 0;
         }
 
-        .grid-pattern {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
+        .card { 
+            border-radius: 20px; 
+            z-index: 2; 
+            background: rgba(255, 255, 255, 0.95); /* un poco translúcida */
         }
-
-        /* Container principal */
-        .login-container {
-            position: relative;
-            z-index: 10;
-            width: 100%;
-            max-width: 440px;
-            margin: 20px;
-        }
-
-        /* Header del sistema */
-        .system-header {
-            text-align: center;
-            margin-bottom: 40px;
-            animation: fadeInDown 0.8s ease-out;
-        }
-
-        .system-icon {
+        .icon-circle {
+            background-color: #dde8f0;
             width: 80px;
             height: 80px;
-            background: linear-gradient(135deg, var(--accent-blue), var(--medical-green));
-            border-radius: 20px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
-            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
+            font-size: 40px;
+            margin: 0 auto 20px auto;
+            color: #505458;
         }
-
-        .system-icon i {
-            font-size: 36px;
+        .btn-custom { border-radius: 50px; font-weight: bold; }
+        .form-control { border-radius: 50px; padding-left: 40px; }
+        .input-group-text { border-radius: 50px 0 0 50px; background-color: #f0f0f0; }
+        .header-title {
+            text-align: center;
             color: white;
-        }
-
-        .system-header h1 {
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            background: linear-gradient(45deg, var(--pure-white), var(--light-blue));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .system-header p {
-            color: var(--gray-medium);
-            font-size: 1rem;
-            font-weight: 400;
-        }
-
-        /* Tarjeta de login */
-        .login-card {
-            background: rgba(30, 35, 50, 0.95);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            animation: fadeInUp 0.8s ease-out 0.2s both;
-        }
-
-        .card-header {
-            text-align: center;
             margin-bottom: 30px;
-        }
-
-        .card-header h2 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--pure-white);
-            margin-bottom: 8px;
-        }
-
-        .card-header p {
-            color: var(--gray-medium);
-            font-size: 0.95rem;
-        }
-
-        /* Formularios */
-        .form-group {
-            margin-bottom: 24px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--gray-light);
-            font-size: 0.9rem;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .input-with-icon {
+            text-shadow: 1px 1px 5px rgba(0,0,0,0.9);
+            z-index: 2;
             position: relative;
         }
-
-        .input-icon {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gray-medium);
-            z-index: 2;
+        .header-title h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+        .header-title p {
             font-size: 1.1rem;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 14px 16px 14px 48px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 10px;
-            color: var(--pure-white);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: var(--accent-blue);
-            background: rgba(255, 255, 255, 0.12);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        .form-input::placeholder {
-            color: var(--gray-medium);
-        }
-
-        /* Botones */
-        .btn-system {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, var(--accent-blue), var(--medical-green));
-            color: var(--pure-white);
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-system:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
-        }
-
-        .btn-system:active {
-            transform: translateY(0);
-        }
-
-        /* Links de formulario */
-        .form-links {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-            font-size: 0.9rem;
-        }
-
-        .form-link {
-            color: var(--light-blue);
-            text-decoration: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .form-link:hover {
-            color: var(--pure-white);
-            text-decoration: underline;
-        }
-
-        /* Footer del sistema */
-        .system-footer {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            color: var(--gray-medium);
-            font-size: 0.85rem;
-            animation: fadeIn 1s ease-out 0.6s both;
-        }
-
-        /* Estados de formulario */
-        .form-hidden {
-            display: none;
-        }
-
-        /* Animaciones */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        /* Efectos de partículas médicas */
-        .medical-particles {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 2;
-            pointer-events: none;
-        }
-
-        .particle {
-            position: absolute;
-            background: var(--medical-green);
-            border-radius: 50%;
-            animation: medical-float 15s infinite linear;
-            opacity: 0.1;
-        }
-
-        @keyframes medical-float {
-            0% { transform: translateY(100vh) rotate(0deg); }
-            100% { transform: translateY(-100px) rotate(360deg); }
-        }
-
-        /* Responsive */
-        @media (max-width: 480px) {
-            .login-container {
-                margin: 15px;
-            }
-            
-            .login-card {
-                padding: 30px 25px;
-            }
-            
-            .system-header h1 {
-                font-size: 1.8rem;
-            }
-            
-            .form-links {
-                flex-direction: column;
-                gap: 10px;
-                text-align: center;
-            }
-        }
-
-        /* Efecto de carga */
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 10px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+            opacity: 0.9;
         }
     </style>
 </head>
-<body>
-    <!-- Efectos de fondo -->
-    <div class="background-effects">
-        <div class="grid-pattern"></div>
-        <div class="medical-particles" id="medicalParticles"></div>
+<body class="d-flex flex-column justify-content-center align-items-center vh-100">
+
+<!-- Encabezado -->
+<div class="header-title">
+    <h1>OFTASIS</h1>
+    <p>Sistema Integral de Oftavisión</p>
+</div>
+
+<!-- Tarjeta Login -->
+<div class="card shadow-sm p-4" style="width: 350px;">
+    <div class="icon-circle">
+        <i class="bi bi-person"></i>
+    </div>
+    <h4 class="text-center mb-4" id="formTitle">Iniciar Sesión</h4>
+
+    <!-- LOGIN -->
+    <form id="loginForm">
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-person"></i></span>
+            <input type="text" id="loginUsername" class="form-control" placeholder="Usuario" required>
+        </div>
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+            <input type="password" id="loginPassword" class="form-control" placeholder="Contraseña" required>
+        </div>
+        <button class="btn btn-primary w-100 btn-custom">Ingresar</button>
+        <button type="button" class="btn btn-link w-100 mt-2" id="showForgot">¿Olvidaste tu contraseña?</button>
+    </form>
+
+    <!-- OLVIDAR CONTRASEÑA -->
+    <form id="forgotForm" class="d-none">
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-hash"></i></span>
+            <input type="text" id="forgotNomina" class="form-control" placeholder="Número de nómina" required>
+        </div>
+        <button class="btn btn-warning w-100 btn-custom">Generar código de recuperación</button>
+        <button type="button" class="btn btn-link w-100 mt-2" id="backToLogin">Volver</button>
+    </form>
+
+    <!-- RESTABLECER CONTRASEÑA -->
+    <form id="resetForm" class="d-none">
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-hash"></i></span>
+            <input type="text" id="resetNomina" class="form-control" placeholder="Número de nómina" required>
+        </div>
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-key"></i></span>
+            <input type="text" id="resetToken" class="form-control" placeholder="Código de recuperación" required>
+        </div>
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+            <input type="password" id="resetPassword" class="form-control" placeholder="Nueva contraseña" required>
+        </div>
+        <button class="btn btn-success w-100 btn-custom">Restablecer contraseña</button>
+        <button type="button" class="btn btn-link w-100 mt-2" id="resetBackToLogin">Volver</button>
+    </form>
+</div>
+<!-- Logo -->
+    <div class="mt-4">
+        <img src="/uploads/logo-oftavision.png" alt="Logo Oftavisión" style="width: 120px; opacity: 0.9;">
     </div>
 
-    <!-- Container principal -->
-    <div class="login-container">
-        <!-- Header del sistema -->
-        <div class="system-header">
-            <div class="system-icon">
-                <i class="fas fa-eye"></i>
-            </div>
-            <h1>OFTASIS</h1>
-            <p>Sistema de Gestión Oftavisión</p>
-        </div>
 
-        <!-- Tarjeta de login -->
-        <div class="login-card">
-            <div class="card-header">
-                <h2>Acceso al Sistema</h2>
-                <p>Ingrese sus credenciales para continuar</p>
-            </div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    const loginForm = document.getElementById('loginForm');
+    const forgotForm = document.getElementById('forgotForm');
+    const resetForm = document.getElementById('resetForm');
+    const formTitle = document.getElementById('formTitle');
+    const showForgot = document.getElementById('showForgot');
+    const backToLogin = document.getElementById('backToLogin');
+    const resetBackToLogin = document.getElementById('resetBackToLogin');
 
-            <!-- Formulario de Login -->
-            <form id="loginForm">
-                <div class="form-group">
-                    <label class="form-label" for="loginUsername">Usuario</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-user input-icon"></i>
-                        <input type="text" id="loginUsername" class="form-input" placeholder="Ingrese su usuario" required>
-                    </div>
-                </div>
+    // Mostrar formulario "Recuperar Contraseña"
+    showForgot.addEventListener('click', () => {
+        loginForm.reset();
+        loginForm.classList.add('d-none');
+        resetForm.classList.add('d-none');
+        forgotForm.classList.remove('d-none');
+        formTitle.textContent = 'Recuperar Contraseña';
+    });
 
-                <div class="form-group">
-                    <label class="form-label" for="loginPassword">Contraseña</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-lock input-icon"></i>
-                        <input type="password" id="loginPassword" class="form-input" placeholder="Ingrese su contraseña" required>
-                    </div>
-                </div>
+    // Volver a Login desde "Recuperar Contraseña"
+    backToLogin.addEventListener('click', () => {
+        forgotForm.reset();
+        forgotForm.classList.add('d-none');
+        resetForm.classList.add('d-none');
+        loginForm.classList.remove('d-none');
+        formTitle.textContent = 'Iniciar Sesión';
+    });
 
-                <button type="submit" class="btn-system" id="loginButton">
-                    <span class="button-text">Acceder al Sistema</span>
-                </button>
+    // Volver a Login desde "Restablecer Contraseña"
+    resetBackToLogin.addEventListener('click', () => {
+        resetForm.reset();
+        resetForm.classList.add('d-none');
+        forgotForm.classList.add('d-none');
+        loginForm.classList.remove('d-none');
+        formTitle.textContent = 'Iniciar Sesión';
+    });
 
-                <div class="form-links">
-                    <a class="form-link" id="showForgot">¿Olvidó su contraseña?</a>
-                    <a class="form-link" id="showHelp">Ayuda técnica</a>
-                </div>
-            </form>
+// LOGIN
+loginForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
 
-            <!-- Formulario de Recuperación -->
-            <form id="forgotForm" class="form-hidden">
-                <div class="form-group">
-                    <label class="form-label" for="forgotNomina">Número de Nómina</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-id-card input-icon"></i>
-                        <input type="text" id="forgotNomina" class="form-input" placeholder="Ingrese su número de nómina" required>
-                    </div>
-                </div>
+    try {
+       const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+        credentials: "include"
+    });
 
-                <button type="submit" class="btn-system">
-                    Generar Código de Recuperación
-                </button>
+        const data = await res.json();
+        if (res.ok) {
+            // ✅ Guardar usuario en localStorage
+            localStorage.setItem("usuario", JSON.stringify(data.usuario));
 
-                <div class="form-links">
-                    <a class="form-link" id="backToLogin">Volver al inicio de sesión</a>
-                </div>
-            </form>
-
-            <!-- Formulario de Restablecimiento -->
-            <form id="resetForm" class="form-hidden">
-                <div class="form-group">
-                    <label class="form-label" for="resetNomina">Número de Nómina</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-id-card input-icon"></i>
-                        <input type="text" id="resetNomina" class="form-input" placeholder="Ingrese su número de nómina" required>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="resetToken">Código de Recuperación</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-key input-icon"></i>
-                        <input type="text" id="resetToken" class="form-input" placeholder="Ingrese el código de recuperación" required>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="resetPassword">Nueva Contraseña</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-shield-alt input-icon"></i>
-                        <input type="password" id="resetPassword" class="form-input" placeholder="Ingrese nueva contraseña" required>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn-system">
-                    Restablecer Contraseña
-                </button>
-
-                <div class="form-links">
-                    <a class="form-link" id="resetBackToLogin">Volver al inicio de sesión</a>
-                </div>
-            </form>
-        </div>
-
-        <!-- Footer del sistema -->
-        <div class="system-footer">
-            Sistema de Gestión Oftavisión © 2025
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        // Crear partículas médicas
-        function createMedicalParticles() {
-            const container = document.getElementById('medicalParticles');
-            const particles = 8;
-            
-            for (let i = 0; i < particles; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.width = `${Math.random() * 8 + 4}px`;
-                particle.style.height = particle.style.width;
-                particle.style.left = `${Math.random() * 100}%`;
-                particle.style.animationDelay = `${Math.random() * 15}s`;
-                particle.style.animationDuration = `${Math.random() * 10 + 10}s`;
-                container.appendChild(particle);
-            }
+            // Redirigir al dashboard
+            window.location.href = '/frontend/index.html';
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.error || 'Usuario o contraseña incorrectos',
+                confirmButtonColor: '#e74c3c'
+            });
         }
+    } catch (err) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo conectar con el servidor',
+            confirmButtonColor: '#e74c3c'
+        });
+        console.error("Error login:", err);
+    }
+});
 
-        // Inicializar partículas
-        createMedicalParticles();
+    // OLVIDAR CONTRASEÑA (NÓMINA)
+    forgotForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        const nomina = document.getElementById('forgotNomina').value;
 
-        // MANTENIENDO TUS FUNCIONES ORIGINALES
-        const loginForm = document.getElementById('loginForm');
-        const forgotForm = document.getElementById('forgotForm');
-        const resetForm = document.getElementById('resetForm');
-        const loginButton = document.getElementById('loginButton');
-        const showForgot = document.getElementById('showForgot');
-        const backToLogin = document.getElementById('backToLogin');
-        const resetBackToLogin = document.getElementById('resetBackToLogin');
-
-        // Navegación entre formularios
-        showForgot.addEventListener('click', () => {
-            loginForm.classList.add('form-hidden');
-            resetForm.classList.add('form-hidden');
-            forgotForm.classList.remove('form-hidden');
+        const res = await fetch('/api/forgot-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nomina })
         });
 
-        backToLogin.addEventListener('click', () => {
-            forgotForm.reset();
-            forgotForm.classList.add('form-hidden');
-            resetForm.classList.add('form-hidden');
-            loginForm.classList.remove('form-hidden');
-        });
-
-        resetBackToLogin.addEventListener('click', () => {
-            resetForm.reset();
-            resetForm.classList.add('form-hidden');
-            forgotForm.classList.add('form-hidden');
-            loginForm.classList.remove('form-hidden');
-        });
-
-        // LOGIN (Función original)
-        loginForm.addEventListener('submit', async e => {
-            e.preventDefault();
-            const username = document.getElementById('loginUsername').value;
-            const password = document.getElementById('loginPassword').value;
-
-            // Mostrar loading
-            const buttonText = loginButton.querySelector('.button-text');
-            const originalText = buttonText.textContent;
-            buttonText.innerHTML = '<div class="loading"></div>Accediendo...';
-            loginButton.disabled = true;
-
-            try {
-               const res = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password }),
-                credentials: "include"
+        const data = await res.json();
+        if (res.ok) {
+            Swal.fire({
+                icon: 'info',
+                title: 'Código de recuperación',
+                text: `Tu código es: ${data.token}`,
+                confirmButtonColor: '#3498db'
+            }).then(() => {
+                forgotForm.reset();
+                forgotForm.classList.add('d-none');
+                resetForm.classList.remove('d-none');
+                document.getElementById('resetNomina').value = nomina;
+                formTitle.textContent = 'Restablecer Contraseña';
             });
-
-                const data = await res.json();
-                if (res.ok) {
-                    localStorage.setItem("usuario", JSON.stringify(data.usuario));
-                    window.location.href = '/frontend/index.html';
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error de acceso',
-                        text: data.error || 'Usuario o contraseña incorrectos',
-                        confirmButtonColor: '#ef4444'
-                    });
-                }
-            } catch (err) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error de conexión',
-                    text: 'No se pudo conectar con el servidor',
-                    confirmButtonColor: '#ef4444'
-                });
-                console.error("Error login:", err);
-            } finally {
-                // Restaurar botón
-                buttonText.textContent = originalText;
-                loginButton.disabled = false;
-            }
-        });
-
-        // OLVIDAR CONTRASEÑA (Función original)
-        forgotForm.addEventListener('submit', async e => {
-            e.preventDefault();
-            const nomina = document.getElementById('forgotNomina').value;
-
-            const res = await fetch('/api/forgot-password', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nomina })
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.error || 'No se pudo generar el código',
+                confirmButtonColor: '#e74c3c'
             });
+        }
+    });
 
-            const data = await res.json();
-            if (res.ok) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Código generado',
-                    text: `Su código de recuperación es: ${data.token}`,
-                    confirmButtonColor: '#10b981'
-                }).then(() => {
-                    forgotForm.classList.add('form-hidden');
-                    resetForm.classList.remove('form-hidden');
-                    document.getElementById('resetNomina').value = nomina;
-                });
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: data.error || 'No se pudo generar el código',
-                    confirmButtonColor: '#ef4444'
-                });
-            }
-        });
-
-        // RESTABLECER CONTRASEÑA (Función original)
-        resetForm.addEventListener('submit', async e => {
-            e.preventDefault();
-            const nomina = document.getElementById('resetNomina').value;
-            const token = document.getElementById('resetToken').value;
-            const password = document.getElementById('resetPassword').value;
-
-            const res = await fetch('/api/reset-password', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nomina, token, password })
-            });
-
-            const data = await res.json();
-            if (res.ok) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Contraseña actualizada',
-                    text: data.mensaje || 'Su contraseña fue restablecida correctamente',
-                    confirmButtonColor: '#10b981'
-                }).then(() => {
-                    resetForm.classList.add('form-hidden');
-                    loginForm.classList.remove('form-hidden');
-                });
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: data.error || 'No se pudo restablecer la contraseña',
-                    confirmButtonColor: '#ef4444'
-                });
-            }
-        });
-
-        // Ayuda técnica
+     // Ayuda técnica
         document.getElementById('showHelp').addEventListener('click', () => {
             Swal.fire({
                 title: 'Soporte Técnico',
@@ -632,6 +256,44 @@
                 confirmButtonColor: '#2563eb'
             });
         });
-    </script>
+
+
+    // RESTABLECER CONTRASEÑA
+    resetForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        const nomina = document.getElementById('resetNomina').value;
+        const token = document.getElementById('resetToken').value;
+        const password = document.getElementById('resetPassword').value;
+
+        const res = await fetch('/api/reset-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nomina, token, password })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Contraseña actualizada',
+                text: data.mensaje || 'Tu contraseña fue restablecida correctamente',
+                confirmButtonColor: '#27ae60'
+            }).then(() => {
+                resetForm.reset();
+                resetBackToLogin.click();
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.error || 'No se pudo restablecer la contraseña',
+                confirmButtonColor: '#e74c3c'
+            });
+        }
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </body>
 </html>
