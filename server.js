@@ -1112,28 +1112,41 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
   }
 });
 
-// Obtener todas las evaluaciones de optometría (con nombre de paciente)
+// Obtener evaluaciones de optometría (con nombre de paciente) con filtros
 app.get("/api/optometria", verificarSesion, async (req, res) => {
   try {
     let depto = getDepartamento(req);
+    const { filtro } = req.query; // "hoy" | "ayer" | "mes" | undefined
 
-    const result = await pool.query(
-      `SELECT o.*, e.nombre_completo AS nombre
-       FROM optometria o
-       JOIN expedientes e 
-         ON o.expediente_id = e.numero_expediente 
-        AND o.departamento = e.departamento
-       WHERE o.departamento = $1
-       ORDER BY o.fecha DESC`,
-      [depto]
-    );
+    let query = `
+      SELECT o.*, e.nombre_completo AS nombre
+      FROM optometria o
+      JOIN expedientes e 
+        ON o.expediente_id = e.numero_expediente 
+       AND o.departamento = e.departamento
+      WHERE o.departamento = $1
+    `;
+    let params = [depto];
 
+    if (filtro === "hoy") {
+      query += " AND DATE(o.fecha) = CURRENT_DATE";
+    } else if (filtro === "ayer") {
+      query += " AND DATE(o.fecha) = CURRENT_DATE - INTERVAL '1 day'";
+    } else if (filtro === "mes") {
+      query += " AND DATE_TRUNC('month', o.fecha) = DATE_TRUNC('month', CURRENT_DATE)";
+    }
+
+    query += " ORDER BY o.fecha DESC";
+
+    const result = await pool.query(query, params);
     res.json(result.rows);
+
   } catch (err) {
     console.error("Error en /api/optometria:", err);
     res.status(500).json({ error: "Error al obtener registros de optometría" });
   }
 });
+
 
 // Obtener las evaluaciones de optometría de un expediente específico
 app.get("/api/expedientes/:id/optometria", verificarSesion, async (req, res) => {

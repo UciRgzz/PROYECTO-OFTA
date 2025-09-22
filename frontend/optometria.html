@@ -243,6 +243,18 @@
     <!-- Formulario -->
     <div id="formularioOpto" style="display:none;"></div>
 
+
+<!-- Filtro -->
+<div class="mb-3">
+  <label for="filtroOpto" class="form-label">Filtrar por:</label>
+  <select id="filtroOpto" class="form-select w-auto d-inline-block">
+    <option value="todos">Todos</option>
+    <option value="hoy">Hoy</option>
+    <option value="ayer">Ayer</option>
+    <option value="mes">Este mes</option>
+  </select>
+</div>
+
     <!-- Tabla -->
     <div id="tablaOpto"></div>
     
@@ -257,7 +269,9 @@
 
 // Cargar y mostrar las evaluaciones de optometría
 async function cargarOptometrias() {
-  const res = await fetch("/api/optometria");
+  const filtro = document.getElementById("filtroOpto")?.value || "todos";
+  const res = await fetch(`/api/optometria?filtro=${filtro}`);
+
   const data = await res.json();
   let html = `
     <div class="card">
@@ -575,6 +589,9 @@ function cancelarFormulario() {
 
     // Cargar evaluaciones al iniciar
     document.addEventListener("DOMContentLoaded", function() {
+    // Filtro dinámico
+    document.getElementById("filtroOpto").addEventListener("change", cargarOptometrias);
+
       cargarOptometrias();
     });
   </script>
