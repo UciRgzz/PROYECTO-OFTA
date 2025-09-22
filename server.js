@@ -655,38 +655,39 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
     }
     const recibo = reciboResult.rows[0];
 
-    // Buscar el nombre del procedimiento en el catálogo
+    // Buscar nombre y precio del procedimiento en el catálogo
     const procResult = await pool.query(
-      `SELECT nombre FROM catalogo_procedimientos WHERE id = $1`,
+      `SELECT nombre, precio FROM catalogo_procedimientos WHERE id = $1`,
       [procedimiento_id]
     );
 
     if (procResult.rows.length === 0) {
       return res.status(404).json({ error: "No se encontró el procedimiento en el catálogo" });
     }
-    const procedimientoNombre = procResult.rows[0].nombre;
+    const { nombre: procedimientoNombre, precio: procedimientoPrecio } = procResult.rows[0];
 
-    // Guardar la orden usando el nombre en vez del id
+    // Guardar la orden con precio incluido
     const result = await pool.query(
       `INSERT INTO ordenes_medicas (
-        expediente_id, folio_recibo, medico, diagnostico, lado, procedimiento, tipo,
+        expediente_id, folio_recibo, medico, diagnostico, lado, procedimiento, tipo, precio,
         anexos, conjuntiva, cornea, camara_anterior, cristalino,
         retina, macula, nervio_optico, ciclopejia, hora_tp,
         problemas, plan, estatus, fecha, departamento
       )
       VALUES (
-        $1,$2,$3,$4,$5,$6,$7,
-        $8,$9,$10,$11,$12,
-        $13,$14,$15,$16,$17,
-        $18,$19,'Pendiente',NOW(),$20
+        $1,$2,$3,$4,$5,$6,$7,$8,
+        $9,$10,$11,$12,$13,
+        $14,$15,$16,$17,$18,
+        $19,$20,'Pendiente',NOW(),$21
       )
       RETURNING *`,
       [
         recibo.paciente_id,
         recibo.id,
         medico, diagnostico, lado,
-        procedimientoNombre, // 👈 ahora guarda el nombre
+        procedimientoNombre,
         recibo.tipo,
+        procedimientoPrecio, // 👈 ahora guarda precio en la orden
         anexos, conjuntiva, cornea, camara_anterior, cristalino,
         retina, macula, nervio_optico, ciclopejia, hora_tp,
         problemas, plan, depto
@@ -699,7 +700,6 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // ==================== ÓRDENES POR EXPEDIENTE ====================
 app.get("/api/expedientes/:id/ordenes", verificarSesion, async (req, res) => {
