@@ -278,10 +278,17 @@ async function mostrarSeccion(seccion){
     document.getElementById('buscarExp').addEventListener('input', filtrarLista);
     cargarLista();
   }else if(paginas[seccion]){
-    main.innerHTML = `<iframe src="${paginas[seccion]}"></iframe>`;
-  }else{
-    main.innerHTML = `<h2>${seccion}</h2><p>Contenido de ${seccion} aquí...</p>`;
-  }
+      fetch(paginas[seccion])
+        .then(res => res.text())
+        .then(html => {
+          main.innerHTML = html;
+        })
+        .catch(() => {
+          main.innerHTML = `<p class="text-danger">Error al cargar ${seccion}</p>`;
+        });
+    }else{
+      main.innerHTML = `<h2>${seccion}</h2><p>Contenido de ${seccion} aquí...</p>`;
+}
 }
 
 // Expedientes
