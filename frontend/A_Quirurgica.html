@@ -22,9 +22,10 @@
     .day-number { font-weight: 600; margin-bottom: 5px; color: #2c3e50; }
 
     /* Colores por tipo de procedimiento */
-    .proc-lente { background: #e8f5e9; border-left: 4px solid #4caf50; }
-    .proc-catarata { background: #fff3e0; border-left: 4px solid #ff9800; }
-    .proc-consulta { background: #e3f2fd; border-left: 4px solid #2196f3; }
+      .proc-catarata { background: #fff3e0; border-left: 4px solid #ff9800; }   /* Cirugía de Catarata - naranja */
+      .proc-consulta { background: #e3f2fd; border-left: 4px solid #2196f3; }   /* Consulta Oftalmológica - azul */
+      .proc-lente    { background: #e8f5e9; border-left: 4px solid #4caf50; }   /* Lente Intraocular - verde */
+
 
     .insumo-item { padding: 6px; margin-bottom: 6px; border-radius: 5px; font-size: 0.85rem; }
     .insumo-name { font-weight: 600; }
@@ -156,10 +157,15 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function getColorClass(proc) {
-  if (proc.toLowerCase().includes("lente")) return "proc-lente";
-  if (proc.toLowerCase().includes("catarata")) return "proc-catarata";
-  return "proc-consulta";
+  const texto = proc.toLowerCase();
+
+  if (texto.includes("catarata")) return "proc-catarata";   // Cirugía de Catarata
+  if (texto.includes("consulta")) return "proc-consulta";   // Consulta Oftalmológica
+  if (texto.includes("lente"))    return "proc-lente";      // Lente Intraocular
+
+  return ""; // si llega otro tipo
 }
+
 
 async function renderCalendarCirugias() {
   const calendario = document.getElementById("calendarioCirugias");
