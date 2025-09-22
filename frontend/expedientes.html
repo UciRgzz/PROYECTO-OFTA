@@ -1,262 +1,166 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestión de Expedientes</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Expedientes</title>
+    <link rel="stylesheet" href="styles.css">
 
-  <style>
-    :root {
-      --primary-color: #2c3e50;
-      --secondary-color: #3498db;
-      --accent-color: #e74c3c;
-      --success-color: #27ae60;
-      --dark-color: #343a40;
-    }
+    <!-- FontAwesome para íconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #f0f5ff 0%, #e3f2fd 100%);
-      padding: 20px;
-      color: #333;
-      min-height: 100vh;
-    }
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; }
+        .container { padding: 20px; max-width: 1200px; margin: auto; }
 
-    .container { max-width: 1400px; margin: 0 auto; }
+        /* Encabezado estilo optometría */
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: linear-gradient(135deg,#2c3e50 0%,#3498db 100%);
+            color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        header h1 { margin: 0; font-size: 2rem; }
 
-    header {
-      text-align: center;
-      margin-bottom: 30px;
-      padding: 20px;
-      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-      color: white;
-      border-radius: 10px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-    }
-    h1 { font-size: 2.5rem; margin: 0; font-weight: 700; }
+        .top-bar { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .search-section { display: flex; gap: 5px; }
+        .search-section input { padding: 5px; border: 1px solid #ccc; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+        th { background: #eee; }
+        button { padding: 6px 12px; cursor: pointer; border: none; border-radius: 6px; transition: 0.3s; font-weight: 500; }
 
-    .card {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-      margin-bottom: 30px;
-      overflow: hidden;
-      border: none;
-    }
-    .card-header {
-      background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
-      color: white;
-      padding: 18px 25px;
-      font-size: 1.2rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-    }
-    .card-header i { margin-right: 12px; font-size: 1.4rem; }
-    .card-body { padding: 25px; }
+        /* 🎨 Botones con paleta profesional */
+        .btn-guardar { background: #2e7d32; color: white; }
+        .btn-guardar:hover { background: #1b5e20; }
 
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    .search-section { display: flex; gap: 5px; flex: 1; min-width: 300px; }
+        .btn-editar { background: #1976d2; color: white; }
+        .btn-editar:hover { background: #0d47a1; }
 
-    .btn {
-      cursor: pointer;
-      font-weight: 600;
-      border: none;
-      border-radius: 8px;
-      padding: 10px 18px;
-      transition: all 0.3s ease;
-    }
-    .btn-guardar {
-      background: linear-gradient(135deg, var(--success-color) 0%, #219653 100%);
-      color: white;
-    }
-    .btn-guardar:hover { transform: translateY(-2px); }
-    .btn-editar {
-      background: linear-gradient(135deg, var(--secondary-color) 0%, #2c80b9 100%);
-      color: white;
-    }
-    .btn-editar:hover { transform: translateY(-2px); }
-    .btn-cancelar {
-      background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-      color: white;
-    }
-    .btn-medico {
-      background: linear-gradient(135deg, #009688 0%, #00695c 100%);
-      color: white;
-    }
-    .btn-opto {
-      background: linear-gradient(135deg, #6a1b9a 0%, #4a148c 100%);
-      color: white;
-    }
-    .btn-danger {
-      background: linear-gradient(135deg, var(--accent-color) 0%, #c0392b 100%);
-      color: white;
-    }
+        .btn-cancelar { background: #6c757d; color: white; }
+        .btn-cancelar:hover { background: #495057; }
 
-    .table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 20px 0;
-      background: white;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-    }
-    .table th {
-      background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
-      color: white;
-      padding: 14px;
-      text-align: center;
-      font-weight: 600;
-    }
-    .table td {
-      padding: 12px;
-      border-bottom: 1px solid #eee;
-      text-align: center;
-      font-size: 0.9rem;
-    }
-    .table tr:nth-child(odd) { background: #f9f9f9; }
-    .table tr:hover { background-color: #eef6ff; }
+        .btn-medico { background: #009688; color: white; }
+        .btn-medico:hover { background: #00695c; }
 
-    #expedienteForm {
-      background: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-    }
+        .btn-opto { background: #6a1b9a; color: white; }
+        .btn-opto:hover { background: #4a148c; }
 
-    #modalMedico {
-      display:none;
-      position:fixed;
-      top:5%;
-      left:50%;
-      transform:translateX(-50%);
-      background:white;
-      padding:20px;
-      border-radius:8px;
-      width:80%;
-      max-height:90%;
-      overflow-y:auto;
-      z-index:2000;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-    }
-  </style>
+        #expedienteForm {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        input, select {
+            width: 100%;
+            padding: 6px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        /* Modal */
+        #modalMedico {
+            display:none;
+            position:fixed;
+            top:5%;
+            left:50%;
+            transform:translateX(-50%);
+            background:white;
+            padding:20px;
+            border:1px solid #ccc;
+            border-radius:8px;
+            width:80%;
+            max-height:90%;
+            overflow-y:auto;
+            z-index:2000;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1><i class="fas fa-folder"></i> Gestión de Expedientes</h1>
-    </header>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-folder"></i> Gestión de Expedientes</h1>
+        </header>
 
-    <!-- === Búsqueda y formulario === -->
-    <div class="card">
-      <div class="card-header"><i class="fas fa-search"></i> Búsqueda y Acciones</div>
-      <div class="card-body">
+        <!-- Barra búsqueda -->
         <div class="top-bar">
-          <div class="search-section">
-            <input type="text" id="buscarInput" placeholder="Buscar por número de expediente o nombre..." class="form-control">
-            <button class="btn btn-primary" onclick="buscarExpediente()">Buscar</button>
-          </div>
-          <button class="btn btn-success" onclick="nuevoExpediente()"><i class="fas fa-plus"></i> Nuevo Expediente</button>
+            <div class="search-section">
+                <input type="text" id="buscarInput" placeholder="Buscar por número de expediente o nombre...">
+                <button onclick="buscarExpediente()">Buscar</button>
+            </div>
+            <button onclick="nuevoExpediente()">Nuevo Expediente</button>
         </div>
 
-        <!-- Formulario -->
+        <!-- Formulario Expediente -->
         <form id="expedienteForm" onsubmit="guardarExpediente(event)" style="display:none;">
-          <div class="row g-3">
-            <div class="col-md-4">
-              <label>Número de Expediente:</label>
-              <input type="text" id="numero_expediente" readonly placeholder="Se generará automáticamente" class="form-control">
-            </div>
-            <div class="col-md-8">
-              <label>Nombre Completo:</label>
-              <input type="text" id="nombre" required class="form-control">
-            </div>
-            <div class="col-md-4">
-              <label>Fecha de Nacimiento:</label>
-              <input type="date" id="fecha_nacimiento" required onchange="calcularEdad()" class="form-control">
-            </div>
-            <div class="col-md-2">
-              <label>Edad:</label>
-              <input type="number" id="edad" readonly class="form-control">
-            </div>
-            <div class="col-md-6">
-              <label>Padecimientos:</label>
-              <select id="padecimientos" required class="form-control">
+            <label>Número de Expediente:</label>
+            <input type="text" id="numero_expediente" readonly placeholder="Se generará automáticamente">
+
+            <label>Nombre Completo:</label>
+            <input type="text" id="nombre" required>
+
+            <label>Fecha de Nacimiento:</label>
+            <input type="date" id="fecha_nacimiento" required onchange="calcularEdad()">
+
+            <label>Edad:</label>
+            <input type="number" id="edad" readonly>
+
+            <label>Padecimientos:</label>
+            <select id="padecimientos" required>
                 <option value="">Seleccione...</option>
                 <option value="DIABETES">DIABETES</option>
                 <option value="HIPERTENSO">HIPERTENSO</option>
                 <option value="NINGUNO">NINGUNO</option>
-              </select>
-            </div>
-            <div class="col-md-6">
-              <label>Colonia:</label>
-              <input type="text" id="colonia" class="form-control">
-            </div>
-            <div class="col-md-6">
-              <label>Ciudad:</label>
-              <input type="text" id="ciudad" class="form-control">
-            </div>
-            <div class="col-md-6">
-              <label>Teléfono 1:</label>
-              <input type="text" id="telefono1" class="form-control">
-            </div>
-            <div class="col-md-6">
-              <label>Teléfono 2:</label>
-              <input type="text" id="telefono2" class="form-control">
-            </div>
-          </div>
-          <div class="mt-3">
-            <button type="submit" class="btn btn-guardar"><i class="fas fa-save"></i> Guardar</button>
-            <button type="button" class="btn btn-cancelar" onclick="cancelarFormulario()"><i class="fas fa-times"></i> Cancelar</button>
-          </div>
-        </form>
-      </div>
-    </div>
+            </select>
 
-    <!-- === Tabla === -->
-    <div class="card">
-      <div class="card-header"><i class="fas fa-list"></i> Lista de Expedientes</div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-bordered align-middle">
+            <label>Colonia:</label>
+            <input type="text" id="colonia">
+
+            <label>Ciudad:</label>
+            <input type="text" id="ciudad">
+
+            <label>Teléfono 1:</label>
+            <input type="text" id="telefono1">
+
+            <label>Teléfono 2:</label>
+            <input type="text" id="telefono2">
+
+            <button type="submit" class="btn-guardar">Guardar</button>
+            <button type="button" class="btn-cancelar" onclick="cancelarFormulario()">Cancelar</button>
+        </form>
+
+        <!-- Tabla Expedientes -->
+        <table>
             <thead>
-              <tr>
-                <th>Número</th>
-                <th>Nombre</th>
-                <th>Edad</th>
-                <th>Padecimiento</th>
-                <th>Colonia</th>
-                <th>Ciudad</th>
-                <th>Tel. 1</th>
-                <th>Tel. 2</th>
-                <th>Acciones</th>
-              </tr>
+                <tr>
+                    <th>Número</th>
+                    <th>Nombre</th>
+                    <th>Edad</th>
+                    <th>Padecimiento</th>
+                    <th>Colonia</th>
+                    <th>Ciudad</th>
+                    <th>Tel. 1</th>
+                    <th>Tel. 2</th>
+                    <th>Acciones</th>
+                </tr>
             </thead>
             <tbody id="listaExpedientes"></tbody>
-          </table>
-        </div>
-      </div>
+        </table>
     </div>
-  </div>
 
-  <!-- Modal -->
-  <div id="modalMedico">
-    <h3 id="modalTitulo"></h3>
-    <div id="modalContenido"></div>
-    <button onclick="cerrarModal()" class="btn btn-cancelar mt-2">Cerrar</button>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script>
+    <!-- Modal -->
+    <div id="modalMedico">
+        <h3 id="modalTitulo"></h3>
+        <div id="modalContenido"></div>
+        <button onclick="cerrarModal()" class="btn-cancelar mt-2">Cerrar</button>
+    </div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
 async function cargarExpedientes() {
     const res = await fetch('/api/expedientes');
     const data = await res.json();
@@ -546,10 +450,5 @@ async function eliminarExpediente(id) {
         }
     }
 }
-// Cargar expedientes al abrir la página
-document.addEventListener("DOMContentLoaded", () => {
-    cargarExpedientes();
-});
-
 
 </script>
