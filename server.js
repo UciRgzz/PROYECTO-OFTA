@@ -1191,6 +1191,31 @@ app.delete("/api/optometria/:id", isAdmin, async (req, res) => {
   }
 });
 
+// Obtener nombre del paciente por número de expediente
+app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
+  try {
+    const { id } = req.params;
+    let depto = getDepartamento(req);
+
+    const result = await pool.query(
+      `SELECT nombre_completo 
+         FROM expedientes 
+        WHERE numero_expediente = $1 
+          AND departamento = $2`,
+      [id, depto]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Expediente no encontrado" });
+    }
+
+    res.json({ nombre: result.rows[0].nombre_completo });
+  } catch (err) {
+    console.error("Error en /api/expedientes/:id/nombre:", err);
+    res.status(500).json({ error: "Error al obtener nombre del paciente" });
+  }
+});
+
 
 
 

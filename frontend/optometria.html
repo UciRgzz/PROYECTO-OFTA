@@ -392,8 +392,14 @@ document.getElementById("btnNuevo").addEventListener("click", () => {
     <form id="formOptometria">
       <div class="mb-3">
         <label class="form-label">Número de Expediente</label>
-        <input type="number" name="expediente_id" class="form-control" required>
+        <input type="number" id="expedienteInput" name="expediente_id" class="form-control" required>
       </div>
+
+      <div class="mb-3">
+        <label class="form-label">Nombre del Paciente</label>
+        <input type="text" id="nombrePaciente" class="form-control" readonly>
+      </div>
+
       <div class="table-responsive">
         <table class="table table-bordered text-center align-middle">
           <thead class="table-light">
@@ -586,6 +592,28 @@ function cancelarFormulario() {
         text: mensaje
       });
     }
+    // Buscar nombre de paciente al escribir expediente
+document.addEventListener("input", async (e) => {
+  if (e.target.id === "expedienteInput") {
+    const id = e.target.value.trim();
+    if (!id) {
+      document.getElementById("nombrePaciente").value = "";
+      return;
+    }
+    try {
+      const res = await fetch(`/api/expedientes/${id}/nombre`);
+      if (res.ok) {
+        const data = await res.json();
+        document.getElementById("nombrePaciente").value = data.nombre;
+      } else {
+        document.getElementById("nombrePaciente").value = "No encontrado";
+      }
+    } catch (err) {
+      console.error("Error buscando expediente:", err);
+      document.getElementById("nombrePaciente").value = "Error";
+    }
+  }
+});
 
     // Cargar evaluaciones al iniciar
     document.addEventListener("DOMContentLoaded", function() {
