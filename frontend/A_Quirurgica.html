@@ -512,9 +512,10 @@
                 <div class="insumo-info">Proc: ${c.procedimiento}</div>
                 <div class="insumo-info">Dr: ${c.medico}</div>
                 ${c.tipo_lente ? `<div class="insumo-info">Lente: ${c.tipo_lente}</div>` : ""}
-                <button class="btn btn-sm btn-danger mt-1" onclick="eliminarCirugia(${c.id})">
+                <button class="btn btn-sm btn-danger mt-1" onclick="event.stopPropagation(); eliminarCirugia(${c.id})">
                   <i class="fas fa-trash"></i> Eliminar
                 </button>
+
               </div>`;
           });
         }

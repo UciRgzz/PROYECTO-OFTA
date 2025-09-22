@@ -2,46 +2,333 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Registro de Recibo</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f5ff; padding: 20px; }
-    .container { max-width: 1200px; margin: auto; }
-    header { text-align: center; margin-bottom: 25px; padding: 15px; background: linear-gradient(135deg,#2c3e50 0%,#3498db 100%); color: #fff; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-    header h1 { margin: 0; font-size: 2rem; }
-
-    .card { background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 30px; overflow: hidden; }
-    .card-header { background: #2c3e50; color: #fff; padding: 15px 20px; font-size: 1.2rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
-
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: center; }
-    th { background: #f8f9fa; color: #2c3e50; font-weight: 600; }
-    tr:hover { background-color: #f9f9f9; }
-
-    .btn-success { background: #27ae60; border: none; }
-    .btn-success:hover { background: #219653; }
-    .btn-danger { background: #e74c3c; border: none; }
-    .btn-danger:hover { background: #c0392b; }
-
-    .badge { padding: 6px 10px; border-radius: 6px; font-size: 0.85rem; }
-    .badge.bg-info { background: #3498db !important; }
-    .badge.bg-success { background: #27ae60 !important; }
-    .badge.bg-warning { background: #f39c12 !important; color: #fff !important; }
-    .badge.bg-danger { background: #e74c3c !important; }
+    :root {
+      --primary-color: #2c3e50;
+      --secondary-color: #3498db;
+      --accent-color: #e74c3c;
+      --success-color: #27ae60;
+      --light-color: #f8f9fa;
+      --dark-color: #343a40;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f0f5ff 0%, #e3f2fd 100%);
+      padding: 20px;
+      color: #333;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      color: white;
+      border-radius: 10px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+    
+    .description {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      margin-bottom: 30px;
+      overflow: hidden;
+      border: none;
+    }
+    
+    .card-header {
+      background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
+      color: white;
+      padding: 18px 25px;
+      font-size: 1.3rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+    }
+    
+    .card-header i {
+      margin-right: 12px;
+      font-size: 1.5rem;
+    }
+    
+    .card-body {
+      padding: 25px;
+    }
+    
+    .form-group {
+      margin-bottom: 25px;
+    }
+    
+    label {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--primary-color);
+    }
+    
+    input, select {
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      width: 100%;
+      transition: all 0.3s;
+    }
+    
+    input:focus, select:focus {
+      border-color: var(--secondary-color);
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+      outline: none;
+    }
+    
+    .btn {
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: none;
+      border-radius: 8px;
+      padding: 14px 25px;
+      font-size: 1.1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--secondary-color) 0%, #2c80b9 100%);
+      color: white;
+      box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4);
+    }
+    
+    .btn-primary i {
+      margin-right: 8px;
+    }
+    
+    .btn-success {
+      background: linear-gradient(135deg, var(--success-color) 0%, #219653 100%);
+      color: white;
+      box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);
+    }
+    
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(39, 174, 96, 0.4);
+    }
+    
+    .btn-danger {
+      background: linear-gradient(135deg, var(--accent-color) 0%, #c0392b 100%);
+      color: white;
+      box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
+    }
+    
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(231, 76, 60, 0.4);
+    }
+    
+    .btn-sm {
+      padding: 8px 15px;
+      font-size: 0.9rem;
+    }
+    
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    }
+    
+    .table th {
+      background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-weight: 600;
+    }
+    
+    .table td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+    
+    .table tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .table tr:nth-child(odd) {
+      background: #f9f9f9;
+    }
+    
+    .table tr:hover {
+      background-color: #eef6ff;
+    }
+    
+    .success-alert {
+      display: none;
+      padding: 15px;
+      background: #d4edda;
+      color: #155724;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      color: #6c757d;
+      font-size: 0.9rem;
+    }
+    
+    .badge {
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    
+    .badge.bg-info {
+      background: linear-gradient(135deg, var(--secondary-color) 0%, #2c80b9 100%) !important;
+    }
+    
+    .badge.bg-success {
+      background: linear-gradient(135deg, var(--success-color) 0%, #219653 100%) !important;
+    }
+    
+    .badge.bg-warning {
+      background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%) !important;
+      color: white !important;
+    }
+    
+    .badge.bg-danger {
+      background: linear-gradient(135deg, var(--accent-color) 0%, #c0392b 100%) !important;
+    }
+    
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2rem;
+      }
+      
+      .table-responsive {
+        overflow-x: auto;
+      }
+      
+      .card-header {
+        font-size: 1.1rem;
+        padding: 15px;
+      }
+      
+      .btn {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+    }
+    
+    /* Estilos para el modal de vista previa del recibo */
+    .swal-wide {
+      width: 800px !important;
+      max-width: 90vw;
+    }
+    
+    .recibo-preview {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      width: 100%;
+      max-width: 700px;
+      margin: auto;
+      border: 1px solid #ddd;
+      background: white;
+    }
+    
+    .recibo-header {
+      text-align: center;
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--primary-color);
+      padding-bottom: 15px;
+    }
+    
+    .recibo-logo {
+      width: 120px;
+      height: auto;
+      margin-bottom: 10px;
+    }
+    
+    .recibo-details {
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    
+    .recibo-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    
+    .recibo-table th, .recibo-table td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    
+    .recibo-table th {
+      background: #f0f0f0;
+    }
+    
+    .recibo-footer {
+      font-size: 12px;
+      text-align: center;
+      color: #555;
+      margin-top: 30px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
       <h1><i class="fas fa-receipt"></i> Registro de Recibo</h1>
+      <p class="description">Sistema de gestión de pagos y recibos de Oftavisión</p>
     </header>
+
+    <div class="success-alert" id="successAlert">
+      <i class="fas fa-check-circle"></i> <span id="successMessage">Recibo guardado correctamente.</span>
+    </div>
 
     <!-- Formulario -->
     <div class="card">
-      <div class="card-header">
-        <i class="fas fa-file-invoice-dollar"></i> Nuevo Recibo
-      </div>
+      <div class="card-header"><i class="fas fa-file-invoice-dollar"></i> Nuevo Recibo</div>
       <div class="card-body">
         <form id="formRecibo" class="row g-3">
           <div class="col-md-3">
@@ -71,11 +358,10 @@
             <select id="procedimiento" class="form-select" required></select>
           </div>
 
-
-            <div class="col-md-4" id="precioContainer">
-              <label class="form-label">Procedimiento y Precio:</label>
-              <select id="precio" class="form-select" required></select>
-            </div>
+          <div class="col-md-4" id="precioContainer">
+            <label class="form-label">Procedimiento y Precio:</label>
+            <select id="precio" class="form-select" required></select>
+          </div>
 
           <div class="col-md-4">
             <label class="form-label">Forma de Pago:</label>
@@ -99,341 +385,345 @@
 
     <!-- Lista -->
     <div class="card">
-      <div class="card-header">
-        <i class="fas fa-list"></i> Lista de Recibos
-      </div>
+      <div class="card-header"><i class="fas fa-list"></i> Lista de Recibos</div>
       <div class="card-body">
-        <table class="table table-striped table-bordered text-center align-middle">
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>Folio</th>
-              <th>Paciente</th>
-              <th>Procedimiento</th>
-              <th>Tipo</th>
-              <th>Forma de Pago</th>
-              <th>Monto Pagado</th>
-              <th>Precio</th>
-              <th>Pendiente</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="tablaRecibos"></tbody>
-        </table>
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered text-center align-middle">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Folio</th>
+                <th>Paciente</th>
+                <th>Procedimiento</th>
+                <th>Tipo</th>
+                <th>Forma de Pago</th>
+                <th>Monto Pagado</th>
+                <th>Precio</th>
+                <th>Pendiente</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tablaRecibos"></tbody>
+          </table>
+        </div>
       </div>
+    </div>
+    
+    <div class="footer">
+      <p>Sistema de Gestión Oftavisión &copy; 2025</p>
     </div>
   </div>
 
-
-  
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
 
-<script>
-  // 👇 Esto debe estar al inicio del <script>if (res.ok) {
-let userRole = localStorage.getItem("rol") || "usuario"; 
+  <script>
+    let userRole = localStorage.getItem("rol") || "usuario"; 
+    let pacienteId = null;
+    let catalogo = [];
 
-  let pacienteId = null;
-  let catalogo = [];
+    // Cargar catálogo de procedimientos
+    async function cargarCatalogo() {
+      try {
+        const res = await fetch("/api/procedimientos");
+        catalogo = await res.json();
 
-  // Cargar catálogo de procedimientos
-  async function cargarCatalogo() {
-    try {
-      const res = await fetch("/api/procedimientos");
-      catalogo = await res.json();
+        // Rellenar el select de procedimiento con los valores de la BD
+        const procSelect = document.getElementById("procedimiento");
+        procSelect.innerHTML = catalogo.map(c =>
+          `<option value="${c.nombre}">${c.nombre}</option>`
+        ).join("");
 
-      // Rellenar el select de procedimiento con los valores de la BD
-      const procSelect = document.getElementById("procedimiento");
-      procSelect.innerHTML = catalogo.map(c =>
-        `<option value="${c.nombre}">${c.nombre}</option>`
-      ).join("");
-
-      actualizarPrecios();
-    } catch (err) {
-      console.error("Error cargando catálogo:", err);
+        actualizarPrecios();
+      } catch (err) {
+        console.error("Error cargando catálogo:", err);
+      }
     }
-  }
 
-
-  // Actualizar opciones de precios según el procedimiento elegido
-  function actualizarPrecios() {
-    const proc = document.getElementById("procedimiento").value;
-    const select = document.getElementById("precio");
-    const elegido = catalogo.find(c => c.nombre === proc);
-    select.innerHTML = elegido 
-      ? `<option value="${elegido.precio}">${elegido.nombre} — $${elegido.precio}</option>`
-      : "";
-  }
-
-
-  // Escuchar cambio de procedimiento
-  document.getElementById("procedimiento").addEventListener("change", actualizarPrecios);
-
-  cargarCatalogo();
-
-  // Autocompletar paciente por folio
-  document.getElementById("folio").addEventListener("input", async () => {
-    const folio = document.getElementById("folio").value;
-    if (!folio) {
-      document.getElementById("nombrePaciente").value = "";
-      pacienteId = null;
-      return;
+    // Actualizar opciones de precios según el procedimiento elegido
+    function actualizarPrecios() {
+      const proc = document.getElementById("procedimiento").value;
+      const select = document.getElementById("precio");
+      const elegido = catalogo.find(c => c.nombre === proc);
+      select.innerHTML = elegido 
+        ? `<option value="${elegido.precio}">${elegido.nombre} — $${elegido.precio}</option>`
+        : "";
     }
-    try {
-      const res = await fetch(`/api/recibos/paciente/${folio}`);
-      if (!res.ok) {
-        document.getElementById("nombrePaciente").value = "No encontrado";
+
+    // Escuchar cambio de procedimiento
+    document.getElementById("procedimiento").addEventListener("change", actualizarPrecios);
+
+    cargarCatalogo();
+
+    // Autocompletar paciente por folio
+    document.getElementById("folio").addEventListener("input", async () => {
+      const folio = document.getElementById("folio").value;
+      if (!folio) {
+        document.getElementById("nombrePaciente").value = "";
         pacienteId = null;
         return;
       }
-      const data = await res.json();
-      document.getElementById("nombrePaciente").value = data.nombre_completo;
-      pacienteId = data.id;
-    } catch (err) {
-      console.error("Error buscando paciente:", err);
-    }
-  });
-// Guardar recibo con SweetAlert2
-document.getElementById("formRecibo").addEventListener("submit", async function(e) {
-  e.preventDefault();
-  if (!pacienteId) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Atención',
-      text: 'Debes ingresar un número de expediente válido',
-      confirmButtonColor: '#f39c12'
+      try {
+        const res = await fetch(`/api/recibos/paciente/${folio}`);
+        if (!res.ok) {
+          document.getElementById("nombrePaciente").value = "No encontrado";
+          pacienteId = null;
+          return;
+        }
+        const data = await res.json();
+        document.getElementById("nombrePaciente").value = data.nombre_completo;
+        pacienteId = data.id;
+      } catch (err) {
+        console.error("Error buscando paciente:", err);
+      }
     });
-    return;
-  }
 
-  const datos = {
-    fecha: this.fecha.value,
-    paciente_id: pacienteId,
-    procedimiento: this.procedimiento.value,
-    precio: this.precio.value,
-    forma_pago: this.forma_pago.value,
-    monto_pagado: this.monto_pagado.value,
-    tipo: this.tipoRecibo.value
-  };
+    // Guardar recibo
+    document.getElementById("formRecibo").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      if (!pacienteId) {
+        mostrarError("Atención", "Debes ingresar un número de expediente válido");
+        return;
+      }
 
-  const res = await fetch('/api/recibos', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(datos)
-  });
-  const data = await res.json();
+      const datos = {
+        fecha: this.fecha.value,
+        paciente_id: pacienteId,
+        procedimiento: this.procedimiento.value,
+        precio: this.precio.value,
+        forma_pago: this.forma_pago.value,
+        monto_pagado: this.monto_pagado.value,
+        tipo: this.tipoRecibo.value
+      };
 
-  if (res.ok) {
-    Swal.fire({
-      icon: 'success',
-      title: '¡Éxito!',
-      text: 'Recibo guardado correctamente',
-      confirmButtonColor: '#27ae60'
+      try {
+        const res = await fetch('/api/recibos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(datos)
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          mostrarExito("¡Éxito!", "Recibo guardado correctamente");
+          this.reset();
+          document.getElementById("nombrePaciente").value = "";
+
+          // Volver a poner fecha actual
+          const hoy = new Date();
+          const yyyy = hoy.getFullYear();
+          const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+          const dd = String(hoy.getDate()).padStart(2, '0');
+          document.getElementById("fecha").value = `${yyyy}-${mm}-${dd}`;
+
+          cargarRecibos();
+          actualizarPrecios();
+        } else {
+          mostrarError("Error", data.error || 'No se pudo guardar el recibo');
+        }
+      } catch (err) {
+        console.error("Error guardando recibo:", err);
+        mostrarError("Error", "No se pudo guardar el recibo");
+      }
     });
-    this.reset();
-    document.getElementById("nombrePaciente").value = "";
 
-    // 👇 volver a poner fecha actual
-    const hoy = new Date();
-    const yyyy = hoy.getFullYear();
-    const mm = String(hoy.getMonth() + 1).padStart(2, '0');
-    const dd = String(hoy.getDate()).padStart(2, '0');
-    document.getElementById("fecha").value = `${yyyy}-${mm}-${dd}`;
+    // Eliminar recibo
+    async function eliminarRecibo(id) {
+      const confirmacion = await Swal.fire({
+        title: '¿Estás seguro?',
+        text: "No podrás revertir esta acción",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e74c3c',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+      });
 
-    cargarRecibos();
-    actualizarPrecios();
-  } else {
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: data.error || 'No se pudo guardar el recibo',
-      confirmButtonColor: '#e74c3c'
-    });
-  }
-});
+      if (!confirmacion.isConfirmed) return;
 
-
-// Eliminar recibo con SweetAlert2
-async function eliminarRecibo(id) {
-  Swal.fire({
-    title: '¿Estás seguro?',
-    text: "No podrás revertir esta acción",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#e74c3c',
-    cancelButtonColor: '#6c757d',
-    confirmButtonText: 'Sí, eliminar',
-    cancelButtonText: 'Cancelar'
-  }).then(async (result) => {
-    if (result.isConfirmed) {
       try {
         const res = await fetch(`/api/recibos/${id}`, { method: "DELETE" });
         const data = await res.json();
+        
         if (res.ok) {
-          Swal.fire({
-            icon: 'success',
-            title: 'Eliminado',
-            text: 'El recibo fue eliminado correctamente',
-            confirmButtonColor: '#27ae60'
-          });
+          mostrarExito("Eliminado", "El recibo fue eliminado correctamente");
           cargarRecibos();
         } else {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: data.error || 'No se pudo eliminar el recibo',
-            confirmButtonColor: '#e74c3c'
-          });
+          mostrarError("Error", data.error || 'No se pudo eliminar el recibo');
         }
       } catch (err) {
         console.error("Error al eliminar recibo:", err);
+        mostrarError("Error", "Ocurrió un error eliminando el recibo");
+      }
+    }
+
+    // Generar vista previa del recibo y confirmar impresión
+    async function imprimirRecibo(id) {
+      try {
+        const res = await fetch(`/api/recibos/${id}`);
+        if (!res.ok) {
+          mostrarError("Error", "No se encontró el recibo");
+          return;
+        }
+        const recibo = await res.json();
+
+        // Plantilla formal de recibo
+        const contenido = `
+          <div class="recibo-preview">
+            <div class="recibo-header">
+              <img src="/uploads/logo-oftavision.png" alt="Logo" class="recibo-logo">
+              <h2 style="margin:5px 0;">CLÍNICA OFTAVISION</h2>
+              <h4 style="margin:0; color:#444;">RECIBO DE PAGO</h4>
+              <hr>
+            </div>
+
+            <div class="recibo-details">
+              <table style="width:100%; margin-bottom:15px; font-size:14px;">
+                <tr>
+                  <td><b>Fecha:</b> ${new Date(recibo.fecha).toISOString().split("T")[0].split("-").reverse().join("/")}</td>
+                  <td style="text-align:right;"><b>Recibo N°:</b> ${recibo.id}</td>
+                </tr>
+                <tr>
+                  <td><b>Folio Expediente:</b> ${recibo.folio}</td>
+                  <td style="text-align:right;"><b>Tipo:</b> ${recibo.tipo}</td>
+                </tr>
+                <tr>
+                  <td colspan="2"><b>Paciente:</b> ${recibo.paciente}</td>
+                </tr>
+                <tr>
+                  <td colspan="2"><b>Forma de Pago:</b> ${recibo.forma_pago}</td>
+                </tr>
+              </table>
+            </div>
+
+            <table class="recibo-table">
+              <thead>
+                <tr>
+                  <th>Concepto</th>
+                  <th>Precio</th>
+                  <th>Pagado</th>
+                  <th>Pendiente</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>${recibo.procedimiento}</td>
+                  <td style="text-align:right;">$${parseFloat(recibo.precio).toFixed(2)}</td>
+                  <td style="text-align:right;">$${parseFloat(recibo.monto_pagado).toFixed(2)}</td>
+                  <td style="text-align:right;">$${parseFloat(recibo.pendiente).toFixed(2)}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="recibo-footer">
+              <p><b>CLÍNICA OFTAVISION</b> - Este recibo no es un comprobante fiscal.</p>
+            </div>
+          </div>
+        `;
+
+        // Mostrar modal de confirmación con el recibo
         Swal.fire({
-          icon: 'error',
-          title: 'Error inesperado',
-          text: 'Ocurrió un error eliminando el recibo',
-          confirmButtonColor: '#e74c3c'
+          title: 'Vista previa del recibo',
+          html: contenido,
+          width: 800,
+          showCancelButton: true,
+          confirmButtonText: 'Imprimir',
+          cancelButtonText: 'Cancelar',
+          customClass: {
+            popup: 'swal-wide'
+          },
+          preConfirm: () => {
+            // Generar el PDF solo si el usuario confirma
+            const opt = {
+              margin: 10,
+              filename: `recibo_${recibo.id}.pdf`,
+              image: { type: 'jpeg', quality: 0.98 },
+              html2canvas: { scale: 2 },
+              jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().from(contenido).set(opt).save();
+          }
         });
+
+      } catch (err) {
+        console.error("Error imprimiendo recibo:", err);
+        mostrarError("Error", "No se pudo generar el PDF");
       }
     }
-  });
-}
-
-// Generar vista previa del recibo y confirmar impresión
-async function imprimirRecibo(id) {
-  try {
-    const res = await fetch(`/api/recibos/${id}`);
-    if (!res.ok) {
-      Swal.fire({ icon: 'error', title: 'Error', text: 'No se encontró el recibo' });
-      return;
-    }
-    const recibo = await res.json();
-
-    // Plantilla formal de recibo
-    const contenido = `
-      <div style="font-family: Arial; padding:20px; width:100%; max-width:700px; margin:auto;">
-        <div style="text-align:center; margin-bottom:20px;">
-          <img src="/uploads/logo-oftavision.png" alt="Logo" style="width:120px;height:auto;">
-          <h2 style="margin:5px 0;">CLÍNICA OFTAVISION</h2>
-          <h4 style="margin:0; color:#444;">RECIBO DE PAGO</h4>
-          <hr>
-        </div>
-
-        <table style="width:100%; margin-bottom:15px; font-size:14px;">
-          <tr>
-            <td><b>Fecha:</b> ${new Date(recibo.fecha).toISOString().split("T")[0].split("-").reverse().join("/")}</td>
-            <td style="text-align:right;"><b>Recibo N°:</b> ${recibo.id}</td>
-          </tr>
-          <tr>
-            <td><b>Folio Expediente:</b> ${recibo.folio}</td>
-            <td style="text-align:right;"><b>Tipo:</b> ${recibo.tipo}</td>
-          </tr>
-          <tr>
-            <td colspan="2"><b>Paciente:</b> ${recibo.paciente}</td>
-          </tr>
-          <tr>
-            <td colspan="2"><b>Forma de Pago:</b> ${recibo.forma_pago}</td>
-          </tr>
-        </table>
-
-        <table style="width:100%; border-collapse:collapse; font-size:14px;" border="1">
-          <thead>
-            <tr style="background:#f0f0f0;">
-              <th style="padding:8px;">Concepto</th>
-              <th style="padding:8px;">Precio</th>
-              <th style="padding:8px;">Pagado</th>
-              <th style="padding:8px;">Pendiente</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style="padding:8px;">${recibo.procedimiento}</td>
-              <td style="padding:8px; text-align:right;">$${parseFloat(recibo.precio).toFixed(2)}</td>
-              <td style="padding:8px; text-align:right;">$${parseFloat(recibo.monto_pagado).toFixed(2)}</td>
-              <td style="padding:8px; text-align:right;">$${parseFloat(recibo.pendiente).toFixed(2)}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div style="margin-top:30px; font-size:12px; text-align:center; color:#555;">
-          <p><b>CLÍNICA OFTAVISION</b> - Este recibo no es un comprobante fiscal.</p>
-        </div>
-      </div>
-    `;
-
-    // Mostrar modal de confirmación con el recibo
-    Swal.fire({
-      title: 'Vista previa del recibo',
-      html: contenido,
-      width: 800,
-      showCancelButton: true,
-      confirmButtonText: 'Imprimir',
-      cancelButtonText: 'Cancelar',
-      customClass: {
-        popup: 'swal-wide'
-      },
-      preConfirm: () => {
-        // Generar el PDF solo si el usuario confirma
-        const opt = {
-          margin:       10,
-          filename:     `recibo_${recibo.id}.pdf`,
-          image:        { type: 'jpeg', quality: 0.98 },
-          html2canvas:  { scale: 2 },
-          jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-        html2pdf().from(contenido).set(opt).save();
-      }
-    });
-
-  } catch (err) {
-    console.error("Error imprimiendo recibo:", err);
-    Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo generar el PDF' });
-  }
-}
-
-// Poner fecha actual automáticamente en el formulario
-document.addEventListener("DOMContentLoaded", () => {
-  const hoy = new Date();
-  const yyyy = hoy.getFullYear();
-  const mm = String(hoy.getMonth() + 1).padStart(2, '0');
-  const dd = String(hoy.getDate()).padStart(2, '0');
-  document.getElementById("fecha").value = `${yyyy}-${mm}-${dd}`;
-});
-
 
     // Cargar lista de recibos
-  async function cargarRecibos() {
-    try {
-      const res = await fetch('/api/recibos');
-      const recibos = await res.json();
-      document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
-        <tr>
-          <td>${r.fecha}</td>
-          <td>${r.folio}</td>
-          <td>${r.paciente}</td>
-          <td>${r.procedimiento}</td>
-          <td><span class="badge bg-info">${r.tipo}</span></td>
-          <td>${r.forma_pago}</td>
-          <td><span class="badge bg-info">$${parseFloat(r.monto_pagado).toFixed(2)}</span></td>
-          <td><span class="badge bg-success">$${parseFloat(r.precio).toFixed(2)}</span></td>
-          <td><span class="badge bg-warning">$${parseFloat(r.precio - r.monto_pagado).toFixed(2)}</span></td>
-          <td>
-            <button class="btn btn-primary btn-sm" onclick="imprimirRecibo(${r.id})">
-              <i class="fas fa-print"></i> Imprimir
-            </button>
-            ${userRole === "admin" ? `
-              <button class="btn btn-danger btn-sm" onclick="eliminarRecibo(${r.id})">
-                <i class="fas fa-trash"></i> Eliminar
-              </button>` : ""}
-          </td>
-        </tr>
-      `).join('');
-    } catch (err) {
-      console.error("Error cargando recibos:", err);
+    async function cargarRecibos() {
+      try {
+        const res = await fetch('/api/recibos');
+        const recibos = await res.json();
+        document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
+          <tr>
+            <td>${r.fecha}</td>
+            <td>${r.folio}</td>
+            <td>${r.paciente}</td>
+            <td>${r.procedimiento}</td>
+            <td><span class="badge bg-info">${r.tipo}</span></td>
+            <td>${r.forma_pago}</td>
+            <td><span class="badge bg-info">$${parseFloat(r.monto_pagado).toFixed(2)}</span></td>
+            <td><span class="badge bg-success">$${parseFloat(r.precio).toFixed(2)}</span></td>
+            <td><span class="badge bg-warning">$${parseFloat(r.precio - r.monto_pagado).toFixed(2)}</span></td>
+            <td>
+              <button class="btn btn-primary btn-sm" onclick="imprimirRecibo(${r.id})">
+                <i class="fas fa-print"></i> Imprimir
+              </button>
+              ${userRole === "admin" ? `
+                <button class="btn btn-danger btn-sm" onclick="eliminarRecibo(${r.id})">
+                  <i class="fas fa-trash"></i> Eliminar
+                </button>` : ""}
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        console.error("Error cargando recibos:", err);
+        mostrarError("Error", "No se pudieron cargar los recibos");
+      }
     }
-  }
 
-  cargarRecibos();
-</script>
+    // Mostrar mensaje de éxito
+    function mostrarExito(titulo, mensaje) {
+      document.getElementById('successMessage').textContent = mensaje;
+      document.getElementById('successAlert').style.display = 'block';
+      
+      // Ocultar después de 5 segundos
+      setTimeout(() => {
+        document.getElementById('successAlert').style.display = 'none';
+      }, 5000);
+      
+      Swal.fire({
+        icon: 'success',
+        title: titulo,
+        text: mensaje,
+        timer: 3000,
+        showConfirmButton: false
+      });
+    }
+
+    // Mostrar error
+    function mostrarError(titulo, mensaje) {
+      Swal.fire({
+        icon: 'error',
+        title: titulo,
+        text: mensaje
+      });
+    }
+
+    // Poner fecha actual automáticamente en el formulario
+    document.addEventListener("DOMContentLoaded", () => {
+      const hoy = new Date();
+      const yyyy = hoy.getFullYear();
+      const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+      const dd = String(hoy.getDate()).padStart(2, '0');
+      document.getElementById("fecha").value = `${yyyy}-${mm}-${dd}`;
+      
+      cargarRecibos();
+    });
+  </script>
 </body>
 </html>
