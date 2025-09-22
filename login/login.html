@@ -5,312 +5,131 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - OFTASIS</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/litera/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
-        :root {
-            --primary-color: #3498db;
-            --secondary-color: #2c3e50;
-            --accent-color: #e74c3c;
-            --success-color: #27ae60;
-            --warning-color: #f39c12;
-            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-
-        body {
-            background: url('/uploads/fondo_oftavision.jpg') no-repeat center center fixed;
-            background-size: cover;
+        body { 
+            background: url('/uploads/fondo_oftavision.jpg') no-repeat center center fixed; 
+            background-size: cover; 
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             position: relative;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* Overlay con gradiente */
+        /* Overlay oscuro */
         body::before {
             content: "";
             position: absolute;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: linear-gradient(135deg, rgba(52, 152, 219, 0.85) 0%, rgba(44, 62, 80, 0.9) 100%);
+            background: rgba(0, 0, 0, 0.5); /* negro con opacidad */
             z-index: 0;
         }
 
-        .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            z-index: 2;
-            overflow: hidden;
-            position: relative;
+        .card { 
+            border-radius: 20px; 
+            z-index: 2; 
+            background: rgba(255, 255, 255, 0.95); /* un poco translúcida */
         }
-
-        .glass-card::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--gradient-primary);
-        }
-
         .icon-circle {
-            background: var(--gradient-primary);
-            width: 90px;
-            height: 90px;
+            background-color: #dde8f0;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 45px;
-            margin: 0 auto 25px auto;
-            color: white;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            transition: transform 0.3s ease;
+            font-size: 40px;
+            margin: 0 auto 20px auto;
+            color: #505458;
         }
-
-        .icon-circle:hover {
-            transform: scale(1.05);
-        }
-
+        .btn-custom { border-radius: 50px; font-weight: bold; }
+        .form-control { border-radius: 50px; padding-left: 40px; }
+        .input-group-text { border-radius: 50px 0 0 50px; background-color: #f0f0f0; }
         .header-title {
             text-align: center;
             color: white;
-            margin-bottom: 40px;
-            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+            text-shadow: 1px 1px 5px rgba(0,0,0,0.9);
             z-index: 2;
             position: relative;
         }
-
         .header-title h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            background: linear-gradient(45deg, #ffffff, #e0f7fa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-size: 2.5rem;
+            font-weight: bold;
         }
-
         .header-title p {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             opacity: 0.9;
-            font-weight: 300;
-        }
-
-        .btn-custom {
-            border-radius: 50px;
-            font-weight: 600;
-            padding: 12px 30px;
-            transition: all 0.3s ease;
-            border: none;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-primary {
-            background: var(--gradient-primary);
-        }
-
-        .btn-warning {
-            background: var(--gradient-secondary);
-            color: white;
-        }
-
-        .btn-success {
-            background: var(--gradient-success);
-        }
-
-        .btn-custom:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 7px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .form-control {
-            border-radius: 50px;
-            padding: 15px 20px 15px 50px;
-            border: 2px solid #e9ecef;
-            transition: all 0.3s ease;
-            font-size: 15px;
-        }
-
-        .form-control:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
-        }
-
-        .input-group-text {
-            border-radius: 50px 0 0 50px;
-            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
-            border: 2px solid #e9ecef;
-            border-right: none;
-            color: #6c757d;
-            padding: 0 20px;
-        }
-
-        .input-group {
-            position: relative;
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            font-weight: 600;
-            color: var(--secondary-color);
-            margin-bottom: 8px;
-            display: block;
-        }
-
-        .logo-container {
-            margin-top: 30px;
-            z-index: 2;
-            position: relative;
-            transition: transform 0.3s ease;
-        }
-
-        .logo-container:hover {
-            transform: scale(1.05);
-        }
-
-        .logo-container img {
-            width: 140px;
-            filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.3));
-        }
-
-        .form-switch {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .form-switch button {
-            background: none;
-            border: none;
-            color: var(--primary-color);
-            font-weight: 600;
-            cursor: pointer;
-            transition: color 0.3s ease;
-        }
-
-        .form-switch button:hover {
-            color: var(--secondary-color);
-            text-decoration: underline;
-        }
-
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        .floating {
-            animation: floating 3s ease-in-out infinite;
-        }
-
-        @keyframes floating {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
-        }
-
-        /* Responsive */
-        @media (max-width: 576px) {
-            .glass-card {
-                width: 90% !important;
-                margin: 0 auto;
-            }
-            
-            .header-title h1 {
-                font-size: 2.2rem;
-            }
-            
-            .header-title p {
-                font-size: 1rem;
-            }
         }
     </style>
 </head>
 <body class="d-flex flex-column justify-content-center align-items-center vh-100">
 
 <!-- Encabezado -->
-<div class="header-title floating">
+<div class="header-title">
     <h1>OFTASIS</h1>
     <p>Sistema Integral de Oftavisión</p>
 </div>
 
 <!-- Tarjeta Login -->
-<div class="card glass-card shadow-lg p-4" style="width: 380px;">
-    <div class="icon-circle pulse">
-        <i class="bi bi-eye"></i>
+<div class="card shadow-sm p-4" style="width: 350px;">
+    <div class="icon-circle">
+        <i class="bi bi-person"></i>
     </div>
     <h4 class="text-center mb-4" id="formTitle">Iniciar Sesión</h4>
 
     <!-- LOGIN -->
     <form id="loginForm">
-        <div class="input-group">
+        <div class="input-group mb-3">
             <span class="input-group-text"><i class="bi bi-person"></i></span>
             <input type="text" id="loginUsername" class="form-control" placeholder="Usuario" required>
         </div>
-        <div class="input-group">
+        <div class="input-group mb-3">
             <span class="input-group-text"><i class="bi bi-lock"></i></span>
             <input type="password" id="loginPassword" class="form-control" placeholder="Contraseña" required>
         </div>
-        <button class="btn btn-primary w-100 btn-custom mt-3">Ingresar</button>
-        <div class="form-switch">
-            <button type="button" id="showForgot">¿Olvidaste tu contraseña?</button>
-        </div>
+        <button class="btn btn-primary w-100 btn-custom">Ingresar</button>
+        <button type="button" class="btn btn-link w-100 mt-2" id="showForgot">¿Olvidaste tu contraseña?</button>
     </form>
 
     <!-- OLVIDAR CONTRASEÑA -->
     <form id="forgotForm" class="d-none">
-        <div class="input-group">
+        <div class="input-group mb-3">
             <span class="input-group-text"><i class="bi bi-hash"></i></span>
             <input type="text" id="forgotNomina" class="form-control" placeholder="Número de nómina" required>
         </div>
-        <button class="btn btn-warning w-100 btn-custom mt-3">Generar código de recuperación</button>
-        <div class="form-switch">
-            <button type="button" id="backToLogin">Volver al inicio de sesión</button>
-        </div>
+        <button class="btn btn-warning w-100 btn-custom">Generar código de recuperación</button>
+        <button type="button" class="btn btn-link w-100 mt-2" id="backToLogin">Volver</button>
     </form>
 
     <!-- RESTABLECER CONTRASEÑA -->
     <form id="resetForm" class="d-none">
-        <div class="input-group">
+        <div class="input-group mb-3">
             <span class="input-group-text"><i class="bi bi-hash"></i></span>
             <input type="text" id="resetNomina" class="form-control" placeholder="Número de nómina" required>
         </div>
-        <div class="input-group">
+        <div class="input-group mb-3">
             <span class="input-group-text"><i class="bi bi-key"></i></span>
             <input type="text" id="resetToken" class="form-control" placeholder="Código de recuperación" required>
         </div>
-        <div class="input-group">
+        <div class="input-group mb-3">
             <span class="input-group-text"><i class="bi bi-lock"></i></span>
             <input type="password" id="resetPassword" class="form-control" placeholder="Nueva contraseña" required>
         </div>
-        <button class="btn btn-success w-100 btn-custom mt-3">Restablecer contraseña</button>
-        <div class="form-switch">
-            <button type="button" id="resetBackToLogin">Volver al inicio de sesión</button>
-        </div>
+        <button class="btn btn-success w-100 btn-custom">Restablecer contraseña</button>
+        <button type="button" class="btn btn-link w-100 mt-2" id="resetBackToLogin">Volver</button>
     </form>
 </div>
-
 <!-- Logo -->
-<div class="logo-container">
-    <img src="/uploads/logo-oftavision.png" alt="Logo Oftavisión">
-</div>
+    <div class="mt-4">
+        <img src="/uploads/logo-oftavision.png" alt="Logo Oftavisión" style="width: 120px; opacity: 0.9;">
+    </div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // Mantengo exactamente las mismas funciones que tenías
     const loginForm = document.getElementById('loginForm');
     const forgotForm = document.getElementById('forgotForm');
     const resetForm = document.getElementById('resetForm');
@@ -346,45 +165,45 @@
         formTitle.textContent = 'Iniciar Sesión';
     });
 
-    // LOGIN
-    loginForm.addEventListener('submit', async e => {
-        e.preventDefault();
-        const username = document.getElementById('loginUsername').value;
-        const password = document.getElementById('loginPassword').value;
+// LOGIN
+loginForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
 
-        try {
-           const res = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password }),
-            credentials: "include"
-        });
+    try {
+       const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+        credentials: "include"
+    });
 
-            const data = await res.json();
-            if (res.ok) {
-                // ✅ Guardar usuario en localStorage
-                localStorage.setItem("usuario", JSON.stringify(data.usuario));
+        const data = await res.json();
+        if (res.ok) {
+            // ✅ Guardar usuario en localStorage
+            localStorage.setItem("usuario", JSON.stringify(data.usuario));
 
-                // Redirigir al dashboard
-                window.location.href = '/frontend/index.html';
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: data.error || 'Usuario o contraseña incorrectos',
-                    confirmButtonColor: '#e74c3c'
-                });
-            }
-        } catch (err) {
+            // Redirigir al dashboard
+            window.location.href = '/frontend/index.html';
+        } else {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'No se pudo conectar con el servidor',
+                text: data.error || 'Usuario o contraseña incorrectos',
                 confirmButtonColor: '#e74c3c'
             });
-            console.error("Error login:", err);
         }
-    });
+    } catch (err) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo conectar con el servidor',
+            confirmButtonColor: '#e74c3c'
+        });
+        console.error("Error login:", err);
+    }
+});
 
     // OLVIDAR CONTRASEÑA (NÓMINA)
     forgotForm.addEventListener('submit', async e => {
@@ -457,5 +276,6 @@
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </body>
 </html>
