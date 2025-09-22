@@ -198,7 +198,8 @@ async function renderCalendarCirugias() {
     const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
     const programadas = filtradas.filter(c => c.fecha.startsWith(fechaDia));
 
-    let contenido = `<div class="calendar-day"><div class="day-number">${d}</div>`;
+    let contenido = `<div class="calendar-day" onclick="asignarFecha('${fechaDia}')">
+                   <div class="day-number">${d}</div>`;
     if (programadas.length > 0) {
       programadas.forEach(c => {
         contenido += `
@@ -226,6 +227,7 @@ function cambiarMesCirugia(offset) {
   renderCalendarCirugias();
 }
 
+// ==================== AGENDAR CIRUGÍA (con selector de fecha) ====================
 function agendarCirugia(idOrden) {
   Swal.fire({
     title: 'Asignar fecha de cirugía',
@@ -252,27 +254,11 @@ function agendarCirugia(idOrden) {
 }
 
 function editarCirugia(idOrden) {
-  Swal.fire({
-    title: 'Reprogramar cirugía',
-    input: 'date',
-    showCancelButton: true,
-    confirmButtonText: 'Guardar'
-  }).then(async (result) => {
-    if (result.isConfirmed) {
-      try {
-        await fetch(`/api/ordenes/${idOrden}/agendar`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ fecha_cirugia: result.value })
-        });
-        Swal.fire("✅ Cirugía reprogramada");
-        renderCalendarCirugias();
-      } catch (err) {
-        console.error("Error al editar:", err);
-      }
-    }
-  });
+  ordenSeleccionada = idOrden; // guardamos la orden que se va a reprogramar
+  const modal = new bootstrap.Modal(document.getElementById("modalCalendario"));
+  modal.show();
 }
+
 
 // ==================== EDITAR TIPO DE LENTE ====================
 function editarLente(idOrden, tipoActual) {
@@ -316,6 +302,31 @@ function abrirCalendario(idOrden) {
   modal.show();
 }
 renderCalendarCirugias(); // carga inicial del calendario
+
+// ==================== ASIGNAR FECHA DESDE EL CALENDARIO ====================
+async function asignarFecha(fecha) {
+  if (!ordenSeleccionada) return;
+
+  try {
+    await fetch(`/api/ordenes/${ordenSeleccionada}/agendar`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fecha_cirugia: fecha })
+    });
+    Swal.fire("✅ Cirugía asignada", `Fecha: ${fecha}`, "success");
+
+    ordenSeleccionada = null; // limpiar selección
+    renderCalendarCirugias();
+
+    // Cierra el modal después de asignar
+    const modal = bootstrap.Modal.getInstance(document.getElementById("modalCalendario"));
+    modal.hide();
+  } catch (err) {
+    console.error("Error al asignar cirugía:", err);
+    Swal.fire("❌ Error", "No se pudo asignar la cirugía", "error");
+  }
+}
+
 
 
 // ==================== ELIMINAR CIRUGÍA (con confirmación) ====================
