@@ -188,21 +188,24 @@
       border-radius: 8px;
       overflow: hidden;
       box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      table-layout: fixed; /* 👈 Evita que la tabla se expanda demasiado */
     }
     
     .table th {
       background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
       color: white;
-      padding: 15px;
+      padding: 15px 8px; /* 👈 Reducido el padding horizontal */
       text-align: center;
       font-weight: 600;
+      font-size: 0.85rem; /* 👈 Texto más pequeño */
     }
     
     .table td {
-      padding: 12px;
+      padding: 12px 8px; /* 👈 Reducido el padding horizontal */
       border-bottom: 1px solid #eee;
       text-align: center;
-      font-size: 0.9rem;
+      font-size: 0.85rem; /* 👈 Texto más pequeño */
+      word-wrap: break-word; /* 👈 Permite que el texto se ajuste */
     }
     
     .table tr:last-child td {
@@ -216,6 +219,20 @@
     .table tr:hover {
       background-color: #eef6ff;
     }
+    
+    /* 👇 Columnas optimizadas para evitar scroll horizontal */
+    .col-paciente { width: 14%; }
+    .col-medico { width: 10%; }
+    .col-diagnostico { width: 12%; }
+    .col-lado { width: 5%; }
+    .col-procedimiento { width: 14%; }
+    .col-tipo { width: 8%; }
+    .col-precio { width: 8%; }
+    .col-pagado { width: 8%; }
+    .col-pendiente { width: 8%; }
+    .col-estatus { width: 8%; }
+    .col-fecha { width: 8%; }
+    .col-accion { width: 7%; }
     
     .success-alert {
       display: none;
@@ -235,9 +252,9 @@
     }
     
     .badge {
-      padding: 6px 10px;
+      padding: 4px 8px; /* 👈 Badge más compacto */
       border-radius: 6px;
-      font-size: 0.85rem;
+      font-size: 0.75rem; /* 👈 Texto más pequeño */
       font-weight: 600;
     }
     
@@ -287,13 +304,29 @@
       filter: invert(1);
     }
     
+    /* 👇 Para textos largos que necesitan truncarse */
+    .text-truncate-cell {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 0; /* Necesario para que funcione ellipsis en tablas */
+    }
+    
+    @media (max-width: 1200px) {
+      .table th, .table td {
+        font-size: 0.8rem; /* 👈 Texto aún más pequeño en pantallas medianas */
+        padding: 10px 6px;
+      }
+      
+      .badge {
+        font-size: 0.7rem;
+        padding: 3px 6px;
+      }
+    }
+    
     @media (max-width: 768px) {
       h1 {
         font-size: 2rem;
-      }
-      
-      .table-responsive {
-        overflow-x: auto;
       }
       
       .card-header {
@@ -305,6 +338,20 @@
         width: 100%;
         margin-bottom: 10px;
       }
+      
+      /* 👇 En móviles, ocultamos algunas columnas menos críticas */
+      .col-diagnostico, .col-tipo, .col-fecha {
+        display: none;
+      }
+      
+      .col-paciente { width: 20%; }
+      .col-medico { width: 15%; }
+      .col-procedimiento { width: 20%; }
+      .col-precio { width: 12%; }
+      .col-pagado { width: 12%; }
+      .col-pendiente { width: 12%; }
+      .col-estatus { width: 12%; }
+      .col-accion { width: 9%; }
     }
   </style>
 </head>
@@ -322,28 +369,25 @@
     <div class="card">
       <div class="card-header"><i class="fas fa-clipboard-list"></i> Lista de Órdenes</div>
       <div class="card-body">
-        <div class="table-responsive">
-          <table class="table text-center align-middle">
-            <thead>
-              <tr>
-                <th>Número</th>
-                <th>Paciente</th>
-                <th>Médico</th>
-                <th>Diagnóstico</th>
-                <th>Lado</th>
-                <th>Procedimiento</th>
-                <th>Tipo</th>
-                <th>Precio</th>
-                <th>Pagado</th>
-                <th>Pendiente</th>
-                <th>Estatus</th>
-                <th>Fecha</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-            <tbody id="tablaOrdenes"></tbody>
-          </table>
-        </div>
+        <table class="table text-center align-middle">
+          <thead>
+            <tr>
+              <th class="col-paciente">Paciente</th>
+              <th class="col-medico">Médico</th>
+              <th class="col-diagnostico">Diagnóstico</th>
+              <th class="col-lado">Lado</th>
+              <th class="col-procedimiento">Procedimiento</th>
+              <th class="col-tipo">Tipo</th>
+              <th class="col-precio">Precio</th>
+              <th class="col-pagado">Pagado</th>
+              <th class="col-pendiente">Pendiente</th>
+              <th class="col-estatus">Estatus</th>
+              <th class="col-fecha">Fecha</th>
+              <th class="col-accion">Acción</th>
+            </tr>
+          </thead>
+          <tbody id="tablaOrdenes"></tbody>
+        </table>
       </div>
     </div>
     
@@ -429,12 +473,11 @@
         
         document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
           <tr>
-            <td>${o.expediente_numero}</td>
-            <td>${o.paciente}</td>
-            <td>${o.medico}</td>
-            <td>${o.diagnostico}</td>
+            <td class="text-truncate-cell" title="${o.paciente}">${o.paciente}</td>
+            <td class="text-truncate-cell" title="${o.medico}">${o.medico}</td>
+            <td class="text-truncate-cell" title="${o.diagnostico}">${o.diagnostico}</td>
             <td>${o.lado}</td>
-            <td>${o.procedimiento}</td>
+            <td class="text-truncate-cell" title="${o.procedimiento}">${o.procedimiento}</td>
             <td><span class="badge bg-info">${o.tipo}</span></td>
             <td>$${parseFloat(o.precio).toFixed(2)}</td>
             <td>$${parseFloat(o.pagado).toFixed(2)}</td>
