@@ -557,11 +557,22 @@
 
                 } else {
                     Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: data.error || 'Usuario o contraseña incorrectos',
-                        confirmButtonColor: '#ea4335'
-                    });
+                    icon: 'error',
+                    title: '¡Ups!',
+                    html: `
+                        <p><b>Contraseña incorrecta</b></p>
+                        <p>Por favor, verifica tus datos e inténtalo de nuevo.</p>
+                    `,
+                    confirmButtonText: 'Intentar otra vez',
+                    confirmButtonColor: '#1b3e83',
+                    backdrop: `
+                    rgba(0,0,123,0.4)
+                    url("/uploads/error-animation.gif")
+                    left top
+                    no-repeat
+                    `
+                });
+
                 }
             } catch (err) {
                 Swal.fire({
