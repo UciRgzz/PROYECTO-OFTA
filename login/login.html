@@ -392,7 +392,7 @@
             }
         }
     </style>
-        </style>
+
 
     <script type="application/ld+json">
     {
@@ -562,11 +562,12 @@
         // LOGIN
         loginForm.addEventListener('submit', async e => {
             e.preventDefault();
-            const username = document.getElementById('loginUsername').value;
-            const password = document.getElementById('loginPassword').value;
+            const username = document.getElementById('loginUsername').value.trim();
+const password = document.getElementById('loginPassword').value.trim();
+
 
             try {
-                const res = await fetch('/api/login', {
+                const res = await fetch('https://oftavision.shop/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password }),
@@ -721,6 +722,8 @@
                 });
             }
         });
+
+        
     </script>
 </body>
 </html>
