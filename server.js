@@ -1688,6 +1688,56 @@ app.get('/api/logout', (req, res) => {
     });
 });
 
+// ==================== SITEMAP DINÁMICO ====================
+const fs = require('fs');
+const path = require('path');
+const { SitemapStream, streamToPromise } = require('sitemap');
+
+app.get('/sitemap.xml', async (req, res) => {
+    try {
+        const hostname = "https://oftavision.shop";
+
+        // Carpetas donde están tus páginas
+        const folders = [
+            path.join(__dirname, "frontend"),
+            path.join(__dirname, "login")
+        ];
+
+        let urls = [
+            { url: "/", changefreq: "daily", priority: 1.0 }
+        ];
+
+        // Leer archivos html de las carpetas
+        folders.forEach(folder => {
+            if (fs.existsSync(folder)) {
+                fs.readdirSync(folder).forEach(file => {
+                    if (file.endsWith(".html")) {
+                        urls.push({
+                            url: `/${path.basename(folder)}/${file}`,
+                            changefreq: "weekly",
+                            priority: 0.7
+                        });
+                    }
+                });
+            }
+        });
+
+        // Generar el sitemap
+        const sitemapStream = new SitemapStream({ hostname });
+        res.header('Content-Type', 'application/xml');
+        const xml = await streamToPromise(
+            urls.reduce((sm, u) => { sitemapStream.write(u); return sm; }, sitemapStream)
+        );
+        sitemapStream.end();
+        res.send(xml.toString());
+
+    } catch (err) {
+        console.error("Error generando sitemap:", err);
+        res.status(500).end();
+    }
+});
+
+
 app.listen(3000, "0.0.0.0", () => {
     console.log("Servidor corriendo en puerto 3000 en todas las interfaces");
 });
