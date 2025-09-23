@@ -41,7 +41,7 @@ app.use(bodyParser.json());
 
 
 // Sesiones
-app.set('trust proxy', 1); // 👈 necesario detrás de nginx o proxy
+app.set('trust proxy', true); // 👈 necesario detrás de nginx o proxy
 app.use(session({
     secret: 'mi_secreto_super_seguro',
     resave: false,
