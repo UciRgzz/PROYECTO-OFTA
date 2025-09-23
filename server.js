@@ -10,27 +10,12 @@ const multer = require('multer');
 const xlsx = require('xlsx');
 const { deprecate } = require('util');
 
-// Seguridad HTTP headers
-const helmet = require("helmet");
 
-// Limitar número de peticiones
-const rateLimit = require("express-rate-limit");
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // máximo 100 peticiones por IP
-  message: "Demasiadas solicitudes, intenta más tarde"
-});
-
-// ⚠️ primero se crea la app
 const app = express();
-
-// aplicar seguridad y limitador de peticiones
-app.use(helmet());
-app.use(limiter);
 
 // ==================== CONFIGURACIONES ====================
 
-// Middleware CORS
+// Middleware
 app.use(cors({
     origin: "https://oftavision.shop",  
     credentials: true
@@ -40,20 +25,20 @@ app.use(bodyParser.json());
 
 
 
-app.set('trust proxy', 1); // 👈 importante si usas nginx/Cloudflare
 
+// Sesiones
+app.set('trust proxy', 1); // 👈 necesario en producción detrás de proxy/https
 app.use(session({
     secret: 'mi_secreto_super_seguro',
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: process.env.NODE_ENV === "production", // solo en prod con HTTPS
+        secure: process.env.NODE_ENV === "production", // true solo en producción
         httpOnly: true,
-        sameSite: "none",
-        maxAge: 1000 * 60 * 60
+        sameSite: "lax",
+        maxAge: 1000 * 60 * 60 // 1 hora
     }
 }));
-
 
 
 /*// PostgreSQL
@@ -1696,48 +1681,48 @@ app.get('/api/logout', (req, res) => {
 });
 
 // ==================== SITEMAP DINÁMICO ====================
-const fs = require("fs");
-const { SitemapStream, streamToPromise } = require("sitemap");
+const fs = require('fs');
+const { SitemapStream, streamToPromise } = require('sitemap');
 
-app.get("/sitemap.xml", async (req, res) => {
-  try {
-    const hostname = "https://oftavision.shop";
+app.get('/sitemap.xml', async (req, res) => {
+    try {
+        const hostname = "https://oftavision.shop";
 
-    const folders = [
-      path.join(__dirname, "frontend"),
-      path.join(__dirname, "login")
-    ];
+        const folders = [
+            path.join(__dirname, "frontend"),
+            path.join(__dirname, "login")
+        ];
 
-    let urls = [
-      { url: "/", changefreq: "daily", priority: 1.0 }
-    ];
+        let urls = [
+            { url: "/", changefreq: "daily", priority: 1.0 }
+        ];
 
-    for (const folder of folders) {
-      if (fs.existsSync(folder)) {
-        const files = fs.readdirSync(folder).filter(f => f.endsWith(".html"));
-        files.forEach(file => {
-          urls.push({
-            url: `/${path.basename(folder)}/${file}`,
-            changefreq: "weekly",
-            priority: 0.7
-          });
+        folders.forEach(folder => {
+            if (fs.existsSync(folder)) {
+                fs.readdirSync(folder).forEach(file => {
+                    if (file.endsWith(".html")) {
+                        urls.push({
+                            url: `/${path.basename(folder)}/${file}`,
+                            changefreq: "weekly",
+                            priority: 0.7
+                        });
+                    }
+                });
+            }
         });
-      }
+
+        const sitemapStream = new SitemapStream({ hostname });
+        res.header('Content-Type', 'application/xml');
+        const xml = await streamToPromise(
+            urls.reduce((sm, u) => { sitemapStream.write(u); return sm; }, sitemapStream)
+        );
+        sitemapStream.end();
+        res.send(xml.toString());
+
+    } catch (err) {
+        console.error("Error generando sitemap:", err);
+        res.status(500).end();
     }
-
-    // Generar sitemap
-    const smStream = new SitemapStream({ hostname });
-    urls.forEach(u => smStream.write(u));
-    smStream.end();
-
-    const xml = await streamToPromise(smStream);
-    res.header("Content-Type", "application/xml");
-    res.send(xml.toString());
-
-  } catch (err) {
-    console.error("Error generando sitemap:", err);
-    res.status(500).send("Error generando sitemap");
-  }
 });
 
 
