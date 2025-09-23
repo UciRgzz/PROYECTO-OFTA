@@ -345,6 +345,16 @@
       font-size: 1rem !important;
       border-radius: 10px !important;
     }
+    /* Select de SweetAlert2 con estilo Bootstrap */
+      .swal2-popup .form-select {
+        display: block;
+        width: 100% !important;
+        font-size: 1rem;
+        padding: 12px 15px;
+        border: 1px solid #dcdde1;
+        border-radius: 10px;
+        box-sizing: border-box;
+      }
 
 
   </style>
@@ -780,7 +790,7 @@ document.addEventListener("click", async (e) => {
 
     <div class="form-group" style="text-align:left;">
       <label style="font-weight:600; color:#34495e;">Forma de Pago</label>
-      <select id="formaPago" class="swal2-input" style="width:100%;">
+      <select id="formaPago" class="form-select" style="width:100%;">
         <option value="Efectivo">Efectivo</option>
         <option value="Tarjeta Débito">Tarjeta Débito</option>
         <option value="Tarjeta Crédito">Tarjeta Crédito</option>
