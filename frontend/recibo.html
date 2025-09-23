@@ -682,7 +682,11 @@
             </td>
             <td>
               <button class="btn btn-primary btn-sm" onclick="imprimirRecibo(${r.id})">
-                <i class="fas fa-print"></i> Comprobante
+                <i class="${
+                  r.tipo === "Normal" ? "fas fa-print" : 
+                  r.tipo === "Factura" ? "fas fa-file-invoice-dollar" : 
+                  r.tipo === "Ticket" ? "fas fa-receipt" : "fas fa-file-alt"
+                }"></i> Comprobante
               </button>
               ${userRole === "admin" ? `
                 <button class="btn btn-danger btn-sm" onclick="eliminarRecibo(${r.id})">
