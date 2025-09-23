@@ -108,14 +108,6 @@ app.use(express.static(path.join(__dirname, 'frontend'), {
 
 app.use('/frontend', verificarSesion, express.static(path.join(__dirname, 'frontend')));
 
-// Servir sitemap.xml directamente desde la raíz
-app.use(express.static(path.join(__dirname)));
-
-// o más específico:
-app.get('/sitemap.xml', (req, res) => {
-  res.sendFile(path.join(__dirname, 'sitemap.xml'));
-});
-
 
 // 👉 Redirigir la raíz al login
 app.get('/', (req, res) => {
@@ -1696,7 +1688,6 @@ app.get('/sitemap.xml', async (req, res) => {
     try {
         const hostname = "https://oftavision.shop";
 
-        // Carpetas donde están tus páginas
         const folders = [
             path.join(__dirname, "frontend"),
             path.join(__dirname, "login")
@@ -1706,7 +1697,6 @@ app.get('/sitemap.xml', async (req, res) => {
             { url: "/", changefreq: "daily", priority: 1.0 }
         ];
 
-        // Leer archivos html de las carpetas
         folders.forEach(folder => {
             if (fs.existsSync(folder)) {
                 fs.readdirSync(folder).forEach(file => {
@@ -1721,7 +1711,6 @@ app.get('/sitemap.xml', async (req, res) => {
             }
         });
 
-        // Generar el sitemap
         const sitemapStream = new SitemapStream({ hostname });
         res.header('Content-Type', 'application/xml');
         const xml = await streamToPromise(
