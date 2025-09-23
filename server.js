@@ -1690,7 +1690,6 @@ app.get('/api/logout', (req, res) => {
 
 // ==================== SITEMAP DINÁMICO ====================
 const fs = require('fs');
-const path = require('path');
 const { SitemapStream, streamToPromise } = require('sitemap');
 
 app.get('/sitemap.xml', async (req, res) => {
