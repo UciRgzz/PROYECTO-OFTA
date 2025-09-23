@@ -668,7 +668,14 @@
             <td>${r.forma_pago}</td>
             <td><span class="badge bg-info">$${parseFloat(r.monto_pagado).toFixed(2)}</span></td>
             <td><span class="badge bg-success">$${parseFloat(r.precio).toFixed(2)}</span></td>
-            <td><span class="badge bg-warning">$${parseFloat(r.precio - r.monto_pagado).toFixed(2)}</span></td>
+           <td>
+              <span class="badge bg-warning abonar-btn"
+                    style="cursor:pointer;"
+                    data-id="${r.id}"
+                    data-pendiente="${r.precio - r.monto_pagado}">
+                $${parseFloat(r.precio - r.monto_pagado).toFixed(2)}
+              </span>
+            </td>
             <td>
               <button class="btn btn-primary btn-sm" onclick="imprimirRecibo(${r.id})">
                 <i class="fas fa-print"></i> Imprimir
@@ -713,6 +720,55 @@
         text: mensaje
       });
     }
+
+    // Delegación de eventos: clic en el pendiente para abonar
+document.addEventListener("click", async (e) => {
+  if (e.target.classList.contains("abonar-btn")) {
+    const reciboId = e.target.dataset.id;
+    const pendiente = e.target.dataset.pendiente;
+
+    const { value: formValues } = await Swal.fire({
+      title: 'Abonar a Recibo',
+      html:
+        `<p>Pendiente actual: <b>$${pendiente}</b></p>
+         <input id="monto" class="swal2-input" type="number" min="1" placeholder="Monto a abonar">
+         <select id="formaPago" class="swal2-input">
+           <option value="Efectivo">Efectivo</option>
+           <option value="Tarjeta Débito">Tarjeta Débito</option>
+           <option value="Tarjeta Crédito">Tarjeta Crédito</option>
+           <option value="Transferencia">Transferencia</option>
+         </select>`,
+      focusConfirm: false,
+      preConfirm: () => {
+        return {
+          monto: document.getElementById('monto').value,
+          forma_pago: document.getElementById('formaPago').value
+        }
+      }
+    });
+
+    if (!formValues) return;
+
+    try {
+      const res = await fetch(`/api/recibos/${reciboId}/abonos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formValues)
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        Swal.fire('✅ Éxito', 'Abono registrado correctamente', 'success');
+        cargarRecibos(); // recargar lista
+      } else {
+        Swal.fire('❌ Error', data.error || 'No se pudo registrar el abono', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      Swal.fire('❌ Error', 'Ocurrió un error en el servidor', 'error');
+    }
+  }
+});
 
     // Poner fecha actual automáticamente en el formulario
     document.addEventListener("DOMContentLoaded", () => {

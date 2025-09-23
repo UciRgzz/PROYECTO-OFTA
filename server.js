@@ -77,7 +77,7 @@ function isAdmin(req, res, next) {
     if (req.session.usuario?.rol === 'admin') {
         return next();
     }
-    return res.status(403).json({ error: 'Tu cuenta no es de administrador, no puedes eliminar.' });
+    return res.status(403).json({ error: 'No eres administrador, no puedes eliminar.' });
 }
 
 // ==================== CHECK SESSION ====================
@@ -539,6 +539,34 @@ app.get('/api/recibos/:id', verificarSesion, async (req, res) => {
   }
 });
 
+// ==================== Abonar a un recibo ====================
+app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
+  const { id } = req.params;
+  const { monto, forma_pago } = req.body;
+  let depto = getDepartamento(req);
+
+  try {
+    // Insertar en tabla abonos (si no la tienes, ahorita te paso el SQL)
+    await pool.query(
+      `INSERT INTO abonos_recibos (recibo_id, monto, forma_pago, fecha, departamento)
+       VALUES ($1, $2, $3, NOW(), $4)`,
+      [id, monto, forma_pago, depto]
+    );
+
+    // Actualizar recibo sumando el abono al monto_pagado
+    await pool.query(
+      `UPDATE recibos
+       SET monto_pagado = monto_pagado + $1
+       WHERE id = $2 AND departamento = $3`,
+      [monto, id, depto]
+    );
+
+    res.json({ mensaje: "Abono registrado correctamente" });
+  } catch (err) {
+    console.error("Error al registrar abono:", err);
+    res.status(500).json({ error: "Error al registrar abono" });
+  }
+});
 
 
 // ==================== CATÁLOGO DE PROCEDIMIENTOS ====================
