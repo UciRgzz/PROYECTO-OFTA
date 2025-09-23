@@ -40,17 +40,17 @@ app.use(bodyParser.json());
 
 
 
-// Sesiones
-app.set('trust proxy', true); // 👈 necesario detrás de nginx o proxy
+app.set('trust proxy', 1); // 👈 importante si usas nginx/Cloudflare
+
 app.use(session({
     secret: 'mi_secreto_super_seguro',
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: true,       // ✅ obliga a que la cookie solo viaje en HTTPS
-        httpOnly: true,     // ✅ protege contra XSS
-        sameSite: "none",   // ✅ necesario para que funcione con fetch + CORS
-        maxAge: 1000 * 60 * 60 // 1 hora
+        secure: process.env.NODE_ENV === "production", // solo en prod con HTTPS
+        httpOnly: true,
+        sameSite: "none",
+        maxAge: 1000 * 60 * 60
     }
 }));
 
