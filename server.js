@@ -1566,8 +1566,53 @@ app.get("/api/cirugias", verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== GESTIÓN DE PERMISOS ====================
+// ======== NOTIFICACIONES ========
 
+// Ejemplo de notificaciones locales
+let notificaciones = [
+  { mensaje: "Nueva actualización del sistema", fecha: "2025-09-23" },
+  { mensaje: "Recordatorio: Cierre de caja pendiente", fecha: "2025-09-22" }
+];
+
+const btnNotificaciones = document.getElementById('btnNotificaciones');
+const notifBox = document.getElementById('notificaciones');
+const listaNotif = document.getElementById('listaNotif');
+const contadorNotif = document.getElementById('contadorNotif');
+const cerrarNotif = document.getElementById('cerrarNotif');
+
+function renderNotificaciones() {
+  listaNotif.innerHTML = "";
+  if (notificaciones.length === 0) {
+    listaNotif.innerHTML = `<li class="list-group-item">Sin notificaciones</li>`;
+    contadorNotif.style.display = "none";
+  } else {
+    notificaciones.forEach(n => {
+      listaNotif.innerHTML += `
+        <li class="list-group-item">
+          <strong>${n.mensaje}</strong><br>
+          <small class="text-muted">${n.fecha}</small>
+        </li>`;
+    });
+    contadorNotif.innerText = notificaciones.length;
+    contadorNotif.style.display = "inline-block";
+  }
+}
+
+btnNotificaciones.addEventListener('click', (e) => {
+  e.preventDefault();
+  notifBox.style.display = (notifBox.style.display === "none") ? "block" : "none";
+  renderNotificaciones();
+});
+
+cerrarNotif.addEventListener('click', () => {
+  notifBox.style.display = "none";
+});
+
+// Inicial
+renderNotificaciones();
+
+
+// ==================== GESTIÓN DE PERMISOS ====================
 // Listar usuarios (para asignar módulos)
 app.get('/api/usuarios', isAdmin, async (req, res) => {
   try {
