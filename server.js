@@ -1681,48 +1681,48 @@ app.get('/api/logout', (req, res) => {
 });
 
 // ==================== SITEMAP DINÁMICO ====================
-const fs = require('fs');
-const { SitemapStream, streamToPromise } = require('sitemap');
+const fs = require("fs");
+const { SitemapStream, streamToPromise } = require("sitemap");
 
-app.get('/sitemap.xml', async (req, res) => {
-    try {
-        const hostname = "https://oftavision.shop";
+app.get("/sitemap.xml", async (req, res) => {
+  try {
+    const hostname = "https://oftavision.shop";
 
-        const folders = [
-            path.join(__dirname, "frontend"),
-            path.join(__dirname, "login")
-        ];
+    const folders = [
+      path.join(__dirname, "frontend"),
+      path.join(__dirname, "login")
+    ];
 
-        let urls = [
-            { url: "/", changefreq: "daily", priority: 1.0 }
-        ];
+    let urls = [
+      { url: "/", changefreq: "daily", priority: 1.0 }
+    ];
 
-        folders.forEach(folder => {
-            if (fs.existsSync(folder)) {
-                fs.readdirSync(folder).forEach(file => {
-                    if (file.endsWith(".html")) {
-                        urls.push({
-                            url: `/${path.basename(folder)}/${file}`,
-                            changefreq: "weekly",
-                            priority: 0.7
-                        });
-                    }
-                });
-            }
+    for (const folder of folders) {
+      if (fs.existsSync(folder)) {
+        const files = fs.readdirSync(folder).filter(f => f.endsWith(".html"));
+        files.forEach(file => {
+          urls.push({
+            url: `/${path.basename(folder)}/${file}`,
+            changefreq: "weekly",
+            priority: 0.7
+          });
         });
-
-        const sitemapStream = new SitemapStream({ hostname });
-        res.header('Content-Type', 'application/xml');
-        const xml = await streamToPromise(
-            urls.reduce((sm, u) => { sitemapStream.write(u); return sm; }, sitemapStream)
-        );
-        sitemapStream.end();
-        res.send(xml.toString());
-
-    } catch (err) {
-        console.error("Error generando sitemap:", err);
-        res.status(500).end();
+      }
     }
+
+    // Generar sitemap
+    const smStream = new SitemapStream({ hostname });
+    urls.forEach(u => smStream.write(u));
+    smStream.end();
+
+    const xml = await streamToPromise(smStream);
+    res.header("Content-Type", "application/xml");
+    res.send(xml.toString());
+
+  } catch (err) {
+    console.error("Error generando sitemap:", err);
+    res.status(500).send("Error generando sitemap");
+  }
 });
 
 
