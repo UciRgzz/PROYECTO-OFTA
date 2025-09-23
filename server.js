@@ -41,15 +41,15 @@ app.use(bodyParser.json());
 
 
 // Sesiones
-app.set('trust proxy', 1); // 👈 necesario si usas nginx o proxy inverso
+app.set('trust proxy', 1); // 👈 necesario detrás de nginx o proxy
 app.use(session({
     secret: 'mi_secreto_super_seguro',
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: false,  // ⚠️ déjalo en false mientras no tengas HTTPS completo
-        httpOnly: true,
-        sameSite: "lax",  // si te sigue dando problemas cámbialo a "none"
+        secure: true,       // ✅ obliga a que la cookie solo viaje en HTTPS
+        httpOnly: true,     // ✅ protege contra XSS
+        sameSite: "none",   // ✅ necesario para que funcione con fetch + CORS
         maxAge: 1000 * 60 * 60 // 1 hora
     }
 }));
