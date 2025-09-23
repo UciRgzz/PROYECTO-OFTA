@@ -597,13 +597,36 @@
                     body: JSON.stringify({ nomina })
                 });
 
+                // Obtener codigo de recuperación
                 const data = await res.json();
                 if (res.ok) {
                     Swal.fire({
+                        title: '🔑 Código de recuperación',
+                        html: `
+                        <p style="font-size: 1.1rem; color:#333;">Usa este código para restablecer tu contraseña:</p>
+                        <div style="
+                            background:#f1f5ff; 
+                            color:#1b3e83; 
+                            font-size:1.5rem; 
+                            font-weight:bold; 
+                            padding:12px 20px; 
+                            border-radius:8px; 
+                            margin:15px auto; 
+                            display:inline-block;
+                            letter-spacing:2px;">
+                            ${data.token}
+                        </div>
+                        <p style="font-size:0.9rem; color:#555;">Guárdalo en un lugar seguro.</p>
+                        `,
                         icon: 'info',
-                        title: 'Código de recuperación',
-                        html: `Tu código es: <strong>${data.token}</strong><br><br>Guárdalo en un lugar seguro.`,
-                        confirmButtonColor: '#4285f4'
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: '#1b3e83',
+                        backdrop: `
+                        rgba(0,0,0,0.4)
+                        url("/uploads/secure-icon.gif")
+                        no-repeat right top
+                        `
+                        
                     }).then(() => {
                         forgotForm.reset();
                         forgotForm.classList.add('d-none');
