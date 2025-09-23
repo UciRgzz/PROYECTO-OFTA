@@ -336,6 +336,16 @@
       padding: 12px !important;
       font-size: 1rem !important;
     }
+    /* Corrige el ancho del select en SweetAlert2 */
+    .swal2-popup .swal2-input[type="select"],
+    .swal2-popup select.swal2-input {
+      width: 100% !important;
+      max-width: 100% !important;
+      padding: 12px 15px !important;
+      font-size: 1rem !important;
+      border-radius: 10px !important;
+    }
+
 
   </style>
 </head>
@@ -770,12 +780,13 @@ document.addEventListener("click", async (e) => {
 
     <div class="form-group" style="text-align:left;">
       <label style="font-weight:600; color:#34495e;">Forma de Pago</label>
-      <select id="formaPago" class="swal2-input" style="margin-top:5px;">
+      <select id="formaPago" class="swal2-input" style="width:100%;">
         <option value="Efectivo">Efectivo</option>
         <option value="Tarjeta Débito">Tarjeta Débito</option>
         <option value="Tarjeta Crédito">Tarjeta Crédito</option>
         <option value="Transferencia">Transferencia</option>
       </select>
+
     </div>
   `,
   confirmButtonText: '<i class="fas fa-save"></i> Registrar Abono',
