@@ -41,18 +41,19 @@ app.use(bodyParser.json());
 
 
 // Sesiones
-app.set('trust proxy', 1); // 👈 necesario en producción detrás de proxy/https
+app.set('trust proxy', 1); // 👈 necesario si usas nginx o proxy inverso
 app.use(session({
     secret: 'mi_secreto_super_seguro',
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: process.env.NODE_ENV === "production", // true solo en producción
+        secure: false,  // ⚠️ déjalo en false mientras no tengas HTTPS completo
         httpOnly: true,
-        sameSite: "lax",
+        sameSite: "lax",  // si te sigue dando problemas cámbialo a "none"
         maxAge: 1000 * 60 * 60 // 1 hora
     }
 }));
+
 
 
 /*// PostgreSQL
