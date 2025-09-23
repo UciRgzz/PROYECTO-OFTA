@@ -99,6 +99,13 @@ app.get('/api/logout', (req, res) => {
 // ==================== SERVIR PÁGINAS ====================
 // 👇 siempre al final
 app.use('/login', express.static(path.join(__dirname, 'login')));
+
+// Servir el archivo de verificación de Google sin sesión
+app.use(express.static(path.join(__dirname, 'frontend'), {
+  index: false,
+  extensions: ['html']
+}));
+
 app.use('/frontend', verificarSesion, express.static(path.join(__dirname, 'frontend')));
 
 // 👉 Redirigir la raíz al login
