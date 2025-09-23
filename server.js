@@ -108,6 +108,15 @@ app.use(express.static(path.join(__dirname, 'frontend'), {
 
 app.use('/frontend', verificarSesion, express.static(path.join(__dirname, 'frontend')));
 
+// Servir sitemap.xml directamente desde la raíz
+app.use(express.static(path.join(__dirname)));
+
+// o más específico:
+app.get('/sitemap.xml', (req, res) => {
+  res.sendFile(path.join(__dirname, 'sitemap.xml'));
+});
+
+
 // 👉 Redirigir la raíz al login
 app.get('/', (req, res) => {
     res.redirect('/login/login.html');
