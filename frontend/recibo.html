@@ -317,6 +317,14 @@
       color: #555;
       margin-top: 30px;
     }
+  /* para el mostrar pago*/
+    .swal2-title-custom {
+      font-size: 1.6rem !important;
+      color: #2c3e50 !important;
+      font-weight: 700;
+    }
+
+
   </style>
 </head>
 <body>
@@ -732,18 +740,32 @@ document.addEventListener("click", async (e) => {
   if (e.target.classList.contains("abonar-btn")) {
     const reciboId = e.target.dataset.id;
     const pendiente = e.target.dataset.pendiente;
-
-    const { value: formValues } = await Swal.fire({
-      title: 'Abonar a Recibo',
-      html:
-        `<p>Pendiente actual: <b>$${pendiente}</b></p>
-         <input id="monto" class="swal2-input" type="number" min="1" placeholder="Monto a abonar">
-         <select id="formaPago" class="swal2-input">
-           <option value="Efectivo">Efectivo</option>
-           <option value="Tarjeta Débito">Tarjeta Débito</option>
-           <option value="Tarjeta Crédito">Tarjeta Crédito</option>
-           <option value="Transferencia">Transferencia</option>
-         </select>`,
+// Mostrar modal para ingresar monto a abonar
+    const { value: formValues } = await 
+    Swal.fire({
+      title: '<i class="fas fa-hand-holding-usd"></i> Abonar a Recibo',
+      html: `
+        <div style="text-align:center; margin-bottom:15px; font-size:1.1rem; color:#2c3e50;">
+          Pendiente actual: <b style="color:#e74c3c; font-size:1.3rem;">$${parseFloat(pendiente).toFixed(2)}</b>
+        </div>
+        <input id="monto" class="swal2-input" type="number" min="1" placeholder="💵 Monto a abonar">
+        <select id="formaPago" class="swal2-input">
+          <option value="Efectivo">💵 Efectivo</option>
+          <option value="Tarjeta Débito">💳 Tarjeta Débito</option>
+          <option value="Tarjeta Crédito">💳 Tarjeta Crédito</option>
+          <option value="Transferencia">🏦 Transferencia</option>
+        </select>
+      `,
+      confirmButtonText: '💾 Registrar Abono',
+      confirmButtonColor: '#27ae60',
+      cancelButtonText: 'Cancelar',
+      showCancelButton: true,
+      cancelButtonColor: '#7f8c8d',
+      background: '#fdfdfd',
+      customClass: {
+        popup: 'animated fadeInDown',
+        title: 'swal2-title-custom'
+      },
       focusConfirm: false,
       preConfirm: () => {
         return {
@@ -753,6 +775,7 @@ document.addEventListener("click", async (e) => {
       }
     });
 
+    // Si el usuario canceló
     if (!formValues) return;
 
     try {
