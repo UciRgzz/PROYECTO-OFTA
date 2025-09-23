@@ -550,19 +550,11 @@
                 if (res.ok) {
                     // Guardar usuario en localStorage
                     localStorage.setItem("usuario", JSON.stringify(data.usuario));
+                    
+                    // Redirigir directamente sin mostrar popup
+                window.location.href = '/frontend/index.html';
 
-                    // Mostrar mensaje de éxito
-                    Swal.fire({
-                        icon: 'success',
-                        title: '¡Bienvenido!',
-                        text: 'Inicio de sesión exitoso',
-                        confirmButtonColor: '#34a853',
-                        timer: 1500,
-                        showConfirmButton: false
-                    }).then(() => {
-                        // Redirigir al dashboard
-                        window.location.href = '/frontend/index.html';
-                    });
+
                 } else {
                     Swal.fire({
                         icon: 'error',
