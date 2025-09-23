@@ -318,12 +318,24 @@
       margin-top: 30px;
     }
   /* para el mostrar pago*/
-    .swal2-title-custom {
-      font-size: 1.6rem !important;
-      color: #2c3e50 !important;
-      font-weight: 700;
+        .swal2-shadow {
+      border-radius: 15px !important;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+      padding: 25px !important;
     }
 
+    .swal2-title {
+      font-size: 1.5rem !important;
+      color: #2c3e50 !important;
+      font-weight: 700 !important;
+    }
+
+    .swal2-input {
+      border-radius: 10px !important;
+      border: 1px solid #dcdde1 !important;
+      padding: 12px !important;
+      font-size: 1rem !important;
+    }
 
   </style>
 </head>
@@ -742,38 +754,47 @@ document.addEventListener("click", async (e) => {
     const pendiente = e.target.dataset.pendiente;
 // Mostrar modal para ingresar monto a abonar
     const { value: formValues } = await 
-    Swal.fire({
-      title: '<i class="fas fa-hand-holding-usd"></i> Abonar a Recibo',
-      html: `
-        <div style="text-align:center; margin-bottom:15px; font-size:1.1rem; color:#2c3e50;">
-          Pendiente actual: <b style="color:#e74c3c; font-size:1.3rem;">$${parseFloat(pendiente).toFixed(2)}</b>
-        </div>
-        <input id="monto" class="swal2-input" type="number" min="1" placeholder="💵 Monto a abonar">
-        <select id="formaPago" class="swal2-input">
-          <option value="Efectivo">💵 Efectivo</option>
-          <option value="Tarjeta Débito">💳 Tarjeta Débito</option>
-          <option value="Tarjeta Crédito">💳 Tarjeta Crédito</option>
-          <option value="Transferencia">🏦 Transferencia</option>
-        </select>
-      `,
-      confirmButtonText: '💾 Registrar Abono',
-      confirmButtonColor: '#27ae60',
-      cancelButtonText: 'Cancelar',
-      showCancelButton: true,
-      cancelButtonColor: '#7f8c8d',
-      background: '#fdfdfd',
-      customClass: {
-        popup: 'animated fadeInDown',
-        title: 'swal2-title-custom'
-      },
-      focusConfirm: false,
-      preConfirm: () => {
-        return {
-          monto: document.getElementById('monto').value,
-          forma_pago: document.getElementById('formaPago').value
-        }
-      }
-    });
+   
+   Swal.fire({
+  title: '<i class="fas fa-cash-register text-primary"></i> Abonar a Recibo',
+  html: `
+    <div style="text-align:center; margin-bottom:20px;">
+      <span style="font-size:1.1rem; color:#2c3e50;">Pendiente actual:</span><br>
+      <b style="color:#e74c3c; font-size:1.5rem;">$${parseFloat(pendiente).toFixed(2)}</b>
+    </div>
+
+    <div class="form-group" style="margin-bottom:15px; text-align:left;">
+      <label style="font-weight:600; color:#34495e;">Monto a abonar</label>
+      <input id="monto" class="swal2-input" type="number" min="1" placeholder="Ingrese monto" style="margin-top:5px;">
+    </div>
+
+    <div class="form-group" style="text-align:left;">
+      <label style="font-weight:600; color:#34495e;">Forma de Pago</label>
+      <select id="formaPago" class="swal2-input" style="margin-top:5px;">
+        <option value="Efectivo">Efectivo</option>
+        <option value="Tarjeta Débito">Tarjeta Débito</option>
+        <option value="Tarjeta Crédito">Tarjeta Crédito</option>
+        <option value="Transferencia">Transferencia</option>
+      </select>
+    </div>
+  `,
+  confirmButtonText: '<i class="fas fa-save"></i> Registrar Abono',
+  confirmButtonColor: '#27ae60',
+  cancelButtonText: 'Cancelar',
+  showCancelButton: true,
+  cancelButtonColor: '#7f8c8d',
+  background: '#fdfdfd',
+  width: 500,
+  customClass: {
+    popup: 'swal2-shadow'
+  },
+  preConfirm: () => {
+    return {
+      monto: document.getElementById('monto').value,
+      forma_pago: document.getElementById('formaPago').value
+    }
+  }
+});
 
     // Si el usuario canceló
     if (!formValues) return;
