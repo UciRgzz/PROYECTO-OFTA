@@ -14,14 +14,13 @@
     
     <style>
         :root {
-            --primary-blue: #1a73e8;
-            --secondary-blue: #4285f4;
-            --accent-green: #1e326e;
-            --medical-blue: #1e88e5;
-            --medical-green: #1b3e83;
-            --light-bg: #f8fbff;
-            --dark-text: #202124;
-            --light-text: #5f6368;
+            --primary-blue: #1e326e;      /* Azul oscuro del menú */
+            --secondary-blue: #4285f4;    /* Azul medio del menú */
+            --light-blue: #f8fbff;        /* Azul claro del fondo del menú */
+            --dark-text: #202124;         /* Texto oscuro del menú */
+            --light-text: #5f6368;        /* Texto secundario del menú */
+            --accent-blue: #1a73e8;       /* Azul de acento */
+            --medical-green: #1b3e83;     /* Verde azulado médico */
             --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
             --transition: all 0.3s ease;
         }
@@ -34,7 +33,7 @@
         }
         
         body {
-            background: linear-gradient(135deg, #07134a 0%, #0a1c56 100%);
+            background: linear-gradient(135deg, #667eea 0%, var(--primary-blue) 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -76,7 +75,7 @@
         .shape:nth-child(1) {
             width: 80px;
             height: 80px;
-            background: var(--medical-blue);
+            background: var(--secondary-blue);
             top: 10%;
             left: 10%;
             animation-delay: 0s;
@@ -85,7 +84,7 @@
         .shape:nth-child(2) {
             width: 120px;
             height: 120px;
-            background: var(--medical-green);
+            background: var(--primary-blue);
             top: 70%;
             left: 80%;
             animation-delay: 3s;
@@ -94,7 +93,7 @@
         .shape:nth-child(3) {
             width: 60px;
             height: 60px;
-            background: #203484;
+            background: #fbbc04;
             top: 20%;
             left: 85%;
             animation-delay: 6s;
@@ -103,7 +102,7 @@
         .shape:nth-child(4) {
             width: 100px;
             height: 100px;
-            background: #1d2482;
+            background: #ea4335;
             top: 80%;
             left: 15%;
             animation-delay: 9s;
@@ -135,7 +134,7 @@
         
         .graphic-side {
             flex: 1;
-            background: linear-gradient(135deg, var(--medical-blue), var(--medical-green));
+            background: linear-gradient(135deg, var(--secondary-blue), var(--primary-blue));
             padding: 40px;
             display: flex;
             flex-direction: column;
@@ -211,7 +210,7 @@
         .form-side {
             flex: 1;
             padding: 50px 40px;
-            background: var(--light-bg);
+            background: var(--light-blue);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -247,7 +246,7 @@
             transform: translateX(-50%);
             width: 50px;
             height: 3px;
-            background: linear-gradient(to right, var(--medical-blue), var(--medical-green));
+            background: linear-gradient(to right, var(--secondary-blue), var(--primary-blue));
             border-radius: 3px;
         }
         
@@ -276,13 +275,13 @@
         }
         
         .form-control:focus {
-            border-color: var(--medical-blue);
+            border-color: var(--secondary-blue);
             box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.2);
             outline: none;
         }
         
         .btn-login {
-            background: linear-gradient(to right, var(--medical-blue), var(--medical-green));
+            background: linear-gradient(to right, var(--secondary-blue), var(--primary-blue));
             border: none;
             border-radius: 12px;
             color: white;
@@ -319,7 +318,7 @@
         }
         
         .btn-link {
-            color: var(--medical-blue);
+            color: var(--secondary-blue);
             text-decoration: none;
             font-size: 0.9rem;
             margin-top: 15px;
@@ -334,7 +333,7 @@
         }
         
         .btn-link:hover {
-            color: var(--medical-green);
+            color: var(--primary-blue);
             text-decoration: underline;
         }
         
@@ -396,7 +395,7 @@
     <div class="login-container">
         <!-- Lado gráfico -->
         <div class="graphic-side">
-            <i class="bi bi-heart-pulse medical-icon"></i>
+            <i class="bi bi-eye medical-icon"></i>
             <h1>OFTASIS</h1>
             <p>Sistema Integral de Gestión Oftalmológica</p>
             
@@ -486,7 +485,7 @@
             </form>
             
             <div class="form-footer">
-                <p>© 2025 OFTASIS - Sistema de Gestión Oftalmológica</p>
+                <p>© 2023 OFTASIS - Sistema de Gestión Oftalmológica</p>
             </div>
         </div>
     </div>
