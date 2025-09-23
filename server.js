@@ -10,19 +10,33 @@ const multer = require('multer');
 const xlsx = require('xlsx');
 const { deprecate } = require('util');
 
+// Seguridad HTTP headers
+const helmet = require("helmet");
 
+// Limitar número de peticiones
+const rateLimit = require("express-rate-limit");
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 100, // máximo 100 peticiones por IP
+  message: "Demasiadas solicitudes, intenta más tarde"
+});
+
+// ⚠️ primero se crea la app
 const app = express();
+
+// aplicar seguridad y limitador de peticiones
+app.use(helmet());
+app.use(limiter);
 
 // ==================== CONFIGURACIONES ====================
 
-// Middleware
+// Middleware CORS
 app.use(cors({
     origin: "https://oftavision.shop",  
     credentials: true
 }));
 
 app.use(bodyParser.json());
-
 
 
 
