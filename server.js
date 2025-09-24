@@ -9,11 +9,9 @@ const crypto = require('crypto');
 const multer = require('multer');
 const xlsx = require('xlsx');
 const { deprecate } = require('util');
-const helmet = require('helmet');
+
 
 const app = express();
-
-app.use(helmet());
 
 // ==================== CONFIGURACIONES ====================
 
@@ -24,7 +22,6 @@ app.use(cors({
 }));
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 
 
 
@@ -36,12 +33,11 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-    secure: true,        // 👈 fuerza HTTPS siempre (tu dominio ya es SSL)
-    httpOnly: true,
-    sameSite: "none",    // 👈 necesario para que el navegador acepte cookies cross-site
-    maxAge: 1000 * 60 * 60
-}
-
+        secure: process.env.NODE_ENV === "production", // true solo en producción
+        httpOnly: true,
+        sameSite: "lax",
+        maxAge: 1000 * 60 * 60 // 1 hora
+    }
 }));
 
 
