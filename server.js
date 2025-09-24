@@ -97,17 +97,19 @@ app.get('/api/logout', (req, res) => {
 });
 
 // ==================== SERVIR PÁGINAS ====================
-// 👇 siempre al final
-app.use('/login', express.static(path.join(__dirname, 'login')));
 
-// Servir el archivo de verificación de Google sin sesión
 // ⚠️ Solo login es público
 app.use('/login', express.static(path.join(__dirname, 'login')));
 
-// ✅ Proteger frontend completo
+// ❌ Bloquear acceso directo a archivos .html sin sesión
+app.get("/*.html", (req, res) => {
+  return res.status(403).send("Acceso prohibido");
+});
+
+// ✅ Proteger carpeta frontend completa
 app.use('/frontend', verificarSesion, express.static(path.join(__dirname, 'frontend')));
 
-// ✅ Rutas directas protegidas (para que no entren sin sesión)
+// ✅ Rutas directas protegidas (sin .html en la URL)
 app.get('/expedientes', verificarSesion, (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'expedientes.html'));
 });
@@ -144,11 +146,9 @@ app.get('/amodulos', verificarSesion, (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'A_modulos.html'));
 });
 
-
-
 // 👉 Redirigir la raíz al login
 app.get('/', (req, res) => {
-    res.redirect('/login/login.html');
+  res.redirect('/login/login.html');
 });
 
 // ==================== LOGIN ====================
