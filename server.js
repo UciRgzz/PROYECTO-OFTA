@@ -95,9 +95,26 @@ app.get('/api/check-session', (req, res) => {
 // 🔹 Notificaciones simples en memoria (puedes luego guardarlas en BD)
 let notificaciones = [];
 
-// Obtener todas las notificaciones del usuario en sesión
+// Obtener notificaciones
 app.get("/api/notificaciones", verificarSesion, (req, res) => {
-  res.json(notificaciones);
+  try {
+    const user = req.session.usuario?.username || "desconocido";
+    const rol = req.session.usuario?.rol || "usuario";
+
+    if (rol === "admin") {
+      // Admin ve todas
+      return res.json(notificaciones);
+    }
+
+    // Usuario normal solo ve las que contienen su username
+    const propias = notificaciones.filter(n =>
+      n.mensaje.includes(user)
+    );
+    res.json(propias);
+  } catch (err) {
+    console.error("Error obteniendo notificaciones:", err);
+    res.status(500).json({ error: "No se pudieron cargar las notificaciones" });
+  }
 });
 
 // Registrar cuando un usuario cambia su contraseña

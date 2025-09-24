@@ -37,36 +37,54 @@
   }
 
   /* Header */
-  .header {
-    background: #fff;
-    border-bottom: 1px solid #ddd;
-    padding: 10px 20px;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  }
+.header {
+  background: #fff;
+  border-bottom: 1px solid #ddd;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
 
-  /* Nombre de usuario como chip */
-  #nombreUsuario {
-    background: #3498db;
-    color: #fff;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-weight: 500;
-    margin-right: 15px;
-    font-size: 14px;
-  }
+/* Usuario */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-  /* Campana de notificaciones */
-  .notifications i {
-    font-size: 26px;
-    color: #555;
-    transition: color 0.2s;
-  }
-  .notifications i:hover {
-    color: #3498db;
-  }
+.user-avatar {
+  background: #3498db;
+  color: #fff;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 14px;
+}
+
+#nombreUsuario {
+  font-weight: 500;
+  color: #2c3e50;
+  font-size: 15px;
+}
+
+/* Notificaciones */
+.notifications i {
+  font-size: 26px;
+  color: #555;
+  transition: color 0.2s;
+}
+.notifications i:hover {
+  color: #3498db;
+}
+
 
   /* Layout general */
   .layout {
@@ -311,11 +329,14 @@ fetch('/api/check-session')
       // 👇 Guardar el rol globalmente para usarlo en otras páginas
       window.usuarioRol = data.usuario.rol;
 
-      // Mostrar el nombre del usuario en el header
+      // Construir menú dinámico
       const nombreUsuario = document.getElementById("nombreUsuario");
-      if (nombreUsuario) {
+      const avatarUsuario = document.getElementById("avatarUsuario");
+      if (nombreUsuario && avatarUsuario) {
         nombreUsuario.textContent = data.usuario.username;
+        avatarUsuario.textContent = data.usuario.username.charAt(0).toUpperCase();
       }
+
 
       // Mostrar selector solo si es admin
       if (data.usuario.rol === "admin") {
