@@ -3,67 +3,70 @@
 <head>
   <meta charset="UTF-8" />
   <title>OFTASIS - Sistema Integral de Gestión Oftalmológica</title>
-<meta name="description" content="OFTASIS es el sistema del Instituto Oftavisión para la gestión integral de pacientes: citas, expedientes, reportes y control médico.">
-<meta name="keywords" content="Oftasis, Instituto Oftavisión, sistema oftalmológico, gestión clínica, expedientes médicos, citas médicas, optometría, oftalmología">
-<meta name="author" content="Instituto Oftavisión">
+  <meta name="description" content="OFTASIS es el sistema del Instituto Oftavisión para la gestión integral de pacientes: citas, expedientes, reportes y control médico.">
+  <meta name="keywords" content="Oftasis, Instituto Oftavisión, sistema oftalmológico, gestión clínica, expedientes médicos, citas médicas, optometría, oftalmología">
+  <meta name="author" content="Instituto Oftavisión">
 
-<!-- Open Graph (para Google, WhatsApp, Facebook, etc.) -->
-<meta property="og:title" content="OFTASIS - Sistema Integral de Gestión Oftalmológica">
-<meta property="og:description" content="Administra citas, expedientes, reportes y más con OFTASIS del Instituto Oftavisión.">
-<meta property="og:image" content="https://oftavision.shop/uploads/logo-oftavision.png">
-<meta property="og:url" content="https://oftavision.shop">
-<meta property="og:type" content="website">
+  <!-- Open Graph -->
+  <meta property="og:title" content="OFTASIS - Sistema Integral de Gestión Oftalmológica">
+  <meta property="og:description" content="Administra citas, expedientes, reportes y más con OFTASIS del Instituto Oftavisión.">
+  <meta property="og:image" content="https://oftavision.shop/uploads/logo-oftavision.png">
+  <meta property="og:url" content="https://oftavision.shop">
+  <meta property="og:type" content="website">
 
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="OFTASIS - Sistema Integral de Gestión Oftalmológica">
-<meta name="twitter:description" content="Sistema del Instituto Oftavisión para gestionar citas, expedientes y reportes médicos.">
-<meta name="twitter:image" content="https://oftavision.shop/uploads/logo-oftavision.png">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="OFTASIS - Sistema Integral de Gestión Oftalmológica">
+  <meta name="twitter:description" content="Sistema del Instituto Oftavisión para gestionar citas, expedientes y reportes médicos.">
+  <meta name="twitter:image" content="https://oftavision.shop/uploads/logo-oftavision.png">
 
-
-  <!-- 👇 Favicon (logo empresa) -->
-   <link rel="icon" type="image/png" href="/uploads/logo-oftavision2.png"> 
-  <!-- Google Fonts -->
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/uploads/logo-oftavision2.png"> 
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
-  <!-- Material Icons -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <!-- Bootstrap Icons -->
   <link rel="icon" href="/logo.ico" type="image/x-icon">
-
-
-  
 
   <style>
     body {
       font-family: 'Roboto', sans-serif;
       margin: 0;
-      display: flex;
       min-height: 100vh;
       background: #f0f5ff;
+      display: flex;
+      flex-direction: column; /* Header arriba, contenido abajo */
     }
+
+    /* Header */
+    .header {
+      background: #fff;
+      border-bottom: 1px solid #ddd;
+      padding: 10px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    /* Layout general */
+    .layout {
+      flex: 1;
+      display: flex; /* Sidebar + main */
+      min-height: 0; /* Evita overflow raro */
+    }
+
+    /* Sidebar */
     .sidebar {
       width: 240px;
       background: linear-gradient(180deg, #1e2a32, #2c3e50);
       color: #fff;
-      box-shadow: 3px 0 10px rgba(0,0,0,0.1);
       display: flex;
       flex-direction: column;
-      height: 100vh;
     }
 
     .sidebar-content {
       flex: 1;
-      overflow-y: auto;   /* 👈 ahora el menú desliza */
+      overflow-y: auto;
       padding: 20px;
     }
-
-    .sidebar .logout {
-      padding: 15px 20px;
-      border-top: 1px solid rgba(255,255,255,0.2);
-    }
-
-
-
 
     .sidebar h2 {
       font-size: 18px;
@@ -94,8 +97,9 @@
       font-size: 20px;
     }
 
-    .text-danger {
-      color: #ff6b6b !important;
+    .sidebar .logout {
+      padding: 15px 20px;
+      border-top: 1px solid rgba(255,255,255,0.2);
     }
 
     /* Main */
@@ -103,6 +107,7 @@
       flex: 1;
       padding: 25px;
       background: #f4f6f8;
+      overflow-y: auto;
     }
 
     iframe {
@@ -128,20 +133,20 @@
       font-size: .9rem;
       color: #6c757d;
     }
-/* Header superior */
-    /* Estilo para las opciones del selector de sucursal */
+
+    /* Selector sucursal */
     #sucursal-selector .dropdown-menu {
-      background-color: #fff;   /* Fondo blanco */
-      color: #000;              /* Texto negro */
+      background-color: #fff;
+      color: #000;
     }
 
     #sucursal-selector .dropdown-item {
-      color: #000;              /* Texto negro */
+      color: #000;
     }
 
     #sucursal-selector .dropdown-item:hover {
-      background-color: #3498db; /* Fondo azul al pasar */
-      color: #fff;              /* Texto blanco */
+      background-color: #3498db;
+      color: #fff;
     }
 
     /* Botones personalizados */
@@ -154,80 +159,83 @@
     .btn-opto { background: #0b335c; color: white; }
     .btn-opto:hover { background:  #0f2c57; }
 
-    /* Forzar visibilidad del dropdown cuando tenga la clase show */
-      #notif-dropdown {
-        display: none;
-        position: absolute;
-        right: 0;
-        top: 30px;
-        background: white;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        width: 280px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        z-index: 1050;
-      }
-
-      #notif-dropdown.show {
-        display: block;
-      }
-
-
+    /* Dropdown notificaciones */
+    #notif-dropdown {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 30px;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      width: 280px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      z-index: 1050;
+    }
+    #notif-dropdown.show {
+      display: block;
+    }
   </style>
 </head>
 <body>
   
-<!-- HEADER SUPERIOR -->
-<div class="header d-flex justify-content-end align-items-center p-2 bg-light border-bottom">
-  <span id="nombreUsuario" class="me-3 fw-bold text-primary"></span>
-  <div class="notifications position-relative">
-    <i class="material-icons" id="bell" style="cursor:pointer;">notifications</i>
-    <span class="badge bg-danger position-absolute top-0 start-100 translate-middle p-1 rounded-circle" id="notif-count" style="font-size:0.7rem; display:none;">0</span>
-    <div class="dropdown-menu dropdown-menu-end shadow" id="notif-dropdown" style="min-width:280px;">
-      <p class="px-3 pt-2 fw-bold">Notificaciones</p>
-      <ul class="list-unstyled mb-2" id="notif-list"></ul>
+  <!-- HEADER SUPERIOR -->
+  <div class="header">
+    <span id="nombreUsuario" class="me-3 fw-bold text-primary"></span>
+    <div class="notifications position-relative">
+      <i class="material-icons" id="bell" style="cursor:pointer;">notifications</i>
+      <span class="badge bg-danger position-absolute top-0 start-100 translate-middle p-1 rounded-circle" id="notif-count" style="font-size:0.7rem; display:none;">0</span>
+      <div class="dropdown-menu dropdown-menu-end shadow" id="notif-dropdown" style="min-width:280px;">
+        <p class="px-3 pt-2 fw-bold">Notificaciones</p>
+        <ul class="list-unstyled mb-2" id="notif-list"></ul>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- SIDEBAR -->
-<div class="sidebar">
-  <div class="sidebar-content">
-    <h2>Menú</h2> 
+  <!-- LAYOUT -->
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-content">
+        <h2>Menú</h2> 
 
-    <!-- Selector de sucursal (solo admin) -->
-    <div id="sucursal-selector" class="dropdown mb-3" style="display:none;">
-      <button class="btn btn-light w-100 dropdown-toggle d-flex align-items-center" 
-              type="button" data-bs-toggle="dropdown" aria-expanded="false" 
-              id="sucursalBtn">
-        <i class="material-icons me-2">business</i> 
-        <span id="sucursalTexto">Sucursal</span>
-      </button>
-      <ul class="dropdown-menu w-100">
-        <li><a class="dropdown-item" href="#" onclick="cambiarSucursal('admin')">Admin</a></li>
-        <li><a class="dropdown-item" href="#" onclick="cambiarSucursal('Reynosa')">Reynosa</a></li>
-        <li><a class="dropdown-item" href="#" onclick="cambiarSucursal('Yucatan')">Yucatán</a></li>
-        <li><a class="dropdown-item" href="#" onclick="cambiarSucursal('Monterrey')">Monterrey</a></li>
-      </ul>
+        <!-- Selector de sucursal (solo admin) -->
+        <div id="sucursal-selector" class="dropdown mb-3" style="display:none;">
+          <button class="btn btn-light w-100 dropdown-toggle d-flex align-items-center" 
+                  type="button" data-bs-toggle="dropdown" aria-expanded="false" 
+                  id="sucursalBtn">
+            <i class="material-icons me-2">business</i> 
+            <span id="sucursalTexto">Sucursal</span>
+          </button>
+          <ul class="dropdown-menu w-100">
+            <li><a class="dropdown-item" href="#" onclick="cambiarSucursal('admin')">Admin</a></li>
+            <li><a class="dropdown-item" href="#" onclick="cambiarSucursal('Reynosa')">Reynosa</a></li>
+            <li><a class="dropdown-item" href="#" onclick="cambiarSucursal('Yucatan')">Yucatán</a></li>
+            <li><a class="dropdown-item" href="#" onclick="cambiarSucursal('Monterrey')">Monterrey</a></li>
+          </ul>
+        </div>
+
+        <!-- Menú dinámico -->
+        <div id="menu-dinamico"></div>
+
+        <!-- Cerrar sesión -->
+        <div class="mt-3 border-top pt-2">
+          <button class="btn btn-danger w-100 d-flex align-items-center" onclick="cerrarSesion()">
+            <i class="material-icons me-2">exit_to_app</i> 
+            Cerrar Sesión
+          </button>
+        </div>
+      </div>
     </div>
 
-    <!-- 🔹 Aquí el menú se llenará dinámicamente -->
-    <div id="menu-dinamico"></div>
-
-    <!-- 🔹 Botón de Cerrar Sesión (siempre visible) -->
-    <div class="mt-3 border-top pt-2">
-      <button class="btn btn-danger w-100 d-flex align-items-center" onclick="cerrarSesion()">
-        <i class="material-icons me-2">exit_to_app</i> 
-        Cerrar Sesión
-      </button>
+    <!-- MAIN -->
+    <div class="main" id="main-content">
+      <h1>Cargando...</h1>
     </div>
   </div>
-</div>
+</body>
+</html>
 
-<!-- MAIN -->
-<div class="main" id="main-content">
-  <h1>Cargando...</h1>
-</div>
 
 <!-- MODAL ÓRDENES Y OPTOMETRÍA -->
 <div class="modal fade" id="modalOrdenes" tabindex="-1" aria-hidden="true">
