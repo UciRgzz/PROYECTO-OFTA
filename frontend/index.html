@@ -858,11 +858,47 @@ fetch('/api/check-session')
 // ========== Notificaciones ==========
 const bell = document.getElementById("bell");
 const notifDropdown = document.getElementById("notif-dropdown");
+const notifList = document.getElementById("notif-list");
+const notifCount = document.getElementById("notif-count");
 
+async function cargarNotificaciones() {
+  try {
+    const res = await fetch("/api/notificaciones");
+    if (!res.ok) throw new Error("Error al cargar notificaciones");
+    const data = await res.json();
+
+    // Vaciar lista
+    notifList.innerHTML = "";
+
+    if (data.length === 0) {
+      notifList.innerHTML = `<li class="px-3 py-2 text-muted">No hay notificaciones</li>`;
+      notifCount.style.display = "none";
+      return;
+    }
+
+    // Renderizar notificaciones
+    data.forEach(n => {
+      const li = document.createElement("li");
+      li.className = "px-3 py-2 border-bottom";
+      li.textContent = `${n.mensaje} — ${new Date(n.fecha).toLocaleString()}`;
+      notifList.appendChild(li);
+    });
+
+    // Actualizar contador
+    notifCount.textContent = data.length;
+    notifCount.style.display = "inline-block";
+  } catch (err) {
+    console.error("❌ Error mostrando notificaciones:", err);
+  }
+}
+
+// Abrir/cerrar dropdown con datos del servidor
 if (bell && notifDropdown) {
-  bell.addEventListener("click", () => {
-    // Alternar visibilidad tipo dropdown
+  bell.addEventListener("click", async () => {
     notifDropdown.classList.toggle("show");
+    if (notifDropdown.classList.contains("show")) {
+      await cargarNotificaciones();
+    }
   });
 }
 
@@ -878,6 +914,8 @@ style.textContent = `
     border-radius: 8px;
     overflow: hidden;
     z-index: 1000;
+    max-height: 300px;
+    overflow-y: auto;
   }
   #notif-dropdown.show {
     display: block;
