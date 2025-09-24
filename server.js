@@ -101,12 +101,49 @@ app.get('/api/logout', (req, res) => {
 app.use('/login', express.static(path.join(__dirname, 'login')));
 
 // Servir el archivo de verificación de Google sin sesión
-app.use(express.static(path.join(__dirname, 'frontend'), {
-  index: false,
-  extensions: ['html']
-}));
+// ⚠️ Solo login es público
+app.use('/login', express.static(path.join(__dirname, 'login')));
 
+// ✅ Proteger frontend completo
 app.use('/frontend', verificarSesion, express.static(path.join(__dirname, 'frontend')));
+
+// ✅ Rutas directas protegidas (para que no entren sin sesión)
+app.get('/expedientes', verificarSesion, (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'expedientes.html'));
+});
+
+app.get('/medico', verificarSesion, (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'medico.html'));
+});
+
+app.get('/recibos', verificarSesion, (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'recibo.html'));
+});
+
+app.get('/ordenes', verificarSesion, (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'ordenes.html'));
+});
+
+app.get('/optometria', verificarSesion, (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'optometria.html'));
+});
+
+app.get('/insumos', verificarSesion, (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'insumos.html'));
+});
+
+app.get('/cierrecaja', verificarSesion, (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'cierre-caja.html'));
+});
+
+app.get('/agendaquirurgica', verificarSesion, (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'A_Quirurgica.html'));
+});
+
+app.get('/amodulos', verificarSesion, (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'A_modulos.html'));
+});
+
 
 
 // 👉 Redirigir la raíz al login
@@ -1566,53 +1603,8 @@ app.get("/api/cirugias", verificarSesion, async (req, res) => {
   }
 });
 
-// ======== NOTIFICACIONES ========
-
-// Ejemplo de notificaciones locales
-let notificaciones = [
-  { mensaje: "Nueva actualización del sistema", fecha: "2025-09-23" },
-  { mensaje: "Recordatorio: Cierre de caja pendiente", fecha: "2025-09-22" }
-];
-
-const btnNotificaciones = document.getElementById('btnNotificaciones');
-const notifBox = document.getElementById('notificaciones');
-const listaNotif = document.getElementById('listaNotif');
-const contadorNotif = document.getElementById('contadorNotif');
-const cerrarNotif = document.getElementById('cerrarNotif');
-
-function renderNotificaciones() {
-  listaNotif.innerHTML = "";
-  if (notificaciones.length === 0) {
-    listaNotif.innerHTML = `<li class="list-group-item">Sin notificaciones</li>`;
-    contadorNotif.style.display = "none";
-  } else {
-    notificaciones.forEach(n => {
-      listaNotif.innerHTML += `
-        <li class="list-group-item">
-          <strong>${n.mensaje}</strong><br>
-          <small class="text-muted">${n.fecha}</small>
-        </li>`;
-    });
-    contadorNotif.innerText = notificaciones.length;
-    contadorNotif.style.display = "inline-block";
-  }
-}
-
-btnNotificaciones.addEventListener('click', (e) => {
-  e.preventDefault();
-  notifBox.style.display = (notifBox.style.display === "none") ? "block" : "none";
-  renderNotificaciones();
-});
-
-cerrarNotif.addEventListener('click', () => {
-  notifBox.style.display = "none";
-});
-
-// Inicial
-renderNotificaciones();
-
-
 // ==================== GESTIÓN DE PERMISOS ====================
+
 // Listar usuarios (para asignar módulos)
 app.get('/api/usuarios', isAdmin, async (req, res) => {
   try {
