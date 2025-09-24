@@ -91,6 +91,29 @@ app.get('/api/check-session', (req, res) => {
     }
 });
 
+// ==================== NOTIFICACIONES ====================
+// Notificaciones simples en memoria (puedes luego guardarlas en BD)
+let notificaciones = [];
+
+app.get("/api/notificaciones", verificarSesion, (req, res) => {
+  res.json(notificaciones);
+});
+
+// Registrar cuando un usuario cambia contraseña
+app.post("/api/notificacion/cambio-password", verificarSesion, (req, res) => {
+  const user = req.session.usuario.username;
+  notificaciones.push({ mensaje: `El usuario ${user} cambió su contraseña`, fecha: new Date() });
+  res.json({ ok: true });
+});
+
+// Registrar cuando un admin crea un usuario
+app.post("/api/notificacion/nuevo-usuario", isAdmin, (req, res) => {
+  const { nuevo } = req.body;
+  notificaciones.push({ mensaje: `Se creó un nuevo usuario: ${nuevo}`, fecha: new Date() });
+  res.json({ ok: true });
+});
+
+
 // ==================== LOGOUT ====================
 app.get('/api/logout', (req, res) => {
     req.session.destroy(() => {
