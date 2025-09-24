@@ -152,11 +152,22 @@
     .btn-opto { background: #0b335c; color: white; }
     .btn-opto:hover { background:  #0f2c57; }
 
-    /* Header transparente */
+  /* Header reducido, solo ocupa lo necesario */
 #header-principal {
-  background: transparent !important;  /* 👈 sin color de fondo */
-  box-shadow: none !important;         /* 👈 sin sombra */
-  border: none !important;             /* 👈 sin borde */
+  position: fixed;
+  top: 10px;        /* separación desde arriba */
+  right: 20px;      /* separación desde la derecha */
+  left: auto;       /* que no se expanda desde la izquierda */
+  width: auto;      /* solo lo que ocupe el contenido */
+  height: auto;
+  background: transparent !important; 
+  box-shadow: none !important;
+  border: none !important;
+  padding: 5px 10px;   /* un poco de espacio interno */
+  display: flex;
+  align-items: center;
+  gap: 15px;          /* espacio entre campana y usuario */
+  z-index: 1000;
 }
 
   </style>
