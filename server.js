@@ -101,8 +101,11 @@ app.get('/api/logout', (req, res) => {
 // ⚠️ Solo login es público
 app.use('/login', express.static(path.join(__dirname, 'login')));
 
-// ❌ Bloquear acceso directo a archivos .html sin sesión
-app.get("/*.html", (req, res) => {
+// ❌ Bloquear acceso directo a archivos .html del frontend
+app.get("/*.html", (req, res, next) => {
+  if (req.path.startsWith("/login/")) {
+    return next(); // ✅ permitir login
+  }
   return res.status(403).send("Acceso prohibido");
 });
 
