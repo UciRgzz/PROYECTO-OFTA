@@ -33,64 +33,63 @@
     min-height: 100vh;
     background: #f0f5ff;
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* Header arriba, contenido abajo */
   }
 
   /* Header */
-  .header {
-    background: #fff;
-    border-bottom: 1px solid #ddd;
-    padding: 10px 20px;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  }
+.header {
+  background: #fff;
+  border-bottom: 1px solid #ddd;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: flex-start; /* 👈 ahora alineado a la izquierda */
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
 
-  /* Usuario en sidebar */
-  .user-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
+/* Usuario */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-  .user-avatar {
-    background: #3498db;
-    color: #fff;
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    text-transform: uppercase;
-    font-size: 14px;
-  }
+.user-avatar {
+  background: #3498db;
+  color: #fff;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 14px;
+}
 
-  #nombreUsuario {
-    font-weight: 600;
-    color: #0b335c; /* azul oscuro */
-    font-size: 15px;
-  }
+#nombreUsuario {
+  font-weight: 500;
+  color: #2c3e50;
+  font-size: 15px;
+}
 
-  /* Notificaciones */
-  .notifications i {
-    font-size: 26px;
-    color: #555;
-    transition: color 0.2s;
-  }
-  .notifications i:hover {
-    color: #3498db;
-  }
+/* Notificaciones */
+.notifications i {
+  font-size: 26px;
+  color: #555;
+  transition: color 0.2s;
+}
+.notifications i:hover {
+  color: #3498db;
+}
 
   /* Layout general */
   .layout {
     flex: 1;
-    display: flex;
-    min-height: 0;
+    display: flex; /* Sidebar + main */
+    min-height: 0; /* Evita overflow raro */
   }
 
   /* Sidebar */
@@ -200,37 +199,37 @@
   .btn-opto:hover { background:  #0f2c57; }
 
   /* Dropdown notificaciones */
-  #notif-dropdown {
-    display: none;
-    position: absolute;
-    right: 0;
-    top: 40px;
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    width: 300px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    z-index: 1050;
-    overflow: hidden;
-  }
+#notif-dropdown {
+  display: none;
+  position: absolute;
+  left: 0; /* 👈 alineado al avatar y campana */
+  top: 50px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  width: 300px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 1050;
+  overflow: hidden;
+}
 
-  #notif-dropdown p {
-    margin: 0;
-    padding: 10px 15px;
-    background: #f8f9fa;
-    font-size: 14px;
-    border-bottom: 1px solid #eee;
-  }
+#notif-dropdown p {
+  margin: 0;
+  padding: 10px 15px;
+  background: #f8f9fa;
+  font-size: 14px;
+  border-bottom: 1px solid #eee;
+}
 
-  #notif-dropdown li {
-    padding: 10px 15px;
-    font-size: 14px;
-    transition: background 0.2s;
-  }
+#notif-dropdown li {
+  padding: 10px 15px;
+  font-size: 14px;
+  transition: background 0.2s;
+}
 
-  #notif-dropdown li:hover {
-    background: #f0f5ff;
-  }
+#notif-dropdown li:hover {
+  background: #f0f5ff;
+}
 </style>
 
 </head>
@@ -238,10 +237,17 @@
   
   <!-- HEADER SUPERIOR -->
   <div class="header">
+    <!-- Usuario -->
+    <div class="user-info">
+      <div class="user-avatar" id="userAvatar">U</div>
+      <span id="nombreUsuario"></span>
+    </div>
+
+    <!-- Notificaciones -->
     <div class="notifications position-relative">
       <i class="material-icons" id="bell" style="cursor:pointer;">notifications</i>
       <span class="badge bg-danger position-absolute top-0 start-100 translate-middle p-1 rounded-circle" id="notif-count" style="font-size:0.7rem; display:none;">0</span>
-      <div class="dropdown-menu dropdown-menu-end shadow" id="notif-dropdown" style="min-width:280px;">
+      <div class="dropdown-menu shadow" id="notif-dropdown" style="min-width:280px;">
         <p class="px-3 pt-2 fw-bold">Notificaciones</p>
         <ul class="list-unstyled mb-2" id="notif-list"></ul>
       </div>
@@ -254,14 +260,9 @@
     <!-- SIDEBAR -->
     <div class="sidebar">
       <div class="sidebar-content">
-
-        <!-- Usuario -->
-        <div class="user-info">
-          <div class="user-avatar" id="userAvatar">U</div>
-          <span id="nombreUsuario"></span>
-        </div>
-
         <h2>Menú</h2> 
+        
+
         <!-- Selector de sucursal (solo admin) -->
         <div id="sucursal-selector" class="dropdown mb-3" style="display:none;">
           <button class="btn btn-light w-100 dropdown-toggle d-flex align-items-center" 
