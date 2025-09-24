@@ -9,9 +9,11 @@ const crypto = require('crypto');
 const multer = require('multer');
 const xlsx = require('xlsx');
 const { deprecate } = require('util');
-
+const helmet = require('helmet');
 
 const app = express();
+
+app.use(helmet());
 
 // ==================== CONFIGURACIONES ====================
 
