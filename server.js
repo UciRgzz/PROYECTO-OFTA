@@ -106,13 +106,14 @@ app.get('/', (req, res) => {
   res.redirect('/login/login.html');
 });
 
-// ❌ Bloquear acceso directo a cualquier archivo .html fuera del login
-app.get("/*.html", (req, res, next) => {
-  if (req.path.startsWith("/login/")) {
-    return next(); // ✅ permitir login
+// ❌ Bloquear acceso directo a .html excepto los del login
+app.use((req, res, next) => {
+  if (req.path.endsWith(".html") && !req.path.startsWith("/login/")) {
+    return res.status(403).send("Acceso prohibido");
   }
-  return res.status(403).send("Acceso prohibido");
+  next();
 });
+
 
 // ✅ Proteger carpeta frontend completa
 app.use('/frontend', verificarSesion, express.static(path.join(__dirname, 'frontend')));
