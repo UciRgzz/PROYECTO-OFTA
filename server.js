@@ -92,25 +92,46 @@ app.get('/api/check-session', (req, res) => {
 });
 
 // ==================== NOTIFICACIONES ====================
-// Notificaciones simples en memoria (puedes luego guardarlas en BD)
+// 🔹 Notificaciones simples en memoria (puedes luego guardarlas en BD)
 let notificaciones = [];
 
+// Obtener todas las notificaciones del usuario en sesión
 app.get("/api/notificaciones", verificarSesion, (req, res) => {
   res.json(notificaciones);
 });
 
-// Registrar cuando un usuario cambia contraseña
+// Registrar cuando un usuario cambia su contraseña
 app.post("/api/notificacion/cambio-password", verificarSesion, (req, res) => {
-  const user = req.session.usuario.username;
-  notificaciones.push({ mensaje: `El usuario ${user} cambió su contraseña`, fecha: new Date() });
-  res.json({ ok: true });
+  try {
+    const user = req.session.usuario?.username || "desconocido";
+    notificaciones.push({
+      mensaje: `🔑 El usuario ${user} cambió su contraseña`,
+      fecha: new Date()
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("Error registrando notificación de contraseña:", err);
+    res.status(500).json({ error: "No se pudo registrar notificación" });
+  }
 });
 
-// Registrar cuando un admin crea un usuario
+// Registrar cuando un admin crea un usuario nuevo
 app.post("/api/notificacion/nuevo-usuario", isAdmin, (req, res) => {
-  const { nuevo } = req.body;
-  notificaciones.push({ mensaje: `Se creó un nuevo usuario: ${nuevo}`, fecha: new Date() });
-  res.json({ ok: true });
+  try {
+    const { nuevo } = req.body;
+    if (!nuevo) {
+      return res.status(400).json({ error: "Falta nombre del nuevo usuario" });
+    }
+
+    notificaciones.push({
+      mensaje: `👤 Se creó un nuevo usuario: ${nuevo}`,
+      fecha: new Date()
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("Error registrando notificación de nuevo usuario:", err);
+    res.status(500).json({ error: "No se pudo registrar notificación" });
+  }
 });
 
 
