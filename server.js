@@ -69,8 +69,10 @@ function verificarSesion(req, res, next) {
     if (req.session && req.session.usuario) {
         return next();
     }
-    res.status(401).json({ error: 'No autorizado' });
+    // 👇 si no tiene sesión, redirigir a login
+    return res.redirect('/login/login.html');
 }
+
 
 // Restringir solo a admins
 function isAdmin(req, res, next) {
