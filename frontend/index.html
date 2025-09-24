@@ -95,21 +95,26 @@
 }
 
 
-  /* Layout general */
-  .layout {
-    flex: 1;
-    display: flex; /* Sidebar + main */
-    min-height: 0; /* Evita overflow raro */
-  }
+.layout {
+  margin-left: 240px;   /* 👈 espacio igual al ancho del sidebar */
+  flex: 1;
+  display: flex;
+  min-height: 100vh;
+}
+
 
   /* Sidebar */
-  .sidebar {
-    width: 240px;
-    background: linear-gradient(180deg, #1e2a32, #2c3e50);
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-  }
+.sidebar {
+  position: fixed;      /* 👈 Hace que el sidebar arranque desde arriba */
+  top: 0;
+  left: 0;
+  bottom: 0;            /* 👈 Para que llegue hasta abajo */
+  width: 240px;
+  background: linear-gradient(180deg, #1e2a32, #2c3e50);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+}
 
   .sidebar-content {
     flex: 1;
