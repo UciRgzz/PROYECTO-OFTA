@@ -322,20 +322,24 @@ function cerrarSesion() {
 // Router simple
 async function mostrarSeccion(seccion){
   const paginas = {
-  expedientes: "/frontend/expedientes.html",
-  recibos: "/frontend/recibo.html",
-  cierredecaja: "/frontend/cierre-caja.html",
-  medico: "/frontend/medico.html",
-  ordenes: "/frontend/ordenes.html",
-  optometria: "/frontend/optometria.html",
-  insumos: "/frontend/insumos.html",
-  usuarios: "/frontend/admin/usuarios.html",   // este sí está dentro de admin
-  agendaquirurgica: "/frontend/A_Quirurgica.html",
-  asignarmodulos: "/frontend/A_modulos.html"
-};
+    expedientes: "/frontend/expedientes.html",
+    recibos: "/frontend/recibo.html",
+    cierredecaja: "/frontend/cierre-caja.html",
+    medico: "/frontend/medico.html",
+    ordenes: "/frontend/ordenes.html",
+    optometria: "/frontend/optometria.html",
+    insumos: "/frontend/insumos.html",
+    usuarios: "/frontend/admin/usuarios.html",   // este sí está dentro de admin
+    agendaquirurgica: "/frontend/A_Quirurgica.html",
+    asignarmodulos: "/frontend/A_modulos.html"
+  };
   const main = document.getElementById('main-content');
+  const header = document.getElementById("header-principal");
 
   if(seccion === 'expedientes'){
+    // 👉 Ocultar header en expedientes
+    if (header) header.style.display = "none";
+
     main.innerHTML = `
       <h2>Gestión de Expedientes</h2>
       <div class="d-flex justify-content-between mb-3">
@@ -351,12 +355,21 @@ async function mostrarSeccion(seccion){
     });
     document.getElementById('buscarExp').addEventListener('input', filtrarLista);
     cargarLista();
-  }else if(paginas[seccion]){
+
+  } else if(paginas[seccion]){
+    // 👉 Ocultar header en páginas cargadas con iframe
+    if (header) header.style.display = "none";
+
     main.innerHTML = `<iframe src="${paginas[seccion]}"></iframe>`;
-  }else{
+
+  } else {
+    // 👉 Mostrar header solo en la vista principal
+    if (header) header.style.display = "flex";
+
     main.innerHTML = `<h2>${seccion}</h2><p>Contenido de ${seccion} aquí...</p>`;
   }
 }
+
 
 // Expedientes
 function mostrarFormulario(expediente=null){
