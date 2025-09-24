@@ -128,7 +128,7 @@
       font-size: .9rem;
       color: #6c757d;
     }
-
+/* Header superior */
     /* Estilo para las opciones del selector de sucursal */
     #sucursal-selector .dropdown-menu {
       background-color: #fff;   /* Fondo blanco */
@@ -153,6 +153,26 @@
 
     .btn-opto { background: #0b335c; color: white; }
     .btn-opto:hover { background:  #0f2c57; }
+
+    /* Forzar visibilidad del dropdown cuando tenga la clase show */
+      #notif-dropdown {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 30px;
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        width: 280px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        z-index: 1050;
+      }
+
+      #notif-dropdown.show {
+        display: block;
+      }
+
+
   </style>
 </head>
 <body>
