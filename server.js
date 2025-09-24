@@ -36,11 +36,12 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: process.env.NODE_ENV === "production", // true solo en producción
-        httpOnly: true,
-        sameSite: "lax",
-        maxAge: 1000 * 60 * 60 // 1 hora
-    }
+    secure: true,        // 👈 fuerza HTTPS siempre (tu dominio ya es SSL)
+    httpOnly: true,
+    sameSite: "none",    // 👈 necesario para que el navegador acepte cookies cross-site
+    maxAge: 1000 * 60 * 60
+}
+
 }));
 
 
