@@ -92,25 +92,28 @@ app.get('/api/check-session', (req, res) => {
 });
 
 // ==================== NOTIFICACIONES ====================
-// 🔹 Notificaciones simples en memoria (puedes luego guardarlas en BD)
-let notificaciones = [];
 
 // Obtener notificaciones
-app.get("/api/notificaciones", verificarSesion, (req, res) => {
+app.get("/api/notificaciones", verificarSesion, async (req, res) => {
   try {
     const user = req.session.usuario?.username || "desconocido";
     const rol = req.session.usuario?.rol || "usuario";
 
+    let result;
     if (rol === "admin") {
       // Admin ve todas
-      return res.json(notificaciones);
+      result = await pool.query(
+        "SELECT id, mensaje, usuario, fecha FROM notificaciones ORDER BY fecha DESC LIMIT 50"
+      );
+    } else {
+      // Usuario normal solo ve las suyas
+      result = await pool.query(
+        "SELECT id, mensaje, usuario, fecha FROM notificaciones WHERE usuario = $1 ORDER BY fecha DESC LIMIT 20",
+        [user]
+      );
     }
 
-    // Usuario normal solo ve las que contienen su username
-    const propias = notificaciones.filter(n =>
-      n.mensaje.includes(user)
-    );
-    res.json(propias);
+    res.json(result.rows);
   } catch (err) {
     console.error("Error obteniendo notificaciones:", err);
     res.status(500).json({ error: "No se pudieron cargar las notificaciones" });
@@ -118,13 +121,13 @@ app.get("/api/notificaciones", verificarSesion, (req, res) => {
 });
 
 // Registrar cuando un usuario cambia su contraseña
-app.post("/api/notificacion/cambio-password", verificarSesion, (req, res) => {
+app.post("/api/notificacion/cambio-password", verificarSesion, async (req, res) => {
   try {
     const user = req.session.usuario?.username || "desconocido";
-    notificaciones.push({
-      mensaje: `🔑 El usuario ${user} cambió su contraseña`,
-      fecha: new Date()
-    });
+    await pool.query(
+      "INSERT INTO notificaciones (mensaje, usuario) VALUES ($1, $2)",
+      [`🔑 El usuario ${user} cambió su contraseña`, user]
+    );
     res.json({ ok: true });
   } catch (err) {
     console.error("Error registrando notificación de contraseña:", err);
@@ -133,17 +136,17 @@ app.post("/api/notificacion/cambio-password", verificarSesion, (req, res) => {
 });
 
 // Registrar cuando un admin crea un usuario nuevo
-app.post("/api/notificacion/nuevo-usuario", isAdmin, (req, res) => {
+app.post("/api/notificacion/nuevo-usuario", isAdmin, async (req, res) => {
   try {
     const { nuevo } = req.body;
     if (!nuevo) {
       return res.status(400).json({ error: "Falta nombre del nuevo usuario" });
     }
 
-    notificaciones.push({
-      mensaje: `👤 Se creó un nuevo usuario: ${nuevo}`,
-      fecha: new Date()
-    });
+    await pool.query(
+      "INSERT INTO notificaciones (mensaje, usuario) VALUES ($1, $2)",
+      [`👤 Se creó un nuevo usuario: ${nuevo}`, nuevo]
+    );
     res.json({ ok: true });
   } catch (err) {
     console.error("Error registrando notificación de nuevo usuario:", err);
