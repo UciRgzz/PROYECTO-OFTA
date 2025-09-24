@@ -9,36 +9,17 @@ const crypto = require('crypto');
 const multer = require('multer');
 const xlsx = require('xlsx');
 const { deprecate } = require('util');
-const helmet = require("helmet");
+
 
 const app = express();
-app.disable("x-powered-by"); // 👈 Oculta cabecera "X-Powered-By"
-app.use(helmet());
 
 // ==================== CONFIGURACIONES ====================
 
-
-const rateLimit = require("express-rate-limit");
-
-// Límite global (todas las rutas)
-const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 1000,                // máximo 1000 peticiones por IP
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-app.use(globalLimiter);
-
-
-// ==================== MIDDLEWARE ====================
+// Middleware
 app.use(cors({
-  origin: true,          // 🔥 acepta dinámicamente el origin (ej: https://oftavision.shop)
-  credentials: true,     // ✅ permite envío de cookies y sesiones
-  methods: ["GET","POST","PUT","DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+    origin: "https://oftavision.shop",  
+    credentials: true
 }));
-
-
 
 app.use(bodyParser.json());
 
@@ -46,20 +27,18 @@ app.use(bodyParser.json());
 
 
 // Sesiones
+app.set('trust proxy', 1); // 👈 necesario en producción detrás de proxy/https
 app.use(session({
-  secret: process.env.SESSION_SECRET || "cambia_este_valor",
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: true,       // ✅ HTTPS obligatorio en tu dominio
-    httpOnly: true,
-    sameSite: "none",   // 👈 permite cross-site
-    maxAge: 1000 * 60 * 60 // 1h
-  }
+    secret: 'mi_secreto_super_seguro',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === "production", // true solo en producción
+        httpOnly: true,
+        sameSite: "lax",
+        maxAge: 1000 * 60 * 60 // 1 hora
+    }
 }));
-
-
-
 
 
 /*// PostgreSQL
@@ -188,25 +167,13 @@ app.get('/reportes', verificarSesion, (req, res) => {
 
 
 // ==================== LOGIN ====================
-
-// Límite de intentos de login (máx. 5 cada 10 minutos por IP)
-const loginLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000, // 10 minutos
-  max: 5,
-  message: { error: "🚫 Demasiados intentos de inicio de sesión, inténtalo más tarde." },
-  standardHeaders: true,
-  legacyHeaders: false
-});
-
-// Ruta de login protegida con el limiter
-app.post('/api/login', loginLimiter, async (req, res) => {
+app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
     try {
         const result = await pool.query(
             'SELECT * FROM usuarios WHERE username = $1',
             [username]
         );
-
         if (result.rows.length === 0) {
             return res.status(401).json({ error: 'Usuario no encontrado' });
         }
@@ -224,15 +191,15 @@ app.post('/api/login', loginLimiter, async (req, res) => {
             rol: usuario.rol,
             departamento: usuario.rol === "admin" ? "ADMIN" : usuario.departamento
         };
-
-        res.json({
-            mensaje: 'Login exitoso',
+          
+        res.json({ 
+            mensaje: 'Login exitoso', 
             usuario: req.session.usuario,
             rol: usuario.rol
         });
 
     } catch (err) {
-        console.error("Error en /api/login:", err);
+        console.error(err);
         res.status(500).json({ error: 'Error en el login' });
     }
 });
