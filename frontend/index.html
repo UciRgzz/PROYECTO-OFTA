@@ -36,17 +36,24 @@
     flex-direction: column; /* Header arriba, contenido abajo */
   }
 
-  /* Header */
+ /* Header */
 .header {
+  position: fixed;       /* 👈 Se queda arriba fijo */
+  top: 0;
+  left: 240px;           /* 👈 Corre a la derecha lo mismo que mide el sidebar */
+  right: 0;
+  height: 60px;
   background: #fff;
   border-bottom: 1px solid #ddd;
   padding: 10px 20px;
   display: flex;
-  justify-content: flex-end;/* Cambiado a izquierda */
+  justify-content: flex-start;  
   align-items: center;
   gap: 20px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  z-index: 1000;
 }
+
 
 /* Usuario */
 .user-info {
@@ -142,13 +149,14 @@
     border-top: 1px solid rgba(255,255,255,0.2);
   }
 
-  /* Main */
   .main {
-    flex: 1;
-    padding: 25px;
-    background: #f4f6f8;
-    overflow-y: auto;
-  }
+  flex: 1;
+  padding: 25px;
+  background: #f4f6f8;
+  overflow-y: auto;
+  padding-top: 80px; /* 👈 deja espacio para el header fijo */
+}
+
 
   iframe {
     width: 100%;
@@ -256,12 +264,17 @@
 <div class="header">
   <!-- Usuario -->
   <div class="user-info">
+    <div class="user-avatar" id="userAvatar">U</div>
+    <span id="nombreUsuario"></span>
+  </div>
+  <!-- Usuario -->
+  <div class="user-info">
     <div class="user-avatar" id="userAvatar"></div>
     <span id="nombreUsuario"></span>
   </div>
 
-  <!-- Notificaciones -->
-  <div class="notifications position-relative ms-3">
+   <!-- Notificaciones -->
+  <div class="notifications position-relative">
     <i class="material-icons" id="bell" style="cursor:pointer;">notifications</i>
     <span class="badge bg-danger position-absolute top-0 start-100 translate-middle p-1 rounded-circle" 
           id="notif-count" 
