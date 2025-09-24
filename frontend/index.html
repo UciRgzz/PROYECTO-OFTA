@@ -152,22 +152,11 @@
     .btn-opto { background: #0b335c; color: white; }
     .btn-opto:hover { background:  #0f2c57; }
 
-    /* Header fijo e invisible */
+    /* Header transparente */
 #header-principal {
-  position: fixed;
-  top: 0;
-  left: 240px;   /* 👈 ancho del sidebar */
-  right: 0;
-  height: 60px;
-  background: transparent; /* 👈 ya no tiene fondo */
-  border: none;
-  padding: 10px 20px;
-  display: flex;
-  justify-content: flex-end; /* 👈 manda campana + usuario a la derecha */
-  align-items: center;
-  gap: 20px;
-  z-index: 1000;
-  box-shadow: none; /* 👈 sin sombra */
+  background: transparent !important;  /* 👈 sin color de fondo */
+  box-shadow: none !important;         /* 👈 sin sombra */
+  border: none !important;             /* 👈 sin borde */
 }
 
   </style>
