@@ -170,5 +170,148 @@
     </div>
 </div>
 
+<script>
+async function cargarCierre() {
+    const fecha = document.getElementById("fechaCierre").value;
+
+    if (!fecha) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Fecha requerida',
+            text: 'Debes seleccionar una fecha para generar el reporte.',
+            confirmButtonColor: '#3085d6'
+        });
+        return;
+    }
+
+    try {
+        // 🔹 Mostrar loading
+        Swal.fire({
+            title: 'Generando cierre...',
+            text: 'Por favor espera',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // Resumen de cierre
+        const resResumen = await fetch(`/api/cierre-caja?fecha=${fecha}`);
+        const datosResumen = await resResumen.json();
+
+        // 🔹 Cerrar loading
+        Swal.close();
+
+        if (!Array.isArray(datosResumen) || datosResumen.length === 0) {
+            document.getElementById("tbodyResumen").innerHTML = "<tr><td colspan='5'>Sin datos</td></tr>";
+            Swal.fire({
+                icon: 'info',
+                title: 'Sin datos',
+                text: 'No se encontraron registros para la fecha seleccionada.',
+                confirmButtonColor: '#3085d6'
+            });
+            return;
+        }
+
+        // Procedimientos únicos
+        const procedimientos = [...new Set(datosResumen.map(d => d.procedimiento))];
+
+        // Agrupar pagos por procedimiento
+        const pagos = {};
+        datosResumen.forEach(d => {
+            if (!pagos[d.pago]) pagos[d.pago] = {};
+            if (!pagos[d.pago][d.procedimiento]) pagos[d.pago][d.procedimiento] = 0;
+            pagos[d.pago][d.procedimiento] += parseFloat(d.total);
+        });
+
+        // Encabezado dinámico
+        let thead = `<tr><th>Forma de Cobro</th>`;
+        procedimientos.forEach(p => { thead += `<th>${p}</th>`; });
+        thead += `<th>Total</th></tr>`;
+        document.querySelector("#tablaResumen thead").innerHTML = thead;
+
+        // Filas con totales por forma de pago
+        let tbody = "";
+        const totalesColumnas = {};
+        Object.keys(pagos).forEach(pago => {
+            let totalFila = 0;
+            let fila = `<tr><td>${pago}</td>`;
+            procedimientos.forEach(proc => {
+                const val = pagos[pago][proc] || 0;
+                totalFila += val;
+                totalesColumnas[proc] = (totalesColumnas[proc] || 0) + val;
+                fila += `<td>$${val.toFixed(2)}</td>`;
+            });
+            fila += `<td class="fw-bold">$${totalFila.toFixed(2)}</td></tr>`;
+            tbody += fila;
+        });
+
+        // Fila de totales generales
+        let filaTotal = `<tr class="table-dark"><td><b>Total</b></td>`;
+        let totalGeneral = 0;
+        procedimientos.forEach(proc => {
+            const val = totalesColumnas[proc] || 0;
+            totalGeneral += val;
+            filaTotal += `<td><b>$${val.toFixed(2)}</b></td>`;
+        });
+        filaTotal += `<td><b>$${totalGeneral.toFixed(2)}</b></td></tr>`;
+        tbody += filaTotal;
+
+        // Actualizar cuerpo de la tabla
+        document.getElementById("tbodyResumen").innerHTML = tbody;
+
+        // Listado de pacientes
+        const resPacientes = await fetch(`/api/listado-pacientes?fecha=${fecha}`);
+        const pacientes = await resPacientes.json();
+        document.getElementById("tablaPacientes").innerHTML = pacientes.map(p => `
+            <tr>
+                <td>${p.fecha}</td>
+                <td>${p.folio}</td>
+                <td>${p.nombre}</td>
+                <td>${p.procedimiento}</td>
+                <td>${p.status}</td>
+                <td>${p.pago}</td>
+                <td><span class="badge bg-primary">$${parseFloat(p.total).toFixed(2)}</span></td>
+                <td><span class="badge bg-warning text-dark">$${parseFloat(p.saldo).toFixed(2)}</span></td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error("Error cargando cierre de caja:", error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Hubo un problema al cargar los datos del cierre.',
+            confirmButtonColor: '#d33'
+        });
+    }
+}
+
+function exportarExcel() {
+    const fecha = document.getElementById("fechaCierre").value || "sin_fecha";
+
+    // Tablas completas
+    const tablaResumen = document.getElementById("tablaResumen");
+    const tablaPacientes = document.getElementById("tablaPacientesWrap");
+
+    // Crear libro Excel
+    const wb = XLSX.utils.book_new();
+    const wsResumen = XLSX.utils.table_to_sheet(tablaResumen);
+    const wsPacientes = XLSX.utils.table_to_sheet(tablaPacientes);
+
+    XLSX.utils.book_append_sheet(wb, wsResumen, "Resumen");
+    XLSX.utils.book_append_sheet(wb, wsPacientes, "Pacientes");
+
+    // Descargar
+    XLSX.writeFile(wb, `cierre_${fecha}.xlsx`);
+
+    // 🔹 Aviso con SweetAlert2
+    Swal.fire({
+        icon: 'success',
+        title: 'Exportación completada',
+        text: `El archivo cierre_${fecha}.xlsx se descargó correctamente.`,
+        confirmButtonColor: '#27ae60'
+    });
+}
+</script>
 </body>
 </html>
