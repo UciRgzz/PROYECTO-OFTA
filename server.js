@@ -51,12 +51,13 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: process.env.NODE_ENV === "production", // true solo en producción
-        httpOnly: true,
-        sameSite: "lax",
-        maxAge: 1000 * 60 * 60 // 1 hora
+        secure: process.env.NODE_ENV === "production", // 🔐 true solo en producción con HTTPS
+        httpOnly: true,                                // 🚫 evita acceso desde JS
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // ⚡ compatibilidad CORS
+        maxAge: 1000 * 60 * 60 // ⏳ 1 hora
     }
 }));
+
 
 
 /*// PostgreSQL
