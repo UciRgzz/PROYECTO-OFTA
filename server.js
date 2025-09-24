@@ -295,30 +295,37 @@ app.post('/api/forgot-password', async (req, res) => {
 
 // ==================== RESTABLECER CONTRASEÑA POR NÓMINA ====================
 app.post('/api/reset-password', async (req, res) => {
-    const { nomina, token, password } = req.body;
-    try {
-        const user = await pool.query(
-            'SELECT * FROM usuarios WHERE nomina = $1 AND reset_token = $2 AND reset_token_expire > NOW()',
-            [nomina, token]
-        );
-        if (user.rows.length === 0) {
-            return res.status(400).json({ error: 'Token inválido o expirado' });
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-        await pool.query(
-            'UPDATE usuarios SET password = $1, reset_token = NULL, reset_token_expire = NULL WHERE nomina = $2',
-            [hashedPassword, nomina]
-        );
-
-        res.json({ mensaje: 'Contraseña restablecida con éxito' });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Error restableciendo contraseña' });
+  const { nomina, token, password } = req.body;
+  try {
+    const user = await pool.query(
+      'SELECT * FROM usuarios WHERE nomina = $1 AND reset_token = $2 AND reset_token_expire > NOW()',
+      [nomina, token]
+    );
+    if (user.rows.length === 0) {
+      return res.status(400).json({ error: 'Token inválido o expirado' });
     }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await pool.query(
+      'UPDATE usuarios SET password = $1, reset_token = NULL, reset_token_expire = NULL WHERE nomina = $2',
+      [hashedPassword, nomina]
+    );
+
+    // ✅ Registrar notificación de cambio de contraseña
+    const username = user.rows[0].username;
+    notificaciones.push({
+      mensaje: `🔑 El usuario ${username} cambió su contraseña`,
+      fecha: new Date()
+    });
+
+    res.json({ mensaje: 'Contraseña restablecida con éxito' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error restableciendo contraseña' });
+  }
 });
 
-// Eliminar usuario (solo admin)
+// ==================== ELIMINAR USUARIO (SOLO ADMIN) ====================
 app.delete('/api/admin/delete-user/:nomina', isAdmin, async (req, res) => {
   try {
     const { nomina } = req.params;
@@ -330,6 +337,13 @@ app.delete('/api/admin/delete-user/:nomina', isAdmin, async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
+
+    // ✅ Registrar notificación de eliminación de usuario
+    const eliminado = result.rows[0].username;
+    notificaciones.push({
+      mensaje: `🗑️ El usuario ${eliminado} fue eliminado por un administrador`,
+      fecha: new Date()
+    });
 
     res.json({ mensaje: '🗑️ Usuario eliminado correctamente' });
   } catch (err) {
