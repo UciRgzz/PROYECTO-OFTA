@@ -1049,7 +1049,7 @@ if (window.location.pathname.includes("a_quirurgica.html")) {
       });
     }
 
-    function editarCirugia(idOrden) {
+    window.editarCirugia = function(idOrden) {
       ordenSeleccionada = idOrden;
       const modal = new bootstrap.Modal(document.getElementById("modalCalendario"));
       modal.show();
@@ -1057,6 +1057,7 @@ if (window.location.pathname.includes("a_quirurgica.html")) {
 
     // ==================== EDITAR TIPO DE LENTE ====================
     function editarLente(idOrden, tipoActual) {
+    
       Swal.fire({
         title: tipoActual ? 'Editar Tipo de Lente' : 'Añadir Tipo de Lente',
         input: 'text',
@@ -1089,14 +1090,14 @@ if (window.location.pathname.includes("a_quirurgica.html")) {
       });
     }
 
-    function abrirCalendario(idOrden) {
+    window.abrirCalendario = function(idOrden) {
       ordenSeleccionada = idOrden;
       const modal = new bootstrap.Modal(document.getElementById("modalCalendario"));
       modal.show();
     }
 
     // ==================== ASIGNAR FECHA DESDE EL CALENDARIO ====================
-    async function asignarFecha(fecha) {
+  window.asignarFecha = async function(fecha) {
       if (!ordenSeleccionada) return;
 
       try {
@@ -1120,7 +1121,7 @@ if (window.location.pathname.includes("a_quirurgica.html")) {
     }
 
     // ==================== ELIMINAR CIRUGÍA ====================
-    function eliminarCirugia(idOrden) {
+  window.eliminarCirugia = function(idOrden) {
       Swal.fire({
         title: '¿Eliminar cirugía?',
         text: "Esta acción no se puede deshacer.",
@@ -1174,7 +1175,7 @@ if (window.location.pathname.includes("a_quirurgica.html")) {
       });
     }
 
-// ========== GESTION DE CIERRE-CAJA ==========
+// ==================== GESTION DE CIERRE-CAJA ============================//
 if (window.location.pathname.includes("cierre-caja.html")) {
 }
 async function cargarCierre() {
