@@ -58,9 +58,6 @@
       border-top: 1px solid rgba(255,255,255,0.2);
     }
 
-
-
-
     .sidebar h2 {
       font-size: 18px;
       font-weight: 600;
@@ -94,14 +91,13 @@
       color: #ff6b6b !important;
     }
 
-   .main {
-  flex: 1;
-  padding: 20px;
-  background: #f4f6f8;
-  overflow-y: auto;
-  padding-top: 80px; /* 👈 deja espacio para el header fijo */
-}
-
+    .main {
+      flex: 1;
+      padding: 20px;
+      background: #f4f6f8;
+      overflow-y: auto;
+      padding-top: 80px; /* 👈 deja espacio para el header fijo */
+    }
 
     iframe {
       width: 100%;
@@ -152,24 +148,23 @@
     .btn-opto { background: #0b335c; color: white; }
     .btn-opto:hover { background:  #0f2c57; }
 
-  /* Header reducido, solo ocupa lo necesario */
-#header-principal {
-  position: fixed;
-  top: 10px;        /* separación desde arriba */
-  right: 20px;      /* separación desde la derecha */
-  left: auto;       /* que no se expanda desde la izquierda */
-  width: auto;      /* solo lo que ocupe el contenido */
-  height: auto;
-  background: transparent !important; 
-  box-shadow: none !important;
-  border: none !important;
-  padding: 5px 10px;   /* un poco de espacio interno */
-  display: flex;
-  align-items: center;
-  gap: 15px;          /* espacio entre campana y usuario */
-  z-index: 1000;
-}
-
+    /* Header reducido, solo ocupa lo necesario */
+    #header-principal {
+      position: fixed;
+      top: 10px;        /* separación desde arriba */
+      right: 20px;      /* separación desde la derecha */
+      left: auto;       /* que no se expanda desde la izquierda */
+      width: auto;      /* solo lo que ocupe el contenido */
+      height: auto;
+      background: transparent !important; 
+      box-shadow: none !important;
+      border: none !important;
+      padding: 5px 10px;   /* un poco de espacio interno */
+      display: flex;
+      align-items: center;
+      gap: 15px;          /* espacio entre campana y usuario */
+      z-index: 1000;
+    }
   </style>
 </head>
 <body>
@@ -212,8 +207,7 @@
 <div class="contenido" style="flex:1; display:flex; flex-direction:column;">
 
   <!-- HEADER (usuario + campana a la derecha) -->
-  <div class="d-flex justify-content-end align-items-center p-2 bg-white shadow-sm" 
-       id="header-principal" style="gap:20px;">
+  <div id="header-principal">
     
     <!-- Usuario -->
     <div class="user-info d-flex align-items-center">
@@ -243,6 +237,8 @@
   </div>
 
 </div>
+</body>
+</html>
 
 
 <!-- MODAL ÓRDENES Y OPTOMETRÍA -->
