@@ -300,30 +300,35 @@ app.post('/api/forgot-password', async (req, res) => {
 app.post('/api/reset-password', async (req, res) => {
   const { nomina, token, password } = req.body;
   try {
+    // Buscar usuario válido con token
     const user = await pool.query(
       'SELECT * FROM usuarios WHERE nomina = $1 AND reset_token = $2 AND reset_token_expire > NOW()',
       [nomina, token]
     );
+
     if (user.rows.length === 0) {
       return res.status(400).json({ error: 'Token inválido o expirado' });
     }
 
+    // Encriptar nueva contraseña
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Actualizar contraseña y limpiar token
     await pool.query(
       'UPDATE usuarios SET password = $1, reset_token = NULL, reset_token_expire = NULL WHERE nomina = $2',
       [hashedPassword, nomina]
     );
 
-    // ✅ Registrar notificación de cambio de contraseña
+    // ✅ Registrar notificación en la BD
     const username = user.rows[0].username;
-    notificaciones.push({
-      mensaje: `🔑 El usuario ${username} cambió su contraseña`,
-      fecha: new Date()
-    });
+    await pool.query(
+      "INSERT INTO notificaciones (mensaje, usuario) VALUES ($1, $2)",
+      [`🔑 El usuario ${username} cambió su contraseña`, username]
+    );
 
     res.json({ mensaje: 'Contraseña restablecida con éxito' });
   } catch (err) {
-    console.error(err);
+    console.error("❌ Error en /api/reset-password:", err);
     res.status(500).json({ error: 'Error restableciendo contraseña' });
   }
 });
@@ -332,6 +337,7 @@ app.post('/api/reset-password', async (req, res) => {
 app.delete('/api/admin/delete-user/:nomina', isAdmin, async (req, res) => {
   try {
     const { nomina } = req.params;
+
     const result = await pool.query(
       'DELETE FROM usuarios WHERE nomina = $1 RETURNING *',
       [nomina]
@@ -341,19 +347,20 @@ app.delete('/api/admin/delete-user/:nomina', isAdmin, async (req, res) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    // ✅ Registrar notificación de eliminación de usuario
+    // ✅ Registrar notificación en la BD
     const eliminado = result.rows[0].username;
-    notificaciones.push({
-      mensaje: `🗑️ El usuario ${eliminado} fue eliminado por un administrador`,
-      fecha: new Date()
-    });
+    await pool.query(
+      "INSERT INTO notificaciones (mensaje, usuario) VALUES ($1, $2)",
+      [`🗑️ El usuario ${eliminado} fue eliminado por un administrador`, 'admin']
+    );
 
     res.json({ mensaje: '🗑️ Usuario eliminado correctamente' });
   } catch (err) {
-    console.error(err);
+    console.error("❌ Error en /api/admin/delete-user:", err);
     res.status(500).json({ error: 'Error eliminando usuario' });
   }
 });
+
 
 
 
