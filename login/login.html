@@ -722,5 +722,26 @@
             }
         });
     </script>
+
+<!-- 🔒 Bloqueo de clic derecho y atajos de inspección -->
+<script>
+  // Bloquear clic derecho
+  document.addEventListener("contextmenu", event => event.preventDefault());
+
+  // Bloquear teclas de inspección comunes
+  document.onkeydown = function(e) {
+    if (
+      e.keyCode == 123 || // F12
+      (e.ctrlKey && e.shiftKey && e.keyCode == "I".charCodeAt(0)) || // Ctrl+Shift+I
+      (e.ctrlKey && e.shiftKey && e.keyCode == "J".charCodeAt(0)) || // Ctrl+Shift+J
+      (e.ctrlKey && e.keyCode == "U".charCodeAt(0)) || // Ctrl+U
+      (e.ctrlKey && e.keyCode == "S".charCodeAt(0))    // Ctrl+S
+    ) {
+      e.preventDefault();
+      return false;
+    }
+  };
+</script>
+
 </body>
 </html>
