@@ -200,22 +200,38 @@
   .btn-opto:hover { background:  #0f2c57; }
 
   /* Dropdown notificaciones */
-  #notif-dropdown {
-    display: none;
-    position: absolute;
-    right: 0;
-    top: 35px;
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    width: 280px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    z-index: 1050;
-    overflow: hidden;
-  }
-  #notif-dropdown.show {
-    display: block;
-  }
+#notif-dropdown {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 40px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  width: 300px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 1050;
+  overflow: hidden;
+}
+
+#notif-dropdown p {
+  margin: 0;
+  padding: 10px 15px;
+  background: #f8f9fa;
+  font-size: 14px;
+  border-bottom: 1px solid #eee;
+}
+
+#notif-dropdown li {
+  padding: 10px 15px;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+#notif-dropdown li:hover {
+  background: #f0f5ff;
+}
+  
   #notif-dropdown p {
     margin: 0;
     padding: 10px 15px;
@@ -336,7 +352,6 @@ fetch('/api/check-session')
         nombreUsuario.style.display = "inline-block"; // asegura que se muestre
       }
 
-
       // Mostrar selector solo si es admin
       if (data.usuario.rol === "admin") {
         document.getElementById("sucursal-selector").style.display = "block";
@@ -364,15 +379,29 @@ fetch('/api/check-session')
         </div>
       `;
 
-      // 👇 Aquí puedes cargar notificaciones al iniciar sesión
-      if (typeof cargarNotificaciones === "function") {
-        cargarNotificaciones();
-      }
+      // ✅ Cargar notificaciones siempre que haya sesión activa
+      cargarNotificaciones();
     }
   })
   .catch(() => window.location.href = '/login/login.html');
 
-// Función cerrar sesión
+// ---------- Abrir/cerrar notificaciones ----------
+document.getElementById("bell").addEventListener("click", (e) => {
+  e.stopPropagation();
+  const dropdown = document.getElementById("notif-dropdown");
+  dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+});
+
+// Cerrar si se hace click afuera
+document.addEventListener("click", (e) => {
+  const dropdown = document.getElementById("notif-dropdown");
+  const bell = document.getElementById("bell");
+  if (dropdown && !dropdown.contains(e.target) && e.target !== bell) {
+    dropdown.style.display = "none";
+  }
+});
+
+// ---------- Función cerrar sesión ----------
 function cerrarSesion() {
   fetch('/api/logout')
     .then(() => window.location.href = '/login/login.html')
@@ -921,49 +950,6 @@ async function cargarNotificaciones() {
     console.error("Error cargando notificaciones:", err);
   }
 }
-
-// ==================== SESIÓN (Inicio) ====================
-fetch('/api/check-session')
-  .then(res => res.ok ? res.json() : Promise.reject())
-  .then(data => {
-    if (data.usuario) {
-      window.usuarioRol = data.usuario.rol;
-
-      const nombreUsuario = document.getElementById("nombreUsuario");
-      if (nombreUsuario) {
-        nombreUsuario.textContent = data.usuario.username.toUpperCase();
-        nombreUsuario.style.display = "inline-block";
-      }
-
-      if (data.usuario.rol === "admin") {
-        document.getElementById("sucursal-selector").style.display = "block";
-      }
-
-      let sucursalActual;
-      if (data.usuario.rol === "admin") {
-        sucursalActual = data.usuario.sucursalSeleccionada || "Admin";
-      } else {
-        sucursalActual = data.usuario.departamento;
-      }
-      document.getElementById("sucursalTexto").textContent = sucursalActual;
-
-      document.getElementById('main-content').innerHTML = `
-        <div style="text-align:center; margin-top:40px;">
-          <h1>Bienvenido</h1>
-          <p>Selecciona una opción del menú.</p>
-          <div style="margin-top:80px; text-align:left;">
-            <img src="/uploads/logo-oftavision.png" 
-              alt="Instituto Oftavisión" 
-              style="max-width:900px; display:block; margin:0 auto;">
-          </div>
-        </div>
-      `;
-
-      // ✅ Ahora sí se cargan las notificaciones
-      cargarNotificaciones();
-    }
-  })
-  .catch(() => window.location.href = '/login/login.html');
 
 
 // ---------- Función para eliminar expediente ----------
