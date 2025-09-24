@@ -42,7 +42,7 @@
   border-bottom: 1px solid #ddd;
   padding: 10px 20px;
   display: flex;
-  justify-content: flex-start;/* Cambiado a izquierda */
+  justify-content: flex-end;/* Cambiado a izquierda */
   align-items: center;
   gap: 20px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
@@ -259,15 +259,14 @@
     <div class="user-avatar" id="userAvatar">U</div>
     <span id="nombreUsuario"></span>
   </div>
-
   <!-- Usuario -->
   <div class="user-info">
     <div class="user-avatar" id="userAvatar"></div>
     <span id="nombreUsuario"></span>
   </div>
 
-<!-- Notificaciones -->
-  <div class="notifications position-relative">
+  <!-- Notificaciones -->
+  <div class="notifications position-relative ms-3">
     <i class="material-icons" id="bell" style="cursor:pointer;">notifications</i>
     <span class="badge bg-danger position-absolute top-0 start-100 translate-middle p-1 rounded-circle" 
           id="notif-count" 
