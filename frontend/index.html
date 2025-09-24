@@ -36,23 +36,24 @@
     flex-direction: column; /* Header arriba, contenido abajo */
   }
 
- /* Header */
+/* Header */
 .header {
   position: fixed;       /* 👈 Se queda arriba fijo */
   top: 0;
   left: 240px;           /* 👈 Corre a la derecha lo mismo que mide el sidebar */
   right: 0;
   height: 60px;
-  background: #fff;
+  background: #fff;      /* 👈 Fondo blanco sólido */
   border-bottom: 1px solid #ddd;
   padding: 10px 20px;
   display: flex;
   justify-content: flex-start;  
   align-items: center;
   gap: 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   z-index: 1000;
+  box-shadow: none;      /* 👈 Se elimina la sombra para que se vea pegado */
 }
+
 
 
 /* Usuario */
@@ -262,7 +263,7 @@
   
 <!-- HEADER SUPERIOR -->
 <div class="header">
-  
+
   <!-- Usuario -->
   <div class="user-info">
     <div class="user-avatar" id="userAvatar"></div>
