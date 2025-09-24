@@ -152,8 +152,7 @@
   </style>
 </head>
 <body>
-  
-<!-- SIDEBAR -->
+  <!-- SIDEBAR -->
 <div class="sidebar">
   <div class="sidebar-content">
     <h2>Menú</h2> 
@@ -186,11 +185,38 @@
     </div>
   </div>
 </div>
+<!-- 👆 aquí cierra el sidebar -->
+
+<!-- HEADER SOLO EN INDEX -->
+<div class="d-flex justify-content-end align-items-center p-2 bg-white shadow-sm" 
+     id="header-principal" style="gap:20px;">
+  
+  <!-- Notificaciones -->
+  <div class="notifications position-relative">
+    <i class="material-icons" id="bell" style="cursor:pointer;">notifications</i>
+    <span class="badge bg-danger position-absolute top-0 start-100 translate-middle p-1 rounded-circle" 
+          id="notif-count" 
+          style="font-size:0.7rem; display:none;">0</span>
+    <div class="dropdown-menu shadow" id="notif-dropdown" style="min-width:280px;">
+      <p class="px-3 pt-2 fw-bold">Notificaciones</p>
+      <ul class="list-unstyled mb-2" id="notif-list"></ul>
+    </div>
+  </div>
+
+  <!-- Usuario -->
+  <div class="user-info d-flex align-items-center">
+    <div class="user-avatar" id="userAvatar" 
+         style="background:#3498db;color:#fff;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:14px;">
+    </div>
+    <span id="nombreUsuario" style="font-weight:500;color:#2c3e50;font-size:15px;"></span>
+  </div>
+</div>
 
 <!-- MAIN -->
 <div class="main" id="main-content">
   <h1>Cargando...</h1>
 </div>
+
 
 <!-- MODAL ÓRDENES Y OPTOMETRÍA -->
 <div class="modal fade" id="modalOrdenes" tabindex="-1" aria-hidden="true">
