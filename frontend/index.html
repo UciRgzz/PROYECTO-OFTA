@@ -833,4 +833,55 @@ async function eliminarExpediente(id){
 }
 
 
+
+</script>
+<script>
+// ========== Usuario en el header ==========
+fetch('/api/check-session')
+  .then(res => res.json())
+  .then(data => {
+    if (data.usuario) {
+      // Inicial en el avatar
+      const avatar = document.getElementById("userAvatar");
+      if (avatar) {
+        avatar.textContent = data.usuario.username.charAt(0).toUpperCase();
+      }
+
+      // Nombre al lado
+      const nombre = document.getElementById("nombreUsuario");
+      if (nombre) {
+        nombre.textContent = data.usuario.username;
+      }
+    }
+  });
+
+// ========== Notificaciones ==========
+const bell = document.getElementById("bell");
+const notifDropdown = document.getElementById("notif-dropdown");
+
+if (bell && notifDropdown) {
+  bell.addEventListener("click", () => {
+    // Alternar visibilidad tipo dropdown
+    notifDropdown.classList.toggle("show");
+  });
+}
+
+// Estilo mínimo para dropdown
+const style = document.createElement("style");
+style.textContent = `
+  #notif-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 30px;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    z-index: 1000;
+  }
+  #notif-dropdown.show {
+    display: block;
+  }
+`;
+document.head.appendChild(style);
 </script>
