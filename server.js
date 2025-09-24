@@ -30,13 +30,14 @@ const globalLimiter = rateLimit({
 app.use(globalLimiter);
 
 
-// Middleware
+// ==================== MIDDLEWARE ====================
 app.use(cors({
-  origin: "https://oftavision.shop",
-  credentials: true,
+  origin: true,          // 🔥 acepta dinámicamente el origin (ej: https://oftavision.shop)
+  credentials: true,     // ✅ permite envío de cookies y sesiones
   methods: ["GET","POST","PUT","DELETE"],
-  allowedHeaders: ["Content-Type"]
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
 
 
 app.use(bodyParser.json());
