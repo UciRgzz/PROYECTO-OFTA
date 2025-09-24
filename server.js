@@ -101,12 +101,12 @@ app.get('/api/logout', (req, res) => {
 // ⚠️ Solo login es público
 app.use('/login', express.static(path.join(__dirname, 'login')));
 
-// 👉 Redirigir la raíz al login
+// 👉 Redirigir la raíz al login (link principal)
 app.get('/', (req, res) => {
   res.redirect('/login/login.html');
 });
 
-// ❌ Bloquear acceso directo a archivos .html del frontend
+// ❌ Bloquear acceso directo a cualquier archivo .html fuera del login
 app.get("/*.html", (req, res, next) => {
   if (req.path.startsWith("/login/")) {
     return next(); // ✅ permitir login
@@ -153,6 +153,11 @@ app.get('/agendaquirurgica', verificarSesion, (req, res) => {
 app.get('/amodulos', verificarSesion, (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'A_modulos.html'));
 });
+app.get('/reportes', verificarSesion, (req, res) => { 
+  res.sendFile(path.join(__dirname, 'frontend', 'reportes.html'));
+});
+
+
 
 // ==================== LOGIN ====================
 app.post('/api/login', async (req, res) => {
