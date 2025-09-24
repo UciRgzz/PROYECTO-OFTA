@@ -828,5 +828,51 @@ async function eliminarExpediente(id){
   }
 }
 
+// ==================== NOTIFICACIONES ====================
+async function cargarNotificaciones() {
+  try {
+    const res = await fetch("/api/notificaciones");
+    if (!res.ok) return;
+    const notifs = await res.json();
+
+    const notifCount = document.getElementById("notif-count");
+    const notifList = document.getElementById("notif-list");
+
+    notifList.innerHTML = "";
+    if (notifs.length === 0) {
+      notifList.innerHTML = `<li class="px-3 small text-muted">No hay notificaciones</li>`;
+      notifCount.style.display = "none";
+    } else {
+      notifs.slice(-10).reverse().forEach(n => {
+        const fecha = new Date(n.fecha).toLocaleString();
+        notifList.innerHTML += `
+          <li class="px-3 py-2 border-bottom">
+            <div class="fw-bold small">${n.mensaje}</div>
+            <div class="text-muted small">${fecha}</div>
+          </li>
+        `;
+      });
+      notifCount.textContent = notifs.length;
+      notifCount.style.display = "inline-block";
+    }
+  } catch (err) {
+    console.error("Error cargando notificaciones:", err);
+  }
+}
+
+// Abrir/cerrar dropdown de notificaciones
+document.getElementById("bell").addEventListener("click", () => {
+  const dropdown = document.getElementById("notif-dropdown");
+  dropdown.classList.toggle("show");
+});
+
+// Cerrar si se hace click afuera
+document.addEventListener("click", (e) => {
+  const dropdown = document.getElementById("notif-dropdown");
+  if (!dropdown.contains(e.target) && e.target.id !== "bell") {
+    dropdown.classList.remove("show");
+  }
+});
+
 
 </script>
