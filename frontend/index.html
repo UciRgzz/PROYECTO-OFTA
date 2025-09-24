@@ -36,23 +36,24 @@
     flex-direction: column; /* Header arriba, contenido abajo */
   }
 
-/* Header */
+/* Header invisible (se funde con el fondo) */
 .header {
-  position: fixed;       /* 👈 Se queda arriba fijo */
+  position: fixed;
   top: 0;
-  left: 240px;           /* 👈 Corre a la derecha lo mismo que mide el sidebar */
+  left: 240px;       /* ancho del sidebar */
   right: 0;
   height: 60px;
-  background: #fff;      /* 👈 Fondo blanco sólido */
-  border-bottom: 1px solid #ddd;
+  background: transparent; /* 👈 ya no tiene fondo */
+  border: none;            /* 👈 quitamos el borde */
   padding: 10px 20px;
   display: flex;
-  justify-content: flex-start;  
+  justify-content: flex-start;
   align-items: center;
   gap: 20px;
   z-index: 1000;
-  box-shadow: none;      /* 👈 Se elimina la sombra para que se vea pegado */
+  box-shadow: none;        /* 👈 sin sombra */
 }
+
 
 
 
@@ -153,10 +154,11 @@
   .main {
   flex: 1;
   padding: 20px;
-  background: #f4f6f8;
+  background: #f4f6f8;   /* 👈 este color será el que se vea arriba */
   overflow-y: auto;
-  padding-top: 30px; /* 👈 deja espacio para el header fijo */
+  padding-top: 80px;     /* 👈 deja espacio para el header fijo */
 }
+
 
 
   iframe {
