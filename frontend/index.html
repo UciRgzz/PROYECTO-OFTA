@@ -331,10 +331,9 @@ fetch('/api/check-session')
 
       // Construir menú dinámico
       const nombreUsuario = document.getElementById("nombreUsuario");
-      const avatarUsuario = document.getElementById("avatarUsuario");
-      if (nombreUsuario && avatarUsuario) {
-        nombreUsuario.textContent = data.usuario.username;
-        avatarUsuario.textContent = data.usuario.username.charAt(0).toUpperCase();
+      if (nombreUsuario) {
+        nombreUsuario.textContent = data.usuario.username.toUpperCase();
+        nombreUsuario.style.display = "inline-block"; // asegura que se muestre
       }
 
 
@@ -891,31 +890,6 @@ async function cargarMenu() {
 
 cargarMenu();
 
-
-// ---------- Función para eliminar expediente ----------
-async function eliminarExpediente(id){
-  const confirmacion = await Swal.fire({
-    title: '¿Estás seguro?',
-    text: 'Esto eliminará el expediente permanentemente',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#3085d6',
-    confirmButtonText: 'Sí, eliminar'
-  });
-
-  if(confirmacion.isConfirmed){
-    const res = await fetch(`/api/expedientes/${id}`, { method: 'DELETE' });
-    const data = await res.json();
-    if(res.ok){
-      Swal.fire('Eliminado', data.mensaje, 'success');
-      cargarLista();
-    }else{
-      Swal.fire('Error', data.error || 'No se pudo eliminar', 'error');
-    }
-  }
-}
-
 // ==================== NOTIFICACIONES ====================
 async function cargarNotificaciones() {
   try {
@@ -948,19 +922,72 @@ async function cargarNotificaciones() {
   }
 }
 
-// Abrir/cerrar dropdown de notificaciones
-document.getElementById("bell").addEventListener("click", () => {
-  const dropdown = document.getElementById("notif-dropdown");
-  dropdown.classList.toggle("show");
-});
+// ==================== SESIÓN (Inicio) ====================
+fetch('/api/check-session')
+  .then(res => res.ok ? res.json() : Promise.reject())
+  .then(data => {
+    if (data.usuario) {
+      window.usuarioRol = data.usuario.rol;
 
-// Cerrar si se hace click afuera
-document.addEventListener("click", (e) => {
-  const dropdown = document.getElementById("notif-dropdown");
-  if (!dropdown.contains(e.target) && e.target.id !== "bell") {
-    dropdown.classList.remove("show");
+      const nombreUsuario = document.getElementById("nombreUsuario");
+      if (nombreUsuario) {
+        nombreUsuario.textContent = data.usuario.username.toUpperCase();
+        nombreUsuario.style.display = "inline-block";
+      }
+
+      if (data.usuario.rol === "admin") {
+        document.getElementById("sucursal-selector").style.display = "block";
+      }
+
+      let sucursalActual;
+      if (data.usuario.rol === "admin") {
+        sucursalActual = data.usuario.sucursalSeleccionada || "Admin";
+      } else {
+        sucursalActual = data.usuario.departamento;
+      }
+      document.getElementById("sucursalTexto").textContent = sucursalActual;
+
+      document.getElementById('main-content').innerHTML = `
+        <div style="text-align:center; margin-top:40px;">
+          <h1>Bienvenido</h1>
+          <p>Selecciona una opción del menú.</p>
+          <div style="margin-top:80px; text-align:left;">
+            <img src="/uploads/logo-oftavision.png" 
+              alt="Instituto Oftavisión" 
+              style="max-width:900px; display:block; margin:0 auto;">
+          </div>
+        </div>
+      `;
+
+      // ✅ Ahora sí se cargan las notificaciones
+      cargarNotificaciones();
+    }
+  })
+  .catch(() => window.location.href = '/login/login.html');
+
+
+// ---------- Función para eliminar expediente ----------
+async function eliminarExpediente(id){
+  const confirmacion = await Swal.fire({
+    title: '¿Estás seguro?',
+    text: 'Esto eliminará el expediente permanentemente',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Sí, eliminar'
+  });
+
+  if(confirmacion.isConfirmed){
+    const res = await fetch(`/api/expedientes/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if(res.ok){
+      Swal.fire('Eliminado', data.mensaje, 'success');
+      cargarLista();
+    }else{
+      Swal.fire('Error', data.error || 'No se pudo eliminar', 'error');
+    }
   }
-});
-
+}
 
 </script>
