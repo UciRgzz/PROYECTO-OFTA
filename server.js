@@ -106,10 +106,14 @@ app.get('/', (req, res) => {
   res.redirect('/login/login.html');
 });
 
-// ❌ Bloquear acceso directo a .html excepto los del login
+// ❌ Bloquear acceso directo a .html solo si NO hay sesión
 app.use((req, res, next) => {
-  if (req.path.endsWith(".html") && !req.path.startsWith("/login/")) {
-    return res.status(403).send("Acceso prohibido");
+  if (
+    req.path.endsWith(".html") && 
+    !req.path.startsWith("/login/") && 
+    !(req.session && req.session.usuario) // ✅ permitir si ya hay sesión
+  ) {
+    return res.redirect("/login/login.html");
   }
   next();
 });
