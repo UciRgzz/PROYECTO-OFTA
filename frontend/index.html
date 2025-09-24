@@ -49,7 +49,7 @@
 
     .sidebar-content {
       flex: 1;
-      overflow-y: auto;   /* 👈 ahora el menú desliza */
+      overflow-y: auto;
       padding: 20px;
     }
 
@@ -96,7 +96,7 @@
       padding: 20px;
       background: #f4f6f8;
       overflow-y: auto;
-      padding-top: 80px; /* 👈 deja espacio para el header fijo */
+      padding-top: 80px; /* espacio para el header fijo */
     }
 
     iframe {
@@ -125,17 +125,17 @@
 
     /* Estilo para las opciones del selector de sucursal */
     #sucursal-selector .dropdown-menu {
-      background-color: #fff;   /* Fondo blanco */
-      color: #000;              /* Texto negro */
+      background-color: #fff;
+      color: #000;
     }
 
     #sucursal-selector .dropdown-item {
-      color: #000;              /* Texto negro */
+      color: #000;
     }
 
     #sucursal-selector .dropdown-item:hover {
-      background-color: #3498db; /* Fondo azul al pasar */
-      color: #fff;              /* Texto blanco */
+      background-color: #3498db;
+      color: #fff;
     }
 
     /* Botones personalizados */
@@ -143,31 +143,36 @@
     .btn-editar:hover { background: #0f2c57; }
 
     .btn-medico { background: #0b335c; color: white; }
-    .btn-medico:hover { background:  #0f2c57; }
+    .btn-medico:hover { background: #0f2c57; }
 
     .btn-opto { background: #0b335c; color: white; }
-    .btn-opto:hover { background:  #0f2c57; }
+    .btn-opto:hover { background: #0f2c57; }
 
-    /* Header reducido, solo ocupa lo necesario */
+    /* Header reducido */
     #header-principal {
       position: fixed;
-      top: 10px;        /* separación desde arriba */
-      right: 20px;      /* separación desde la derecha */
-      left: auto;       /* que no se expanda desde la izquierda */
-      width: auto;      /* solo lo que ocupe el contenido */
+      top: 10px;
+      right: 20px;
+      left: auto;
+      width: auto;
       height: auto;
-      background: transparent !important; 
+      background: transparent !important;
       box-shadow: none !important;
       border: none !important;
-      padding: 5px 10px;   /* un poco de espacio interno */
+      padding: 5px 10px;
       display: flex;
       align-items: center;
-      gap: 15px;          /* espacio entre campana y usuario */
+      gap: 15px;
       z-index: 1000;
+    }
+
+    /* 🔹 Ocultar header en todas las páginas excepto index */
+    body:not(#index-page) #header-principal {
+      display: none !important;
     }
   </style>
 </head>
-<body>
+<body id="index-page">
   <!-- SIDEBAR -->
 <div class="sidebar">
   <div class="sidebar-content">
