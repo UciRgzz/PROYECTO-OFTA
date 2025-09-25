@@ -27,7 +27,7 @@ app.use(bodyParser.json());
 
 
 // Sesiones
-app.set('trust proxy', 1); // 👈 necesario en producción detrás de proxy/https
+app.set('trust proxy', 1); //necesario en producción detrás de proxy/https
 app.use(session({
     secret: 'mi_secreto_super_seguro',
     resave: false,
@@ -69,7 +69,7 @@ function verificarSesion(req, res, next) {
     if (req.session && req.session.usuario) {
         return next();
     }
-    // 👇 si no tiene sesión, redirigir a login
+    // si no tiene sesión, redirigir a login
     return res.redirect('/login/login.html');
 }
 
@@ -167,7 +167,7 @@ app.get('/api/logout', (req, res) => {
 // ⚠️ Solo login es público
 app.use('/login', express.static(path.join(__dirname, 'login')));
 
-// 👉 Redirigir la raíz al login (link principal)
+//Redirigir la raíz al login (link principal)
 app.get('/', (req, res) => {
   res.redirect('/login/login.html');
 });
@@ -185,10 +185,10 @@ app.use((req, res, next) => {
 });
 
 
-// ✅ Proteger carpeta frontend completa
+//Proteger carpeta frontend completa
 app.use('/frontend', verificarSesion, express.static(path.join(__dirname, 'frontend')));
 
-// ✅ Rutas directas protegidas (sin .html en la URL)
+//Rutas directas protegidas (sin .html en la URL)
 app.get('/expedientes', verificarSesion, (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'expedientes.html'));
 });
@@ -248,7 +248,7 @@ app.post('/api/login', async (req, res) => {
             return res.status(401).json({ error: 'Contraseña incorrecta' });
         }
 
-        // ✅ Guardar datos en sesión
+        //Guardar datos en sesión
         req.session.usuario = {
             nomina: usuario.nomina,
             username: usuario.username,
@@ -288,7 +288,7 @@ app.post('/api/forgot-password', async (req, res) => {
 
         res.json({
             mensaje: 'Token generado. Úsalo para restablecer la contraseña.',
-            token // ⚠ Solo para pruebas
+            token // Solo para pruebas
         });
     } catch (err) {
         console.error(err);
@@ -319,7 +319,7 @@ app.post('/api/reset-password', async (req, res) => {
       [hashedPassword, nomina]
     );
 
-    // ✅ Registrar notificación en la BD
+    // Registrar notificación en la BD
     const username = user.rows[0].username;
     await pool.query(
       "INSERT INTO notificaciones (mensaje, usuario) VALUES ($1, $2)",
@@ -347,7 +347,7 @@ app.delete('/api/admin/delete-user/:nomina', isAdmin, async (req, res) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    // ✅ Registrar notificación en la BD
+    // Registrar notificación en la BD
     const eliminado = result.rows[0].username;
     await pool.query(
       "INSERT INTO notificaciones (mensaje, usuario) VALUES ($1, $2)",
@@ -367,7 +367,7 @@ app.delete('/api/admin/delete-user/:nomina', isAdmin, async (req, res) => {
 // ==================== HELPER: Determinar sucursal activa ====================
 function getDepartamento(req) {
   if (req.session.usuario.rol === "admin") {
-    // 👇 Si el admin no seleccionó sucursal, usamos "ADMIN" como valor especial
+    //Si el admin no seleccionó sucursal, usamos "ADMIN" como valor especial
     return req.session.usuario.sucursalSeleccionada || "ADMIN";
   }
   return req.session.usuario.departamento;
@@ -391,14 +391,14 @@ app.post('/api/expedientes', verificarSesion, async (req, res) => {
   const depto = getDepartamento(req);
 
   try {
-    // 📌 Buscar último número usado en esta sucursal
+    // Buscar último número usado en esta sucursal
     const lastFolio = await pool.query(
       "SELECT COALESCE(MAX(numero_expediente), 0) + 1 AS next_id FROM expedientes WHERE departamento = $1",
       [depto]
     );
     const nextId = lastFolio.rows[0].next_id;
 
-    // 📌 Insertar con folio único dentro de la sucursal
+    //Insertar con folio único dentro de la sucursal
     const result = await pool.query(
       `INSERT INTO expedientes 
        (numero_expediente, nombre_completo, fecha_nacimiento, edad, padecimientos, colonia, ciudad, telefono1, telefono2, departamento) 
@@ -554,7 +554,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
   let depto = getDepartamento(req);
 
   try {
-    // 📌 Buscar expediente en la sucursal/departamento actual
+    //Buscar expediente en la sucursal/departamento actual
     const expediente = await pool.query(
       "SELECT numero_expediente FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
       [paciente_id, depto]
@@ -564,7 +564,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
       return res.status(400).json({ error: "El paciente no existe en este departamento" });
     }
 
-    // 📌 Usar el número de expediente como folio
+    //Usar el número de expediente como folio
     const folio = expediente.rows[0].numero_expediente;
 
     const result = await pool.query(
@@ -730,7 +730,7 @@ app.get('/api/procedimientos', verificarSesion, async (req, res) => {
 
 
 // ==================== MODULO MÉDICO ====================
-// ==================== BUSCAR PACIENTE POR FOLIO ====================
+// ----------------BUSCAR PACIENTE POR FOLIO ----------------
 app.get('/api/recibos/paciente/:folio', verificarSesion, async (req, res) => {
   const { folio } = req.params;
 
@@ -765,7 +765,7 @@ app.get('/api/recibos/paciente/:folio', verificarSesion, async (req, res) => {
 
 // ==================== PACIENTES PENDIENTES DE ATENDER ====================
 app.get("/api/pendientes-medico", verificarSesion, async (req, res) => {
-  // 📌 Determinar sucursal activa
+  // Determinar sucursal activa
   let depto = getDepartamento(req);
 
   try {
@@ -806,7 +806,7 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
       medico,
       diagnostico,
       lado,
-      procedimiento_id, // 👈 viene como id desde el frontend
+      procedimiento_id, //viene como id desde el frontend
       anexos,
       conjuntiva,
       cornea,
@@ -868,7 +868,7 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         medico, diagnostico, lado,
         procedimientoNombre,
         recibo.tipo,
-        procedimientoPrecio, // 👈 ahora guarda precio en la orden
+        procedimientoPrecio, //ahora guarda precio en la orden
         anexos, conjuntiva, cornea, camara_anterior, cristalino,
         retina, macula, nervio_optico, ciclopejia, hora_tp,
         problemas, plan, depto
@@ -919,7 +919,7 @@ app.get("/api/expedientes/:id/ordenes", verificarSesion, async (req, res) => {
         ON r.id = o.folio_recibo 
        AND r.departamento = o.departamento
       JOIN expedientes e
-        ON e.numero_expediente = o.expediente_id   -- 👈 corregido
+        ON e.numero_expediente = o.expediente_id   
        AND e.departamento = o.departamento
       WHERE o.expediente_id = $1 AND o.departamento = $2
       ORDER BY o.fecha DESC
@@ -939,15 +939,15 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
     
     const result = await pool.query(`
       SELECT 
-        o.id AS orden_id,                          -- ID real de la orden (para pagos)
-        e.numero_expediente AS expediente_numero,  -- número de expediente del paciente
+        o.id AS orden_id,                          
+        e.numero_expediente AS expediente_numero, 
         e.nombre_completo AS paciente, 
         o.medico, 
         o.diagnostico, 
         o.lado, 
         o.procedimiento, 
         o.tipo,
-        o.precio,                                  -- ✅ usar precio de ordenes_medicas
+        o.precio,                                  
         COALESCE(SUM(p.monto), 0) AS pagado,      
         (o.precio - COALESCE(SUM(p.monto), 0)) AS pendiente,
         o.estatus,
@@ -1156,12 +1156,12 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
        AND r.departamento = o.departamento
       JOIN expedientes e 
         ON o.expediente_id = e.numero_expediente 
-       AND e.departamento = o.departamento   -- ✅ FILTRO CORRECTO
+       AND e.departamento = o.departamento   
       LEFT JOIN pagos p 
         ON p.orden_id = o.id 
        AND p.departamento = o.departamento
       WHERE o.fecha::date = $1
-        AND o.departamento = $2              -- ✅ SOLO SUCURSAL ACTUAL
+        AND o.departamento = $2              
       GROUP BY o.fecha::date, o.id, e.numero_expediente, e.nombre_completo, o.procedimiento, r.precio
       ORDER BY o.fecha, o.id
     `;
@@ -1391,7 +1391,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.post('/api/insumos', verificarSesion, async (req, res) => {
   try {
     const { fecha, folio, concepto, monto, archivo } = req.body;
-    let depto = getDepartamento(req);  // ✅ ahora siempre usa la misma función
+    let depto = getDepartamento(req);  
 
     const result = await pool.query(
       `INSERT INTO insumos (fecha, folio, concepto, monto, archivo, departamento) 
@@ -1409,7 +1409,7 @@ app.post('/api/insumos', verificarSesion, async (req, res) => {
 // 2. Listar insumos
 app.get('/api/insumos', verificarSesion, async (req, res) => {
   try {
-    let depto = getDepartamento(req);  // ✅ unificado
+    let depto = getDepartamento(req);  
 
     const result = await pool.query(
       'SELECT * FROM insumos WHERE departamento = $1 ORDER BY fecha ASC',
@@ -1494,7 +1494,7 @@ app.post('/api/insumos/upload', verificarSesion, upload.single('excelFile'), asy
 app.delete('/api/insumos/:id', isAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    let depto = getDepartamento(req);  // ✅ unificado
+    let depto = getDepartamento(req);  
 
     const result = await pool.query(
       "DELETE FROM insumos WHERE id = $1 AND departamento = $2 RETURNING *",
@@ -1574,12 +1574,12 @@ app.post('/api/set-departamento', isAdmin, (req, res) => {
   }
 
   if (departamento === "admin") {
-    // 👉 Regresa al modo admin sin sucursal activa
+    //Regresa al modo admin sin sucursal activa
     delete req.session.usuario.sucursalSeleccionada;
     return res.json({ mensaje: "Regresaste al panel de Admin" });
   }
 
-  // 👉 Guardamos la sucursal activa aparte, sin perder rol ni datos originales
+  //Guardamos la sucursal activa aparte, sin perder rol ni datos originales
   req.session.usuario.sucursalSeleccionada = departamento;
   res.json({ mensaje: `Sucursal cambiada a ${departamento}` });
 });
@@ -1767,7 +1767,7 @@ app.post('/api/permisos/:nomina', isAdmin, async (req, res) => {
 app.get('/api/mis-permisos', verificarSesion, async (req, res) => {
   try {
     // 👀 DEBUG
-    console.log("👉 Sesión en /api/mis-permisos:", req.session);
+    console.log(" Sesión en /api/mis-permisos:", req.session);
 
     const nomina = req.session.usuario?.nomina;
     const rol = req.session.usuario?.rol;
