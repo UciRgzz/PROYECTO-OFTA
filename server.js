@@ -632,12 +632,15 @@ app.get('/api/recibos', verificarSesion, async (req, res) => {
     let params = [depto];
 
     if (fecha) {
-      query += " AND r.fecha = $2";
-      params.push(fecha);
-    } else if (desde && hasta) {
-      query += " AND r.fecha BETWEEN $2 AND $3";
-      params.push(desde, hasta);
-    }
+  query += " AND r.fecha = $2";
+  params.push(fecha);
+} else if (desde && hasta) {
+  query += " AND r.fecha BETWEEN $2 AND $3";
+  params.push(desde, hasta);
+} else {
+  query += " AND r.fecha = CURRENT_DATE"; // 👈 por defecto muestra hoy
+}
+
 
     query += " ORDER BY r.fecha DESC";
 
