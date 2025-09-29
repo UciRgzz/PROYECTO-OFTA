@@ -426,10 +426,11 @@ async function exportarExcel() {
     saveAs(new Blob([buffer]), `cierre_${rangoTexto.replace(/\//g,"-")}.xlsx`);
 
     Swal.fire({
-        icon: 'success',
-        title: 'Exportación completada',
-        confirmButtonColor: '#27ae60'
-    });
+      icon: 'success',
+      title: 'Exportación completada',
+      confirmButtonColor: '#27ae60'
+  });
+
 }
 
 </script>
