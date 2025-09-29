@@ -422,9 +422,10 @@ async function cargarOrdenes(year, month) {
         <td>${o.edad}</td>
         <td>${o.nombre}</td>
         <td>${o.procedimiento}</td>
-        <td>$${o.total}</td>
-        <td>$${o.pagos}</td>
-        <td>$${o.total - o.pagos}</td>
+        <td>$${Number(o.total).toLocaleString("es-MX", {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+        <td>$${Number(o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+        <td>$${Number(o.total - o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+
         <td><span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">${o.status}</span></td>
         <td>
           ${o.tipo_lente 
