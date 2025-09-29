@@ -329,31 +329,33 @@
       <i class="fas fa-check-circle"></i> <span id="successMessage">Operación realizada correctamente.</span>
     </div>
 
-    <!-- Tabla de órdenes -->
-    <div class="card">
-      <div class="card-header"><i class="fas fa-list"></i> Órdenes de Cirugía</div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-bordered align-middle">
-            <thead>
-              <tr>
-                <th>Expediente</th>
-                <th>Edad</th>
-                <th>Nombre</th>
-                <th>Procedimiento</th>
-                <th>Total Orden</th>
-                <th>Pagos Realizados</th>
-                <th>Diferencia</th>
-                <th>Status</th>
-                <th>Tipo de Lente</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="tablaOrdenes"></tbody>
-          </table>
-        </div>
-      </div>
+<!-- Tabla de órdenes -->
+<div class="card">
+  <div class="card-header"><i class="fas fa-list"></i> Órdenes de Cirugía</div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered align-middle">
+        <thead>
+          <tr>
+            <th>Expediente</th>
+            <th>Edad</th>
+            <th>Nombre</th>
+            <th>Procedimiento</th>
+            <th>Total Orden</th>
+            <th>Pagos Realizados</th>
+            <th>Diferencia</th>
+            <th>Status</th>
+            <th>Tipo de Lente</th>
+            <th>Agendado</th> <!-- 🔹 Nueva columna -->
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tablaOrdenes"></tbody>
+      </table>
     </div>
+  </div>
+</div>
+
 
     <!-- Modal Calendario -->
     <div class="modal fade" id="modalCalendario" tabindex="-1">
@@ -394,60 +396,64 @@
     let ordenSeleccionada = null;
 
     // ====================== TABLA ======================
-    async function cargarOrdenes(year, month) {
-      try {
-        const res = await fetch('/api/ordenes');
-        let ordenes = await res.json();
+async function cargarOrdenes(year, month) {
+  try {
+    const res = await fetch('/api/ordenes');
+    let ordenes = await res.json();
 
-        // 🔹 Si hay año/mes, filtramos por ese mes
-        if (year !== undefined && month !== undefined) {
-          ordenes = ordenes.filter(o => {
-            if (!o.fecha_cirugia) return true; // mostrar también las que aún no tienen fecha
-            const f = new Date(o.fecha_cirugia);
-            return f.getFullYear() === year && f.getMonth() === month;
-          });
-        }
-
-        document.getElementById("tablaOrdenes").innerHTML = ordenes.map(o => `
-          <tr>
-            <td>${o.expediente}</td>
-            <td>${o.edad}</td>
-            <td>${o.nombre}</td>
-            <td>${o.procedimiento}</td>
-            <td>$${o.total}</td>
-            <td>$${o.pagos}</td>
-            <td>$${o.total - o.pagos}</td>
-            <td><span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">${o.status}</span></td>
-            <td>
-              ${o.tipo_lente 
-                ? `<span class="badge bg-info" style="cursor:pointer" onclick="editarLente(${o.id}, '${o.tipo_lente}')">${o.tipo_lente}</span>` 
-                : `<button class="btn btn-sm btn-secondary" 
-                          onclick="editarLente(${o.id}, '')">
-                     <i class="fas fa-plus-circle"></i> Añadir Lente
-                   </button>`}
-            </td>
-            <td>
-              ${o.fecha_cirugia ? 
-                '<span class="text-muted">Asignado</span>' : 
-                `<button class="btn btn-sm btn-primary" 
-                        onclick="abrirCalendario(${o.id})">
-                  <i class="fas fa-calendar-plus"></i> Agendar
-                </button>
-                `}
-              ${o.fecha_cirugia ? `
-                <button class="btn btn-sm btn-warning mt-1" 
-                        onclick="editarCirugia(${o.id})">
-                  <i class="fas fa-edit"></i> Reprogramar
-                </button>
-              ` : ''}
-            </td>
-          </tr>
-        `).join('');
-      } catch (err) {
-        console.error("Error cargando órdenes:", err);
-        mostrarError("Error", "No se pudieron cargar las órdenes");
-      }
+    // 🔹 Si hay año/mes, filtramos por ese mes
+    if (year !== undefined && month !== undefined) {
+      ordenes = ordenes.filter(o => {
+        if (!o.fecha_cirugia) return true; // mostrar también las que aún no tienen fecha
+        const f = new Date(o.fecha_cirugia);
+        return f.getFullYear() === year && f.getMonth() === month;
+      });
     }
+
+    document.getElementById("tablaOrdenes").innerHTML = ordenes.map(o => `
+      <tr>
+        <td>${o.expediente}</td>
+        <td>${o.edad}</td>
+        <td>${o.nombre}</td>
+        <td>${o.procedimiento}</td>
+        <td>$${o.total}</td>
+        <td>$${o.pagos}</td>
+        <td>$${o.total - o.pagos}</td>
+        <td><span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">${o.status}</span></td>
+        <td>
+          ${o.tipo_lente 
+            ? `<span class="badge bg-info" style="cursor:pointer" onclick="editarLente(${o.id}, '${o.tipo_lente}')">${o.tipo_lente}</span>` 
+            : `<button class="btn btn-sm btn-secondary" 
+                      onclick="editarLente(${o.id}, '')">
+                 <i class="fas fa-plus-circle"></i> Añadir Lente
+               </button>`}
+        </td>
+        <td>
+          ${o.fecha_cirugia 
+            ? new Date(o.fecha_cirugia).toLocaleDateString("es-MX") 
+            : '<span class="text-muted">No asignado</span>'}
+        </td>
+        <td>
+          ${o.fecha_cirugia ? 
+            '<span class="text-muted">Asignado</span>' : 
+            `<button class="btn btn-sm btn-primary" 
+                    onclick="abrirCalendario(${o.id})">
+              <i class="fas fa-calendar-plus"></i> Agendar
+            </button>`}
+          ${o.fecha_cirugia ? `
+            <button class="btn btn-sm btn-warning mt-1" 
+                    onclick="editarCirugia(${o.id})">
+              <i class="fas fa-edit"></i> Reprogramar
+            </button>
+          ` : ''}
+        </td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    console.error("Error cargando órdenes:", err);
+    mostrarError("Error", "No se pudieron cargar las órdenes");
+  }
+}
 
     // ====================== CALENDARIO ======================
     document.addEventListener("DOMContentLoaded", () => {
