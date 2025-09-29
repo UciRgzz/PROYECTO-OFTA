@@ -433,17 +433,11 @@
       <div class="card-header"><i class="fas fa-list"></i> Lista de Recibos</div>
       <div class="card-body">
         <!-- 🔎 Filtro de fecha -->
-<div class="row mb-3">
-  <div class="col-md-4">
-    <label for="filtroFecha" class="form-label">Filtrar por fecha:</label>
-    <input type="date" id="filtroFecha" class="form-control">
+  <div class="mb-3">
+    <label for="filtroRango" class="form-label">Filtrar por fecha:</label>
+    <input type="text" id="filtroRango" class="form-control" style="max-width:300px;">
   </div>
-</div>
 
-<div class="mb-3">
-  <label for="filtroFecha" class="form-label">Filtrar por fecha:</label>
-  <input type="date" id="filtroFecha" class="form-control" style="max-width:250px;">
-</div>
 
 <div class="table-responsive">
   <table class="table table-striped table-bordered text-center align-middle">
@@ -478,6 +472,14 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+
+  <!-- Daterangepicker CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+<!-- Moment.js + Daterangepicker JS -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+
 
   <script>
     let userRole = localStorage.getItem("rol") || "usuario"; 
@@ -722,7 +724,6 @@ document.getElementById("formRecibo").addEventListener("submit", async function(
     }
 
     // Cargar lista de recibos con filtro opcional por fecha
-// Cargar lista de recibos con filtro opcional por fecha
 async function cargarRecibos(fecha = null) {
   try {
     let url = '/api/recibos';
@@ -731,6 +732,44 @@ async function cargarRecibos(fecha = null) {
     }
 
     const res = await fetch(url);
+    const recibos = await res.json();
+
+    document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
+      <tr>
+        <td>${r.fecha.split("T")[0]}</td>
+        <td>${r.folio}</td>
+        <td>${r.paciente}</td>
+        <td>${r.procedimiento}</td>
+        <td><span class="badge bg-info">${r.tipo}</span></td>
+        <td>${r.forma_pago}</td>
+        <td><span class="badge bg-info">$${parseFloat(r.monto_pagado).toFixed(2)}</span></td>
+        <td><span class="badge bg-success">$${parseFloat(r.precio).toFixed(2)}</span></td>
+        <td>
+          <span class="badge bg-warning">
+            $${parseFloat(r.precio - r.monto_pagado).toFixed(2)}
+          </span>
+        </td>
+        <td>
+          <button class="btn btn-primary btn-sm" onclick="imprimirRecibo(${r.id})">
+            <i class="fas fa-receipt"></i> Comprobante
+          </button>
+          ${userRole === "admin" ? `
+            <button class="btn btn-danger btn-sm" onclick="eliminarRecibo(${r.id})">
+              <i class="fas fa-trash"></i> Eliminar
+            </button>` : ""}
+        </td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    console.error("Error cargando recibos:", err);
+    mostrarError("Error", "No se pudieron cargar los recibos");
+  }
+}
+
+// Cargar lista de recibos entre dos fechas
+async function cargarRecibosRango(desde, hasta) {
+  try {
+    const res = await fetch(`/api/recibos?desde=${desde}&hasta=${hasta}`);
     const recibos = await res.json();
 
     document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
@@ -870,27 +909,50 @@ document.addEventListener("click", async (e) => {
 
     // Poner fecha actual automáticamente en el formulario
 document.addEventListener("DOMContentLoaded", () => {
-  const hoy = new Date();
-  const yyyy = hoy.getFullYear();
-  const mm = String(hoy.getMonth() + 1).padStart(2, '0');
-  const dd = String(hoy.getDate()).padStart(2, '0');
-  const hoyStr = `${yyyy}-${mm}-${dd}`;
+  const hoy = moment().format("YYYY-MM-DD");
 
-  // Fecha del formulario
-  document.getElementById("fecha").value = hoyStr;
+  // Fecha del formulario (recibo nuevo)
+  document.getElementById("fecha").value = hoy;
 
-  // Fecha del filtro
-  const filtroFecha = document.getElementById("filtroFecha");
-  filtroFecha.value = hoyStr;
-
-  // Cargar recibos de hoy
-  cargarRecibos(hoyStr);
-
-  // Cuando cambie el filtro, recargar
-  filtroFecha.addEventListener("change", () => {
-    cargarRecibos(filtroFecha.value);
+  // Inicializar date range picker
+  $('#filtroRango').daterangepicker({
+    locale: {
+      format: 'DD/MM/YYYY',
+      separator: " - ",
+      applyLabel: "Aplicar",
+      cancelLabel: "Cancelar",
+      fromLabel: "Desde",
+      toLabel: "Hasta",
+      customRangeLabel: "Rango personalizado",
+      weekLabel: "S",
+      daysOfWeek: ["Do","Lu","Ma","Mi","Ju","Vi","Sa"],
+      monthNames: [
+        "Enero","Febrero","Marzo","Abril","Mayo","Junio",
+        "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
+      ],
+      firstDay: 1
+    },
+    startDate: moment(),   // Hoy
+    endDate: moment(),     // Hoy
+    ranges: {
+      'Hoy': [moment(), moment()],
+      'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+      'Últimos 7 Días': [moment().subtract(6, 'days'), moment()],
+      'Últimos 30 Días': [moment().subtract(29, 'days'), moment()],
+      'Este Mes': [moment().startOf('month'), moment().endOf('month')],
+      'Mes Pasado': [
+        moment().subtract(1, 'month').startOf('month'),
+        moment().subtract(1, 'month').endOf('month')
+      ]
+    }
+  }, function(start, end) {
+    cargarRecibosRango(start.format("YYYY-MM-DD"), end.format("YYYY-MM-DD"));
   });
+
+  // Cargar recibos de hoy por defecto
+  cargarRecibosRango(hoy, hoy);
 });
+
 
   </script>
 </body>

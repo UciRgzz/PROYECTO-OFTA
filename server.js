@@ -609,7 +609,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 app.get('/api/recibos', verificarSesion, async (req, res) => {
   try {
     let depto = getDepartamento(req);
-    const { fecha } = req.query; // 👈 capturar parámetro de fecha
+    const { fecha, desde, hasta } = req.query; // 👈 ahora soporta rango
 
     let query = `
       SELECT 
@@ -631,10 +631,12 @@ app.get('/api/recibos', verificarSesion, async (req, res) => {
     `;
     let params = [depto];
 
-    // Si el cliente mandó ?fecha=YYYY-MM-DD filtrar
     if (fecha) {
       query += " AND r.fecha = $2";
       params.push(fecha);
+    } else if (desde && hasta) {
+      query += " AND r.fecha BETWEEN $2 AND $3";
+      params.push(desde, hasta);
     }
 
     query += " ORDER BY r.fecha DESC";
