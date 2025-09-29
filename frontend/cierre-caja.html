@@ -233,10 +233,12 @@ $(document).ready(() => {
 
 
 // Formateador global para todo el sistema y Excel (estilo español: 1.234,56)
-const formato = new Intl.NumberFormat('es-ES', { 
-    minimumFractionDigits: 2, 
-    maximumFractionDigits: 2 
+const formato = new Intl.NumberFormat('en-US', {
+  style: 'decimal',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
 });
+
 
 // función de cierre de caja corregida
 async function cargarCierre() {
@@ -372,8 +374,9 @@ async function exportarExcel() {
             }
             // formato numérico
             if (!isNaN(cell.value) && idx > 0) {
-                cell.numFmt = '#.##0,00';
+                cell.numFmt = '#,##0.00';
             }
+
         });
         rowIndex++;
     });
@@ -401,8 +404,9 @@ async function exportarExcel() {
             }
             // formato numérico
             if (!isNaN(cell.value) && idx > 0) {
-                cell.numFmt = '#.##0,00';
+                cell.numFmt = '#,##0.00';
             }
+
         });
         rowIndex++;
     });
