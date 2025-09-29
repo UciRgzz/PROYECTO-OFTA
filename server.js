@@ -609,7 +609,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 app.get('/api/recibos', verificarSesion, async (req, res) => {
   try {
     let depto = getDepartamento(req);
-    const { fecha, desde, hasta } = req.query; 
+    const { fecha, desde, hasta } = req.query; // 👈 ahora soporta fecha y rango
 
     let query = `
       SELECT 
@@ -648,6 +648,7 @@ app.get('/api/recibos', verificarSesion, async (req, res) => {
     res.status(500).json({ error: "Error al obtener recibos" });
   }
 });
+
 
 
 // Eliminar recibo (con pagos y órdenes asociadas)
