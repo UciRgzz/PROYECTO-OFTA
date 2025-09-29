@@ -524,8 +524,8 @@
       }
     });
 
-    // Guardar recibo
-    document.getElementById("formRecibo").addEventListener("submit", async function(e) {
+   // Guardar recibo
+document.getElementById("formRecibo").addEventListener("submit", async function(e) {
   e.preventDefault();
 
   const btn = this.querySelector("button[type=submit]");
@@ -552,8 +552,19 @@
 
     if (res.ok) {
       mostrarExito("¡Éxito!", "Recibo guardado correctamente");
+
+      // 🔄 Resetear formulario
       this.reset();
       document.getElementById("nombrePaciente").value = "";
+
+      // 🔄 Volver a poner la fecha actual
+      const hoy = new Date();
+      const year = hoy.getFullYear();
+      const month = String(hoy.getMonth() + 1).padStart(2, '0');
+      const day = String(hoy.getDate()).padStart(2, '0');
+      document.getElementById("fecha").value = `${year}-${month}-${day}`;
+
+      // Recargar datos
       cargarRecibos();
       actualizarPrecios();
     } else {
@@ -566,6 +577,7 @@
     btn.disabled = false; // ✅ Reactiva el botón cuando termina
   }
 });
+
 
 
     // Eliminar recibo
