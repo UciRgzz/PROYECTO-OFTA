@@ -548,13 +548,13 @@ app.get('/api/pacientes', verificarSesion, async (req, res) => {
 });
 
 // ==================== MODULO RECIBOS ====================
-// ==================== Guardar recibo====================
+// ==================== Guardar recibo ====================
 app.post('/api/recibos', verificarSesion, async (req, res) => {
   const { fecha, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo } = req.body;
   let depto = getDepartamento(req);
 
   try {
-    //Buscar expediente en la sucursal/departamento actual
+    // Buscar expediente en la sucursal/departamento actual
     const expediente = await pool.query(
       "SELECT numero_expediente FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
       [paciente_id, depto]
@@ -564,18 +564,35 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
       return res.status(400).json({ error: "El paciente no existe en este departamento" });
     }
 
-    //Usar el número de expediente como folio
+    // Usar el número de expediente como folio
     const folio = expediente.rows[0].numero_expediente;
 
+    // Insertar recibo
     const result = await pool.query(
-    `INSERT INTO recibos (fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, departamento) 
-    VALUES ($1::date, $2, $3, $4, $5, $6, $7, $8, $9)
-    RETURNING *`,
-    [fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, depto]
-  );
+      `INSERT INTO recibos (fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, departamento) 
+       VALUES ($1::date, $2, $3, $4, $5, $6, $7, $8, $9)
+       RETURNING *`,
+      [fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, depto]
+    );
 
+    const recibo = result.rows[0];
 
-    res.json({ mensaje: "✅ Recibo guardado correctamente", recibo: result.rows[0] });
+    // 👇 Extra: si el recibo es "Orden de Cirugía", crear también en agenda y órdenes
+    if (tipo === "OrdenCirugia") {
+      await pool.query(
+        `INSERT INTO ordenes_medicas (folio_recibo, paciente_id, procedimiento, fecha, estado, departamento) 
+         VALUES ($1, $2, $3, $4, 'pendiente', $5)`,
+        [recibo.id, paciente_id, procedimiento, fecha, depto]
+      );
+
+      await pool.query(
+        `INSERT INTO agenda_quirurgica (paciente_id, procedimiento, fecha, departamento, recibo_id)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [paciente_id, procedimiento, fecha, depto, recibo.id]
+      );
+    }
+
+    res.json({ mensaje: "✅ Recibo guardado correctamente", recibo });
   } catch (err) {
     console.error("Error al guardar recibo:", err);
     res.status(500).json({ error: "Error al guardar recibo" });
@@ -1766,7 +1783,7 @@ app.post('/api/permisos/:nomina', isAdmin, async (req, res) => {
 // Obtener permisos del usuario actual (para frontend)
 app.get('/api/mis-permisos', verificarSesion, async (req, res) => {
   try {
-    // 👀 DEBUG
+    // DEBUG
     console.log(" Sesión en /api/mis-permisos:", req.session);
 
     const nomina = req.session.usuario?.nomina;
