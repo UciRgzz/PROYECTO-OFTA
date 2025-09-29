@@ -581,10 +581,10 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
     if (tipo === "OrdenCirugia") {
       await pool.query(
         `INSERT INTO ordenes_medicas (
-           expediente_id, folio_recibo, procedimiento, tipo, precio, estatus, fecha, departamento
+           expediente_id, folio_recibo, procedimiento, tipo, precio, estatus, fecha, departamento, medico
          )
-         VALUES ($1,$2,$3,$4,$5,'Pendiente',$6,$7)`,
-        [paciente_id, recibo.id, procedimiento, tipo, precio, fecha, depto]
+         VALUES ($1,$2,$3,$4,$5,'Pendiente',$6,$7,$8)`,
+        [paciente_id, recibo.id, procedimiento, tipo, precio, fecha, depto, "Pendiente"]
       );
 
       await pool.query(
