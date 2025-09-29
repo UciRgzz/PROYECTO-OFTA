@@ -580,14 +580,18 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
     // 👇 Extra: si el recibo es "Orden de Cirugía", crear también en agenda y órdenes
     if (tipo === "OrdenCirugia") {
       await pool.query(
-        `INSERT INTO ordenes_medicas (folio_recibo, paciente_id, procedimiento, fecha, estado, departamento) 
-         VALUES ($1, $2, $3, $4, 'pendiente', $5)`,
-        [recibo.id, paciente_id, procedimiento, fecha, depto]
+        `INSERT INTO ordenes_medicas (
+           expediente_id, folio_recibo, procedimiento, tipo, precio, estatus, fecha, departamento
+         )
+         VALUES ($1,$2,$3,$4,$5,'Pendiente',$6,$7)`,
+        [paciente_id, recibo.id, procedimiento, tipo, precio, fecha, depto]
       );
 
       await pool.query(
-        `INSERT INTO agenda_quirurgica (paciente_id, procedimiento, fecha, departamento, recibo_id)
-         VALUES ($1, $2, $3, $4, $5)`,
+        `INSERT INTO agenda_quirurgica (
+           paciente_id, procedimiento, fecha, departamento, recibo_id
+         )
+         VALUES ($1,$2,$3,$4,$5)`,
         [paciente_id, procedimiento, fecha, depto, recibo.id]
       );
     }
@@ -598,6 +602,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
     res.status(500).json({ error: "Error al guardar recibo" });
   }
 });
+
 
 
 // ==================== Listar recibos ====================
