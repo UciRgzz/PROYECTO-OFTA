@@ -609,7 +609,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 app.get('/api/recibos', verificarSesion, async (req, res) => {
   try {
     let depto = getDepartamento(req);
-    const { fecha, desde, hasta } = req.query; // 👈 ahora soporta fecha y rango
+    const { fecha, desde, hasta } = req.query; // 👈 soporta fecha y rango
 
     let query = `
       SELECT 
@@ -632,15 +632,14 @@ app.get('/api/recibos', verificarSesion, async (req, res) => {
     let params = [depto];
 
     if (fecha) {
-  query += " AND r.fecha = $2";
-  params.push(fecha);
-} else if (desde && hasta) {
-  query += " AND r.fecha BETWEEN $2 AND $3";
-  params.push(desde, hasta);
-} else {
-  query += " AND r.fecha = CURRENT_DATE"; // 👈 por defecto muestra hoy
-}
-
+      query += " AND r.fecha = $2";
+      params.push(fecha);
+    } else if (desde && hasta) {
+      query += " AND r.fecha BETWEEN $2 AND $3";
+      params.push(desde, hasta);
+    } else {
+      query += " AND r.fecha = CURRENT_DATE"; // 👈 por defecto carga solo los de hoy
+    }
 
     query += " ORDER BY r.fecha DESC";
 
@@ -651,6 +650,7 @@ app.get('/api/recibos', verificarSesion, async (req, res) => {
     res.status(500).json({ error: "Error al obtener recibos" });
   }
 });
+
 
 
 
