@@ -440,6 +440,11 @@
   </div>
 </div>
 
+<div class="mb-3">
+  <label for="filtroFecha" class="form-label">Filtrar por fecha:</label>
+  <input type="date" id="filtroFecha" class="form-control" style="max-width:250px;">
+</div>
+
 <div class="table-responsive">
   <table class="table table-striped table-bordered text-center align-middle">
     <thead>
@@ -459,6 +464,7 @@
     <tbody id="tablaRecibos"></tbody>
   </table>
 </div>
+
 
 
       </div>
@@ -715,47 +721,50 @@ document.getElementById("formRecibo").addEventListener("submit", async function(
       }
     }
 
-    // Cargar lista de recibos
-    async function cargarRecibos() {
-      try {
-        const res = await fetch('/api/recibos');
-        const recibos = await res.json();
-        document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
-          <tr>
-            <td>${r.fecha}</td>
-            <td>${r.folio}</td>
-            <td>${r.paciente}</td>
-            <td>${r.procedimiento}</td>
-            <td><span class="badge bg-info">${r.tipo}</span></td>
-            <td>${r.forma_pago}</td>
-            <td><span class="badge bg-info">$${parseFloat(r.monto_pagado).toFixed(2)}</span></td>
-            <td><span class="badge bg-success">$${parseFloat(r.precio).toFixed(2)}</span></td>
-           <td>
-              <span class="badge bg-warning abonar-btn"
-                    style="cursor:pointer;"
-                    data-id="${r.id}"
-                    data-pendiente="${r.precio - r.monto_pagado}">
-                $${parseFloat(r.precio - r.monto_pagado).toFixed(2)}
-              </span>
-            </td>
-            <td>
-              <button class="btn btn-primary btn-sm" onclick="imprimirRecibo(${r.id})">
-                <i class="fas fa-receipt"></i> Comprobante
-
-              </button>
-              
-              ${userRole === "admin" ? `
-                <button class="btn btn-danger btn-sm" onclick="eliminarRecibo(${r.id})">
-                  <i class="fas fa-trash"></i> Eliminar
-                </button>` : ""}
-            </td>
-          </tr>
-        `).join('');
-      } catch (err) {
-        console.error("Error cargando recibos:", err);
-        mostrarError("Error", "No se pudieron cargar los recibos");
-      }
+    // Cargar lista de recibos con filtro opcional por fecha
+// Cargar lista de recibos con filtro opcional por fecha
+async function cargarRecibos(fecha = null) {
+  try {
+    let url = '/api/recibos';
+    if (fecha) {
+      url += `?fecha=${fecha}`;
     }
+
+    const res = await fetch(url);
+    const recibos = await res.json();
+
+    document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
+      <tr>
+        <td>${r.fecha.split("T")[0]}</td>
+        <td>${r.folio}</td>
+        <td>${r.paciente}</td>
+        <td>${r.procedimiento}</td>
+        <td><span class="badge bg-info">${r.tipo}</span></td>
+        <td>${r.forma_pago}</td>
+        <td><span class="badge bg-info">$${parseFloat(r.monto_pagado).toFixed(2)}</span></td>
+        <td><span class="badge bg-success">$${parseFloat(r.precio).toFixed(2)}</span></td>
+        <td>
+          <span class="badge bg-warning">
+            $${parseFloat(r.precio - r.monto_pagado).toFixed(2)}
+          </span>
+        </td>
+        <td>
+          <button class="btn btn-primary btn-sm" onclick="imprimirRecibo(${r.id})">
+            <i class="fas fa-receipt"></i> Comprobante
+          </button>
+          ${userRole === "admin" ? `
+            <button class="btn btn-danger btn-sm" onclick="eliminarRecibo(${r.id})">
+              <i class="fas fa-trash"></i> Eliminar
+            </button>` : ""}
+        </td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    console.error("Error cargando recibos:", err);
+    mostrarError("Error", "No se pudieron cargar los recibos");
+  }
+}
+
 
     // Mostrar mensaje de éxito
     function mostrarExito(titulo, mensaje) {
@@ -860,15 +869,29 @@ document.addEventListener("click", async (e) => {
 });
 
     // Poner fecha actual automáticamente en el formulario
-    document.addEventListener("DOMContentLoaded", () => {
-      const hoy = new Date();
-      const yyyy = hoy.getFullYear();
-      const mm = String(hoy.getMonth() + 1).padStart(2, '0');
-      const dd = String(hoy.getDate()).padStart(2, '0');
-      document.getElementById("fecha").value = `${yyyy}-${mm}-${dd}`;
-      
-      cargarRecibos();
-    });
+document.addEventListener("DOMContentLoaded", () => {
+  const hoy = new Date();
+  const yyyy = hoy.getFullYear();
+  const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+  const dd = String(hoy.getDate()).padStart(2, '0');
+  const hoyStr = `${yyyy}-${mm}-${dd}`;
+
+  // Fecha del formulario
+  document.getElementById("fecha").value = hoyStr;
+
+  // Fecha del filtro
+  const filtroFecha = document.getElementById("filtroFecha");
+  filtroFecha.value = hoyStr;
+
+  // Cargar recibos de hoy
+  cargarRecibos(hoyStr);
+
+  // Cuando cambie el filtro, recargar
+  filtroFecha.addEventListener("change", () => {
+    cargarRecibos(filtroFecha.value);
+  });
+});
+
   </script>
 </body>
 </html>
