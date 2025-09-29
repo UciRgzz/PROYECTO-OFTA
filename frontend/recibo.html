@@ -435,7 +435,7 @@
         <!-- 🔎 Filtro de fecha -->
   <div class="mb-3">
     <label for="filtroRango" class="form-label">Filtrar por fecha:</label>
-    <input type="text" id="filtroRango" class="form-control" style="max-width:300px;">
+    <input type="text" id="filtroRango" class="form-control" style="max-width:300px;" placeholder="Selecciona un rango de fechas" readonly>
   </div>
 
 
@@ -916,40 +916,53 @@ document.addEventListener("DOMContentLoaded", () => {
   // Fecha del formulario (recibo nuevo)
   document.getElementById("fecha").value = hoy;
 
-  // Inicializar date range picker
-  $('#filtroRango').daterangepicker({
-    locale: {
-      format: 'DD/MM/YYYY',
-      separator: " - ",
-      applyLabel: "Aplicar",
-      cancelLabel: "Cancelar",
-      fromLabel: "Desde",
-      toLabel: "Hasta",
-      customRangeLabel: "Rango personalizado",
-      weekLabel: "S",
-      daysOfWeek: ["Do","Lu","Ma","Mi","Ju","Vi","Sa"],
-      monthNames: [
-        "Enero","Febrero","Marzo","Abril","Mayo","Junio",
-        "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
-      ],
-      firstDay: 1
-    },
-    startDate: moment(),   // Hoy
-    endDate: moment(),     // Hoy
-    ranges: {
-      'Hoy': [moment(), moment()],
-      'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-      'Últimos 7 Días': [moment().subtract(6, 'days'), moment()],
-      'Últimos 30 Días': [moment().subtract(29, 'days'), moment()],
-      'Este Mes': [moment().startOf('month'), moment().endOf('month')],
-      'Mes Pasado': [
-        moment().subtract(1, 'month').startOf('month'),
-        moment().subtract(1, 'month').endOf('month')
-      ]
-    }
-  }, function(start, end) {
-    cargarRecibosRango(start.format("YYYY-MM-DD"), end.format("YYYY-MM-DD"));
-  });
+// Inicializar date range picker
+$('#filtroRango').daterangepicker({
+  autoUpdateInput: false, // no escribir hasta aplicar
+  locale: {
+    format: 'DD/MM/YYYY',
+    separator: " - ",
+    applyLabel: "Aplicar",
+    cancelLabel: "Cancelar",
+    fromLabel: "Desde",
+    toLabel: "Hasta",
+    customRangeLabel: "Rango personalizado",
+    weekLabel: "S",
+    daysOfWeek: ["Do","Lu","Ma","Mi","Ju","Vi","Sa"],
+    monthNames: [
+      "Enero","Febrero","Marzo","Abril","Mayo","Junio",
+      "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
+    ],
+    firstDay: 1
+  },
+  startDate: moment(),
+  endDate: moment(),
+  ranges: {
+    'Hoy': [moment(), moment()],
+    'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+    'Últimos 7 Días': [moment().subtract(6, 'days'), moment()],
+    'Últimos 30 Días': [moment().subtract(29, 'days'), moment()],
+    'Este Mes': [moment().startOf('month'), moment().endOf('month')],
+    'Mes Pasado': [
+      moment().subtract(1, 'month').startOf('month'),
+      moment().subtract(1, 'month').endOf('month')
+    ]
+  }
+});
+
+// Cuando el usuario aplica
+$('#filtroRango').on('apply.daterangepicker', function(ev, picker) {
+  $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+  cargarRecibosRango(picker.startDate.format("YYYY-MM-DD"), picker.endDate.format("YYYY-MM-DD"));
+});
+
+// Cuando cancela
+$('#filtroRango').on('cancel.daterangepicker', function(ev, picker) {
+  $(this).val('');
+  let hoy = moment().format("YYYY-MM-DD");
+  cargarRecibosRango(hoy, hoy);
+});
+
 
   // Cargar recibos de hoy por defecto
   cargarRecibosRango(hoy, hoy);
