@@ -726,18 +726,18 @@ document.getElementById("formRecibo").addEventListener("submit", async function(
       }
     }
 
-    // Cargar lista de recibos con filtro opcional por fecha
-async function cargarRecibos(fecha = null) {
+   async function cargarRecibos(fecha = null) {
   try {
     let url = '/api/recibos';
     if (fecha) {
-      // si mando solo un día, uso desde = hasta = fecha
       url += `?desde=${fecha}&hasta=${fecha}`;
     }
 
-
     const res = await fetch(url);
-    const recibos = await res.json();
+    let recibos = await res.json();
+
+    // 👇 Ordenar por folio de menor a mayor
+    recibos.sort((a, b) => a.id - b.id);
 
     document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
       <tr>
@@ -771,11 +771,14 @@ async function cargarRecibos(fecha = null) {
   }
 }
 
-// Cargar lista de recibos entre dos fechas
+
 async function cargarRecibosRango(desde, hasta) {
   try {
     const res = await fetch(`/api/recibos?desde=${desde}&hasta=${hasta}`);
-    const recibos = await res.json();
+    let recibos = await res.json();
+
+    // 👇 Ordenar por folio de menor a mayor
+    recibos.sort((a, b) => a.id - b.id);
 
     document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
       <tr>
