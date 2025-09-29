@@ -728,8 +728,10 @@ async function cargarRecibos(fecha = null) {
   try {
     let url = '/api/recibos';
     if (fecha) {
-      url += `?fecha=${fecha}`;
+      // si mando solo un día, uso desde = hasta = fecha
+      url += `?desde=${fecha}&hasta=${fecha}`;
     }
+
 
     const res = await fetch(url);
     const recibos = await res.json();
