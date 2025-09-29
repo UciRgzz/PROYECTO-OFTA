@@ -573,7 +573,7 @@
       }
     });
 
-   // Guardar recibo
+ // Guardar recibo
 document.getElementById("formRecibo").addEventListener("submit", async function(e) {
   e.preventDefault();
 
@@ -606,15 +606,17 @@ document.getElementById("formRecibo").addEventListener("submit", async function(
       this.reset();
       document.getElementById("nombrePaciente").value = "";
 
-      // 🔄 Volver a poner la fecha actual
+      // 🔄 Volver a poner la fecha actual en el campo
       const hoy = new Date();
       const year = hoy.getFullYear();
       const month = String(hoy.getMonth() + 1).padStart(2, '0');
       const day = String(hoy.getDate()).padStart(2, '0');
       document.getElementById("fecha").value = `${year}-${month}-${day}`;
 
-      // Recargar datos
-      cargarRecibos();
+      // ✅ Recargar datos del día actual
+      const hoyStr = moment().format("YYYY-MM-DD");
+      cargarRecibosRango(hoyStr, hoyStr);
+
       actualizarPrecios();
     } else {
       mostrarError("Error", data.error || 'No se pudo guardar el recibo');
@@ -627,38 +629,37 @@ document.getElementById("formRecibo").addEventListener("submit", async function(
   }
 });
 
-
-
     // Eliminar recibo
-    async function eliminarRecibo(id) {
-      const confirmacion = await Swal.fire({
-        title: '¿Estás seguro?',
-        text: "No podrás revertir esta acción",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#e74c3c',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
-      });
+async function eliminarRecibo(id) {
+  const confirmacion = await Swal.fire({
+    title: '¿Estás seguro?',
+    text: "No podrás revertir esta acción",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#e74c3c',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  });
 
-      if (!confirmacion.isConfirmed) return;
+  if (!confirmacion.isConfirmed) return;
 
-      try {
-        const res = await fetch(`/api/recibos/${id}`, { method: "DELETE" });
-        const data = await res.json();
-        
-        if (res.ok) {
-          mostrarExito("Eliminado", "El recibo fue eliminado correctamente");
-          cargarRecibos();
-        } else {
-          mostrarError("Error", data.error || 'No se pudo eliminar el recibo');
-        }
-      } catch (err) {
-        console.error("Error al eliminar recibo:", err);
-        mostrarError("Error", "Ocurrió un error eliminando el recibo");
-      }
+  try {
+    const res = await fetch(`/api/recibos/${id}`, { method: "DELETE" });
+    const data = await res.json();
+    
+    if (res.ok) {
+      mostrarExito("Eliminado", "El recibo fue eliminado correctamente");
+      const hoyStr = moment().format("YYYY-MM-DD");
+      cargarRecibosRango(hoyStr, hoyStr);
+    } else {
+      mostrarError("Error", data.error || 'No se pudo eliminar el recibo');
     }
+  } catch (err) {
+    console.error("Error al eliminar recibo:", err);
+    mostrarError("Error", "Ocurrió un error eliminando el recibo");
+  }
+}
 
     // Generar vista previa del recibo y confirmar impresión
     async function imprimirRecibo(id) {
@@ -711,9 +712,10 @@ document.getElementById("formRecibo").addEventListener("submit", async function(
               <tbody>
                 <tr>
                   <td>${recibo.procedimiento}</td>
-                  <td style="text-align:right;">$${parseFloat(recibo.precio).toFixed(2)}</td>
-                  <td style="text-align:right;">$${parseFloat(recibo.monto_pagado).toFixed(2)}</td>
-                  <td style="text-align:right;">$${parseFloat(recibo.pendiente).toFixed(2)}</td>
+                  <td style="text-align:right;">$${parseFloat(recibo.precio).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+                  <td style="text-align:right;">$${parseFloat(recibo.monto_pagado).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+                  <td style="text-align:right;">$${parseFloat(recibo.pendiente).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+
                 </tr>
               </tbody>
             </table>
@@ -760,34 +762,45 @@ async function cargarRecibosRango(desde, hasta) {
     let recibos = await res.json();
 
     // 👇 Ordenar siempre de menor a mayor por ID
-    recibos.sort((a, b) => a.id - b.id);
+recibos.sort((a, b) => a.id - b.id);
 
-    document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
-      <tr>
-        <td>${r.fecha.split("T")[0]}</td>
-        <td>${r.folio}</td>
-        <td>${r.paciente}</td>
-        <td>${r.procedimiento}</td>
-        <td><span class="badge bg-info">${r.tipo}</span></td>
-        <td>${r.forma_pago}</td>
-        <td><span class="badge bg-info">$${parseFloat(r.monto_pagado).toFixed(2)}</span></td>
-        <td><span class="badge bg-success">$${parseFloat(r.precio).toFixed(2)}</span></td>
-        <td>
-          <span class="badge bg-warning">
-            $${parseFloat(r.precio - r.monto_pagado).toFixed(2)}
-          </span>
-        </td>
-        <td>
-          <button class="btn btn-primary btn-sm" onclick="imprimirRecibo(${r.id})">
-            <i class="fas fa-receipt"></i> Comprobante
-          </button>
-          ${userRole === "admin" ? `
-            <button class="btn btn-danger btn-sm" onclick="eliminarRecibo(${r.id})">
-              <i class="fas fa-trash"></i> Eliminar
-            </button>` : ""}
-        </td>
-      </tr>
-    `).join('');
+document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
+  <tr>
+    <td>${r.fecha.split("T")[0]}</td>
+    <td>${r.folio}</td>
+    <td>${r.paciente}</td>
+    <td>${r.procedimiento}</td>
+    <td><span class="badge bg-info">${r.tipo}</span></td>
+    <td>${r.forma_pago}</td>
+    <td>
+      <span class="badge bg-info">
+        $${parseFloat(r.monto_pagado).toLocaleString("es-MX", {minimumFractionDigits: 2})}
+      </span>
+    </td>
+    <td>
+      <span class="badge bg-success">
+        $${parseFloat(r.precio).toLocaleString("es-MX", {minimumFractionDigits: 2})}
+      </span>
+    </td>
+    <td>
+      <span class="badge bg-warning abonar-btn" 
+            style="cursor:pointer;" 
+            data-id="${r.id}" 
+            data-pendiente="${r.precio - r.monto_pagado}">
+        $${parseFloat(r.precio - r.monto_pagado).toLocaleString("es-MX", {minimumFractionDigits: 2})}
+      </span>
+    </td>
+    <td>
+      <button class="btn btn-primary btn-sm" onclick="imprimirRecibo(${r.id})">
+        <i class="fas fa-receipt"></i> Comprobante
+      </button>
+      ${userRole === "admin" ? `
+        <button class="btn btn-danger btn-sm" onclick="eliminarRecibo(${r.id})">
+          <i class="fas fa-trash"></i> Eliminar
+        </button>` : ""}
+    </td>
+  </tr>
+`).join('');
 
     // 📊 actualizar estadísticas
     actualizarStats(recibos);
@@ -833,50 +846,48 @@ document.addEventListener("click", async (e) => {
   if (e.target.classList.contains("abonar-btn")) {
     const reciboId = e.target.dataset.id;
     const pendiente = e.target.dataset.pendiente;
-// Mostrar modal para ingresar monto a abonar
-    const { value: formValues } = await 
-   
-   Swal.fire({
-  title: '<i class="fas fa-cash-register text-primary"></i> Abonar a Recibo',
-  html: `
-    <div style="text-align:center; margin-bottom:20px;">
-      <span style="font-size:1.1rem; color:#2c3e50;">Pendiente actual:</span><br>
-      <b style="color:#e74c3c; font-size:1.5rem;">$${parseFloat(pendiente).toFixed(2)}</b>
-    </div>
 
-    <div class="form-group" style="margin-bottom:15px; text-align:left;">
-      <label style="font-weight:600; color:#34495e;">Monto a abonar</label>
-      <input id="monto" class="swal2-input" type="number" min="1" placeholder="Ingrese monto" style="margin-top:5px;">
-    </div>
+    // Mostrar modal para ingresar monto a abonar
+    const { value: formValues } = await Swal.fire({
+      title: '<i class="fas fa-cash-register text-primary"></i> Abonar a Recibo',
+      html: `
+        <div style="text-align:center; margin-bottom:20px;">
+          <span style="font-size:1.1rem; color:#2c3e50;">Pendiente actual:</span><br>
+          <b style="color:#e74c3c; font-size:1.5rem;">$${parseFloat(pendiente).toFixed(2)}</b>
+        </div>
 
-    <div class="form-group" style="text-align:left;">
-      <label style="font-weight:600; color:#34495e;">Forma de Pago</label>
-      <select id="formaPago" class="form-select" style="width:100%;">
-        <option value="Efectivo">Efectivo</option>
-        <option value="Tarjeta Débito">Tarjeta Débito</option>
-        <option value="Tarjeta Crédito">Tarjeta Crédito</option>
-        <option value="Transferencia">Transferencia</option>
-      </select>
+        <div class="form-group" style="margin-bottom:15px; text-align:left;">
+          <label style="font-weight:600; color:#34495e;">Monto a abonar</label>
+          <input id="monto" class="swal2-input" type="number" min="1" placeholder="Ingrese monto" style="margin-top:5px;">
+        </div>
 
-    </div>
-  `,
-  confirmButtonText: '<i class="fas fa-save"></i> Registrar Abono',
-  confirmButtonColor: '#27ae60',
-  cancelButtonText: 'Cancelar',
-  showCancelButton: true,
-  cancelButtonColor: '#7f8c8d',
-  background: '#fdfdfd',
-  width: 500,
-  customClass: {
-    popup: 'swal2-shadow'
-  },
-  preConfirm: () => {
-    return {
-      monto: document.getElementById('monto').value,
-      forma_pago: document.getElementById('formaPago').value
-    }
-  }
-});
+        <div class="form-group" style="text-align:left;">
+          <label style="font-weight:600; color:#34495e;">Forma de Pago</label>
+          <select id="formaPago" class="form-select" style="width:100%;">
+            <option value="Efectivo">Efectivo</option>
+            <option value="Tarjeta Débito">Tarjeta Débito</option>
+            <option value="Tarjeta Crédito">Tarjeta Crédito</option>
+            <option value="Transferencia">Transferencia</option>
+          </select>
+        </div>
+      `,
+      confirmButtonText: '<i class="fas fa-save"></i> Registrar Abono',
+      confirmButtonColor: '#27ae60',
+      cancelButtonText: 'Cancelar',
+      showCancelButton: true,
+      cancelButtonColor: '#7f8c8d',
+      background: '#fdfdfd',
+      width: 500,
+      customClass: {
+        popup: 'swal2-shadow'
+      },
+      preConfirm: () => {
+        return {
+          monto: document.getElementById('monto').value,
+          forma_pago: document.getElementById('formaPago').value
+        }
+      }
+    });
 
     // Si el usuario canceló
     if (!formValues) return;
@@ -891,7 +902,8 @@ document.addEventListener("click", async (e) => {
       const data = await res.json();
       if (res.ok) {
         Swal.fire('✅ Éxito', 'Abono registrado correctamente', 'success');
-        cargarRecibos(); // recargar lista
+        const hoyStr = moment().format("YYYY-MM-DD");
+        cargarRecibosRango(hoyStr, hoyStr); // recargar lista
       } else {
         Swal.fire('❌ Error', data.error || 'No se pudo registrar el abono', 'error');
       }
@@ -901,6 +913,7 @@ document.addEventListener("click", async (e) => {
     }
   }
 });
+
 
     // Poner fecha actual automáticamente en el formulario
 document.addEventListener("DOMContentLoaded", () => {
@@ -968,10 +981,10 @@ function actualizarStats(recibos) {
   const totalPendiente = recibos.reduce((sum, r) => sum + (parseFloat(r.precio || 0) - parseFloat(r.monto_pagado || 0)), 0);
 
   document.getElementById("totalReceipts").textContent = totalRecibos;
-  document.getElementById("totalPaid").textContent = `$${totalPagado.toFixed(2)}`;
-  document.getElementById("totalPending").textContent = `$${totalPendiente.toFixed(2)}`;
-}
+  document.getElementById("totalPaid").textContent = `$${totalPagado.toLocaleString("es-MX", {minimumFractionDigits: 2})}`;
+  document.getElementById("totalPending").textContent = `$${totalPendiente.toLocaleString("es-MX", {minimumFractionDigits: 2})}`;
 
+    }
 
   </script>
 </body>
