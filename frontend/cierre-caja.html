@@ -232,6 +232,12 @@ $(document).ready(() => {
 });
 
 
+// Formateador global para todo el sistema y Excel (estilo español: 1.234,56)
+const formato = new Intl.NumberFormat('es-ES', { 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 2 
+});
+
 // función de cierre de caja corregida
 async function cargarCierre() {
     const rango = document.getElementById("filtroRango").dataset;
@@ -278,10 +284,10 @@ async function cargarCierre() {
                 procedimientos.forEach(proc => {
                     const val = pagos[pago][proc] || 0;
                     totalFila += val;
-                    totalesColumnas[proc] = (totalesColumnas[proc] || 0) + val;
-                    fila += `<td>$${val.toFixed(2)}</td>`;
+                    totalesColumnas[proc] = (totalesColumnas[proc] || 0) + val;  
+                    fila += `<td>$${formato.format(val)}</td>`;
                 });
-                fila += `<td class="fw-bold">$${totalFila.toFixed(2)}</td></tr>`;
+                fila += `<td class="fw-bold">$${formato.format(totalFila)}</td></tr>`;
                 tbody += fila;
             });
 
@@ -290,9 +296,9 @@ async function cargarCierre() {
             procedimientos.forEach(proc => {
                 const val = totalesColumnas[proc] || 0;
                 totalGeneral += val;
-                filaTotal += `<td><b>$${val.toFixed(2)}</b></td>`;
+                filaTotal += `<td><b>$${formato.format(val)}</b></td>`;
             });
-            filaTotal += `<td><b>$${totalGeneral.toFixed(2)}</b></td></tr>`;
+            filaTotal += `<td><b>$${formato.format(totalGeneral)}</b></td></tr>`;
             tbody += filaTotal;
 
             document.getElementById("tbodyResumen").innerHTML = tbody;
@@ -311,8 +317,8 @@ async function cargarCierre() {
                     <td>${p.procedimiento}</td>
                     <td>${p.status}</td>
                     <td>${p.pago}</td>
-                    <td><span class="badge bg-primary">$${parseFloat(p.total).toFixed(2)}</span></td>
-                    <td><span class="badge bg-warning text-dark">$${parseFloat(p.saldo).toFixed(2)}</span></td>
+                    <td><span class="badge bg-primary">$${formato.format(p.total)}</span></td>
+                    <td><span class="badge bg-warning text-dark">$${formato.format(p.saldo)}</span></td>
                 </tr>
             `).join('');
         } else {
@@ -364,6 +370,10 @@ async function exportarExcel() {
             } else {
                 cell.alignment = { horizontal:"center" };
             }
+            // formato numérico
+            if (!isNaN(cell.value) && idx > 0) {
+                cell.numFmt = '#.##0,00';
+            }
         });
         rowIndex++;
     });
@@ -388,6 +398,10 @@ async function exportarExcel() {
                 cell.alignment = { horizontal:"center", vertical:"middle" };
             } else {
                 cell.alignment = { horizontal:"center" };
+            }
+            // formato numérico
+            if (!isNaN(cell.value) && idx > 0) {
+                cell.numFmt = '#.##0,00';
             }
         });
         rowIndex++;
