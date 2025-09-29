@@ -333,80 +333,84 @@ async function cargarCierre() {
 
 
 // funcion de exportar excel
-// funcion de exportar excel con dos hojas (Resumen + Pacientes)
+// exportar en una sola hoja (Resumen + Pacientes juntos)
 async function exportarExcel() {
     const rangoTexto = document.getElementById("filtroRango").value || "sin_rango";
 
     const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Cierre de Caja");
 
-    // ===== HOJA RESUMEN =====
-    const wsResumen = wb.addWorksheet("Resumen");
+    let rowIndex = 1;
+
+    // ====== RESUMEN ======
+    ws.addRow(["Resumen"]);
+    ws.getRow(rowIndex).font = { bold: true, size: 14 };
+    rowIndex++;
+
     const tablaResumen = document.querySelector("#tablaResumen");
     const filasResumen = [...tablaResumen.rows].map(r => [...r.cells].map(c => c.innerText));
 
     filasResumen.forEach((row, idx) => {
-        const excelRow = wsResumen.addRow(row);
-        excelRow.eachCell((cell) => {
-            cell.border = {
-                top: { style: "thin" }, left: { style: "thin" },
-                bottom: { style: "thin" }, right: { style: "thin" }
-            };
-            if (idx === 0) { // encabezado
-                cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
-                cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "2C3E50" } };
-                cell.alignment = { horizontal: "center", vertical: "middle" };
-            } else if (row[0] === "Total") { // fila total
-                cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
-                cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "000000" } };
-                cell.alignment = { horizontal: "center" };
+        const excelRow = ws.addRow(row);
+        excelRow.eachCell(cell => {
+            cell.border = { top:{style:"thin"}, left:{style:"thin"}, bottom:{style:"thin"}, right:{style:"thin"} };
+            if (idx === 0) {
+                cell.font = { bold: true, color: { argb:"FFFFFFFF" } };
+                cell.fill = { type:"pattern", pattern:"solid", fgColor:{ argb:"2C3E50"} };
+                cell.alignment = { horizontal:"center", vertical:"middle" };
+            } else if (row[0] === "Total") {
+                cell.font = { bold: true, color: { argb:"FFFFFFFF" } };
+                cell.fill = { type:"pattern", pattern:"solid", fgColor:{ argb:"000000"} };
             } else {
-                cell.alignment = { horizontal: "center" };
+                cell.alignment = { horizontal:"center" };
             }
         });
+        rowIndex++;
     });
 
-    // ===== HOJA PACIENTES =====
-    const wsPacientes = wb.addWorksheet("Pacientes");
+    rowIndex += 2; // dejar 2 filas en blanco
+
+    // ====== PACIENTES ======
+    ws.addRow(["Listado de Pacientes"]);
+    ws.getRow(rowIndex).font = { bold: true, size: 14 };
+    rowIndex++;
+
     const tablaPacientes = document.querySelector("#tablaPacientesWrap");
     const filasPacientes = [...tablaPacientes.rows].map(r => [...r.cells].map(c => c.innerText));
 
     filasPacientes.forEach((row, idx) => {
-        const excelRow = wsPacientes.addRow(row);
-        excelRow.eachCell((cell) => {
-            cell.border = {
-                top: { style: "thin" }, left: { style: "thin" },
-                bottom: { style: "thin" }, right: { style: "thin" }
-            };
-            if (idx === 0) { // encabezado
-                cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
-                cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "455A64" } };
-                cell.alignment = { horizontal: "center", vertical: "middle" };
+        const excelRow = ws.addRow(row);
+        excelRow.eachCell(cell => {
+            cell.border = { top:{style:"thin"}, left:{style:"thin"}, bottom:{style:"thin"}, right:{style:"thin"} };
+            if (idx === 0) {
+                cell.font = { bold: true, color: { argb:"FFFFFFFF" } };
+                cell.fill = { type:"pattern", pattern:"solid", fgColor:{ argb:"455A64"} };
+                cell.alignment = { horizontal:"center", vertical:"middle" };
             } else {
-                cell.alignment = { horizontal: "center" };
+                cell.alignment = { horizontal:"center" };
             }
         });
+        rowIndex++;
     });
 
-    // ===== AJUSTAR ANCHOS =====
-    [wsResumen, wsPacientes].forEach(ws => {
-        ws.columns.forEach(col => {
-            let maxLen = 0;
-            col.eachCell({ includeEmpty: true }, c => {
-                const len = c.value ? c.value.toString().length : 0;
-                if (len > maxLen) maxLen = len;
-            });
-            col.width = maxLen + 2;
+    // ====== AJUSTAR ANCHO ======
+    ws.columns.forEach(col => {
+        let maxLen = 0;
+        col.eachCell({ includeEmpty: true }, c => {
+            const len = c.value ? c.value.toString().length : 0;
+            if (len > maxLen) maxLen = len;
         });
+        col.width = maxLen + 2;
     });
 
-    // ===== GUARDAR ARCHIVO =====
+    // ====== GUARDAR ======
     const buffer = await wb.xlsx.writeBuffer();
     saveAs(new Blob([buffer]), `cierre_${rangoTexto.replace(/\//g,"-")}.xlsx`);
 
     Swal.fire({
         icon: 'success',
         title: 'Exportación completada',
-        text: `El archivo cierre_${rangoTexto}.xlsx se descargó con ambas hojas (Resumen y Pacientes).`,
+        text: `El archivo cierre_${rangoTexto}.xlsx se descargó con Resumen y Pacientes en una sola hoja.`,
         confirmButtonColor: '#27ae60'
     });
 }
