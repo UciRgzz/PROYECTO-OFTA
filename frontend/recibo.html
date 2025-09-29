@@ -61,12 +61,6 @@
       margin-bottom: 30px;
       overflow: hidden;
       border: none;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.12);
     }
     
     .card-header {
@@ -90,20 +84,12 @@
     
     .form-group {
       margin-bottom: 25px;
-      position: relative;
     }
     
     label {
       font-weight: 600;
       margin-bottom: 8px;
       color: var(--primary-color);
-      display: flex;
-      align-items: center;
-    }
-    
-    .required::after {
-      content: " *";
-      color: var(--accent-color);
     }
     
     input, select {
@@ -121,22 +107,6 @@
       outline: none;
     }
     
-    .input-with-icon {
-      position: relative;
-    }
-    
-    .input-with-icon i {
-      position: absolute;
-      left: 15px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #6c757d;
-    }
-    
-    .input-with-icon input {
-      padding-left: 45px;
-    }
-    
     .btn {
       cursor: pointer;
       font-weight: 600;
@@ -148,37 +118,6 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .btn::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 5px;
-      height: 5px;
-      background: rgba(255, 255, 255, 0.5);
-      opacity: 0;
-      border-radius: 100%;
-      transform: scale(1, 1) translate(-50%);
-      transform-origin: 50% 50%;
-    }
-    
-    .btn:focus:not(:active)::after {
-      animation: ripple 1s ease-out;
-    }
-    
-    @keyframes ripple {
-      0% {
-        transform: scale(0, 0);
-        opacity: 0.5;
-      }
-      100% {
-        transform: scale(20, 20);
-        opacity: 0;
-      }
     }
     
     .btn-primary {
@@ -221,13 +160,6 @@
     .btn-sm {
       padding: 8px 15px;
       font-size: 0.9rem;
-    }
-    
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none !important;
-      box-shadow: none !important;
     }
     
     .table {
@@ -275,12 +207,6 @@
       border-radius: 8px;
       margin-bottom: 20px;
       border: 1px solid #c3e6cb;
-      animation: fadeIn 0.5s ease;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
     }
     
     .footer {
@@ -314,33 +240,6 @@
       background: linear-gradient(135deg, var(--accent-color) 0%, #c0392b 100%) !important;
     }
     
-    .loading {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255,255,255,.3);
-      border-radius: 50%;
-      border-top-color: #fff;
-      animation: spin 1s ease-in-out infinite;
-      margin-right: 10px;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: #6c757d;
-    }
-    
-    .empty-state i {
-      font-size: 3rem;
-      margin-bottom: 15px;
-      color: #dee2e6;
-    }
-    
     @media (max-width: 768px) {
       h1 {
         font-size: 2rem;
@@ -358,10 +257,6 @@
       .btn {
         width: 100%;
         margin-bottom: 10px;
-      }
-      
-      .btn-group .btn {
-        width: auto;
       }
     }
     
@@ -422,9 +317,8 @@
       color: #555;
       margin-top: 30px;
     }
-    
-    /* para el mostrar pago*/
-    .swal2-shadow {
+  /* para el mostrar pago*/
+        .swal2-shadow {
       border-radius: 15px !important;
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
       padding: 25px !important;
@@ -442,7 +336,6 @@
       padding: 12px !important;
       font-size: 1rem !important;
     }
-    
     /* Corrige el ancho del select en SweetAlert2 */
     .swal2-popup .swal2-input[type="select"],
     .swal2-popup select.swal2-input {
@@ -452,66 +345,18 @@
       font-size: 1rem !important;
       border-radius: 10px !important;
     }
-    
     /* Select de SweetAlert2 con estilo Bootstrap */
-    .swal2-popup .form-select {
-      display: block;
-      width: 100% !important;
-      font-size: 1rem;
-      padding: 12px 15px;
-      border: 1px solid #dcdde1;
-      border-radius: 10px;
-      box-sizing: border-box;
-    }
-    
-    /* Estilos para el filtro de fecha */
-    .filter-container {
-      background: white;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-      margin-bottom: 20px;
-    }
-    
-    .stats-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-    
-    .stat-card {
-      flex: 1;
-      min-width: 200px;
-      background: white;
-      border-radius: 8px;
-      padding: 15px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-      text-align: center;
-    }
-    
-    .stat-value {
-      font-size: 1.8rem;
-      font-weight: 700;
-      margin: 10px 0;
-    }
-    
-    .stat-label {
-      font-size: 0.9rem;
-      color: #6c757d;
-    }
-    
-    .total-paid {
-      color: var(--success-color);
-    }
-    
-    .total-pending {
-      color: var(--accent-color);
-    }
-    
-    .total-receipts {
-      color: var(--secondary-color);
-    }
+      .swal2-popup .form-select {
+        display: block;
+        width: 100% !important;
+        font-size: 1rem;
+        padding: 12px 15px;
+        border: 1px solid #dcdde1;
+        border-radius: 10px;
+        box-sizing: border-box;
+      }
+
+
   </style>
 </head>
 <body>
@@ -531,100 +376,55 @@
       <div class="card-body">
         <form id="formRecibo" class="row g-3">
           <div class="col-md-3">
-            <label class="form-label required">Fecha:</label>
-            <div class="input-with-icon">
-              <i class="fas fa-calendar-alt"></i>
-              <input type="date" id="fecha" name="fecha" class="form-control" required readonly>
-            </div>
+            <label class="form-label">Fecha:</label>
+            <input type="date" id="fecha" name="fecha" class="form-control" required readonly>
           </div>
           <div class="col-md-3">
-            <label class="form-label required">Número de Expediente:</label>
-            <div class="input-with-icon">
-              <i class="fas fa-folder-open"></i>
-              <input type="number" id="folio" name="folio" class="form-control" required>
-            </div>
+            <label class="form-label">Número de Expediente:</label>
+            <input type="number" id="folio" name="folio" class="form-control" required>
           </div>
 
           <div class="col-md-6">
             <label class="form-label">Nombre del Paciente:</label>
-            <div class="input-with-icon">
-              <i class="fas fa-user"></i>
-              <input type="text" id="nombrePaciente" class="form-control" readonly>
-            </div>
+            <input type="text" id="nombrePaciente" class="form-control" readonly>
           </div>
 
           <!-- Tipo de Recibo -->
           <div class="col-md-4">
-            <label class="form-label required">Tipo de Recibo:</label>
-            <div class="input-with-icon">
-              <i class="fas fa-tag"></i>
-              <select id="tipoRecibo" class="form-select" required>
-                <option value="Normal">Atención Médica</option>
-                <option value="OrdenCirugia">OrdenCirugia</option>
-              </select>
-            </div>
+            <label class="form-label">Tipo de Recibo:</label>
+            <select id="tipoRecibo" class="form-select" required>
+              <option value="Normal">Atención Médica</option>
+              <option value="OrdenCirugia">OrdenCirugia</option>
+            </select>
           </div>
 
           <div class="col-md-4">
-            <label class="form-label required">Procedimiento:</label>
-            <div class="input-with-icon">
-              <i class="fas fa-procedures"></i>
-              <select id="procedimiento" class="form-select" required></select>
-            </div>
+            <label class="form-label">Procedimiento:</label>
+            <select id="procedimiento" class="form-select" required></select>
           </div>
 
           <div class="col-md-4" id="precioContainer">
-            <label class="form-label required">Procedimiento y Precio:</label>
-            <div class="input-with-icon">
-              <i class="fas fa-dollar-sign"></i>
-              <select id="precio" class="form-select" required></select>
-            </div>
+            <label class="form-label">Procedimiento y Precio:</label>
+            <select id="precio" class="form-select" required></select>
           </div>
 
           <div class="col-md-4">
-            <label class="form-label required">Forma de Pago:</label>
-            <div class="input-with-icon">
-              <i class="fas fa-credit-card"></i>
-              <select id="forma_pago" class="form-select" required>
-                <option value="Efectivo">Efectivo</option>
-                <option value="Tarjeta Débito">Tarjeta Débito</option>
-                <option value="Tarjeta Crédito">Tarjeta Crédito</option>
-                <option value="Transferencia">Transferencia</option>
-              </select>
-            </div>
+            <label class="form-label">Forma de Pago:</label>
+            <select id="forma_pago" class="form-select" required>
+              <option value="Efectivo">Efectivo</option>
+              <option value="Tarjeta Débito">Tarjeta Débito</option>
+              <option value="Tarjeta Crédito">Tarjeta Crédito</option>
+              <option value="Transferencia">Transferencia</option>
+            </select>
           </div>
           <div class="col-md-4">
-            <label class="form-label required">Monto Pagado:</label>
-            <div class="input-with-icon">
-              <i class="fas fa-money-bill-wave"></i>
-              <input type="number" id="monto_pagado" class="form-control" step="0.01" required>
-            </div>
+            <label class="form-label">Monto Pagado:</label>
+            <input type="number" id="monto_pagado" class="form-control" step="0.01" required>
           </div>
           <div class="col-12 text-end">
-            <button type="submit" class="btn btn-success px-4" id="submitBtn">
-              <i class="fas fa-save"></i> <span id="submitText">Guardar Recibo</span>
-            </button>
+            <button type="submit" class="btn btn-success px-4"><i class="fas fa-save"></i> Guardar Recibo</button>
           </div>
         </form>
-      </div>
-    </div>
-
-    <!-- Estadísticas -->
-    <div class="stats-container" id="statsContainer">
-      <div class="stat-card">
-        <div class="stat-label">Total Recibos</div>
-        <div class="stat-value total-receipts" id="totalReceipts">0</div>
-        <div class="stat-label">En el período seleccionado</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Total Pagado</div>
-        <div class="stat-value total-paid" id="totalPaid">$0.00</div>
-        <div class="stat-label">En el período seleccionado</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Total Pendiente</div>
-        <div class="stat-value total-pending" id="totalPending">$0.00</div>
-        <div class="stat-label">En el período seleccionado</div>
       </div>
     </div>
 
@@ -633,46 +433,34 @@
       <div class="card-header"><i class="fas fa-list"></i> Lista de Recibos</div>
       <div class="card-body">
         <!-- 🔎 Filtro de fecha -->
-        <div class="filter-container">
-          <div class="row align-items-end">
-            <div class="col-md-6">
-              <label for="filtroRango" class="form-label">Filtrar por fecha:</label>
-              <input type="text" id="filtroRango" class="form-control" style="max-width:300px;" placeholder="Selecciona un rango de fechas" readonly>
-            </div>
-            <div class="col-md-6 text-end">
-              <button class="btn btn-outline-primary" id="btnExport">
-                <i class="fas fa-file-export"></i> Exportar Datos
-              </button>
-            </div>
-          </div>
-        </div>
+  <div class="mb-3">
+    <label for="filtroRango" class="form-label">Filtrar por fecha:</label>
+    <input type="text" id="filtroRango" class="form-control" style="max-width:300px;" placeholder="Selecciona un rango de fechas" readonly>
+  </div>
 
-        <div class="table-responsive">
-          <table class="table table-striped table-bordered text-center align-middle">
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>Folio</th>
-                <th>Paciente</th>
-                <th>Procedimiento</th>
-                <th>Tipo</th>
-                <th>Forma de Pago</th>
-                <th>Monto Pagado</th>
-                <th>Precio</th>
-                <th>Pendiente</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="tablaRecibos">
-              <tr>
-                <td colspan="10" class="empty-state">
-                  <i class="fas fa-receipt"></i>
-                  <p>No hay recibos registrados</p>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+
+<div class="table-responsive">
+  <table class="table table-striped table-bordered text-center align-middle">
+    <thead>
+      <tr>
+        <th>Fecha</th>
+        <th>Folio</th>
+        <th>Paciente</th>
+        <th>Procedimiento</th>
+        <th>Tipo</th>
+        <th>Forma de Pago</th>
+        <th>Monto Pagado</th>
+        <th>Precio</th>
+        <th>Pendiente</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="tablaRecibos"></tbody>
+  </table>
+</div>
+
+
+
       </div>
     </div>
     
@@ -686,20 +474,20 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
 
   <!-- Daterangepicker CSS -->
-  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 
-  <!-- jQuery (requerido por daterangepicker) -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- jQuery (requerido por daterangepicker) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-  <!-- Moment.js + Daterangepicker JS -->
-  <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<!-- Moment.js + Daterangepicker JS -->
+<script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+
 
   <script>
     let userRole = localStorage.getItem("rol") || "usuario"; 
     let pacienteId = null;
     let catalogo = [];
-    let recibos = [];
 
     // Cargar catálogo de procedimientos
     async function cargarCatalogo() {
@@ -716,7 +504,6 @@
         actualizarPrecios();
       } catch (err) {
         console.error("Error cargando catálogo:", err);
-        mostrarError("Error", "No se pudo cargar el catálogo de procedimientos");
       }
     }
 
@@ -755,83 +542,64 @@
         pacienteId = data.id;
       } catch (err) {
         console.error("Error buscando paciente:", err);
-        document.getElementById("nombrePaciente").value = "Error al buscar";
-        pacienteId = null;
       }
     });
 
-    // Guardar recibo
-    document.getElementById("formRecibo").addEventListener("submit", async function(e) {
-      e.preventDefault();
+   // Guardar recibo
+document.getElementById("formRecibo").addEventListener("submit", async function(e) {
+  e.preventDefault();
 
-      const btn = document.getElementById("submitBtn");
-      const btnText = document.getElementById("submitText");
-      
-      // Validar que se haya encontrado un paciente
-      if (!pacienteId) {
-        mostrarError("Error", "Debe ingresar un número de expediente válido");
-        return;
-      }
-      
-      // Validar que el monto pagado no sea mayor al precio
-      const precio = parseFloat(document.getElementById("precio").value);
-      const montoPagado = parseFloat(document.getElementById("monto_pagado").value);
-      
-      if (montoPagado > precio) {
-        mostrarError("Error", "El monto pagado no puede ser mayor al precio del procedimiento");
-        return;
-      }
+  const btn = this.querySelector("button[type=submit]");
+  btn.disabled = true; // 🚫 Bloquea el botón mientras se guarda
 
-      btn.disabled = true;
-      btnText.innerHTML = '<div class="loading"></div> Guardando...';
+  try {
+    const datos = {
+      fecha: this.fecha.value,
+      paciente_id: pacienteId,
+      procedimiento: this.procedimiento.value,
+      precio: this.precio.value,
+      forma_pago: this.forma_pago.value,
+      monto_pagado: this.monto_pagado.value,
+      tipo: this.tipoRecibo.value
+    };
 
-      try {
-        const datos = {
-          fecha: this.fecha.value,
-          paciente_id: pacienteId,
-          procedimiento: this.procedimiento.value,
-          precio: this.precio.value,
-          forma_pago: this.forma_pago.value,
-          monto_pagado: this.monto_pagado.value,
-          tipo: this.tipoRecibo.value
-        };
-
-        const res = await fetch('/api/recibos', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(datos)
-        });
-
-        const data = await res.json();
-
-        if (res.ok) {
-          mostrarExito("¡Éxito!", "Recibo guardado correctamente");
-
-          // 🔄 Resetear formulario
-          this.reset();
-          document.getElementById("nombrePaciente").value = "";
-
-          // 🔄 Volver a poner la fecha actual
-          const hoy = new Date();
-          const year = hoy.getFullYear();
-          const month = String(hoy.getMonth() + 1).padStart(2, '0');
-          const day = String(hoy.getDate()).padStart(2, '0');
-          document.getElementById("fecha").value = `${year}-${month}-${day}`;
-
-          // Recargar datos
-          cargarRecibos();
-          actualizarPrecios();
-        } else {
-          mostrarError("Error", data.error || 'No se pudo guardar el recibo');
-        }
-      } catch (err) {
-        console.error("Error guardando recibo:", err);
-        mostrarError("Error", "No se pudo guardar el recibo");
-      } finally {
-        btn.disabled = false;
-        btnText.innerHTML = '<i class="fas fa-save"></i> Guardar Recibo';
-      }
+    const res = await fetch('/api/recibos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(datos)
     });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      mostrarExito("¡Éxito!", "Recibo guardado correctamente");
+
+      // 🔄 Resetear formulario
+      this.reset();
+      document.getElementById("nombrePaciente").value = "";
+
+      // 🔄 Volver a poner la fecha actual
+      const hoy = new Date();
+      const year = hoy.getFullYear();
+      const month = String(hoy.getMonth() + 1).padStart(2, '0');
+      const day = String(hoy.getDate()).padStart(2, '0');
+      document.getElementById("fecha").value = `${year}-${month}-${day}`;
+
+      // Recargar datos
+      cargarRecibos();
+      actualizarPrecios();
+    } else {
+      mostrarError("Error", data.error || 'No se pudo guardar el recibo');
+    }
+  } catch (err) {
+    console.error("Error guardando recibo:", err);
+    mostrarError("Error", "No se pudo guardar el recibo");
+  } finally {
+    btn.disabled = false; // ✅ Reactiva el botón cuando termina
+  }
+});
+
+
 
     // Eliminar recibo
     async function eliminarRecibo(id) {
@@ -958,74 +726,94 @@
       }
     }
 
-    // Cargar recibos con filtro de fecha
-    async function cargarRecibosRango(desde, hasta) {
-      try {
-        const res = await fetch(`/api/recibos?desde=${desde}&hasta=${hasta}`);
-        recibos = await res.json();
-
-        // 👇 Ordenar por folio de menor a mayor
-        recibos.sort((a, b) => a.id - b.id);
-
-        // Actualizar estadísticas
-        actualizarEstadisticas(recibos);
-
-        // Actualizar tabla
-        if (recibos.length === 0) {
-          document.getElementById("tablaRecibos").innerHTML = `
-            <tr>
-              <td colspan="10" class="empty-state">
-                <i class="fas fa-receipt"></i>
-                <p>No hay recibos registrados en el período seleccionado</p>
-              </td>
-            </tr>
-          `;
-        } else {
-          document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
-            <tr>
-              <td>${r.fecha.split("T")[0]}</td>
-              <td>${r.folio}</td>
-              <td>${r.paciente}</td>
-              <td>${r.procedimiento}</td>
-              <td><span class="badge bg-info">${r.tipo}</span></td>
-              <td>${r.forma_pago}</td>
-              <td><span class="badge bg-info">$${parseFloat(r.monto_pagado).toFixed(2)}</span></td>
-              <td><span class="badge bg-success">$${parseFloat(r.precio).toFixed(2)}</span></td>
-              <td>
-                <span class="badge bg-warning">
-                  $${parseFloat(r.precio - r.monto_pagado).toFixed(2)}
-                </span>
-              </td>
-              <td>
-                <div class="btn-group" role="group">
-                  <button class="btn btn-primary btn-sm" onclick="imprimirRecibo(${r.id})" title="Imprimir recibo">
-                    <i class="fas fa-receipt"></i>
-                  </button>
-                  ${userRole === "admin" ? `
-                    <button class="btn btn-danger btn-sm" onclick="eliminarRecibo(${r.id})" title="Eliminar recibo">
-                      <i class="fas fa-trash"></i>
-                    </button>` : ""}
-                </div>
-              </td>
-            </tr>
-          `).join('');
-        }
-      } catch (err) {
-        console.error("Error cargando recibos:", err);
-        mostrarError("Error", "No se pudieron cargar los recibos");
-      }
+   async function cargarRecibos(fecha = null) {
+  try {
+    let url = '/api/recibos';
+    if (fecha) {
+      url += `?desde=${fecha}&hasta=${fecha}`;
     }
 
-    // Actualizar estadísticas
-    function actualizarEstadisticas(recibos) {
-      const totalReceipts = recibos.length;
-      const totalPaid = recibos.reduce((sum, r) => sum + parseFloat(r.monto_pagado), 0);
-      const totalPending = recibos.reduce((sum, r) => sum + (parseFloat(r.precio) - parseFloat(r.monto_pagado)), 0);
-      
-      document.getElementById("totalReceipts").textContent = totalReceipts;
-      document.getElementById("totalPaid").textContent = `$${totalPaid.toFixed(2)}`;
-      document.getElementById("totalPending").textContent = `$${totalPending.toFixed(2)}`;
-    }
+    const res = await fetch(url);
+    let recibos = await res.json();
+
+    // 👇 Ordenar siempre de menor a mayor por ID
+    recibos.sort((a, b) => a.id - b.id);
+
+
+    document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
+      <tr>
+        <td>${r.fecha.split("T")[0]}</td>
+        <td>${r.folio}</td>
+        <td>${r.paciente}</td>
+        <td>${r.procedimiento}</td>
+        <td><span class="badge bg-info">${r.tipo}</span></td>
+        <td>${r.forma_pago}</td>
+        <td><span class="badge bg-info">$${parseFloat(r.monto_pagado).toFixed(2)}</span></td>
+        <td><span class="badge bg-success">$${parseFloat(r.precio).toFixed(2)}</span></td>
+        <td>
+          <span class="badge bg-warning">
+            $${parseFloat(r.precio - r.monto_pagado).toFixed(2)}
+          </span>
+        </td>
+        <td>
+          <button class="btn btn-primary btn-sm" onclick="imprimirRecibo(${r.id})">
+            <i class="fas fa-receipt"></i> Comprobante
+          </button>
+          ${userRole === "admin" ? `
+            <button class="btn btn-danger btn-sm" onclick="eliminarRecibo(${r.id})">
+              <i class="fas fa-trash"></i> Eliminar
+            </button>` : ""}
+        </td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    console.error("Error cargando recibos:", err);
+    mostrarError("Error", "No se pudieron cargar los recibos");
+  }
+}
+
+
+async function cargarRecibosRango(desde, hasta) {
+  try {
+    const res = await fetch(`/api/recibos?desde=${desde}&hasta=${hasta}`);
+    let recibos = await res.json();
+
+    // 👇 Ordenar siempre de menor a mayor por ID
+    recibos.sort((a, b) => a.id - b.id);
+
+
+    document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
+      <tr>
+        <td>${r.fecha.split("T")[0]}</td>
+        <td>${r.folio}</td>
+        <td>${r.paciente}</td>
+        <td>${r.procedimiento}</td>
+        <td><span class="badge bg-info">${r.tipo}</span></td>
+        <td>${r.forma_pago}</td>
+        <td><span class="badge bg-info">$${parseFloat(r.monto_pagado).toFixed(2)}</span></td>
+        <td><span class="badge bg-success">$${parseFloat(r.precio).toFixed(2)}</span></td>
+        <td>
+          <span class="badge bg-warning">
+            $${parseFloat(r.precio - r.monto_pagado).toFixed(2)}
+          </span>
+        </td>
+        <td>
+          <button class="btn btn-primary btn-sm" onclick="imprimirRecibo(${r.id})">
+            <i class="fas fa-receipt"></i> Comprobante
+          </button>
+          ${userRole === "admin" ? `
+            <button class="btn btn-danger btn-sm" onclick="eliminarRecibo(${r.id})">
+              <i class="fas fa-trash"></i> Eliminar
+            </button>` : ""}
+        </td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    console.error("Error cargando recibos:", err);
+    mostrarError("Error", "No se pudieron cargar los recibos");
+  }
+}
+
 
     // Mostrar mensaje de éxito
     function mostrarExito(titulo, mensaje) {
@@ -1056,173 +844,139 @@
     }
 
     // Delegación de eventos: clic en el pendiente para abonar
-    document.addEventListener("click", async (e) => {
-      if (e.target.classList.contains("abonar-btn")) {
-        const reciboId = e.target.dataset.id;
-        const pendiente = e.target.dataset.pendiente;
-        
-        // Mostrar modal para ingresar monto a abonar
-        const { value: formValues } = await Swal.fire({
-          title: '<i class="fas fa-cash-register text-primary"></i> Abonar a Recibo',
-          html: `
-            <div style="text-align:center; margin-bottom:20px;">
-              <span style="font-size:1.1rem; color:#2c3e50;">Pendiente actual:</span><br>
-              <b style="color:#e74c3c; font-size:1.5rem;">$${parseFloat(pendiente).toFixed(2)}</b>
-            </div>
+document.addEventListener("click", async (e) => {
+  if (e.target.classList.contains("abonar-btn")) {
+    const reciboId = e.target.dataset.id;
+    const pendiente = e.target.dataset.pendiente;
+// Mostrar modal para ingresar monto a abonar
+    const { value: formValues } = await 
+   
+   Swal.fire({
+  title: '<i class="fas fa-cash-register text-primary"></i> Abonar a Recibo',
+  html: `
+    <div style="text-align:center; margin-bottom:20px;">
+      <span style="font-size:1.1rem; color:#2c3e50;">Pendiente actual:</span><br>
+      <b style="color:#e74c3c; font-size:1.5rem;">$${parseFloat(pendiente).toFixed(2)}</b>
+    </div>
 
-            <div class="form-group" style="margin-bottom:15px; text-align:left;">
-              <label style="font-weight:600; color:#34495e;">Monto a abonar</label>
-              <input id="monto" class="swal2-input" type="number" min="1" max="${pendiente}" placeholder="Ingrese monto" style="margin-top:5px;">
-            </div>
+    <div class="form-group" style="margin-bottom:15px; text-align:left;">
+      <label style="font-weight:600; color:#34495e;">Monto a abonar</label>
+      <input id="monto" class="swal2-input" type="number" min="1" placeholder="Ingrese monto" style="margin-top:5px;">
+    </div>
 
-            <div class="form-group" style="text-align:left;">
-              <label style="font-weight:600; color:#34495e;">Forma de Pago</label>
-              <select id="formaPago" class="form-select" style="width:100%;">
-                <option value="Efectivo">Efectivo</option>
-                <option value="Tarjeta Débito">Tarjeta Débito</option>
-                <option value="Tarjeta Crédito">Tarjeta Crédito</option>
-                <option value="Transferencia">Transferencia</option>
-              </select>
-            </div>
-          `,
-          confirmButtonText: '<i class="fas fa-save"></i> Registrar Abono',
-          confirmButtonColor: '#27ae60',
-          cancelButtonText: 'Cancelar',
-          showCancelButton: true,
-          cancelButtonColor: '#7f8c8d',
-          background: '#fdfdfd',
-          width: 500,
-          customClass: {
-            popup: 'swal2-shadow'
-          },
-          preConfirm: () => {
-            const monto = document.getElementById('monto').value;
-            if (!monto || monto <= 0) {
-              Swal.showValidationMessage('Ingrese un monto válido');
-              return false;
-            }
-            if (parseFloat(monto) > parseFloat(pendiente)) {
-              Swal.showValidationMessage('El monto no puede ser mayor al pendiente');
-              return false;
-            }
-            
-            return {
-              monto: monto,
-              forma_pago: document.getElementById('formaPago').value
-            }
-          }
-        });
+    <div class="form-group" style="text-align:left;">
+      <label style="font-weight:600; color:#34495e;">Forma de Pago</label>
+      <select id="formaPago" class="form-select" style="width:100%;">
+        <option value="Efectivo">Efectivo</option>
+        <option value="Tarjeta Débito">Tarjeta Débito</option>
+        <option value="Tarjeta Crédito">Tarjeta Crédito</option>
+        <option value="Transferencia">Transferencia</option>
+      </select>
 
-        // Si el usuario canceló
-        if (!formValues) return;
+    </div>
+  `,
+  confirmButtonText: '<i class="fas fa-save"></i> Registrar Abono',
+  confirmButtonColor: '#27ae60',
+  cancelButtonText: 'Cancelar',
+  showCancelButton: true,
+  cancelButtonColor: '#7f8c8d',
+  background: '#fdfdfd',
+  width: 500,
+  customClass: {
+    popup: 'swal2-shadow'
+  },
+  preConfirm: () => {
+    return {
+      monto: document.getElementById('monto').value,
+      forma_pago: document.getElementById('formaPago').value
+    }
+  }
+});
 
-        try {
-          const res = await fetch(`/api/recibos/${reciboId}/abonos`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formValues)
-          });
+    // Si el usuario canceló
+    if (!formValues) return;
 
-          const data = await res.json();
-          if (res.ok) {
-            Swal.fire('✅ Éxito', 'Abono registrado correctamente', 'success');
-            cargarRecibosRango(
-              $('#filtroRango').data('daterangepicker').startDate.format("YYYY-MM-DD"),
-              $('#filtroRango').data('daterangepicker').endDate.format("YYYY-MM-DD")
-            );
-          } else {
-            Swal.fire('❌ Error', data.error || 'No se pudo registrar el abono', 'error');
-          }
-        } catch (err) {
-          console.error(err);
-          Swal.fire('❌ Error', 'Ocurrió un error en el servidor', 'error');
-        }
+    try {
+      const res = await fetch(`/api/recibos/${reciboId}/abonos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formValues)
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        Swal.fire('✅ Éxito', 'Abono registrado correctamente', 'success');
+        cargarRecibos(); // recargar lista
+      } else {
+        Swal.fire('❌ Error', data.error || 'No se pudo registrar el abono', 'error');
       }
-    });
+    } catch (err) {
+      console.error(err);
+      Swal.fire('❌ Error', 'Ocurrió un error en el servidor', 'error');
+    }
+  }
+});
 
-    // Función para exportar datos
-    document.getElementById("btnExport").addEventListener("click", function() {
-      if (recibos.length === 0) {
-        mostrarError("Error", "No hay datos para exportar");
-        return;
-      }
-      
-      // Crear CSV
-      let csv = "Fecha,Folio,Paciente,Procedimiento,Tipo,Forma de Pago,Monto Pagado,Precio,Pendiente\n";
-      
-      recibos.forEach(r => {
-        csv += `"${r.fecha.split("T")[0]}","${r.folio}","${r.paciente}","${r.procedimiento}","${r.tipo}","${r.forma_pago}","${r.monto_pagado}","${r.precio}","${r.precio - r.monto_pagado}"\n`;
-      });
-      
-      // Descargar archivo
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement("a");
-      const url = URL.createObjectURL(blob);
-      link.setAttribute("href", url);
-      link.setAttribute("download", `recibos_${moment().format('YYYY-MM-DD')}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    });
+    // Poner fecha actual automáticamente en el formulario
+document.addEventListener("DOMContentLoaded", () => {
+  const hoy = moment().format("YYYY-MM-DD");
 
-    // Inicializar la aplicación
-    document.addEventListener("DOMContentLoaded", () => {
-      const hoy = moment().format("YYYY-MM-DD");
+  // Fecha del formulario (recibo nuevo)
+  document.getElementById("fecha").value = hoy;
 
-      // Fecha del formulario (recibo nuevo)
-      document.getElementById("fecha").value = hoy;
+// Inicializar date range picker
+$('#filtroRango').daterangepicker({
+  autoUpdateInput: false, // no escribir hasta aplicar
+  locale: {
+    format: 'DD/MM/YYYY',
+    separator: " - ",
+    applyLabel: "Aplicar",
+    cancelLabel: "Cancelar",
+    fromLabel: "Desde",
+    toLabel: "Hasta",
+    customRangeLabel: "Rango personalizado",
+    weekLabel: "S",
+    daysOfWeek: ["Do","Lu","Ma","Mi","Ju","Vi","Sa"],
+    monthNames: [
+      "Enero","Febrero","Marzo","Abril","Mayo","Junio",
+      "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
+    ],
+    firstDay: 1
+  },
+  startDate: moment(),
+  endDate: moment(),
+  ranges: {
+    'Hoy': [moment(), moment()],
+    'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+    'Últimos 7 Días': [moment().subtract(6, 'days'), moment()],
+    'Últimos 30 Días': [moment().subtract(29, 'days'), moment()],
+    'Este Mes': [moment().startOf('month'), moment().endOf('month')],
+    'Mes Pasado': [
+      moment().subtract(1, 'month').startOf('month'),
+      moment().subtract(1, 'month').endOf('month')
+    ]
+  }
+});
 
-      // Inicializar date range picker
-      $('#filtroRango').daterangepicker({
-        autoUpdateInput: false, // no escribir hasta aplicar
-        locale: {
-          format: 'DD/MM/YYYY',
-          separator: " - ",
-          applyLabel: "Aplicar",
-          cancelLabel: "Cancelar",
-          fromLabel: "Desde",
-          toLabel: "Hasta",
-          customRangeLabel: "Rango personalizado",
-          weekLabel: "S",
-          daysOfWeek: ["Do","Lu","Ma","Mi","Ju","Vi","Sa"],
-          monthNames: [
-            "Enero","Febrero","Marzo","Abril","Mayo","Junio",
-            "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
-          ],
-          firstDay: 1
-        },
-        startDate: moment(),
-        endDate: moment(),
-        ranges: {
-          'Hoy': [moment(), moment()],
-          'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-          'Últimos 7 Días': [moment().subtract(6, 'days'), moment()],
-          'Últimos 30 Días': [moment().subtract(29, 'days'), moment()],
-          'Este Mes': [moment().startOf('month'), moment().endOf('month')],
-          'Mes Pasado': [
-            moment().subtract(1, 'month').startOf('month'),
-            moment().subtract(1, 'month').endOf('month')
-          ]
-        }
-      });
+// Cuando el usuario aplica
+$('#filtroRango').on('apply.daterangepicker', function(ev, picker) {
+  $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+  cargarRecibosRango(picker.startDate.format("YYYY-MM-DD"), picker.endDate.format("YYYY-MM-DD"));
+});
 
-      // Cuando el usuario aplica
-      $('#filtroRango').on('apply.daterangepicker', function(ev, picker) {
-        $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
-        cargarRecibosRango(picker.startDate.format("YYYY-MM-DD"), picker.endDate.format("YYYY-MM-DD"));
-      });
+// Cuando cancela
+$('#filtroRango').on('cancel.daterangepicker', function(ev, picker) {
+  $(this).val('');
+  let hoy = moment().format("YYYY-MM-DD");
+  cargarRecibosRango(hoy, hoy);
+});
 
-      // Cuando cancela
-      $('#filtroRango').on('cancel.daterangepicker', function(ev, picker) {
-        $(this).val('');
-        let hoy = moment().format("YYYY-MM-DD");
-        cargarRecibosRango(hoy, hoy);
-      });
 
-      // Cargar recibos de hoy por defecto
-      cargarRecibosRango(hoy, hoy);
-    });
+  // Cargar recibos de hoy por defecto
+  cargarRecibosRango(hoy, hoy);
+});
+
+
   </script>
 </body>
 </html>
