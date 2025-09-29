@@ -609,8 +609,9 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 app.get('/api/recibos', verificarSesion, async (req, res) => {
   try {
     let depto = getDepartamento(req);
+    const { fecha } = req.query; // 👈 capturar parámetro de fecha
 
-    const result = await pool.query(`
+    let query = `
       SELECT 
         r.id,
         r.fecha,
@@ -627,15 +628,25 @@ app.get('/api/recibos', verificarSesion, async (req, res) => {
         ON r.paciente_id = e.numero_expediente 
        AND r.departamento = e.departamento
       WHERE r.departamento = $1
-      ORDER BY r.fecha DESC
-    `, [depto]);
+    `;
+    let params = [depto];
 
+    // Si el cliente mandó ?fecha=YYYY-MM-DD filtrar
+    if (fecha) {
+      query += " AND r.fecha = $2";
+      params.push(fecha);
+    }
+
+    query += " ORDER BY r.fecha DESC";
+
+    const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
     console.error("Error al obtener recibos:", err);
     res.status(500).json({ error: "Error al obtener recibos" });
   }
 });
+
 
 // Eliminar recibo (con pagos y órdenes asociadas)
 app.delete('/api/recibos/:id', isAdmin, async (req, res) => {
