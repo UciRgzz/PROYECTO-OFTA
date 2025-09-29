@@ -101,9 +101,10 @@
         </div>
         <div class="card-body">
             <div class="row g-3 align-items-end">
+               <!-- Rango de Fechas -->
                 <div class="col-md-4">
-                    <label for="fechaCierre" class="form-label">Seleccionar Fecha:</label>
-                    <input type="date" id="fechaCierre" class="form-control">
+                  <label for="filtroRango" class="form-label">Filtrar por fecha:</label>
+                  <input type="text" id="filtroRango" class="form-control" placeholder="Selecciona un rango" readonly>
                 </div>
 
                 <div class="col-md-2">
@@ -170,22 +171,59 @@
     </div>
 </div>
 
-<script>
-async function cargarCierre() {
-    const fecha = document.getElementById("fechaCierre").value;
+<!-- Daterangepicker CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 
-    if (!fecha) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Fecha requerida',
-            text: 'Debes seleccionar una fecha para generar el reporte.',
-            confirmButtonColor: '#3085d6'
-        });
-        return;
-    }
+<!-- jQuery (requerido por daterangepicker) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Moment.js + Daterangepicker JS -->
+<script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+
+
+<script>
+$(document).ready(() => {
+  const hoy = moment().format("YYYY-MM-DD");
+
+  $('#filtroRango').daterangepicker({
+    autoUpdateInput: false,
+    locale: {
+      format: 'DD/MM/YYYY',
+      applyLabel: "Aplicar",
+      cancelLabel: "Cancelar",
+      daysOfWeek: ["Do","Lu","Ma","Mi","Ju","Vi","Sa"],
+      monthNames: [
+        "Enero","Febrero","Marzo","Abril","Mayo","Junio",
+        "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
+      ]
+    },
+    startDate: moment(),
+    endDate: moment()
+  });
+
+  $('#filtroRango').on('apply.daterangepicker', function(ev, picker) {
+    $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+    this.dataset.desde = picker.startDate.format("YYYY-MM-DD");
+    this.dataset.hasta = picker.endDate.format("YYYY-MM-DD");
+    cargarCierre();
+  });
+
+  // Por defecto cargar hoy
+  $('#filtroRango').data('desde', hoy);
+  $('#filtroRango').data('hasta', hoy);
+  $('#filtroRango').val(moment().format('DD/MM/YYYY') + " - " + moment().format('DD/MM/YYYY'));
+  cargarCierre();
+});
+
+
+// función de cierre de caja
+async function cargarCierre() {
+    const rango = document.getElementById("filtroRango").dataset;
+    const desde = rango.desde;
+    const hasta = rango.hasta;
 
     try {
-        // 🔹 Mostrar loading
         Swal.fire({
             title: 'Generando cierre...',
             text: 'Por favor espera',
@@ -196,10 +234,9 @@ async function cargarCierre() {
         });
 
         // Resumen de cierre
-        const resResumen = await fetch(`/api/cierre-caja?fecha=${fecha}`);
+        const resResumen = await fetch(`/api/cierre-caja?desde=${desde}&hasta=${hasta}`);
         const datosResumen = await resResumen.json();
 
-        // 🔹 Cerrar loading
         Swal.close();
 
         if (!Array.isArray(datosResumen) || datosResumen.length === 0) {
@@ -207,7 +244,7 @@ async function cargarCierre() {
             Swal.fire({
                 icon: 'info',
                 title: 'Sin datos',
-                text: 'No se encontraron registros para la fecha seleccionada.',
+                text: 'No se encontraron registros en el rango seleccionado.',
                 confirmButtonColor: '#3085d6'
             });
             return;
@@ -261,7 +298,7 @@ async function cargarCierre() {
         document.getElementById("tbodyResumen").innerHTML = tbody;
 
         // Listado de pacientes
-        const resPacientes = await fetch(`/api/listado-pacientes?fecha=${fecha}`);
+        const resPacientes = await fetch(`/api/listado-pacientes?desde=${desde}&hasta=${hasta}`);
         const pacientes = await resPacientes.json();
         document.getElementById("tablaPacientes").innerHTML = pacientes.map(p => `
             <tr>
@@ -286,14 +323,13 @@ async function cargarCierre() {
     }
 }
 
+// funcion de expeortar exel
 function exportarExcel() {
-    const fecha = document.getElementById("fechaCierre").value || "sin_fecha";
+    const rangoTexto = document.getElementById("filtroRango").value || "sin_rango";
 
-    // Tablas completas
     const tablaResumen = document.getElementById("tablaResumen");
     const tablaPacientes = document.getElementById("tablaPacientesWrap");
 
-    // Crear libro Excel
     const wb = XLSX.utils.book_new();
     const wsResumen = XLSX.utils.table_to_sheet(tablaResumen);
     const wsPacientes = XLSX.utils.table_to_sheet(tablaPacientes);
@@ -301,14 +337,12 @@ function exportarExcel() {
     XLSX.utils.book_append_sheet(wb, wsResumen, "Resumen");
     XLSX.utils.book_append_sheet(wb, wsPacientes, "Pacientes");
 
-    // Descargar
-    XLSX.writeFile(wb, `cierre_${fecha}.xlsx`);
+    XLSX.writeFile(wb, `cierre_${rangoTexto.replace(/\//g,"-")}.xlsx`);
 
-    // 🔹 Aviso con SweetAlert2
     Swal.fire({
         icon: 'success',
         title: 'Exportación completada',
-        text: `El archivo cierre_${fecha}.xlsx se descargó correctamente.`,
+        text: `El archivo cierre_${rangoTexto}.xlsx se descargó correctamente.`,
         confirmButtonColor: '#27ae60'
     });
 }
