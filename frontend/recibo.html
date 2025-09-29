@@ -736,8 +736,9 @@ document.getElementById("formRecibo").addEventListener("submit", async function(
     const res = await fetch(url);
     let recibos = await res.json();
 
-    // 👇 Ordenar por folio de menor a mayor
+    // 👇 Ordenar siempre de menor a mayor por ID
     recibos.sort((a, b) => a.id - b.id);
+
 
     document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
       <tr>
@@ -777,8 +778,9 @@ async function cargarRecibosRango(desde, hasta) {
     const res = await fetch(`/api/recibos?desde=${desde}&hasta=${hasta}`);
     let recibos = await res.json();
 
-    // 👇 Ordenar por folio de menor a mayor
+    // 👇 Ordenar siempre de menor a mayor por ID
     recibos.sort((a, b) => a.id - b.id);
+
 
     document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
       <tr>
