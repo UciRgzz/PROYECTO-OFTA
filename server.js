@@ -609,7 +609,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 app.get('/api/recibos', verificarSesion, async (req, res) => {
   try {
     let depto = getDepartamento(req);
-    const { fecha, desde, hasta } = req.query; // 👈 ahora soporta rango
+    const { fecha, desde, hasta } = req.query; 
 
     let query = `
       SELECT 
