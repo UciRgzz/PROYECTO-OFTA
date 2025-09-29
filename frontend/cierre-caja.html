@@ -192,6 +192,7 @@ $(document).ready(() => {
       format: 'DD/MM/YYYY',
       applyLabel: "Aplicar",
       cancelLabel: "Cancelar",
+      customRangeLabel: "Rango personalizado",
       daysOfWeek: ["Do","Lu","Ma","Mi","Ju","Vi","Sa"],
       monthNames: [
         "Enero","Febrero","Marzo","Abril","Mayo","Junio",
@@ -199,7 +200,18 @@ $(document).ready(() => {
       ]
     },
     startDate: moment(),
-    endDate: moment()
+    endDate: moment(),
+    ranges: {
+      'Hoy': [moment(), moment()],
+      'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+      'Últimos 7 Días': [moment().subtract(6, 'days'), moment()],
+      'Últimos 30 Días': [moment().subtract(29, 'days'), moment()],
+      'Este Mes': [moment().startOf('month'), moment().endOf('month')],
+      'Mes Pasado': [
+        moment().subtract(1, 'month').startOf('month'),
+        moment().subtract(1, 'month').endOf('month')
+      ]
+    }
   });
 
   $('#filtroRango').on('apply.daterangepicker', function(ev, picker) {
@@ -209,12 +221,12 @@ $(document).ready(() => {
     cargarCierre();
   });
 
-  // Por defecto cargar hoy
+  // Inicializar valores por defecto (hoy), pero NO ejecutar aún
   $('#filtroRango').data('desde', hoy);
   $('#filtroRango').data('hasta', hoy);
   $('#filtroRango').val(moment().format('DD/MM/YYYY') + " - " + moment().format('DD/MM/YYYY'));
-  cargarCierre();
 });
+
 
 
 // función de cierre de caja
