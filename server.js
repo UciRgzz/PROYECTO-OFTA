@@ -1132,13 +1132,21 @@ await client.query(
 // ==================== CIERRE DE CAJA ====================
 app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
   try {
-    const { fecha } = req.query;
-    if (!fecha) {
-      return res.status(400).json({ error: "Falta fecha" });
-    }
-
+    const { fecha, desde, hasta } = req.query;
     let depto = getDepartamento(req);
-    let params = [fecha, depto];
+    let params = [depto];
+    let where = "p.departamento = $1";
+
+    if (fecha) {
+      params.push(fecha);
+      where += ` AND DATE(p.fecha) = $${params.length}`;
+    } else if (desde && hasta) {
+      params.push(desde, hasta);
+      where += ` AND DATE(p.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
+    } else {
+      // 👇 por defecto carga los de hoy
+      where += " AND DATE(p.fecha) = CURRENT_DATE";
+    }
 
     let query = `
       SELECT 
@@ -1149,8 +1157,7 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
       JOIN ordenes_medicas o 
         ON o.id = p.orden_id 
        AND o.departamento = p.departamento
-      WHERE DATE(p.fecha) = $1
-        AND p.departamento = $2
+      WHERE ${where}
       GROUP BY p.forma_pago, o.procedimiento
       ORDER BY p.forma_pago, o.procedimiento
     `;
@@ -1163,17 +1170,24 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
   }
 });
 
-
 // ==================== LISTADO DE PACIENTES ====================
 app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
   try {
-    const { fecha } = req.query;
-    if (!fecha) {
-      return res.status(400).json({ error: "Falta fecha" });
-    }
-
+    const { fecha, desde, hasta } = req.query;
     let depto = getDepartamento(req);
-    let params = [fecha, depto];
+    let params = [depto];
+    let where = "o.departamento = $1";
+
+    if (fecha) {
+      params.push(fecha);
+      where += ` AND o.fecha::date = $${params.length}`;
+    } else if (desde && hasta) {
+      params.push(desde, hasta);
+      where += ` AND o.fecha::date BETWEEN $${params.length - 1} AND $${params.length}`;
+    } else {
+      // 👇 por defecto carga los de hoy
+      where += " AND o.fecha::date = CURRENT_DATE";
+    }
 
     let query = `
       SELECT 
@@ -1199,8 +1213,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
       LEFT JOIN pagos p 
         ON p.orden_id = o.id 
        AND p.departamento = o.departamento
-      WHERE o.fecha::date = $1
-        AND o.departamento = $2              
+      WHERE ${where}            
       GROUP BY o.fecha::date, o.id, e.numero_expediente, e.nombre_completo, o.procedimiento, r.precio
       ORDER BY o.fecha, o.id
     `;
