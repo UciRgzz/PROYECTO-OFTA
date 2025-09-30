@@ -277,13 +277,13 @@
       
 
 // Cargar y mostrar las evaluaciones de optometría
-// Cargar y mostrar evaluaciones de optometría con rango de fechas
 async function cargarOptometrias(desde, hasta) {
   let url = "/api/optometria";
   if (desde && hasta) {
     url += `?desde=${desde}&hasta=${hasta}`;
   }
   const res = await fetch(url);
+  const data = await res.json();
 
   let html = `
     <div class="card">
