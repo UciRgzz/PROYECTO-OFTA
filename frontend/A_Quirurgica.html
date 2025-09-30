@@ -810,173 +810,136 @@ async function cargarOrdenes(year, month) {
     }
 
     // ==================== NUEVO CALENDARIO ====================
-    function initNewCalendar() {
-      // Nombres de meses en español
-      const monthNames = [
-        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-      ];
-      
-      // Elementos del DOM
-      const miniCalendarDays = document.getElementById('mini-calendar-days');
-      const calendarGrid = document.getElementById('calendar-grid');
-      const prevMonthBtn = document.getElementById('prev-month');
-      const nextMonthBtn = document.getElementById('next-month');
-      const mainCalendarHeader = document.getElementById('mainMonthYear');
-      const miniCalendarMonthYear = document.getElementById('miniMonthYear');
-      
-      // Función para renderizar el calendario
-      function renderNewCalendar() {
-        // Actualizar encabezados
-        mainCalendarHeader.textContent = `${monthNames[currentMonth]} ${currentYear}`;
-        miniCalendarMonthYear.textContent = `${monthNames[currentMonth]} ${currentYear}`;
-        
-        // Limpiar calendarios
-        miniCalendarDays.innerHTML = '';
-        calendarGrid.innerHTML = '';
-        
-        // Obtener primer día del mes y último día del mes
-        const firstDay = new Date(currentYear, currentMonth, 1);
-        const lastDay = new Date(currentYear, currentMonth + 1, 0);
-        const daysInMonth = lastDay.getDate();
-        
-        // Obtener el día de la semana del primer día (0 = Domingo, 1 = Lunes, etc.)
-        let firstDayIndex = firstDay.getDay();
-        // Ajustar para que la semana empiece en lunes
-        firstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
-        
-        // Obtener el último día del mes anterior
-        const prevMonthLastDay = new Date(currentYear, currentMonth, 0).getDate();
-        
-        // Generar días del calendario mini
-        // Días del mes anterior
-        for (let i = firstDayIndex; i > 0; i--) {
-          const dayElement = document.createElement('div');
-          dayElement.className = 'day other-month';
-          dayElement.textContent = prevMonthLastDay - i + 1;
-          miniCalendarDays.appendChild(dayElement);
-        }
-        
-        // Días del mes actual
-        for (let i = 1; i <= daysInMonth; i++) {
-          const dayElement = document.createElement('div');
-          dayElement.className = 'day';
-          
-          // Marcar día actual
-          if (currentDate.getDate() === i && 
-              currentDate.getMonth() === currentMonth && 
-              currentDate.getFullYear() === currentYear) {
-            dayElement.classList.add('current-day');
-          }
-          
-          dayElement.textContent = i;
-          miniCalendarDays.appendChild(dayElement);
-        }
-        
-        // Días del siguiente mes para completar la cuadrícula
-        const totalCells = 42; // 6 semanas * 7 días
-        const remainingCells = totalCells - (firstDayIndex + daysInMonth);
-        for (let i = 1; i <= remainingCells; i++) {
-          const dayElement = document.createElement('div');
-          dayElement.className = 'day other-month';
-          dayElement.textContent = i;
-          miniCalendarDays.appendChild(dayElement);
-        }
-        
-        // Generar encabezados de días para el calendario principal
-        const dayNames = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
-        for (let i = 0; i < 7; i++) {
-          const dayHeader = document.createElement('div');
-          dayHeader.className = 'calendar-day-new';
-          dayHeader.style.fontWeight = 'bold';
-          dayHeader.style.backgroundColor = '#e0e0e0';
-          dayHeader.textContent = dayNames[i].substring(0, 3);
-          calendarGrid.appendChild(dayHeader);
-        }
-        
-        // Generar días del calendario principal
-        // Días del mes anterior
-        for (let i = firstDayIndex; i > 0; i--) {
-          const dayElement = document.createElement('div');
-          dayElement.className = 'calendar-day-new other-month';
-          dayElement.innerHTML = `<div class="day-number-new">${prevMonthLastDay - i + 1}</div>`;
-          calendarGrid.appendChild(dayElement);
-        }
-        
-        // Días del mes actual
-        for (let i = 1; i <= daysInMonth; i++) {
-          const dayElement = document.createElement('div');
-          dayElement.className = 'calendar-day-new';
-          
-          // Marcar día actual
-          if (currentDate.getDate() === i && 
-              currentDate.getMonth() === currentMonth && 
-              currentDate.getFullYear() === currentYear) {
-            dayElement.classList.add('current-day');
-          }
-          
-          dayElement.innerHTML = `<div class="day-number-new">${i}</div>`;
-          
-          // Agregar eventos para este día
-          const fechaDia = new Date(currentYear, currentMonth, i).toISOString().split("T")[0];
-          dayElement.setAttribute('onclick', `asignarFecha('${fechaDia}')`);
-          
-          // Obtener cirugías para este día
-          let cirugias = [];
-          try {
-            const res = fetch("/api/cirugias");
-            cirugias = res.json ? res.json() : [];
-          } catch (err) { 
-            console.error(err); 
-          }
-          
-          const cirugiasDia = cirugias.filter(c => c.fecha && c.fecha.startsWith(fechaDia));
-          
-          if (cirugiasDia.length > 0) {
-            cirugiasDia.forEach(c => {
-              const eventElement = document.createElement('div');
-              eventElement.className = `event ${getColorClass(c.procedimiento)}`;
-              eventElement.textContent = `${c.nombre} - ${c.procedimiento}`;
-              dayElement.appendChild(eventElement);
-            });
-          }
-          
-          calendarGrid.appendChild(dayElement);
-        }
-        
-        // Días del siguiente mes para completar la cuadrícula
-        const totalMainCells = 42 - 7; // Restamos los encabezados
-        const remainingMainCells = totalMainCells - (firstDayIndex + daysInMonth);
-        for (let i = 1; i <= remainingMainCells; i++) {
-          const dayElement = document.createElement('div');
-          dayElement.className = 'calendar-day-new other-month';
-          dayElement.innerHTML = `<div class="day-number-new">${i}</div>`;
-          calendarGrid.appendChild(dayElement);
-        }
-      }
-      
-      // Navegación entre meses
-      prevMonthBtn.addEventListener('click', function() {
-        currentMonth--;
-        if (currentMonth < 0) {
-          currentMonth = 11;
-          currentYear--;
-        }
-        renderNewCalendar();
-      });
-      
-      nextMonthBtn.addEventListener('click', function() {
-        currentMonth++;
-        if (currentMonth > 11) {
-          currentMonth = 0;
-          currentYear++;
-        }
-        renderNewCalendar();
-      });
-      
-      // Renderizar calendario inicial
-      renderNewCalendar();
+function initNewCalendar() {
+  const monthNames = [
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+  ];
+
+  const miniCalendarDays = document.getElementById('mini-calendar-days');
+  const calendarGrid = document.getElementById('calendar-grid');
+  const prevMonthBtn = document.getElementById('prev-month');
+  const nextMonthBtn = document.getElementById('next-month');
+  const mainCalendarHeader = document.getElementById('mainMonthYear');
+  const miniCalendarMonthYear = document.getElementById('miniMonthYear');
+
+  async function renderNewCalendar() {
+    mainCalendarHeader.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+    miniCalendarMonthYear.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+
+    miniCalendarDays.innerHTML = '';
+    calendarGrid.innerHTML = '';
+
+    const firstDay = new Date(currentYear, currentMonth, 1);
+    const lastDay = new Date(currentYear, currentMonth + 1, 0);
+    const daysInMonth = lastDay.getDate();
+
+    let firstDayIndex = firstDay.getDay();
+    firstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
+    const prevMonthLastDay = new Date(currentYear, currentMonth, 0).getDate();
+
+    // 🔹 traer cirugías desde API
+    let cirugias = [];
+    try {
+      const res = await fetch("/api/cirugias");
+      cirugias = await res.json();
+    } catch (err) {
+      console.error("Error cargando cirugías:", err);
     }
+
+    // Mini calendario
+    for (let i = firstDayIndex; i > 0; i--) {
+      const dayElement = document.createElement('div');
+      dayElement.className = 'day other-month';
+      dayElement.textContent = prevMonthLastDay - i + 1;
+      miniCalendarDays.appendChild(dayElement);
+    }
+    for (let i = 1; i <= daysInMonth; i++) {
+      const dayElement = document.createElement('div');
+      dayElement.className = 'day';
+      if (currentDate.getDate() === i && currentDate.getMonth() === currentMonth && currentDate.getFullYear() === currentYear) {
+        dayElement.classList.add('current-day');
+      }
+      dayElement.textContent = i;
+      miniCalendarDays.appendChild(dayElement);
+    }
+    const totalCells = 42;
+    const remainingCells = totalCells - (firstDayIndex + daysInMonth);
+    for (let i = 1; i <= remainingCells; i++) {
+      const dayElement = document.createElement('div');
+      dayElement.className = 'day other-month';
+      dayElement.textContent = i;
+      miniCalendarDays.appendChild(dayElement);
+    }
+
+    // Encabezados
+    const dayNames = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+    for (let i = 0; i < 7; i++) {
+      const dayHeader = document.createElement('div');
+      dayHeader.className = 'calendar-day-new';
+      dayHeader.style.fontWeight = 'bold';
+      dayHeader.style.backgroundColor = '#e0e0e0';
+      dayHeader.textContent = dayNames[i];
+      calendarGrid.appendChild(dayHeader);
+    }
+
+    // Días principales
+    for (let i = firstDayIndex; i > 0; i--) {
+      const dayElement = document.createElement('div');
+      dayElement.className = 'calendar-day-new other-month';
+      dayElement.innerHTML = `<div class="day-number-new">${prevMonthLastDay - i + 1}</div>`;
+      calendarGrid.appendChild(dayElement);
+    }
+    for (let i = 1; i <= daysInMonth; i++) {
+      const fechaDia = new Date(currentYear, currentMonth, i).toISOString().split("T")[0];
+      const dayElement = document.createElement('div');
+      dayElement.className = 'calendar-day-new';
+      if (currentDate.getDate() === i && currentDate.getMonth() === currentMonth && currentDate.getFullYear() === currentYear) {
+        dayElement.classList.add('current-day');
+      }
+      dayElement.innerHTML = `<div class="day-number-new">${i}</div>`;
+      dayElement.onclick = () => asignarFecha(fechaDia);
+
+      const cirugiasDia = cirugias.filter(c => c.fecha && c.fecha.startsWith(fechaDia));
+      cirugiasDia.forEach(c => {
+        const eventElement = document.createElement('div');
+        eventElement.className = 'event';
+        eventElement.textContent = `${c.nombre} - ${c.procedimiento}`;
+        dayElement.appendChild(eventElement);
+      });
+
+      calendarGrid.appendChild(dayElement);
+    }
+    const totalMainCells = 42 - 7;
+    const remainingMainCells = totalMainCells - (firstDayIndex + daysInMonth);
+    for (let i = 1; i <= remainingMainCells; i++) {
+      const dayElement = document.createElement('div');
+      dayElement.className = 'calendar-day-new other-month';
+      dayElement.innerHTML = `<div class="day-number-new">${i}</div>`;
+      calendarGrid.appendChild(dayElement);
+    }
+  }
+
+  prevMonthBtn.addEventListener('click', async function() {
+    currentMonth--;
+    if (currentMonth < 0) {
+      currentMonth = 11;
+      currentYear--;
+    }
+    await renderNewCalendar();
+  });
+
+  nextMonthBtn.addEventListener('click', async function() {
+    currentMonth++;
+    if (currentMonth > 11) {
+      currentMonth = 0;
+      currentYear++;
+    }
+    await renderNewCalendar();
+  });
+
+  renderNewCalendar();
+}
 
     // ==================== AGENDAR CIRUGÍA ====================
     function agendarCirugia(idOrden) {
