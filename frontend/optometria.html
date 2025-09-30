@@ -247,16 +247,12 @@
     <div id="formularioOpto" style="display:none;"></div>
 
 
-<!-- Filtro -->
+<!-- 🔎 Filtro de fecha con daterangepicker -->
 <div class="mb-3">
-  <label for="filtroOpto" class="form-label">Filtrar por:</label>
-  <select id="filtroOpto" class="form-select w-auto d-inline-block">
-    <option value="todos">Todos</option>
-    <option value="hoy">Hoy</option>
-    <option value="ayer">Ayer</option>
-    <option value="mes">Este mes</option>
-  </select>
+  <label for="filtroRangoOpto" class="form-label">Filtrar por fecha:</label>
+  <input type="text" id="filtroRangoOpto" class="form-control" style="max-width:300px;" placeholder="Selecciona un rango de fechas" readonly>
 </div>
+
 
     <!-- Tabla -->
     <div id="tablaOpto"></div>
@@ -265,17 +261,30 @@
       <p>Sistema de Gestión Oftavisión &copy; 2025</p>
     </div>
   </div>
+    <!-- Daterangepicker CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Moment.js + Daterangepicker -->
+    <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+
+      
 
 // Cargar y mostrar las evaluaciones de optometría
-async function cargarOptometrias() {
-  const filtro = document.getElementById("filtroOpto")?.value || "todos";
-  const res = await fetch(`/api/optometria?filtro=${filtro}`);
+// Cargar y mostrar evaluaciones de optometría con rango de fechas
+async function cargarOptometrias(desde, hasta) {
+  let url = "/api/optometria";
+  if (desde && hasta) {
+    url += `?desde=${desde}&hasta=${hasta}`;
+  }
+  const res = await fetch(url);
 
-  const data = await res.json();
   let html = `
     <div class="card">
       <div class="card-header"><i class="fas fa-list"></i> Registros de Optometría</div>
@@ -619,12 +628,60 @@ document.addEventListener("input", async (e) => {
 });
 
     // Cargar evaluaciones al iniciar
-    document.addEventListener("DOMContentLoaded", function() {
-    // Filtro dinámico
-    document.getElementById("filtroOpto").addEventListener("change", cargarOptometrias);
+    // Cargar evaluaciones al iniciar con daterangepicker
+document.addEventListener("DOMContentLoaded", function() {
+  const hoy = moment().format("YYYY-MM-DD");
 
-      cargarOptometrias();
-    });
+  // Inicializar date range picker
+  $('#filtroRangoOpto').daterangepicker({
+    autoUpdateInput: false,
+    locale: {
+      format: 'DD/MM/YYYY',
+      separator: " - ",
+      applyLabel: "Aplicar",
+      cancelLabel: "Cancelar",
+      fromLabel: "Desde",
+      toLabel: "Hasta",
+      customRangeLabel: "Rango personalizado",
+      weekLabel: "S",
+      daysOfWeek: ["Do","Lu","Ma","Mi","Ju","Vi","Sa"],
+      monthNames: [
+        "Enero","Febrero","Marzo","Abril","Mayo","Junio",
+        "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
+      ],
+      firstDay: 1
+    },
+    startDate: moment(),
+    endDate: moment(),
+    ranges: {
+      'Hoy': [moment(), moment()],
+      'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+      'Últimos 7 Días': [moment().subtract(6, 'days'), moment()],
+      'Últimos 30 Días': [moment().subtract(29, 'days'), moment()],
+      'Este Mes': [moment().startOf('month'), moment().endOf('month')],
+      'Mes Pasado': [
+        moment().subtract(1, 'month').startOf('month'),
+        moment().subtract(1, 'month').endOf('month')
+      ]
+    }
+  });
+
+  // Cuando el usuario aplica
+  $('#filtroRangoOpto').on('apply.daterangepicker', function(ev, picker) {
+    $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+    cargarOptometrias(picker.startDate.format("YYYY-MM-DD"), picker.endDate.format("YYYY-MM-DD"));
+  });
+
+  // Cuando cancela
+  $('#filtroRangoOpto').on('cancel.daterangepicker', function(ev, picker) {
+    $(this).val('');
+    cargarOptometrias(hoy, hoy);
+  });
+
+  // Cargar registros de hoy por defecto
+  cargarOptometrias(hoy, hoy);
+});
+
   </script>
 </body>
 </html>

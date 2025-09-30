@@ -1241,7 +1241,7 @@ app.post("/api/seleccionar-sucursal", verificarSesion, (req, res) => {
   res.json({ ok: true, sucursal });
 });
 
-// ==================== MÓDULO OPTOMETRÍA ====================
+// ==================== MÓDULO DE OPTOMETRÍA ====================
 // Guardar nueva evaluación de optometría
 app.post("/api/optometria", verificarSesion, async (req, res) => {
   try {
@@ -1313,10 +1313,11 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
 });
 
 // Obtener evaluaciones de optometría (con nombre de paciente) con filtros
+// Obtener evaluaciones de optometría (con nombre de paciente) con filtros o rango de fechas
 app.get("/api/optometria", verificarSesion, async (req, res) => {
   try {
     let depto = getDepartamento(req);
-    const { filtro } = req.query; // "hoy" | "ayer" | "mes" | undefined
+    const { filtro, desde, hasta } = req.query; // ahora acepta rango de fechas también
 
     let query = `
       SELECT o.*, e.nombre_completo AS nombre
@@ -1328,7 +1329,10 @@ app.get("/api/optometria", verificarSesion, async (req, res) => {
     `;
     let params = [depto];
 
-    if (filtro === "hoy") {
+    if (desde && hasta) {
+      query += " AND DATE(o.fecha) BETWEEN $2 AND $3";
+      params.push(desde, hasta);
+    } else if (filtro === "hoy") {
       query += " AND DATE(o.fecha) = CURRENT_DATE";
     } else if (filtro === "ayer") {
       query += " AND DATE(o.fecha) = CURRENT_DATE - INTERVAL '1 day'";
