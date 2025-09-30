@@ -204,7 +204,6 @@
       font-size: 0.9rem;
     }
     
-    /* ==================== ESTILO CALENDARIO RUSO ==================== */
     .calendar-nav {
       display: flex;
       justify-content: space-between;
@@ -222,136 +221,39 @@
       color: var(--primary-color);
     }
     
-    /* Estilo del calendario ruso */
-    .russian-calendar {
-      background: #1a237e;
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+    }
+    
+    .day-header {
+      text-align: center;
+      padding: 12px;
+      background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
       color: white;
       border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+      font-weight: 600;
     }
     
-    .russian-header {
-      background: #0d1452;
-      padding: 15px 20px;
-      text-align: center;
-    }
-    
-    .russian-header h3 {
-      margin: 0;
-      font-size: 1.8rem;
-      font-weight: bold;
-    }
-    
-    .russian-header .subtitle {
-      font-size: 1rem;
-      opacity: 0.8;
-    }
-    
-    .russian-week-days {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      background: #283593;
-      font-weight: bold;
-      text-align: center;
-      padding: 10px 0;
-    }
-    
-    .russian-week-day {
+    .calendar-day {
+      background: white;
+      border-radius: 8px;
+      min-height: 120px;
       padding: 8px;
-      border-right: 1px solid #3949ab;
-    }
-    
-    .russian-week-day:last-child {
-      border-right: none;
-    }
-    
-    .russian-days-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 1px;
-      background: #3949ab;
-    }
-    
-    .russian-day {
-      background: #1a237e;
-      min-height: 80px;
-      padding: 8px;
-      position: relative;
-      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
       transition: all 0.3s;
-      border: 1px solid #3949ab;
     }
     
-    .russian-day:hover {
-      background: #283593;
-      transform: scale(1.02);
+    .calendar-day:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
     
-    .russian-day.empty {
-      background: #151b5a;
-      cursor: default;
-    }
-    
-    .russian-day.empty:hover {
-      background: #151b5a;
-      transform: none;
-    }
-    
-    .russian-day-number {
-      font-size: 16px;
-      font-weight: bold;
+    .day-number {
+      font-weight: 600;
       margin-bottom: 5px;
-    }
-    
-    .russian-event {
-      font-size: 0.7rem;
-      background: #e74c3c;
-      padding: 2px 5px;
-      border-radius: 3px;
-      margin-top: 3px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    
-    .russian-event.proc-catarata {
-      background: #9c27b0;
-    }
-    
-    .russian-event.proc-consulta {
-      background: #2196f3;
-    }
-    
-    .russian-event.proc-lente {
-      background: #ff9800;
-    }
-    
-    .russian-notes {
-      background: #0d1452;
-      padding: 15px;
-      margin-top: 10px;
-      border-radius: 0 0 8px 8px;
-    }
-    
-    .russian-notes h4 {
-      margin: 0 0 10px 0;
-      font-size: 1.1rem;
-    }
-    
-    .russian-notes ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    
-    .russian-notes li {
-      padding: 5px 0;
-      border-bottom: 1px solid #283593;
-    }
-    
-    .russian-notes li:last-child {
-      border-bottom: none;
+      color: var(--primary-color);
     }
     
     /* Colores por tipo de procedimiento */
@@ -397,6 +299,220 @@
       color: white;
     }
     
+    /* Estilos para el nuevo calendario */
+    .calendar-container {
+      display: flex;
+      max-width: 100%;
+      margin: 0 auto;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+    
+    .mini-calendar {
+      width: 300px;
+      background: linear-gradient(to bottom, #1e3c72, #2a5298);
+      color: white;
+      padding: 25px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .mini-calendar h2 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      text-align: center;
+      font-weight: 600;
+    }
+    
+    .mini-calendar .month-year {
+      font-size: 18px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    
+    .mini-calendar .days-of-week {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      margin-bottom: 10px;
+      text-align: center;
+      font-size: 14px;
+    }
+    
+    .mini-calendar .days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+    
+    .mini-calendar .day {
+      height: 35px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 5px;
+      font-weight: 500;
+      position: relative;
+      cursor: pointer;
+    }
+    
+    .mini-calendar .current-day {
+      background-color: #ff6b6b;
+      color: white;
+    }
+    
+    .mini-calendar .other-month {
+      color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .mini-calendar .event-indicator {
+      width: 6px;
+      height: 6px;
+      background-color: #ffd700;
+      border-radius: 50%;
+      position: absolute;
+      bottom: 3px;
+    }
+    
+    .main-calendar {
+      flex: 1;
+      padding: 25px;
+    }
+    
+    .main-calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+    
+    .main-calendar-header h1 {
+      font-size: 28px;
+      color: #1e3c72;
+      font-weight: 700;
+    }
+    
+    .month-navigation {
+      display: flex;
+      gap: 15px;
+    }
+    
+    .month-navigation button {
+      background-color: #1e3c72;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background-color 0.3s;
+    }
+    
+    .month-navigation button:hover {
+      background-color: #2a5298;
+    }
+    
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 15px;
+    }
+    
+    .calendar-day-new {
+      min-height: 120px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 10px;
+      background-color: #f9f9f9;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    
+    .calendar-day-new:hover {
+      background-color: #f0f0f0;
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .calendar-day-new.other-month {
+      background-color: #f5f5f5;
+      color: #aaa;
+    }
+    
+    .calendar-day-new.current-day {
+      background-color: #e3f2fd;
+      border: 2px solid #1e3c72;
+    }
+    
+    .day-number-new {
+      font-weight: bold;
+      margin-bottom: 8px;
+      font-size: 16px;
+      color: #1e3c72;
+    }
+    
+    .event {
+      background-color: #ffd700;
+      padding: 4px 8px;
+      border-radius: 4px;
+      margin-bottom: 5px;
+      font-size: 12px;
+      color: #333;
+    }
+    
+    .event.birthday {
+      background-color: #ff6b6b;
+      color: white;
+    }
+    
+    .event.meeting {
+      background-color: #4ecdc4;
+      color: white;
+    }
+    
+    .event.work {
+      background-color: #45b7d1;
+      color: white;
+    }
+    
+    .event.personal {
+      background-color: #96ceb4;
+      color: white;
+    }
+    
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 25px;
+      flex-wrap: wrap;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 14px;
+    }
+    
+    .legend-color {
+      width: 15px;
+      height: 15px;
+      border-radius: 3px;
+    }
+    
+    @media (max-width: 900px) {
+      .calendar-container {
+        flex-direction: column;
+      }
+      
+      .mini-calendar {
+        width: 100%;
+      }
+    }
+    
     @media (max-width: 768px) {
       h1 {
         font-size: 2rem;
@@ -416,13 +532,8 @@
         gap: 15px;
       }
       
-      .russian-day {
-        min-height: 60px;
-        padding: 4px;
-      }
-      
-      .russian-event {
-        font-size: 0.6rem;
+      .calendar {
+        grid-template-columns: repeat(1, 1fr);
       }
     }
   </style>
@@ -475,46 +586,57 @@
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
-            <div class="calendar-nav">
-              <button class="btn btn-primary" onclick="cambiarMesCirugia(-1)">
-                <i class="fas fa-chevron-left"></i> Mes anterior
-              </button>
-              <div class="current-month" id="mesCirugia"></div>
-              <button class="btn btn-primary" onclick="cambiarMesCirugia(1)">
-                Mes siguiente <i class="fas fa-chevron-right"></i>
-              </button>
+            <div class="calendar-container">
+              <div class="mini-calendar">
+                <h2>Calendario</h2>
+                <div class="month-year" id="miniMonthYear">Abril 2023</div>
+                <div class="days-of-week">
+                  <div>Lun</div>
+                  <div>Mar</div>
+                  <div>Mié</div>
+                  <div>Jue</div>
+                  <div>Vie</div>
+                  <div>Sáb</div>
+                  <div>Dom</div>
+                </div>
+                <div class="days" id="mini-calendar-days">
+                  <!-- Los días se generarán con JavaScript -->
+                </div>
+              </div>
+              
+              <div class="main-calendar">
+                <div class="main-calendar-header">
+                  <h1 id="mainMonthYear">Abril 2023</h1>
+                  <div class="month-navigation">
+                    <button id="prev-month">← Mes Anterior</button>
+                    <button id="next-month">Mes Siguiente →</button>
+                  </div>
+                </div>
+                
+                <div class="calendar-grid" id="calendar-grid">
+                  <!-- Los días del calendario principal se generarán con JavaScript -->
+                </div>
+                
+                <div class="legend">
+                  <div class="legend-item">
+                    <div class="legend-color" style="background-color: #ff6b6b;"></div>
+                    <span>Cumpleaños</span>
+                  </div>
+                  <div class="legend-item">
+                    <div class="legend-color" style="background-color: #4ecdc4;"></div>
+                    <span>Reunión</span>
+                  </div>
+                  <div class="legend-item">
+                    <div class="legend-color" style="background-color: #45b7d1;"></div>
+                    <span>Trabajo</span>
+                  </div>
+                  <div class="legend-item">
+                    <div class="legend-color" style="background-color: #96ceb4;"></div>
+                    <span>Personal</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            
-            <!-- CALENDARIO ESTILO RUSO -->
-            <div class="russian-calendar">
-              <div class="russian-header">
-                <h3>Санкт-Петербург</h3>
-                <div class="subtitle">Календарь хирургии</div>
-              </div>
-              
-              <div class="russian-week-days">
-                <div class="russian-week-day">Пн</div>
-                <div class="russian-week-day">Вт</div>
-                <div class="russian-week-day">Ср</div>
-                <div class="russian-week-day">Чт</div>
-                <div class="russian-week-day">Пт</div>
-                <div class="russian-week-day">Сб</div>
-                <div class="russian-week-day">Вс</div>
-              </div>
-              
-              <div class="russian-days-grid" id="calendarioCirugias"></div>
-              
-              <div class="russian-notes">
-                <h4>Особое мнение</h4>
-                <ul>
-                  <li><strong>Хирургическое расписание</strong></li>
-                  <li><strong>Основной календарь</strong></li>
-                  <li><strong>Медицинские процедуры</strong></li>
-                </ul>
-              </div>
-            </div>
-            <!-- FIN CALENDARIO RUSO -->
-            
           </div>
         </div>
       </div>
@@ -533,6 +655,11 @@
     // ====================== VARIABLES GLOBALES ======================
     let fechaCirugia = new Date();
     let ordenSeleccionada = null;
+    
+    // Variables para el nuevo calendario
+    let currentDate = new Date();
+    let currentMonth = currentDate.getMonth();
+    let currentYear = currentDate.getFullYear();
 
     // ====================== TABLA ======================
 async function cargarOrdenes(year, month) {
@@ -598,6 +725,7 @@ async function cargarOrdenes(year, month) {
     // ====================== CALENDARIO ======================
     document.addEventListener("DOMContentLoaded", () => {
       renderCalendarCirugias(); // carga inicial
+      initNewCalendar(); // inicializar el nuevo calendario
     });
 
     function getColorClass(proc) {
@@ -635,32 +763,41 @@ async function cargarOrdenes(year, month) {
         return f.getFullYear() === year && f.getMonth() === month;
       });
 
-      calendario.innerHTML = "";
+      if (calendario) {
+        calendario.innerHTML = "";
 
-      // Días vacíos al principio
-      for (let i = 1; i < primerDia; i++) {
-        calendario.innerHTML += `<div class="russian-day empty"></div>`;
-      }
+        ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"].forEach(d => {
+          calendario.innerHTML += `<div class="day-header">${d}</div>`;
+        });
 
-      // Días del mes
-      for (let d = 1; d <= diasEnMes; d++) {
-        const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
-        const programadas = filtradas.filter(c => c.fecha.startsWith(fechaDia));
-
-        let contenido = `<div class="russian-day" onclick="asignarFecha('${fechaDia}')">
-                       <div class="russian-day-number">${d}</div>`;
-        
-        if (programadas.length > 0) {
-          programadas.forEach(c => {
-            const colorClass = getColorClass(c.procedimiento);
-            contenido += `
-              <div class="russian-event ${colorClass}">
-                ${c.nombre.split(' ')[0]} - ${c.procedimiento.split(' ')[0]}
-              </div>`;
-          });
+        for (let i = 1; i < primerDia; i++) {
+          calendario.innerHTML += `<div class="empty-day"></div>`;
         }
-        contenido += "</div>";
-        calendario.innerHTML += contenido;
+
+        for (let d = 1; d <= diasEnMes; d++) {
+          const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
+          const programadas = filtradas.filter(c => c.fecha.startsWith(fechaDia));
+
+          let contenido = `<div class="calendar-day" onclick="asignarFecha('${fechaDia}')">
+                         <div class="day-number">${d}</div>`;
+          if (programadas.length > 0) {
+            programadas.forEach(c => {
+              contenido += `
+                <div class="insumo-item ${getColorClass(c.procedimiento)}">
+                  <div class="insumo-name">${c.nombre}</div>
+                  <div class="insumo-info">Proc: ${c.procedimiento}</div>
+                  <div class="insumo-info">Dr: ${c.medico}</div>
+                  ${c.tipo_lente ? `<div class="insumo-info">Lente: ${c.tipo_lente}</div>` : ""}
+                  <button class="btn btn-sm btn-danger mt-1" onclick="event.stopPropagation(); eliminarCirugia(${c.id})">
+                    <i class="fas fa-trash"></i> Eliminar
+                  </button>
+
+                </div>`;
+            });
+          }
+          contenido += "</div>";
+          calendario.innerHTML += contenido;
+        }
       }
 
       // 🔹 Refrescar la tabla también
@@ -670,6 +807,175 @@ async function cargarOrdenes(year, month) {
     function cambiarMesCirugia(offset) {
       fechaCirugia.setMonth(fechaCirugia.getMonth() + offset);
       renderCalendarCirugias();
+    }
+
+    // ==================== NUEVO CALENDARIO ====================
+    function initNewCalendar() {
+      // Nombres de meses en español
+      const monthNames = [
+        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+      ];
+      
+      // Elementos del DOM
+      const miniCalendarDays = document.getElementById('mini-calendar-days');
+      const calendarGrid = document.getElementById('calendar-grid');
+      const prevMonthBtn = document.getElementById('prev-month');
+      const nextMonthBtn = document.getElementById('next-month');
+      const mainCalendarHeader = document.getElementById('mainMonthYear');
+      const miniCalendarMonthYear = document.getElementById('miniMonthYear');
+      
+      // Función para renderizar el calendario
+      function renderNewCalendar() {
+        // Actualizar encabezados
+        mainCalendarHeader.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+        miniCalendarMonthYear.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+        
+        // Limpiar calendarios
+        miniCalendarDays.innerHTML = '';
+        calendarGrid.innerHTML = '';
+        
+        // Obtener primer día del mes y último día del mes
+        const firstDay = new Date(currentYear, currentMonth, 1);
+        const lastDay = new Date(currentYear, currentMonth + 1, 0);
+        const daysInMonth = lastDay.getDate();
+        
+        // Obtener el día de la semana del primer día (0 = Domingo, 1 = Lunes, etc.)
+        let firstDayIndex = firstDay.getDay();
+        // Ajustar para que la semana empiece en lunes
+        firstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
+        
+        // Obtener el último día del mes anterior
+        const prevMonthLastDay = new Date(currentYear, currentMonth, 0).getDate();
+        
+        // Generar días del calendario mini
+        // Días del mes anterior
+        for (let i = firstDayIndex; i > 0; i--) {
+          const dayElement = document.createElement('div');
+          dayElement.className = 'day other-month';
+          dayElement.textContent = prevMonthLastDay - i + 1;
+          miniCalendarDays.appendChild(dayElement);
+        }
+        
+        // Días del mes actual
+        for (let i = 1; i <= daysInMonth; i++) {
+          const dayElement = document.createElement('div');
+          dayElement.className = 'day';
+          
+          // Marcar día actual
+          if (currentDate.getDate() === i && 
+              currentDate.getMonth() === currentMonth && 
+              currentDate.getFullYear() === currentYear) {
+            dayElement.classList.add('current-day');
+          }
+          
+          dayElement.textContent = i;
+          miniCalendarDays.appendChild(dayElement);
+        }
+        
+        // Días del siguiente mes para completar la cuadrícula
+        const totalCells = 42; // 6 semanas * 7 días
+        const remainingCells = totalCells - (firstDayIndex + daysInMonth);
+        for (let i = 1; i <= remainingCells; i++) {
+          const dayElement = document.createElement('div');
+          dayElement.className = 'day other-month';
+          dayElement.textContent = i;
+          miniCalendarDays.appendChild(dayElement);
+        }
+        
+        // Generar encabezados de días para el calendario principal
+        const dayNames = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+        for (let i = 0; i < 7; i++) {
+          const dayHeader = document.createElement('div');
+          dayHeader.className = 'calendar-day-new';
+          dayHeader.style.fontWeight = 'bold';
+          dayHeader.style.backgroundColor = '#e0e0e0';
+          dayHeader.textContent = dayNames[i].substring(0, 3);
+          calendarGrid.appendChild(dayHeader);
+        }
+        
+        // Generar días del calendario principal
+        // Días del mes anterior
+        for (let i = firstDayIndex; i > 0; i--) {
+          const dayElement = document.createElement('div');
+          dayElement.className = 'calendar-day-new other-month';
+          dayElement.innerHTML = `<div class="day-number-new">${prevMonthLastDay - i + 1}</div>`;
+          calendarGrid.appendChild(dayElement);
+        }
+        
+        // Días del mes actual
+        for (let i = 1; i <= daysInMonth; i++) {
+          const dayElement = document.createElement('div');
+          dayElement.className = 'calendar-day-new';
+          
+          // Marcar día actual
+          if (currentDate.getDate() === i && 
+              currentDate.getMonth() === currentMonth && 
+              currentDate.getFullYear() === currentYear) {
+            dayElement.classList.add('current-day');
+          }
+          
+          dayElement.innerHTML = `<div class="day-number-new">${i}</div>`;
+          
+          // Agregar eventos para este día
+          const fechaDia = new Date(currentYear, currentMonth, i).toISOString().split("T")[0];
+          dayElement.setAttribute('onclick', `asignarFecha('${fechaDia}')`);
+          
+          // Obtener cirugías para este día
+          let cirugias = [];
+          try {
+            const res = fetch("/api/cirugias");
+            cirugias = res.json ? res.json() : [];
+          } catch (err) { 
+            console.error(err); 
+          }
+          
+          const cirugiasDia = cirugias.filter(c => c.fecha && c.fecha.startsWith(fechaDia));
+          
+          if (cirugiasDia.length > 0) {
+            cirugiasDia.forEach(c => {
+              const eventElement = document.createElement('div');
+              eventElement.className = `event ${getColorClass(c.procedimiento)}`;
+              eventElement.textContent = `${c.nombre} - ${c.procedimiento}`;
+              dayElement.appendChild(eventElement);
+            });
+          }
+          
+          calendarGrid.appendChild(dayElement);
+        }
+        
+        // Días del siguiente mes para completar la cuadrícula
+        const totalMainCells = 42 - 7; // Restamos los encabezados
+        const remainingMainCells = totalMainCells - (firstDayIndex + daysInMonth);
+        for (let i = 1; i <= remainingMainCells; i++) {
+          const dayElement = document.createElement('div');
+          dayElement.className = 'calendar-day-new other-month';
+          dayElement.innerHTML = `<div class="day-number-new">${i}</div>`;
+          calendarGrid.appendChild(dayElement);
+        }
+      }
+      
+      // Navegación entre meses
+      prevMonthBtn.addEventListener('click', function() {
+        currentMonth--;
+        if (currentMonth < 0) {
+          currentMonth = 11;
+          currentYear--;
+        }
+        renderNewCalendar();
+      });
+      
+      nextMonthBtn.addEventListener('click', function() {
+        currentMonth++;
+        if (currentMonth > 11) {
+          currentMonth = 0;
+          currentYear++;
+        }
+        renderNewCalendar();
+      });
+      
+      // Renderizar calendario inicial
+      renderNewCalendar();
     }
 
     // ==================== AGENDAR CIRUGÍA ====================
