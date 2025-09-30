@@ -379,7 +379,7 @@ async function cargarOptometrias(desde, hasta) {
         </td>
         <td>${o.cicloplejia || ""}</td>
         <td>${o.hora_tp || ""}</td>
-        <td>${new Date(o.fecha).toLocaleString()}</td>
+        <td>${new Date(o.fecha).toLocaleDateString("es-MX")}</td>
         <td>
           <button class="btn btn-danger btn-sm" onclick="borrarOpto(${o.id})">
             <i class="fas fa-trash"></i>
