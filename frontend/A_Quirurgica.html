@@ -144,35 +144,36 @@
       font-size: 0.9rem;
     }
     
-    .table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 20px 0;
-      background: white;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-    }
-    
-    .table th,
-    .table td {
-      font-size: 0.85rem;  /* texto más compacto */
-      padding: 8px;        /* menos espacio */
-      text-align: center;
-    }
-    
-    /* Ajustes de ancho por columna */
-    .table th:nth-child(1), .table td:nth-child(1) { width: 5%; }   /* Expediente */
-    .table th:nth-child(2), .table td:nth-child(2) { width: 6%; }   /* Edad */
-    .table th:nth-child(3), .table td:nth-child(3) { width: 15%; }  /* Nombre */
-    .table th:nth-child(4), .table td:nth-child(4) { width: 12%; }  /* Procedimiento */
-    .table th:nth-child(5), .table td:nth-child(5) { width: 9%; }   /* Total Orden */
-    .table th:nth-child(6), .table td:nth-child(6) { width: 9%; }   /* Pagos */
-    .table th:nth-child(7), .table td:nth-child(7) { width: 9%; }   /* Diferencia */
-    .table th:nth-child(8), .table td:nth-child(8) { width: 8%; }   /* Status */
-    .table th:nth-child(9), .table td:nth-child(9) { width: 10%; }  /* Tipo de Lente */
-    .table th:nth-child(10), .table td:nth-child(10) { width: 10%; }/* Agendado */
-    .table th:nth-child(11), .table td:nth-child(11) { width: 12%; }/* Acciones */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+.table th,
+.table td {
+  font-size: 0.85rem;  /* texto más compacto */
+  padding: 8px;        /* menos espacio */
+  text-align: center;
+}
+
+/* Ajustes de ancho por columna */
+.table th:nth-child(1), .table td:nth-child(1) { width: 5%; }   /* Expediente */
+.table th:nth-child(2), .table td:nth-child(2) { width: 6%; }   /* Edad */
+.table th:nth-child(3), .table td:nth-child(3) { width: 15%; }  /* Nombre */
+.table th:nth-child(4), .table td:nth-child(4) { width: 12%; }  /* Procedimiento */
+.table th:nth-child(5), .table td:nth-child(5) { width: 9%; }   /* Total Orden */
+.table th:nth-child(6), .table td:nth-child(6) { width: 9%; }   /* Pagos */
+.table th:nth-child(7), .table td:nth-child(7) { width: 9%; }   /* Diferencia */
+.table th:nth-child(8), .table td:nth-child(8) { width: 8%; }   /* Status */
+.table th:nth-child(9), .table td:nth-child(9) { width: 10%; }  /* Tipo de Lente */
+.table th:nth-child(10), .table td:nth-child(10) { width: 10%; }/* Agendado */
+.table th:nth-child(11), .table td:nth-child(11) { width: 12%; }/* Acciones */
+
     
     .table tr:last-child td {
       border-bottom: none;
@@ -218,101 +219,6 @@
       font-size: 1.5rem;
       font-weight: 600;
       color: var(--primary-color);
-    }
-    
-    .calendar-container {
-      display: flex;
-      gap: 20px;
-      margin-bottom: 20px;
-    }
-    
-    .mini-calendar {
-      width: 300px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-      padding: 20px;
-    }
-    
-    .mini-calendar-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
-    }
-    
-    .mini-calendar-month {
-      font-weight: 600;
-      color: var(--primary-color);
-      font-size: 1.2rem;
-    }
-    
-    .mini-calendar-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 5px;
-      margin-bottom: 15px;
-    }
-    
-    .mini-day-header {
-      text-align: center;
-      padding: 8px 0;
-      font-weight: 600;
-      color: var(--primary-color);
-      font-size: 0.85rem;
-    }
-    
-    .mini-calendar-day {
-      text-align: center;
-      padding: 8px 0;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    
-    .mini-calendar-day:hover {
-      background-color: #eef6ff;
-    }
-    
-    .mini-calendar-day.current {
-      background-color: var(--secondary-color);
-      color: white;
-    }
-    
-    .mini-calendar-day.has-surgery {
-      background-color: #f5cbfd;
-      font-weight: 600;
-    }
-    
-    .calendar-legend {
-      margin-top: 15px;
-      padding-top: 15px;
-      border-top: 1px solid #eee;
-    }
-    
-    .legend-item {
-      display: flex;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-    
-    .legend-color {
-      width: 20px;
-      height: 20px;
-      border-radius: 4px;
-      margin-right: 10px;
-    }
-    
-    .legend-text {
-      font-size: 0.9rem;
-    }
-    
-    .main-calendar {
-      flex: 1;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-      padding: 20px;
     }
     
     .calendar {
@@ -412,14 +318,6 @@
         gap: 15px;
       }
       
-      .calendar-container {
-        flex-direction: column;
-      }
-      
-      .mini-calendar {
-        width: 100%;
-      }
-      
       .calendar {
         grid-template-columns: repeat(1, 1fr);
       }
@@ -437,87 +335,33 @@
       <i class="fas fa-check-circle"></i> <span id="successMessage">Operación realizada correctamente.</span>
     </div>
 
-    <!-- Calendario con diseño ruso -->
-    <div class="card">
-      <div class="card-header"><i class="fas fa-calendar-alt"></i> Calendario de Cirugías</div>
-      <div class="card-body">
-        <div class="calendar-container">
-          <!-- Mini calendario a la izquierda -->
-          <div class="mini-calendar">
-            <div class="mini-calendar-header">
-              <div class="mini-calendar-month" id="miniMesCirugia"></div>
-              <div>
-                <button class="btn btn-sm btn-primary" onclick="cambiarMesMini(-1)">
-                  <i class="fas fa-chevron-left"></i>
-                </button>
-                <button class="btn btn-sm btn-primary" onclick="cambiarMesMini(1)">
-                  <i class="fas fa-chevron-right"></i>
-                </button>
-              </div>
-            </div>
-            <div class="mini-calendar-grid" id="miniCalendarioCirugias"></div>
-            
-            <!-- Leyenda de colores debajo del mini calendario -->
-            <div class="calendar-legend">
-              <h6>Leyenda de Procedimientos</h6>
-              <div class="legend-item">
-                <div class="legend-color" style="background-color: #f5cbfd; border-left: 4px solid #e46bf6;"></div>
-                <div class="legend-text">Cirugía de Catarata</div>
-              </div>
-              <div class="legend-item">
-                <div class="legend-color" style="background-color: #c9e7fd; border-left: 4px solid #2196f3;"></div>
-                <div class="legend-text">Consulta</div>
-              </div>
-              <div class="legend-item">
-                <div class="legend-color" style="background-color: #f7f9d2; border-left: 4px solid #fbf866;"></div>
-                <div class="legend-text">Procedimiento de Lente</div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Calendario principal a la derecha -->
-          <div class="main-calendar">
-            <div class="calendar-nav">
-              <button class="btn btn-primary" onclick="cambiarMesCirugia(-1)">
-                <i class="fas fa-chevron-left"></i> Mes anterior
-              </button>
-              <div class="current-month" id="mesCirugia"></div>
-              <button class="btn btn-primary" onclick="cambiarMesCirugia(1)">
-                Mes siguiente <i class="fas fa-chevron-right"></i>
-              </button>
-            </div>
-            <div class="calendar" id="calendarioCirugias"></div>
-          </div>
-        </div>
-      </div>
+<!-- Tabla de órdenes -->
+<div class="card">
+  <div class="card-header"><i class="fas fa-list"></i> Órdenes de Cirugía</div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered align-middle">
+        <thead>
+          <tr>
+            <th>Expediente</th>
+            <th>Edad</th>
+            <th>Nombre</th>
+            <th>Procedimiento</th>
+            <th>Total Orden</th>
+            <th>Pagos Realizados</th>
+            <th>Diferencia</th>
+            <th>Status</th>
+            <th>Tipo de Lente</th>
+            <th>Agendado</th> <!-- 🔹 Nueva columna -->
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tablaOrdenes"></tbody>
+      </table>
     </div>
+  </div>
+</div>
 
-    <!-- Tabla de órdenes -->
-    <div class="card">
-      <div class="card-header"><i class="fas fa-list"></i> Órdenes de Cirugía</div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-bordered align-middle">
-            <thead>
-              <tr>
-                <th>Expediente</th>
-                <th>Edad</th>
-                <th>Nombre</th>
-                <th>Procedimiento</th>
-                <th>Total Orden</th>
-                <th>Pagos Realizados</th>
-                <th>Diferencia</th>
-                <th>Status</th>
-                <th>Tipo de Lente</th>
-                <th>Agendado</th> <!-- 🔹 Nueva columna -->
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="tablaOrdenes"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
 
     <!-- Modal Calendario -->
     <div class="modal fade" id="modalCalendario" tabindex="-1">
@@ -532,12 +376,12 @@
               <button class="btn btn-primary" onclick="cambiarMesCirugia(-1)">
                 <i class="fas fa-chevron-left"></i> Mes anterior
               </button>
-              <div class="current-month" id="mesCirugiaModal"></div>
+              <div class="current-month" id="mesCirugia"></div>
               <button class="btn btn-primary" onclick="cambiarMesCirugia(1)">
                 Mes siguiente <i class="fas fa-chevron-right"></i>
               </button>
             </div>
-            <div class="calendar" id="calendarioCirugiasModal"></div>
+            <div class="calendar" id="calendarioCirugias"></div>
           </div>
         </div>
       </div>
@@ -555,74 +399,72 @@
   <script>
     // ====================== VARIABLES GLOBALES ======================
     let fechaCirugia = new Date();
-    let fechaMiniCalendario = new Date();
     let ordenSeleccionada = null;
 
     // ====================== TABLA ======================
-    async function cargarOrdenes(year, month) {
-      try {
-        const res = await fetch('/api/ordenes');
-        let ordenes = await res.json();
+async function cargarOrdenes(year, month) {
+  try {
+    const res = await fetch('/api/ordenes');
+    let ordenes = await res.json();
 
-        // 🔹 Si hay año/mes, filtramos por ese mes
-        if (year !== undefined && month !== undefined) {
-          ordenes = ordenes.filter(o => {
-            if (!o.fecha_cirugia) return true; // mostrar también las que aún no tienen fecha
-            const f = new Date(o.fecha_cirugia);
-            return f.getFullYear() === year && f.getMonth() === month;
-          });
-        }
-
-        document.getElementById("tablaOrdenes").innerHTML = ordenes.map(o => `
-          <tr>
-            <td>${o.expediente}</td>
-            <td>${o.edad}</td>
-            <td>${o.nombre}</td>
-            <td>${o.procedimiento}</td>
-            <td>$${Number(o.total).toLocaleString("es-MX", {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-            <td>$${Number(o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-            <td>$${Number(o.total - o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-
-            <td><span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">${o.status}</span></td>
-            <td>
-              ${o.tipo_lente 
-                ? `<span class="badge bg-info" style="cursor:pointer" onclick="editarLente(${o.id}, '${o.tipo_lente}')">${o.tipo_lente}</span>` 
-                : `<button class="btn btn-sm btn-secondary" 
-                          onclick="editarLente(${o.id}, '')">
-                     <i class="fas fa-plus-circle"></i> Añadir Lente
-                   </button>`}
-            </td>
-            <td>
-              ${o.fecha_cirugia 
-                ? new Date(o.fecha_cirugia).toLocaleDateString("es-MX") 
-                : '<span class="text-muted">No asignado</span>'}
-            </td>
-            <td>
-              ${o.fecha_cirugia ? 
-                '<span class="text-muted">Asignado</span>' : 
-                `<button class="btn btn-sm btn-primary" 
-                        onclick="abrirCalendario(${o.id})">
-                  <i class="fas fa-calendar-plus"></i> Agendar
-                </button>`}
-              ${o.fecha_cirugia ? `
-                <button class="btn btn-sm btn-warning mt-1" 
-                        onclick="editarCirugia(${o.id})">
-                  <i class="fas fa-edit"></i> Reprogramar
-                </button>
-              ` : ''}
-            </td>
-          </tr>
-        `).join('');
-      } catch (err) {
-        console.error("Error cargando órdenes:", err);
-        mostrarError("Error", "No se pudieron cargar las órdenes");
-      }
+    // 🔹 Si hay año/mes, filtramos por ese mes
+    if (year !== undefined && month !== undefined) {
+      ordenes = ordenes.filter(o => {
+        if (!o.fecha_cirugia) return true; // mostrar también las que aún no tienen fecha
+        const f = new Date(o.fecha_cirugia);
+        return f.getFullYear() === year && f.getMonth() === month;
+      });
     }
+
+    document.getElementById("tablaOrdenes").innerHTML = ordenes.map(o => `
+      <tr>
+        <td>${o.expediente}</td>
+        <td>${o.edad}</td>
+        <td>${o.nombre}</td>
+        <td>${o.procedimiento}</td>
+        <td>$${Number(o.total).toLocaleString("es-MX", {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+        <td>$${Number(o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+        <td>$${Number(o.total - o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+
+        <td><span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">${o.status}</span></td>
+        <td>
+          ${o.tipo_lente 
+            ? `<span class="badge bg-info" style="cursor:pointer" onclick="editarLente(${o.id}, '${o.tipo_lente}')">${o.tipo_lente}</span>` 
+            : `<button class="btn btn-sm btn-secondary" 
+                      onclick="editarLente(${o.id}, '')">
+                 <i class="fas fa-plus-circle"></i> Añadir Lente
+               </button>`}
+        </td>
+        <td>
+          ${o.fecha_cirugia 
+            ? new Date(o.fecha_cirugia).toLocaleDateString("es-MX") 
+            : '<span class="text-muted">No asignado</span>'}
+        </td>
+        <td>
+          ${o.fecha_cirugia ? 
+            '<span class="text-muted">Asignado</span>' : 
+            `<button class="btn btn-sm btn-primary" 
+                    onclick="abrirCalendario(${o.id})">
+              <i class="fas fa-calendar-plus"></i> Agendar
+            </button>`}
+          ${o.fecha_cirugia ? `
+            <button class="btn btn-sm btn-warning mt-1" 
+                    onclick="editarCirugia(${o.id})">
+              <i class="fas fa-edit"></i> Reprogramar
+            </button>
+          ` : ''}
+        </td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    console.error("Error cargando órdenes:", err);
+    mostrarError("Error", "No se pudieron cargar las órdenes");
+  }
+}
 
     // ====================== CALENDARIO ======================
     document.addEventListener("DOMContentLoaded", () => {
       renderCalendarCirugias(); // carga inicial
-      renderMiniCalendar(); // carga inicial del mini calendario
     });
 
     function getColorClass(proc) {
@@ -635,83 +477,14 @@
       return "";
     }
 
-    // ====================== MINI CALENDARIO ======================
-    async function renderMiniCalendar() {
-      const miniCalendario = document.getElementById("miniCalendarioCirugias");
-      const miniMesActual = document.getElementById("miniMesCirugia");
-
-      const year = fechaMiniCalendario.getFullYear();
-      const month = fechaMiniCalendario.getMonth();
-
-      miniMesActual.textContent = fechaMiniCalendario.toLocaleString("es-ES", { month: "long", year: "numeric" });
-
-      const primerDia = new Date(year, month, 1).getDay() || 7;
-      const diasEnMes = new Date(year, month + 1, 0).getDate();
-      const hoy = new Date();
-
-      let cirugias = [];
-      try {
-        const res = await fetch("/api/cirugias");
-        cirugias = await res.json();
-      } catch (err) { 
-        console.error(err); 
-      }
-
-      const filtradas = cirugias.filter(c => {
-        const f = new Date(c.fecha);
-        return f.getFullYear() === year && f.getMonth() === month;
-      });
-
-      miniCalendario.innerHTML = "";
-
-      ["L","M","M","J","V","S","D"].forEach(d => {
-        miniCalendario.innerHTML += `<div class="mini-day-header">${d}</div>`;
-      });
-
-      for (let i = 1; i < primerDia; i++) {
-        miniCalendario.innerHTML += `<div class="mini-calendar-day"></div>`;
-      }
-
-      for (let d = 1; d <= diasEnMes; d++) {
-        const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
-        const programadas = filtradas.filter(c => c.fecha.startsWith(fechaDia));
-        
-        let clase = "mini-calendar-day";
-        if (hoy.getDate() === d && hoy.getMonth() === month && hoy.getFullYear() === year) {
-          clase += " current";
-        }
-        if (programadas.length > 0) {
-          clase += " has-surgery";
-        }
-        
-        miniCalendario.innerHTML += `<div class="${clase}" onclick="seleccionarDiaMini('${fechaDia}')">${d}</div>`;
-      }
-    }
-
-    function cambiarMesMini(offset) {
-      fechaMiniCalendario.setMonth(fechaMiniCalendario.getMonth() + offset);
-      renderMiniCalendar();
-    }
-
-    function seleccionarDiaMini(fecha) {
-      // Al hacer clic en un día del mini calendario, actualizamos el calendario principal
-      fechaCirugia = new Date(fecha);
-      renderCalendarCirugias();
-    }
-
-    // ====================== CALENDARIO PRINCIPAL ======================
     async function renderCalendarCirugias() {
       const calendario = document.getElementById("calendarioCirugias");
       const mesActual = document.getElementById("mesCirugia");
-      const mesActualModal = document.getElementById("mesCirugiaModal");
 
       const year = fechaCirugia.getFullYear();
       const month = fechaCirugia.getMonth();
 
       mesActual.textContent = fechaCirugia.toLocaleString("es-ES", { month: "long", year: "numeric" });
-      if (mesActualModal) {
-        mesActualModal.textContent = fechaCirugia.toLocaleString("es-ES", { month: "long", year: "numeric" });
-      }
 
       const primerDia = new Date(year, month, 1).getDay() || 7;
       const diasEnMes = new Date(year, month + 1, 0).getDate();
@@ -764,21 +537,13 @@
         calendario.innerHTML += contenido;
       }
 
-      // Actualizar también el calendario modal si está abierto
-      const calendarioModal = document.getElementById("calendarioCirugiasModal");
-      if (calendarioModal) {
-        calendarioModal.innerHTML = calendario.innerHTML;
-      }
-
       // 🔹 Refrescar la tabla también
       cargarOrdenes(year, month);
     }
 
     function cambiarMesCirugia(offset) {
       fechaCirugia.setMonth(fechaCirugia.getMonth() + offset);
-      fechaMiniCalendario.setMonth(fechaMiniCalendario.getMonth() + offset);
       renderCalendarCirugias();
-      renderMiniCalendar();
     }
 
     // ==================== AGENDAR CIRUGÍA ====================
@@ -800,7 +565,6 @@
             });
             mostrarExito("Cirugía agendada", "La cirugía ha sido agendada correctamente");
             renderCalendarCirugias();
-            renderMiniCalendar();
           } catch (err) {
             console.error("Error al agendar:", err);
             mostrarError("Error", "No se pudo agendar la cirugía");
@@ -869,7 +633,6 @@
 
         ordenSeleccionada = null;
         renderCalendarCirugias();
-        renderMiniCalendar();
 
         // Cierra el modal después de asignar
         const modal = bootstrap.Modal.getInstance(document.getElementById("modalCalendario"));
@@ -901,7 +664,6 @@
             });
             mostrarExito("Cirugía eliminada", "La cirugía ha sido eliminada del calendario");
             renderCalendarCirugias();
-            renderMiniCalendar();
           } catch (err) {
             console.error("Error al eliminar cirugía:", err);
             mostrarError("Error", "No se pudo eliminar la cirugía");
