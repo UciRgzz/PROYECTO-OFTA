@@ -204,6 +204,7 @@
       font-size: 0.9rem;
     }
     
+    /* ==================== ESTILO CALENDARIO RUSO ==================== */
     .calendar-nav {
       display: flex;
       justify-content: space-between;
@@ -221,39 +222,136 @@
       color: var(--primary-color);
     }
     
-    .calendar {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 10px;
-    }
-    
-    .day-header {
-      text-align: center;
-      padding: 12px;
-      background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
+    /* Estilo del calendario ruso */
+    .russian-calendar {
+      background: #1a237e;
       color: white;
       border-radius: 8px;
-      font-weight: 600;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
     }
     
-    .calendar-day {
-      background: white;
-      border-radius: 8px;
-      min-height: 120px;
+    .russian-header {
+      background: #0d1452;
+      padding: 15px 20px;
+      text-align: center;
+    }
+    
+    .russian-header h3 {
+      margin: 0;
+      font-size: 1.8rem;
+      font-weight: bold;
+    }
+    
+    .russian-header .subtitle {
+      font-size: 1rem;
+      opacity: 0.8;
+    }
+    
+    .russian-week-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      background: #283593;
+      font-weight: bold;
+      text-align: center;
+      padding: 10px 0;
+    }
+    
+    .russian-week-day {
       padding: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      border-right: 1px solid #3949ab;
+    }
+    
+    .russian-week-day:last-child {
+      border-right: none;
+    }
+    
+    .russian-days-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      background: #3949ab;
+    }
+    
+    .russian-day {
+      background: #1a237e;
+      min-height: 80px;
+      padding: 8px;
+      position: relative;
+      cursor: pointer;
       transition: all 0.3s;
+      border: 1px solid #3949ab;
     }
     
-    .calendar-day:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    .russian-day:hover {
+      background: #283593;
+      transform: scale(1.02);
     }
     
-    .day-number {
-      font-weight: 600;
+    .russian-day.empty {
+      background: #151b5a;
+      cursor: default;
+    }
+    
+    .russian-day.empty:hover {
+      background: #151b5a;
+      transform: none;
+    }
+    
+    .russian-day-number {
+      font-size: 16px;
+      font-weight: bold;
       margin-bottom: 5px;
-      color: var(--primary-color);
+    }
+    
+    .russian-event {
+      font-size: 0.7rem;
+      background: #e74c3c;
+      padding: 2px 5px;
+      border-radius: 3px;
+      margin-top: 3px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .russian-event.proc-catarata {
+      background: #9c27b0;
+    }
+    
+    .russian-event.proc-consulta {
+      background: #2196f3;
+    }
+    
+    .russian-event.proc-lente {
+      background: #ff9800;
+    }
+    
+    .russian-notes {
+      background: #0d1452;
+      padding: 15px;
+      margin-top: 10px;
+      border-radius: 0 0 8px 8px;
+    }
+    
+    .russian-notes h4 {
+      margin: 0 0 10px 0;
+      font-size: 1.1rem;
+    }
+    
+    .russian-notes ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .russian-notes li {
+      padding: 5px 0;
+      border-bottom: 1px solid #283593;
+    }
+    
+    .russian-notes li:last-child {
+      border-bottom: none;
     }
     
     /* Colores por tipo de procedimiento */
@@ -318,8 +416,13 @@
         gap: 15px;
       }
       
-      .calendar {
-        grid-template-columns: repeat(1, 1fr);
+      .russian-day {
+        min-height: 60px;
+        padding: 4px;
+      }
+      
+      .russian-event {
+        font-size: 0.6rem;
       }
     }
   </style>
@@ -381,7 +484,37 @@
                 Mes siguiente <i class="fas fa-chevron-right"></i>
               </button>
             </div>
-            <div class="calendar" id="calendarioCirugias"></div>
+            
+            <!-- CALENDARIO ESTILO RUSO -->
+            <div class="russian-calendar">
+              <div class="russian-header">
+                <h3>Санкт-Петербург</h3>
+                <div class="subtitle">Календарь хирургии</div>
+              </div>
+              
+              <div class="russian-week-days">
+                <div class="russian-week-day">Пн</div>
+                <div class="russian-week-day">Вт</div>
+                <div class="russian-week-day">Ср</div>
+                <div class="russian-week-day">Чт</div>
+                <div class="russian-week-day">Пт</div>
+                <div class="russian-week-day">Сб</div>
+                <div class="russian-week-day">Вс</div>
+              </div>
+              
+              <div class="russian-days-grid" id="calendarioCirugias"></div>
+              
+              <div class="russian-notes">
+                <h4>Особое мнение</h4>
+                <ul>
+                  <li><strong>Хирургическое расписание</strong></li>
+                  <li><strong>Основной календарь</strong></li>
+                  <li><strong>Медицинские процедуры</strong></li>
+                </ul>
+              </div>
+            </div>
+            <!-- FIN CALENDARIO RUSO -->
+            
           </div>
         </div>
       </div>
@@ -504,32 +637,25 @@ async function cargarOrdenes(year, month) {
 
       calendario.innerHTML = "";
 
-      ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"].forEach(d => {
-        calendario.innerHTML += `<div class="day-header">${d}</div>`;
-      });
-
+      // Días vacíos al principio
       for (let i = 1; i < primerDia; i++) {
-        calendario.innerHTML += `<div class="empty-day"></div>`;
+        calendario.innerHTML += `<div class="russian-day empty"></div>`;
       }
 
+      // Días del mes
       for (let d = 1; d <= diasEnMes; d++) {
         const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
         const programadas = filtradas.filter(c => c.fecha.startsWith(fechaDia));
 
-        let contenido = `<div class="calendar-day" onclick="asignarFecha('${fechaDia}')">
-                       <div class="day-number">${d}</div>`;
+        let contenido = `<div class="russian-day" onclick="asignarFecha('${fechaDia}')">
+                       <div class="russian-day-number">${d}</div>`;
+        
         if (programadas.length > 0) {
           programadas.forEach(c => {
+            const colorClass = getColorClass(c.procedimiento);
             contenido += `
-              <div class="insumo-item ${getColorClass(c.procedimiento)}">
-                <div class="insumo-name">${c.nombre}</div>
-                <div class="insumo-info">Proc: ${c.procedimiento}</div>
-                <div class="insumo-info">Dr: ${c.medico}</div>
-                ${c.tipo_lente ? `<div class="insumo-info">Lente: ${c.tipo_lente}</div>` : ""}
-                <button class="btn btn-sm btn-danger mt-1" onclick="event.stopPropagation(); eliminarCirugia(${c.id})">
-                  <i class="fas fa-trash"></i> Eliminar
-                </button>
-
+              <div class="russian-event ${colorClass}">
+                ${c.nombre.split(' ')[0]} - ${c.procedimiento.split(' ')[0]}
               </div>`;
           });
         }
