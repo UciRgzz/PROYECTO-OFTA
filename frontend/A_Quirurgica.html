@@ -364,28 +364,59 @@
 
 
     <!-- Modal Calendario -->
-    <div class="modal fade" id="modalCalendario" tabindex="-1">
-      <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title"><i class="fas fa-calendar"></i> Calendario de Cirugías</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <div class="calendar-nav">
-              <button class="btn btn-primary" onclick="cambiarMesCirugia(-1)">
-                <i class="fas fa-chevron-left"></i> Mes anterior
-              </button>
-              <div class="current-month" id="mesCirugia"></div>
-              <button class="btn btn-primary" onclick="cambiarMesCirugia(1)">
-                Mes siguiente <i class="fas fa-chevron-right"></i>
-              </button>
+<div class="modal fade" id="modalCalendario" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-calendar"></i> Calendario de Cirugías</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="calendar-container">
+          <!-- Mini calendario -->
+          <div class="mini-calendar">
+            <h2>Calendario</h2>
+            <div class="month-year" id="miniMonthYear"></div>
+            <div class="days-of-week">
+              <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>
             </div>
-            <div class="calendar" id="calendarioCirugias"></div>
+            <div class="days" id="mini-calendar-days"></div>
+          </div>
+
+          <!-- Calendario principal -->
+          <div class="main-calendar">
+            <div class="main-calendar-header">
+              <h1 id="mainMonthYear"></h1>
+              <div class="month-navigation">
+                <button id="prev-month">← Mes Anterior</button>
+                <button id="next-month">Mes Siguiente →</button>
+              </div>
+            </div>
+
+            <div class="calendar-grid" id="calendar-grid"></div>
+
+            <div class="legend">
+              <div class="legend-item">
+                <div class="legend-color" style="background-color: #ff6b6b;"></div>
+                <span>Catarata</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-color" style="background-color: #4ecdc4;"></div>
+                <span>Consulta</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-color" style="background-color: #45b7d1;"></div>
+                <span>Lente</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
+  </div>
+</div>
+    <!-- Fin Modal Calendario --> 
+     
 
     <div class="footer">
       <p>Sistema de Gestión Oftavisión &copy; 2025</p>
