@@ -364,59 +364,28 @@
 
 
     <!-- Modal Calendario -->
-<div class="modal fade" id="modalCalendario" tabindex="-1">
-  <div class="modal-dialog modal-xl modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title"><i class="fas fa-calendar"></i> Calendario de Cirugías</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <div class="calendar-container">
-          <!-- Mini calendario -->
-          <div class="mini-calendar">
-            <h2>Calendario</h2>
-            <div class="month-year" id="miniMonthYear"></div>
-            <div class="days-of-week">
-              <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div>
-              <div>Vie</div><div>Sáb</div><div>Dom</div>
-            </div>
-            <div class="days" id="mini-calendar-days"></div>
+    <div class="modal fade" id="modalCalendario" tabindex="-1">
+      <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title"><i class="fas fa-calendar"></i> Calendario de Cirugías</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>
-
-          <!-- Calendario principal -->
-          <div class="main-calendar">
-            <div class="main-calendar-header">
-              <h1 id="mainMonthYear"></h1>
-              <div class="month-navigation">
-                <button id="prev-month">← Mes Anterior</button>
-                <button id="next-month">Mes Siguiente →</button>
-              </div>
+          <div class="modal-body">
+            <div class="calendar-nav">
+              <button class="btn btn-primary" onclick="cambiarMesCirugia(-1)">
+                <i class="fas fa-chevron-left"></i> Mes anterior
+              </button>
+              <div class="current-month" id="mesCirugia"></div>
+              <button class="btn btn-primary" onclick="cambiarMesCirugia(1)">
+                Mes siguiente <i class="fas fa-chevron-right"></i>
+              </button>
             </div>
-
-            <div class="calendar-grid" id="calendar-grid"></div>
-
-            <div class="legend">
-              <div class="legend-item">
-                <div class="legend-color" style="background-color: #f5cbfd;"></div>
-                <span>Catarata</span>
-              </div>
-              <div class="legend-item">
-                <div class="legend-color" style="background-color: #c9e7fd;"></div>
-                <span>Consulta</span>
-              </div>
-              <div class="legend-item">
-                <div class="legend-color" style="background-color: #f7f9d2;"></div>
-                <span>Lente</span>
-              </div>
-            </div>
+            <div class="calendar" id="calendarioCirugias"></div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</div>
-
 
     <div class="footer">
       <p>Sistema de Gestión Oftavisión &copy; 2025</p>
@@ -493,84 +462,89 @@ async function cargarOrdenes(year, month) {
   }
 }
 
-    // ====================== CALENDARIO NUEVO ======================
-let currentYear = new Date().getFullYear();
-let currentMonth = new Date().getMonth();
-
-async function renderNewCalendar() {
-  const monthNames = [
-    "Enero","Febrero","Marzo","Abril","Mayo","Junio",
-    "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
-  ];
-
-  const miniCalendarDays = document.getElementById('mini-calendar-days');
-  const calendarGrid = document.getElementById('calendar-grid');
-  const mainCalendarHeader = document.getElementById('mainMonthYear');
-  const miniCalendarMonthYear = document.getElementById('miniMonthYear');
-
-  mainCalendarHeader.textContent = `${monthNames[currentMonth]} ${currentYear}`;
-  miniCalendarMonthYear.textContent = `${monthNames[currentMonth]} ${currentYear}`;
-
-  miniCalendarDays.innerHTML = '';
-  calendarGrid.innerHTML = '';
-
-  const firstDay = new Date(currentYear, currentMonth, 1);
-  const lastDay = new Date(currentYear, currentMonth + 1, 0);
-  const daysInMonth = lastDay.getDate();
-
-  let cirugias = [];
-  try {
-    const res = await fetch("/api/cirugias");
-    cirugias = await res.json();
-  } catch (err) {
-    console.error("Error cargando cirugías:", err);
-  }
-
-  // ---- Mini calendario ----
-  const primerDia = (firstDay.getDay() || 7) - 1; // lunes=0
-  for (let i = 0; i < primerDia; i++) {
-    miniCalendarDays.innerHTML += `<div></div>`;
-  }
-  for (let i = 1; i <= daysInMonth; i++) {
-    miniCalendarDays.innerHTML += `<div>${i}</div>`;
-  }
-
-  // ---- Calendario principal ----
-  for (let d = 1; d <= daysInMonth; d++) {
-    const fechaDia = new Date(currentYear, currentMonth, d).toISOString().split("T")[0];
-    const dayElement = document.createElement('div');
-    dayElement.className = 'calendar-day-new';
-    dayElement.innerHTML = `<div class="day-number-new">${d}</div>`;
-    dayElement.onclick = () => asignarFecha(fechaDia);
-
-    const cirugiasDia = cirugias.filter(c => c.fecha && c.fecha.startsWith(fechaDia));
-    cirugiasDia.forEach(c => {
-      const eventElement = document.createElement('div');
-      eventElement.className = 'event';
-      eventElement.textContent = `${c.nombre} - ${c.procedimiento}`;
-      dayElement.appendChild(eventElement);
+    // ====================== CALENDARIO ======================
+    document.addEventListener("DOMContentLoaded", () => {
+      renderCalendarCirugias(); // carga inicial
     });
 
-    calendarGrid.appendChild(dayElement);
-  }
-}
+    function getColorClass(proc) {
+      const texto = proc.toLowerCase();
 
-async function initNewCalendar() {
-  await renderNewCalendar();
+      if (texto.includes("catarata")) return "proc-catarata";
+      if (texto.includes("consulta")) return "proc-consulta";
+      if (texto.includes("lente")) return "proc-lente";
 
-  document.getElementById('prev-month').addEventListener('click', async () => {
-    currentMonth--;
-    if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-    await renderNewCalendar();
-  });
+      return "";
+    }
 
-  document.getElementById('next-month').addEventListener('click', async () => {
-    currentMonth++;
-    if (currentMonth > 11) { currentMonth = 0; currentYear++; }
-    await renderNewCalendar();
-  });
-}
+    async function renderCalendarCirugias() {
+      const calendario = document.getElementById("calendarioCirugias");
+      const mesActual = document.getElementById("mesCirugia");
 
+      const year = fechaCirugia.getFullYear();
+      const month = fechaCirugia.getMonth();
+
+      mesActual.textContent = fechaCirugia.toLocaleString("es-ES", { month: "long", year: "numeric" });
+
+      const primerDia = new Date(year, month, 1).getDay() || 7;
+      const diasEnMes = new Date(year, month + 1, 0).getDate();
+
+      let cirugias = [];
+      try {
+        const res = await fetch("/api/cirugias");
+        cirugias = await res.json();
+      } catch (err) { 
+        console.error(err); 
+      }
+
+      const filtradas = cirugias.filter(c => {
+        const f = new Date(c.fecha);
+        return f.getFullYear() === year && f.getMonth() === month;
+      });
+
+      calendario.innerHTML = "";
+
+      ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"].forEach(d => {
+        calendario.innerHTML += `<div class="day-header">${d}</div>`;
+      });
+
+      for (let i = 1; i < primerDia; i++) {
+        calendario.innerHTML += `<div class="empty-day"></div>`;
+      }
+
+      for (let d = 1; d <= diasEnMes; d++) {
+        const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
+        const programadas = filtradas.filter(c => c.fecha.startsWith(fechaDia));
+
+        let contenido = `<div class="calendar-day" onclick="asignarFecha('${fechaDia}')">
+                       <div class="day-number">${d}</div>`;
+        if (programadas.length > 0) {
+          programadas.forEach(c => {
+            contenido += `
+              <div class="insumo-item ${getColorClass(c.procedimiento)}">
+                <div class="insumo-name">${c.nombre}</div>
+                <div class="insumo-info">Proc: ${c.procedimiento}</div>
+                <div class="insumo-info">Dr: ${c.medico}</div>
+                ${c.tipo_lente ? `<div class="insumo-info">Lente: ${c.tipo_lente}</div>` : ""}
+                <button class="btn btn-sm btn-danger mt-1" onclick="event.stopPropagation(); eliminarCirugia(${c.id})">
+                  <i class="fas fa-trash"></i> Eliminar
+                </button>
+
+              </div>`;
+          });
+        }
+        contenido += "</div>";
+        calendario.innerHTML += contenido;
+      }
+
+      // 🔹 Refrescar la tabla también
+      cargarOrdenes(year, month);
+    }
+
+    function cambiarMesCirugia(offset) {
+      fechaCirugia.setMonth(fechaCirugia.getMonth() + offset);
+      renderCalendarCirugias();
+    }
 
     // ==================== AGENDAR CIRUGÍA ====================
     function agendarCirugia(idOrden) {
@@ -590,7 +564,7 @@ async function initNewCalendar() {
               body: JSON.stringify({ fecha_cirugia: fecha })
             });
             mostrarExito("Cirugía agendada", "La cirugía ha sido agendada correctamente");
-            renderNewCalendar();
+            renderCalendarCirugias();
           } catch (err) {
             console.error("Error al agendar:", err);
             mostrarError("Error", "No se pudo agendar la cirugía");
@@ -630,7 +604,7 @@ async function initNewCalendar() {
               body: JSON.stringify({ tipo_lente: result.value })
             });
             mostrarExito("Tipo de lente actualizado", "El tipo de lente fue actualizado correctamente");
-            renderNewCalendar();
+            renderCalendarCirugias();
           } catch (err) {
             console.error("Error al actualizar tipo de lente:", err);
             mostrarError("Error", "No se pudo actualizar el tipo de lente");
@@ -640,12 +614,10 @@ async function initNewCalendar() {
     }
 
     function abrirCalendario(idOrden) {
-  ordenSeleccionada = idOrden;
-  const modal = new bootstrap.Modal(document.getElementById("modalCalendario"));
-  modal.show();
-  initNewCalendar(); // carga el calendario nuevo con cirugías
-}
-
+      ordenSeleccionada = idOrden;
+      const modal = new bootstrap.Modal(document.getElementById("modalCalendario"));
+      modal.show();
+    }
 
     // ==================== ASIGNAR FECHA DESDE EL CALENDARIO ====================
     async function asignarFecha(fecha) {
@@ -660,8 +632,7 @@ async function initNewCalendar() {
         mostrarExito("Cirugía asignada", `Fecha: ${fecha}`);
 
         ordenSeleccionada = null;
-        renderNewCalendar();
-
+        renderCalendarCirugias();
 
         // Cierra el modal después de asignar
         const modal = bootstrap.Modal.getInstance(document.getElementById("modalCalendario"));
@@ -692,8 +663,7 @@ async function initNewCalendar() {
               body: JSON.stringify({ fecha_cirugia: null })
             });
             mostrarExito("Cirugía eliminada", "La cirugía ha sido eliminada del calendario");
-            renderNewCalendar();
-
+            renderCalendarCirugias();
           } catch (err) {
             console.error("Error al eliminar cirugía:", err);
             mostrarError("Error", "No se pudo eliminar la cirugía");

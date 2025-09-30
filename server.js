@@ -1241,7 +1241,7 @@ app.post("/api/seleccionar-sucursal", verificarSesion, (req, res) => {
   res.json({ ok: true, sucursal });
 });
 
-// ==================== MODULO DE OPTOMETRÍA ====================
+// ==================== MÓDULO OPTOMETRÍA ====================
 // Guardar nueva evaluación de optometría
 app.post("/api/optometria", verificarSesion, async (req, res) => {
   try {
@@ -1286,7 +1286,7 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
         $29,$30,$31,
         $32,$33,
         $34,$35,
-        CURRENT_DATE, $36
+        NOW(), $36
       )
       RETURNING *`,
       [
@@ -1305,18 +1305,18 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
       ]
     );
 
-    res.json({ mensaje: "Optometría guardada con éxito", data: result.rows[0] });
+    res.json({ mensaje: "✅ Optometría guardada con éxito", data: result.rows[0] });
   } catch (err) {
     console.error("Error al guardar optometría:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// Obtener evaluaciones de optometría por rango de fechas (default = hoy)
+// Obtener evaluaciones de optometría (con nombre de paciente) con filtros
 app.get("/api/optometria", verificarSesion, async (req, res) => {
   try {
-    const depto = getDepartamento(req);
-    const { desde, hasta } = req.query;
+    let depto = getDepartamento(req);
+    const { filtro } = req.query; // "hoy" | "ayer" | "mes" | undefined
 
     let query = `
       SELECT o.*, e.nombre_completo AS nombre
@@ -1328,13 +1328,13 @@ app.get("/api/optometria", verificarSesion, async (req, res) => {
     `;
     let params = [depto];
 
-    if (desde && hasta) {
-      query += " AND DATE(o.fecha) BETWEEN $2::date AND $3::date";
-      params.push(desde, hasta);
-    } else {
+    if (filtro === "hoy") {
       query += " AND DATE(o.fecha) = CURRENT_DATE";
+    } else if (filtro === "ayer") {
+      query += " AND DATE(o.fecha) = CURRENT_DATE - INTERVAL '1 day'";
+    } else if (filtro === "mes") {
+      query += " AND DATE_TRUNC('month', o.fecha) = DATE_TRUNC('month', CURRENT_DATE)";
     }
-
 
     query += " ORDER BY o.fecha DESC";
 
@@ -1346,7 +1346,6 @@ app.get("/api/optometria", verificarSesion, async (req, res) => {
     res.status(500).json({ error: "Error al obtener registros de optometría" });
   }
 });
-
 
 
 // Obtener las evaluaciones de optometría de un expediente específico
@@ -1639,7 +1638,6 @@ app.post('/api/set-departamento', isAdmin, (req, res) => {
 
 
 // ==================== AGENDA QUIRÚRGICA ====================
-
 // Listar todas las órdenes pendientes o con fecha asignada
 app.get("/api/ordenes", verificarSesion, async (req, res) => {
   try {
@@ -1666,7 +1664,7 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
         ON e.numero_expediente = o.expediente_id 
        AND e.departamento = o.departamento
       WHERE o.departamento = $1
-      ORDER BY o.fecha_cirugia NULLS LAST, o.id DESC
+      ORDER BY o.fecha DESC
     `, [depto]);
 
     res.json(result.rows);
@@ -1676,7 +1674,7 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
   }
 });
 
-// Asignar o reprogramar fecha de cirugía
+// Asignar fecha de cirugía
 app.put("/api/ordenes/:id/agendar", verificarSesion, async (req, res) => {
   try {
     const { id } = req.params;
@@ -1702,7 +1700,7 @@ app.put("/api/ordenes/:id/agendar", verificarSesion, async (req, res) => {
   }
 });
 
-// Editar tipo de lente
+// Editar tipo de lente después de agendar
 app.put("/api/ordenes/:id/lente", verificarSesion, async (req, res) => {
   try {
     const { id } = req.params;
