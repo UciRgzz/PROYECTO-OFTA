@@ -16,12 +16,6 @@
       --accent-color: #e74c3c;
       --light-color: #f8f9fa;
       --dark-color: #343a40;
-      --success-color: #2ecc71;
-      --warning-color: #f39c12;
-      --gradient-primary: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
-      --gradient-secondary: linear-gradient(135deg, #3498db 0%, #2c80b9 100%);
-      --gradient-accent: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-      --gradient-success: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
     }
     
     body {
@@ -30,7 +24,6 @@
       padding: 20px;
       color: #333;
       min-height: 100vh;
-      line-height: 1.6;
     }
     
     .container {
@@ -41,63 +34,41 @@
     header {
       text-align: center;
       margin-bottom: 30px;
-      padding: 25px;
-      background: var(--gradient-primary);
+      padding: 20px;
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
       color: white;
-      border-radius: 15px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-      position: relative;
-      overflow: hidden;
-    }
-    
-    header::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 5px;
-      background: var(--gradient-success);
+      border-radius: 10px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
     }
     
     h1 {
-      font-size: 2.8rem;
-      margin-bottom: 15px;
-      font-weight: 800;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      font-weight: 700;
     }
     
     .description {
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       opacity: 0.9;
-      max-width: 600px;
-      margin: 0 auto;
     }
     
     .card {
       background: white;
-      border-radius: 15px;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
       margin-bottom: 30px;
       overflow: hidden;
       border: none;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 12px 30px rgba(0,0,0,0.15);
     }
     
     .card-header {
-      background: var(--gradient-primary);
+      background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
       color: white;
       padding: 18px 25px;
       font-size: 1.3rem;
       font-weight: 600;
       display: flex;
       align-items: center;
-      border-bottom: none;
     }
     
     .card-header i {
@@ -106,7 +77,7 @@
     }
     
     .card-body {
-      padding: 30px;
+      padding: 25px;
     }
     
     .form-group {
@@ -117,7 +88,6 @@
       font-weight: 600;
       margin-bottom: 8px;
       color: var(--primary-color);
-      display: block;
     }
     
     input, select {
@@ -127,14 +97,12 @@
       font-size: 1rem;
       width: 100%;
       transition: all 0.3s;
-      background-color: #f9f9f9;
     }
     
     input:focus, select:focus {
       border-color: var(--secondary-color);
       box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
       outline: none;
-      background-color: white;
     }
     
     .btn {
@@ -148,48 +116,17 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .btn::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 5px;
-      height: 5px;
-      background: rgba(255, 255, 255, 0.5);
-      opacity: 0;
-      border-radius: 100%;
-      transform: scale(1, 1) translate(-50%);
-      transform-origin: 50% 50%;
-    }
-    
-    .btn:focus:not(:active)::after {
-      animation: ripple 1s ease-out;
-    }
-    
-    @keyframes ripple {
-      0% {
-        transform: scale(0, 0);
-        opacity: 0.5;
-      }
-      100% {
-        transform: scale(20, 20);
-        opacity: 0;
-      }
     }
     
     .btn-primary {
-      background: var(--gradient-secondary);
+      background: linear-gradient(135deg, var(--secondary-color) 0%, #2c80b9 100%);
       color: white;
-      box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+      box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
     }
     
     .btn-primary:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4);
     }
     
     .btn-primary i {
@@ -197,25 +134,14 @@
     }
     
     .btn-danger {
-      background: var(--gradient-accent);
+      background: linear-gradient(135deg, var(--accent-color) 0%, #c0392b 100%);
       color: white;
-      box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+      box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
     }
     
     .btn-danger:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(231, 76, 60, 0.4);
-    }
-    
-    .btn-success {
-      background: var(--gradient-success);
-      color: white;
-      box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
-    }
-    
-    .btn-success:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(46, 204, 113, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(231, 76, 60, 0.4);
     }
     
     .btn-sm {
@@ -228,19 +154,17 @@
       border-collapse: collapse;
       margin: 20px 0;
       background: white;
-      border-radius: 10px;
+      border-radius: 8px;
       overflow: hidden;
       box-shadow: 0 6px 20px rgba(0,0,0,0.08);
     }
     
     .table th {
-      background: var(--gradient-primary);
+      background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
       color: white;
       padding: 15px;
       text-align: center;
       font-weight: 600;
-      position: sticky;
-      top: 0;
     }
     
     .table td {
@@ -260,25 +184,16 @@
     
     .table tr:hover {
       background-color: #eef6ff;
-      transform: scale(1.01);
-      transition: all 0.2s ease;
     }
     
     .success-alert {
       display: none;
-      padding: 15px 20px;
+      padding: 15px;
       background: #d4edda;
       color: #155724;
       border-radius: 8px;
       margin-bottom: 20px;
       border: 1px solid #c3e6cb;
-      box-shadow: 0 4px 12px rgba(46, 204, 113, 0.2);
-      animation: fadeIn 0.5s ease;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
     }
     
     .footer {
@@ -286,133 +201,25 @@
       margin-top: 40px;
       color: #6c757d;
       font-size: 0.9rem;
-      padding: 20px;
     }
     
     .custom-header {
-      background: var(--gradient-primary);
-    }
-    
-    .filter-container {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 25px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-    }
-    
-    .form-control {
-      border-radius: 8px;
-      padding: 12px 15px;
-      border: 1px solid #ddd;
-      transition: all 0.3s;
-    }
-    
-    .form-control:focus {
-      border-color: var(--secondary-color);
-      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-    }
-    
-    .search-container {
-      display: flex;
-      gap: 15px;
-      align-items: center;
+      background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
     }
     
     @media (max-width: 768px) {
       h1 {
-        font-size: 2.2rem;
+        font-size: 2rem;
       }
       
       .table-responsive {
         overflow-x: auto;
-        border-radius: 10px;
       }
       
       .card-header {
         font-size: 1.1rem;
         padding: 15px;
       }
-      
-      .search-container {
-        flex-direction: column;
-      }
-      
-      .search-container .form-control {
-        width: 100%;
-      }
-    }
-    
-    .badge {
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-weight: 600;
-    }
-    
-    .badge-primary {
-      background: var(--gradient-secondary);
-      color: white;
-    }
-    
-    .badge-success {
-      background: var(--gradient-success);
-      color: white;
-    }
-    
-    .badge-danger {
-      background: var(--gradient-accent);
-      color: white;
-    }
-    
-    .stats-container {
-      display: flex;
-      gap: 15px;
-      margin-bottom: 25px;
-      flex-wrap: wrap;
-    }
-    
-    .stat-card {
-      flex: 1;
-      min-width: 200px;
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-      text-align: center;
-      transition: transform 0.3s ease;
-    }
-    
-    .stat-card:hover {
-      transform: translateY(-5px);
-    }
-    
-    .stat-value {
-      font-size: 2.5rem;
-      font-weight: 700;
-      margin: 10px 0;
-      color: var(--primary-color);
-    }
-    
-    .stat-label {
-      font-size: 1rem;
-      color: #6c757d;
-      font-weight: 600;
-    }
-    
-    .table-actions {
-      display: flex;
-      gap: 5px;
-      justify-content: center;
-    }
-    
-    .section-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--primary-color);
-      margin-bottom: 20px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid var(--secondary-color);
-      display: inline-block;
     }
   </style>
 </head>
@@ -427,54 +234,25 @@
       <i class="fas fa-check-circle"></i> <span id="successMessage">Evaluación guardada correctamente.</span>
     </div>
 
-    <!-- Estadísticas -->
-    <div class="stats-container">
-      <div class="stat-card">
-        <div class="stat-label">Evaluaciones Hoy</div>
-        <div class="stat-value" id="statsToday">0</div>
-        <div class="stat-label"><i class="fas fa-calendar-day"></i> Hoy</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Evaluaciones Mes</div>
-        <div class="stat-value" id="statsMonth">0</div>
-        <div class="stat-label"><i class="fas fa-calendar-alt"></i> Este Mes</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Total Evaluaciones</div>
-        <div class="stat-value" id="statsTotal">0</div>
-        <div class="stat-label"><i class="fas fa-chart-line"></i> Total</div>
-      </div>
-    </div>
-
     <!-- Buscador -->
     <div class="card">
       <div class="card-header"><i class="fas fa-search"></i> Buscar / Nueva Evaluación</div>
-      <div class="card-body">
-        <div class="search-container">
-          <input type="text" id="buscarOpto" class="form-control" placeholder="Buscar por expediente o nombre">
-          <button id="btnNuevo" class="btn btn-primary"><i class="fas fa-plus"></i> Nueva Evaluación</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Filtro de fecha -->
-    <div class="filter-container">
-      <h3 class="section-title">Filtrar Evaluaciones</h3>
-      <div class="row">
-        <div class="col-md-6">
-          <label for="filtroRangoOpto" class="form-label">Filtrar por fecha:</label>
-          <input type="text" id="filtroRangoOpto" class="form-control" placeholder="Selecciona un rango de fechas" readonly>
-        </div>
-        <div class="col-md-6 d-flex align-items-end">
-          <button id="btnResetFilter" class="btn btn-secondary">
-            <i class="fas fa-sync-alt"></i> Restablecer Filtros
-          </button>
-        </div>
+      <div class="card-body d-flex justify-content-between align-items-center">
+        <input type="text" id="buscarOpto" class="form-control w-50" placeholder="Buscar por expediente o nombre">
+        <button id="btnNuevo" class="btn btn-primary"><i class="fas fa-plus"></i> Nueva Evaluación</button>
       </div>
     </div>
 
     <!-- Formulario -->
     <div id="formularioOpto" style="display:none;"></div>
+
+
+<!-- 🔎 Filtro de fecha con daterangepicker -->
+<div class="mb-3">
+  <label for="filtroRangoOpto" class="form-label">Filtrar por fecha:</label>
+  <input type="text" id="filtroRangoOpto" class="form-control" style="max-width:300px;" placeholder="Selecciona un rango de fechas" readonly>
+</div>
+
 
     <!-- Tabla -->
     <div id="tablaOpto"></div>
@@ -483,300 +261,277 @@
       <p>Sistema de Gestión Oftavisión &copy; 2025</p>
     </div>
   </div>
-  
-  <!-- Daterangepicker CSS -->
-  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
-  <!-- jQuery -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <!-- Moment.js + Daterangepicker -->
-  <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  
-  <script>
-    // Cargar y mostrar las evaluaciones de optometría
-    async function cargarOptometrias(desde, hasta) {
-      let url = "/api/optometria";
-      if (desde && hasta) {
-        url += `?desde=${desde}&hasta=${hasta}`;
-      }
-      const res = await fetch(url);
-      const data = await res.json();
+    <!-- Daterangepicker CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Moment.js + Daterangepicker -->
+    <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 
-      // Actualizar estadísticas
-      actualizarEstadisticas(data);
 
-      let html = `
-        <div class="card">
-          <div class="card-header"><i class="fas fa-list"></i> Registros de Optometría</div>
-          <div class="card-body table-responsive">
-            <table class="table text-center align-middle">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Expediente</th>
-                  <th>Nombre</th>
-                  <th>OD Esfera</th>
-                  <th>OD Cilindro</th>
-                  <th>OD Eje</th>
-                  <th>OD AVcC</th>
-                  <th>OD Adición</th>
-                  <th>OD AVcC2</th>
-                  <th>OI Esfera</th>
-                  <th>OI Cilindro</th>
-                  <th>OI Eje</th>
-                  <th>OI AVcC</th>
-                  <th>OI Adición</th>
-                  <th>OI AVcC2</th>
-                  <th>BMP</th>
-                  <th>BMP OD</th>
-                  <th>BMP OI</th>
-                  <th>F.O</th>
-                  <th>F.O OD</th>
-                  <th>F.O OI</th>
-                  <th>OD AV Lejos</th>
-                  <th>OD AV Cerca</th>
-                  <th>OD Con Lentes</th>
-                  <th>OI AV Lejos</th>
-                  <th>OI AV Cerca</th>
-                  <th>OI Con Lentes</th>
-                  <th>Cicloplejia</th>
-                  <th>Hora T.P.</th>
-                  <th>Fecha</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-      `;
-      data.forEach(o => {
-        html += `
-          <tr>
-            <td><span class="badge badge-primary">${o.id}</span></td>
-            <td>${o.expediente_id}</td>
-            <td>${o.nombre}</td>
-            <td>${o.esfera_od || ""}</td>
-            <td>${o.cilindro_od || ""}</td>
-            <td>${o.eje_od || ""}</td>
-            <td>${o.avcc_od || ""}</td>
-            <td>${o.adicion_od || ""}</td>
-            <td>${o.avcc2_od || ""}</td>
-            <td>${o.esfera_oi || ""}</td>
-            <td>${o.cilindro_oi || ""}</td>
-            <td>${o.eje_oi || ""}</td>
-            <td>${o.avcc_oi || ""}</td>
-            <td>${o.adicion_oi || ""}</td>
-            <td>${o.avcc2_oi || ""}</td>
-            <td>${o.bmp || ""}</td>
-            <td>${o.bmp_od || ""}</td>
-            <td>${o.bmp_oi || ""}</td>
-            <td>${o.fo || ""}</td>
-            <td>${o.fo_od || ""}</td>
-            <td>${o.fo_oi || ""}</td>
-            <td>
-              ${(o.av_lejos_od1 || "")}<br>
-              ${(o.av_lejos_od2 || "")}<br>
-              ${(o.av_lejos_od3 || "")}
-            </td>
-            <td>
-              ${(o.av_cerca_od1 || "")}<br>
-              ${(o.av_cerca_od2 || "")}
-            </td>
-            <td>
-              ${(o.av_lentes_od1 || "")}<br>
-              ${(o.av_lentes_od2 || "")}
-            </td>
-            <td>
-              ${(o.av_lejos_oi1 || "")}<br>
-              ${(o.av_lejos_oi2 || "")}<br>
-              ${(o.av_lejos_oi3 || "")}
-            </td>
-            <td>
-              ${(o.av_cerca_oi1 || "")}<br>
-              ${(o.av_cerca_oi2 || "")}
-            </td>
-            <td>
-              ${(o.av_lentes_oi1 || "")}<br>
-              ${(o.av_lentes_oi2 || "")}
-            </td>
-            <td>${o.cicloplejia || ""}</td>
-            <td>${
-              o.hora_tp
-                ? new Date(`1970-01-01T${o.hora_tp}`).toLocaleTimeString("es-MX", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: true
-                  })
-                : ""
-            }</td>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
 
-            <td>${new Date(o.fecha).toLocaleDateString("es-MX")}</td>
-            <td>
-              <div class="table-actions">
-                <button class="btn btn-danger btn-sm" onclick="borrarOpto(${o.id})">
-                  <i class="fas fa-trash"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
-        `;
-      });
-      html += `</tbody></table></div></div>`;
-      document.getElementById("tablaOpto").innerHTML = html;
-    }
-
-    // Actualizar estadísticas
-    function actualizarEstadisticas(data) {
-      const hoy = moment().format("YYYY-MM-DD");
-      const mesActual = moment().format("YYYY-MM");
       
-      const hoyCount = data.filter(o => o.fecha === hoy).length;
-      const mesCount = data.filter(o => o.fecha.startsWith(mesActual)).length;
-      const totalCount = data.length;
-      
-      document.getElementById("statsToday").textContent = hoyCount;
-      document.getElementById("statsMonth").textContent = mesCount;
-      document.getElementById("statsTotal").textContent = totalCount;
-    }
 
-    document.getElementById("btnNuevo").addEventListener("click", () => {
-      document.getElementById("formularioOpto").style.display = "block";
-      document.getElementById("tablaOpto").style.display = "none";
-      
-      document.getElementById("formularioOpto").innerHTML = `
+// Cargar y mostrar las evaluaciones de optometría
+async function cargarOptometrias(desde, hasta) {
+  let url = "/api/optometria";
+  if (desde && hasta) {
+    url += `?desde=${desde}&hasta=${hasta}`;
+  }
+  const res = await fetch(url);
+  const data = await res.json();
+
+  let html = `
     <div class="card">
-      <div class="card-header custom-header text-white"><i class="fas fa-plus-circle"></i> Nueva Evaluación</div>
-      <div class="card-body">
-        <form id="formOptometria">
-          <div class="row">
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label">Número de Expediente</label>
-                <input type="number" id="expedienteInput" name="expediente_id" class="form-control" required>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label">Nombre del Paciente</label>
-                <input type="text" id="nombrePaciente" class="form-control" readonly>
-              </div>
-            </div>
-          </div>
+      <div class="card-header"><i class="fas fa-list"></i> Registros de Optometría</div>
+      <div class="card-body table-responsive">
+        <table class="table text-center align-middle">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Expediente</th>
+              <th>Nombre</th>
+              <th>OD Esfera</th>
+              <th>OD Cilindro</th>
+              <th>OD Eje</th>
+              <th>OD AVcC</th>
+              <th>OD Adición</th>
+              <th>OD AVcC2</th>
+              <th>OI Esfera</th>
+              <th>OI Cilindro</th>
+              <th>OI Eje</th>
+              <th>OI AVcC</th>
+              <th>OI Adición</th>
+              <th>OI AVcC2</th>
+              <th>BMP</th>
+              <th>BMP OD</th>
+              <th>BMP OI</th>
+              <th>F.O</th>
+              <th>F.O OD</th>
+              <th>F.O OI</th>
+              <th>OD AV Lejos</th>
+              <th>OD AV Cerca</th>
+              <th>OD Con Lentes</th>
+              <th>OI AV Lejos</th>
+              <th>OI AV Cerca</th>
+              <th>OI Con Lentes</th>
+              <th>Cicloplejia</th>
+              <th>Hora T.P.</th>
+              <th>Fecha</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+  `;
+  data.forEach(o => {
+    html += `
+      <tr>
+        <td>${o.id}</td>
+        <td>${o.expediente_id}</td>
+        <td>${o.nombre}</td>
+        <td>${o.esfera_od || ""}</td>
+        <td>${o.cilindro_od || ""}</td>
+        <td>${o.eje_od || ""}</td>
+        <td>${o.avcc_od || ""}</td>
+        <td>${o.adicion_od || ""}</td>
+        <td>${o.avcc2_od || ""}</td>
+        <td>${o.esfera_oi || ""}</td>
+        <td>${o.cilindro_oi || ""}</td>
+        <td>${o.eje_oi || ""}</td>
+        <td>${o.avcc_oi || ""}</td>
+        <td>${o.adicion_oi || ""}</td>
+        <td>${o.avcc2_oi || ""}</td>
+        <td>${o.bmp || ""}</td>
+        <td>${o.bmp_od || ""}</td>
+        <td>${o.bmp_oi || ""}</td>
+        <td>${o.fo || ""}</td>
+        <td>${o.fo_od || ""}</td>
+        <td>${o.fo_oi || ""}</td>
+        <td>
+          ${(o.av_lejos_od1 || "")}<br>
+          ${(o.av_lejos_od2 || "")}<br>
+          ${(o.av_lejos_od3 || "")}
+        </td>
+        <td>
+          ${(o.av_cerca_od1 || "")}<br>
+          ${(o.av_cerca_od2 || "")}
+        </td>
+        <td>
+          ${(o.av_lentes_od1 || "")}<br>
+          ${(o.av_lentes_od2 || "")}
+        </td>
+        <td>
+          ${(o.av_lejos_oi1 || "")}<br>
+          ${(o.av_lejos_oi2 || "")}<br>
+          ${(o.av_lejos_oi3 || "")}
+        </td>
+        <td>
+          ${(o.av_cerca_oi1 || "")}<br>
+          ${(o.av_cerca_oi2 || "")}
+        </td>
+        <td>
+          ${(o.av_lentes_oi1 || "")}<br>
+          ${(o.av_lentes_oi2 || "")}
+        </td>
+        <td>${o.cicloplejia || ""}</td>
+        <td>${
+          o.hora_tp
+            ? new Date(`1970-01-01T${o.hora_tp}`).toLocaleTimeString("es-MX", {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true
+              })
+            : ""
+        }</td>
 
-          <h4 class="section-title">Subjetiva</h4>
-          <div class="table-responsive">
-            <table class="table table-bordered text-center align-middle">
-              <thead class="table-light">
-                <tr>
-                  <th rowspan="2">Ojo</th>
-                  <th>Esferas</th>
-                  <th>Cilindros</th>
-                  <th>Eje</th>
-                  <th>AV cC</th>
-                  <th>Adición</th>
-                  <th>AV cC2</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>OD</strong></td>
-                  <td><input type="text" name="esfera_od" class="form-control"></td>
-                  <td><input type="text" name="cilindro_od" class="form-control"></td>
-                  <td><input type="text" name="eje_od" class="form-control"></td>
-                  <td><input type="text" name="avcc_od" class="form-control"></td>
-                  <td><input type="text" name="adicion_od" class="form-control"></td>
-                  <td><input type="text" name="avcc2_od" class="form-control"></td>
-                </tr>
-                <tr>
-                  <td><strong>OI</strong></td>
-                  <td><input type="text" name="esfera_oi" class="form-control"></td>
-                  <td><input type="text" name="cilindro_oi" class="form-control"></td>
-                  <td><input type="text" name="eje_oi" class="form-control"></td>
-                  <td><input type="text" name="avcc_oi" class="form-control"></td>
-                  <td><input type="text" name="adicion_oi" class="form-control"></td>
-                  <td><input type="text" name="avcc2_oi" class="form-control"></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          
-          <h4 class="section-title">Examen Adicional</h4>
-          <div class="row mt-4">
-            <div class="col-md-2"><label class="form-label">BMP</label><input type="text" name="bmp" class="form-control"></div>
-            <div class="col-md-2"><label class="form-label">BMP OD</label><input type="text" name="bmp_od" class="form-control"></div>
-            <div class="col-md-2"><label class="form-label">BMP OI</label><input type="text" name="bmp_oi" class="form-control"></div>
-            <div class="col-md-2"><label class="form-label">F.O</label><input type="text" name="fo" class="form-control"></div>
-            <div class="col-md-2"><label class="form-label">F.O OD</label><input type="text" name="fo_od" class="form-control"></div>
-            <div class="col-md-2"><label class="form-label">F.O OI</label><input type="text" name="fo_oi" class="form-control"></div>
-          </div>
+        <td>${new Date(o.fecha).toLocaleDateString("es-MX")}</td>
+        <td>
+          <button class="btn btn-danger btn-sm" onclick="borrarOpto(${o.id})">
+            <i class="fas fa-trash"></i>
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+  html += `</tbody></table></div></div>`;
+  document.getElementById("tablaOpto").innerHTML = html;
+}
 
-          <div class="row mt-4">
-            <div class="col-md-6">
-              <label class="form-label">Cicloplejia</label>
-              <input type="text" name="cicloplejia" class="form-control">
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Hora T.P.</label>
-              <input type="time" name="hora_tp" class="form-control">
-            </div>
-          </div>
-
-          <h4 class="section-title mt-4">Agudeza Visual</h4>
-          <div class="table-responsive mt-4">
-            <table class="table table-bordered text-center align-middle">
-              <thead class="table-light">
-                <tr>
-                  <th></th>
-                  <th colspan="3">AV Lejos</th>
-                  <th colspan="2">AV Cerca</th>
-                  <th colspan="2">Con Lentes</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>OD</strong></td>
-                  <td><input type="text" name="av_lejos_od1" class="form-control"></td>
-                  <td><input type="text" name="av_lejos_od2" class="form-control"></td>
-                  <td><input type="text" name="av_lejos_od3" class="form-control"></td>
-                  <td><input type="text" name="av_cerca_od1" class="form-control"></td>
-                  <td><input type="text" name="av_cerca_od2" class="form-control"></td>
-                  <td><input type="text" name="av_lentes_od1" class="form-control"></td>
-                  <td><input type="text" name="av_lentes_od2" class="form-control"></td>
-                </tr>
-                <tr>
-                  <td><strong>OI</strong></td>
-                  <td><input type="text" name="av_lejos_oi1" class="form-control"></td>
-                  <td><input type="text" name="av_lejos_oi2" class="form-control"></td>
-                  <td><input type="text" name="av_lejos_oi3" class="form-control"></td>
-                  <td><input type="text" name="av_cerca_oi1" class="form-control"></td>
-                  <td><input type="text" name="av_cerca_oi2" class="form-control"></td>
-                  <td><input type="text" name="av_lentes_oi1" class="form-control"></td>
-                  <td><input type="text" name="av_lentes_oi2" class="form-control"></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          
-          <div class="d-flex justify-content-end mt-4">
-            <button type="button" class="btn btn-secondary me-2" onclick="cancelarFormulario()">
-              <i class="fas fa-times"></i> Cancelar
-            </button>
-            <button type="submit" class="btn btn-primary">
-              <i class="fas fa-save"></i> Guardar Evaluación
-            </button>
-          </div>
-        </form>
+document.getElementById("btnNuevo").addEventListener("click", () => {
+  document.getElementById("formularioOpto").style.display = "block";
+  document.getElementById("tablaOpto").style.display = "none";
+  
+  
+  document.getElementById("formularioOpto").innerHTML = `
+<div class="card">
+  <div class="card-header custom-header text-white"><i class="fas fa-plus-circle"></i> Nueva Evaluación</div>
+  <div class="card-body">
+    <form id="formOptometria">
+      <div class="mb-3">
+        <label class="form-label">Número de Expediente</label>
+        <input type="number" id="expedienteInput" name="expediente_id" class="form-control" required>
       </div>
-    </div>
-      `;
 
-      document.getElementById("formOptometria").addEventListener("submit", guardarOpto);
-    });
+      <div class="mb-3">
+        <label class="form-label">Nombre del Paciente</label>
+        <input type="text" id="nombrePaciente" class="form-control" readonly>
+      </div>
 
-    function cancelarFormulario() {
-      document.getElementById("formularioOpto").style.display = "none";
-      document.getElementById("tablaOpto").style.display = "block";
-    }
+      <div class="table-responsive">
+        <table class="table table-bordered text-center align-middle">
+          <thead class="table-light">
+            <tr>
+              <th rowspan="2">SUBJETIVA</th>
+              <th>Esferas</th>
+              <th>Cilindros</th>
+              <th>Eje</th>
+              <th>AV cC</th>
+              <th>Adición</th>
+              <th>AV cC2</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>OD</strong></td>
+              <td><input type="text" name="esfera_od" class="form-control"></td>
+              <td><input type="text" name="cilindro_od" class="form-control"></td>
+              <td><input type="text" name="eje_od" class="form-control"></td>
+              <td><input type="text" name="avcc_od" class="form-control"></td>
+              <td><input type="text" name="adicion_od" class="form-control"></td>
+              <td><input type="text" name="avcc2_od" class="form-control"></td>
+            </tr>
+            <tr>
+              <td><strong>OI</strong></td>
+              <td><input type="text" name="esfera_oi" class="form-control"></td>
+              <td><input type="text" name="cilindro_oi" class="form-control"></td>
+              <td><input type="text" name="eje_oi" class="form-control"></td>
+              <td><input type="text" name="avcc_oi" class="form-control"></td>
+              <td><input type="text" name="adicion_oi" class="form-control"></td>
+              <td><input type="text" name="avcc2_oi" class="form-control"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="row mt-4">
+        <div class="col-md-2"><label class="form-label">BMP</label><input type="text" name="bmp" class="form-control"></div>
+        <div class="col-md-2"><label class="form-label">BMP OD</label><input type="text" name="bmp_od" class="form-control"></div>
+        <div class="col-md-2"><label class="form-label">BMP OI</label><input type="text" name="bmp_oi" class="form-control"></div>
+        <div class="col-md-2"><label class="form-label">F.O</label><input type="text" name="fo" class="form-control"></div>
+        <div class="col-md-2"><label class="form-label">F.O OD</label><input type="text" name="fo_od" class="form-control"></div>
+        <div class="col-md-2"><label class="form-label">F.O OI</label><input type="text" name="fo_oi" class="form-control"></div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-md-6">
+          <label class="form-label">Cicloplejia</label>
+          <input type="text" name="cicloplejia" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Hora T.P.</label>
+          <input type="time" name="hora_tp" class="form-control">
+        </div>
+      </div>
+
+      <div class="table-responsive mt-4">
+        <table class="table table-bordered text-center align-middle">
+          <thead class="table-light">
+            <tr>
+              <th></th>
+              <th colspan="3">AV Lejos</th>
+              <th colspan="2">AV Cerca</th>
+              <th colspan="2">Con Lentes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>OD</strong></td>
+              <td><input type="text" name="av_lejos_od1" class="form-control"></td>
+              <td><input type="text" name="av_lejos_od2" class="form-control"></td>
+              <td><input type="text" name="av_lejos_od3" class="form-control"></td>
+              <td><input type="text" name="av_cerca_od1" class="form-control"></td>
+              <td><input type="text" name="av_cerca_od2" class="form-control"></td>
+              <td><input type="text" name="av_lentes_od1" class="form-control"></td>
+              <td><input type="text" name="av_lentes_od2" class="form-control"></td>
+            </tr>
+            <tr>
+              <td><strong>OI</strong></td>
+              <td><input type="text" name="av_lejos_oi1" class="form-control"></td>
+              <td><input type="text" name="av_lejos_oi2" class="form-control"></td>
+              <td><input type="text" name="av_lejos_oi3" class="form-control"></td>
+              <td><input type="text" name="av_cerca_oi1" class="form-control"></td>
+              <td><input type="text" name="av_cerca_oi2" class="form-control"></td>
+              <td><input type="text" name="av_lentes_oi1" class="form-control"></td>
+              <td><input type="text" name="av_lentes_oi2" class="form-control"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="d-flex justify-content-end mt-4">
+        <button type="button" class="btn btn-secondary me-2" onclick="cancelarFormulario()">
+          <i class="fas fa-times"></i> Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-save"></i> Guardar Evaluación
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+  `;
+
+  document.getElementById("formOptometria").addEventListener("submit", guardarOpto);
+});
+
+function cancelarFormulario() {
+  document.getElementById("formularioOpto").style.display = "none";
+  document.getElementById("tablaOpto").style.display = "block";
+}
+
 
     // Guardar nueva evaluación
     async function guardarOpto(e) {
@@ -858,95 +613,88 @@
         text: mensaje
       });
     }
-    
     // Buscar nombre de paciente al escribir expediente
-    document.addEventListener("input", async (e) => {
-      if (e.target.id === "expedienteInput") {
-        const id = e.target.value.trim();
-        if (!id) {
-          document.getElementById("nombrePaciente").value = "";
-          return;
-        }
-        try {
-          const res = await fetch(`/api/expedientes/${id}/nombre`);
-          if (res.ok) {
-            const data = await res.json();
-            document.getElementById("nombrePaciente").value = data.nombre;
-          } else {
-            document.getElementById("nombrePaciente").value = "No encontrado";
-          }
-        } catch (err) {
-          console.error("Error buscando expediente:", err);
-          document.getElementById("nombrePaciente").value = "Error";
-        }
+document.addEventListener("input", async (e) => {
+  if (e.target.id === "expedienteInput") {
+    const id = e.target.value.trim();
+    if (!id) {
+      document.getElementById("nombrePaciente").value = "";
+      return;
+    }
+    try {
+      const res = await fetch(`/api/expedientes/${id}/nombre`);
+      if (res.ok) {
+        const data = await res.json();
+        document.getElementById("nombrePaciente").value = data.nombre;
+      } else {
+        document.getElementById("nombrePaciente").value = "No encontrado";
       }
-    });
+    } catch (err) {
+      console.error("Error buscando expediente:", err);
+      document.getElementById("nombrePaciente").value = "Error";
+    }
+  }
+});
 
-    // Cargar evaluaciones al iniciar con daterangepicker
-    document.addEventListener("DOMContentLoaded", function() {
-      const hoy = moment().format("YYYY-MM-DD");
+ // Cargar evaluaciones al iniciar con daterangepicker
+document.addEventListener("DOMContentLoaded", function() {
+  const hoy = moment().format("YYYY-MM-DD");
 
-      // Inicializar date range picker
-      $('#filtroRangoOpto').daterangepicker({
-        autoUpdateInput: false,
-        locale: {
-          format: 'DD/MM/YYYY',
-          separator: " - ",
-          applyLabel: "Aplicar",
-          cancelLabel: "Cancelar",
-          fromLabel: "Desde",
-          toLabel: "Hasta",
-          customRangeLabel: "Rango personalizado",
-          weekLabel: "S",
-          daysOfWeek: ["Do","Lu","Ma","Mi","Ju","Vi","Sa"],
-          monthNames: [
-            "Enero","Febrero","Marzo","Abril","Mayo","Junio",
-            "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
-          ],
-          firstDay: 1
-        },
-        startDate: moment(),
-        endDate: moment(),
-        ranges: {
-          'Hoy': [moment(), moment()],
-          'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-          'Últimos 7 Días': [moment().subtract(6, 'days'), moment()],
-          'Últimos 30 Días': [moment().subtract(29, 'days'), moment()],
-          'Este Mes': [moment().startOf('month'), moment().endOf('month')],
-          'Mes Pasado': [
-            moment().subtract(1, 'month').startOf('month'),
-            moment().subtract(1, 'month').endOf('month')
-          ]
-        }
-      });
+  // Inicializar date range picker
+  $('#filtroRangoOpto').daterangepicker({
+    autoUpdateInput: false,
+    locale: {
+      format: 'DD/MM/YYYY',
+      separator: " - ",
+      applyLabel: "Aplicar",
+      cancelLabel: "Cancelar",
+      fromLabel: "Desde",
+      toLabel: "Hasta",
+      customRangeLabel: "Rango personalizado",
+      weekLabel: "S",
+      daysOfWeek: ["Do","Lu","Ma","Mi","Ju","Vi","Sa"],
+      monthNames: [
+        "Enero","Febrero","Marzo","Abril","Mayo","Junio",
+        "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
+      ],
+      firstDay: 1
+    },
+    startDate: moment(),
+    endDate: moment(),
+    ranges: {
+      'Hoy': [moment(), moment()],
+      'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+      'Últimos 7 Días': [moment().subtract(6, 'days'), moment()],
+      'Últimos 30 Días': [moment().subtract(29, 'days'), moment()],
+      'Este Mes': [moment().startOf('month'), moment().endOf('month')],
+      'Mes Pasado': [
+        moment().subtract(1, 'month').startOf('month'),
+        moment().subtract(1, 'month').endOf('month')
+      ]
+    }
+  });
 
-      // Cuando el usuario aplica un rango
-      $('#filtroRangoOpto').on('apply.daterangepicker', function(ev, picker) {
-        $(this).val(
-          picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY')
-        );
-        const desde = picker.startDate.format("YYYY-MM-DD");
-        const hasta = picker.endDate.format("YYYY-MM-DD");
-        cargarOptometrias(desde, hasta);
-      });
+  // Cuando el usuario aplica un rango
+  $('#filtroRangoOpto').on('apply.daterangepicker', function(ev, picker) {
+    $(this).val(
+      picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY')
+    );
+    const desde = picker.startDate.format("YYYY-MM-DD");
+    const hasta = picker.endDate.format("YYYY-MM-DD");
+    cargarOptometrias(desde, hasta);
+  });
 
-      // Cuando el usuario cancela → mostrar solo HOY
-      $('#filtroRangoOpto').on('cancel.daterangepicker', function() {
-        $(this).val('');
-        cargarOptometrias(hoy, hoy);
-      });
+  // Cuando el usuario cancela → mostrar solo HOY
+  $('#filtroRangoOpto').on('cancel.daterangepicker', function() {
+    $(this).val('');
+    cargarOptometrias(hoy, hoy);
+  });
 
-      // Botón para restablecer filtros
-      document.getElementById("btnResetFilter").addEventListener("click", function() {
-        $('#filtroRangoOpto').val('');
-        document.getElementById("buscarOpto").value = '';
-        cargarOptometrias(hoy, hoy);
-      });
+  // Al cargar la página → filtrar HOY
+  $('#filtroRangoOpto').val(moment().format('DD/MM/YYYY')); // mostrar hoy en el input
+  cargarOptometrias(hoy, hoy);
+});
 
-      // Al cargar la página → filtrar HOY
-      $('#filtroRangoOpto').val(moment().format('DD/MM/YYYY')); // mostrar hoy en el input
-      cargarOptometrias(hoy, hoy);
-    });
   </script>
 </body>
 </html>
