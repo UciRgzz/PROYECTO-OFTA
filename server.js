@@ -1305,7 +1305,7 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
       ]
     );
 
-    res.json({ mensaje: "✅ Optometría guardada con éxito", data: result.rows[0] });
+    res.json({ mensaje: "Optometría guardada con éxito", data: result.rows[0] });
   } catch (err) {
     console.error("Error al guardar optometría:", err);
     res.status(500).json({ error: err.message });
