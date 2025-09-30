@@ -1639,6 +1639,7 @@ app.post('/api/set-departamento', isAdmin, (req, res) => {
 
 
 // ==================== AGENDA QUIRÚRGICA ====================
+
 // Listar todas las órdenes pendientes o con fecha asignada
 app.get("/api/ordenes", verificarSesion, async (req, res) => {
   try {
@@ -1665,7 +1666,7 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
         ON e.numero_expediente = o.expediente_id 
        AND e.departamento = o.departamento
       WHERE o.departamento = $1
-      ORDER BY o.fecha DESC
+      ORDER BY o.fecha_cirugia NULLS LAST, o.id DESC
     `, [depto]);
 
     res.json(result.rows);
@@ -1675,7 +1676,7 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
   }
 });
 
-// Asignar fecha de cirugía
+// Asignar o reprogramar fecha de cirugía
 app.put("/api/ordenes/:id/agendar", verificarSesion, async (req, res) => {
   try {
     const { id } = req.params;
@@ -1701,7 +1702,7 @@ app.put("/api/ordenes/:id/agendar", verificarSesion, async (req, res) => {
   }
 });
 
-// Editar tipo de lente después de agendar
+// Editar tipo de lente
 app.put("/api/ordenes/:id/lente", verificarSesion, async (req, res) => {
   try {
     const { id } = req.params;
