@@ -627,8 +627,7 @@ document.addEventListener("input", async (e) => {
   }
 });
 
-    // Cargar evaluaciones al iniciar
-    // Cargar evaluaciones al iniciar con daterangepicker
+ // Cargar evaluaciones al iniciar con daterangepicker
 document.addEventListener("DOMContentLoaded", function() {
   const hoy = moment().format("YYYY-MM-DD");
 
@@ -666,19 +665,24 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   });
 
-  // Cuando el usuario aplica
+  // Cuando el usuario aplica un rango
   $('#filtroRangoOpto').on('apply.daterangepicker', function(ev, picker) {
-    $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
-    cargarOptometrias(picker.startDate.format("YYYY-MM-DD"), picker.endDate.format("YYYY-MM-DD"));
+    $(this).val(
+      picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY')
+    );
+    const desde = picker.startDate.format("YYYY-MM-DD");
+    const hasta = picker.endDate.format("YYYY-MM-DD");
+    cargarOptometrias(desde, hasta);
   });
 
-  // Cuando cancela
-  $('#filtroRangoOpto').on('cancel.daterangepicker', function(ev, picker) {
+  // Cuando el usuario cancela → mostrar solo HOY
+  $('#filtroRangoOpto').on('cancel.daterangepicker', function() {
     $(this).val('');
     cargarOptometrias(hoy, hoy);
   });
 
-  // Cargar registros de hoy por defecto
+  // Al cargar la página → filtrar HOY
+  $('#filtroRangoOpto').val(moment().format('DD/MM/YYYY')); // mostrar hoy en el input
   cargarOptometrias(hoy, hoy);
 });
 

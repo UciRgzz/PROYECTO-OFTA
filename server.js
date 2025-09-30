@@ -1312,12 +1312,11 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
   }
 });
 
-// Obtener evaluaciones de optometría (con nombre de paciente) con filtros
-// Obtener evaluaciones de optometría (con nombre de paciente) con filtros o rango de fechas
+// Obtener evaluaciones de optometría por rango de fechas (default = hoy)
 app.get("/api/optometria", verificarSesion, async (req, res) => {
   try {
-    let depto = getDepartamento(req);
-    const { filtro, desde, hasta } = req.query; // ahora acepta rango de fechas también
+    const depto = getDepartamento(req);
+    const { desde, hasta } = req.query;
 
     let query = `
       SELECT o.*, e.nombre_completo AS nombre
@@ -1332,12 +1331,9 @@ app.get("/api/optometria", verificarSesion, async (req, res) => {
     if (desde && hasta) {
       query += " AND DATE(o.fecha) BETWEEN $2 AND $3";
       params.push(desde, hasta);
-    } else if (filtro === "hoy") {
+    } else {
+      // si no envías fechas, muestra solo HOY
       query += " AND DATE(o.fecha) = CURRENT_DATE";
-    } else if (filtro === "ayer") {
-      query += " AND DATE(o.fecha) = CURRENT_DATE - INTERVAL '1 day'";
-    } else if (filtro === "mes") {
-      query += " AND DATE_TRUNC('month', o.fecha) = DATE_TRUNC('month', CURRENT_DATE)";
     }
 
     query += " ORDER BY o.fecha DESC";
@@ -1350,6 +1346,7 @@ app.get("/api/optometria", verificarSesion, async (req, res) => {
     res.status(500).json({ error: "Error al obtener registros de optometría" });
   }
 });
+
 
 
 // Obtener las evaluaciones de optometría de un expediente específico
