@@ -1286,7 +1286,7 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
         $29,$30,$31,
         $32,$33,
         $34,$35,
-        NOW()::date, $36
+        CURRENT_DATE, $36
       )
       RETURNING *`,
       [
