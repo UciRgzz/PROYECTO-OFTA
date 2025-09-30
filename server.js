@@ -1286,7 +1286,7 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
         $29,$30,$31,
         $32,$33,
         $34,$35,
-        NOW(), $36
+        CURRENT_DATE, $36
       )
       RETURNING *`,
       [
@@ -1329,12 +1329,12 @@ app.get("/api/optometria", verificarSesion, async (req, res) => {
     let params = [depto];
 
     if (desde && hasta) {
-      query += " AND DATE(o.fecha) BETWEEN $2 AND $3";
+      query += " AND o.fecha::date BETWEEN $2::date AND $3::date";
       params.push(desde, hasta);
     } else {
-      // si no envías fechas, muestra solo HOY
-      query += " AND DATE(o.fecha) = CURRENT_DATE";
+      query += " AND o.fecha::date = CURRENT_DATE";
     }
+
 
     query += " ORDER BY o.fecha DESC";
 
