@@ -913,6 +913,12 @@ async function cargarOrdenesPorRango(desde, hasta) {
   }
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+  renderCalendarCirugias();
+  renderMiniCalendar();
+  cargarOrdenes();
+});
+
 
 
     </script>
