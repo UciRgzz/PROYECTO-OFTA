@@ -552,6 +552,7 @@
       function cambiarMesCirugia(offset) {
         fechaCirugia.setMonth(fechaCirugia.getMonth() + offset);
         renderCalendarCirugias();
+        renderMiniCalendar();
       }
 
       // ==================== AGENDAR CIRUGÍA ====================
@@ -573,6 +574,8 @@
               });
               mostrarExito("Cirugía agendada", "La cirugía ha sido agendada correctamente");
               renderCalendarCirugias();
+              renderMiniCalendar();
+
             } catch (err) {
               console.error("Error al agendar:", err);
               mostrarError("Error", "No se pudo agendar la cirugía");
@@ -612,7 +615,7 @@
                 body: JSON.stringify({ tipo_lente: result.value })
               });
               mostrarExito("Tipo de lente actualizado", "El tipo de lente fue actualizado correctamente");
-              renderCalendarCirugias();
+              renderMiniCalendar();
             } catch (err) {
               console.error("Error al actualizar tipo de lente:", err);
               mostrarError("Error", "No se pudo actualizar el tipo de lente");
@@ -697,7 +700,9 @@ async function renderMiniCalendar() {
           mostrarExito("Cirugía asignada", `Fecha: ${fecha}`);
 
           ordenSeleccionada = null;
-          renderCalendarCirugias();
+          renderCalendarCirugias();   
+          renderMiniCalendar();
+
 
           // Cierra el modal después de asignar
           const modal = bootstrap.Modal.getInstance(document.getElementById("modalCalendario"));
@@ -728,7 +733,8 @@ async function renderMiniCalendar() {
                 body: JSON.stringify({ fecha_cirugia: null })
               });
               mostrarExito("Cirugía eliminada", "La cirugía ha sido eliminada del calendario");
-              renderCalendarCirugias();
+              renderCalendarCirugias(); 
+              renderMiniCalendar();
             } catch (err) {
               console.error("Error al eliminar cirugía:", err);
               mostrarError("Error", "No se pudo eliminar la cirugía");
