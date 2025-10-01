@@ -1755,7 +1755,7 @@ app.get("/api/cirugias", verificarSesion, async (req, res) => {
         o.procedimiento,
         o.medico,
         o.tipo_lente,
-        o.fecha_cirugia AS fecha
+        o.fecha_cirugia
       FROM ordenes_medicas o
       JOIN expedientes e 
         ON e.numero_expediente = o.expediente_id 
@@ -1772,8 +1772,9 @@ app.get("/api/cirugias", verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== GESTIÓN DE PERMISOS ====================
 
+
+// ==================== GESTIÓN DE PERMISOS ====================
 // Listar usuarios (para asignar módulos)
 app.get('/api/usuarios', isAdmin, async (req, res) => {
   try {
