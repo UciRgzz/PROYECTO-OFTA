@@ -155,12 +155,12 @@
   .calendar-nav .btn { padding: 6px 12px; font-size: 0.85rem; border-radius: 6px; }
   .current-month { font-size: 1rem; font-weight: 600; color: var(--primary-color); }
   
-  /* 🔹 Calendario grande fijo */
+  /* === CALENDARIO GRANDE FIJO === */
   .calendar {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 6px;
-    min-height: 550px;   /* asegura altura total fija */
+    min-height: 550px;   /* 🔹 altura total fija */
   }
   .day-header {
     text-align: center;
@@ -175,7 +175,7 @@
   .empty-day {
     background: white;
     border-radius: 8px;
-    min-height: 120px;   /* altura fija de cada celda */
+    min-height: 120px;   /* 🔹 altura fija de cada celda */
     padding: 4px;
     font-size: 0.75rem;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
@@ -186,9 +186,7 @@
   }
   .calendar-day:hover { transform: translateY(-3px); box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
   .day-number { font-weight: 600; margin-bottom: 2px; font-size: 0.7rem; color: var(--primary-color); }
-  
-  /* Para que los días vacíos mantengan espacio */
-  .empty-day { visibility: hidden; }
+  .empty-day { visibility: hidden; } /* 🔹 mantiene el espacio aunque no haya eventos */
   
   /* Colores procedimientos */
   .proc-catarata { background: #f5cbfd; border-left: 4px solid #e46bf6; }
@@ -213,15 +211,27 @@
     color: white;
   }
   
-  /* === MINI CALENDARIO === */
+  /* === MINI CALENDARIO FIJO === */
   .calendar-container { display: flex; gap: 20px; }
-  .mini-calendar { width: 250px; }
+  .mini-calendar { width: 250px; min-height: 280px; }  /* 🔹 altura fija */
   .mini-calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
   .mini-calendar-month { font-weight: 600; color: var(--primary-color); }
-  .mini-calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .mini-calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; min-height: 200px; } /* 🔹 fija */
   .mini-day-header { font-weight: 600; text-align: center; font-size: 0.75rem; }
-  .mini-calendar-day { text-align: center; padding: 5px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; }
+  .mini-calendar-day {
+    text-align: center;
+    padding: 5px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    min-height: 28px;   /* 🔹 altura fija */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
   .mini-calendar-day.has-surgery { background-color: #ffe0b2; font-weight: bold; }
+  .mini-calendar-day:empty::after { content: ""; display: block; height: 18px; } /* 🔹 mantiene espacio */
+  
   .calendar-legend { margin-top: 15px; font-size: 0.8rem; }
   .legend-item { display: flex; align-items: center; margin-bottom: 5px; }
   .legend-color { width: 16px; height: 16px; margin-right: 6px; border-radius: 3px; }
@@ -245,10 +255,6 @@
   }
   .mini-calendar-header .btn i { font-size: 0.75rem; }
 </style>
-
-
-
-
 
 </head>
 <body>
