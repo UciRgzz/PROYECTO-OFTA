@@ -241,7 +241,10 @@
       align-items: center;
       justify-content: center;
     }
-.mini-calendar-day.has-surgery { font-weight: bold; }
+    .mini-calendar-day.has-surgery { font-weight: bold; }
+    .mini-catarata { background: #f5cbfd; border-left: 3px solid #e46bf6; }
+    .mini-consulta { background: #c9e7fd; border-left: 3px solid #2196f3; }
+    .mini-lente { background: #f7f9d2; border-left: 3px solid #fbf866; }
 
     .mini-calendar-day:empty::after { content: ""; display: block; height: 18px; }
     
@@ -662,14 +665,13 @@ async function renderMiniCalendar() {
       // Si hay varias cirugías en el mismo día, toma el color del primer procedimiento
       const procClase = getColorClass(programadas[0].procedimiento);
 
-      if (procClase === "proc-catarata") estiloExtra = "background-color:#f5cbfd; border-left:3px solid #e46bf6;";
-      if (procClase === "proc-consulta") estiloExtra = "background-color:#c9e7fd; border-left:3px solid #2196f3;";
-      if (procClase === "proc-lente") estiloExtra = "background-color:#f7f9d2; border-left:3px solid #fbf866;";
+      if (procClase === "proc-catarata") clase += " has-surgery mini-catarata";
+      if (procClase === "proc-consulta") clase += " has-surgery mini-consulta";
+      if (procClase === "proc-lente") clase += " has-surgery mini-lente";
 
-      clase += " has-surgery";
     }
 
-    miniCalendario.innerHTML += `<div class="${clase}" style="${estiloExtra}" onclick="seleccionarDiaMini('${fechaDia}')">${d}</div>`;
+   miniCalendario.innerHTML += `<div class="${clase}" onclick="seleccionarDiaMini('${fechaDia}')">${d}</div>`;
   }
 }
 
