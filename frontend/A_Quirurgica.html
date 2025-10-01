@@ -532,33 +532,32 @@ async function renderCalendarCirugias() {
   }
 
   const filtradas = cirugias.filter(c => {
-    if (!c.fecha_cirugia) return false;
-    const f = new Date(c.fecha_cirugia);
+    const fecha = c.fecha_cirugia || c.fecha;   
+    if (!fecha) return false;
+    const f = new Date(fecha);
     return f.getFullYear() === year && f.getMonth() === month;
   });
 
   calendario.innerHTML = "";
 
-  // Cabeceras
   ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"].forEach(d => {
     calendario.innerHTML += `<div class="day-header">${d}</div>`;
   });
 
   let totalDias = 0;
 
-  // Huecos antes del primer día
   for (let i = 1; i < primerDia; i++) {
     calendario.innerHTML += `<div class="empty-day"></div>`;
     totalDias++;
   }
 
-  // Días del mes
   for (let d = 1; d <= diasEnMes; d++) {
     totalDias++;
     const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
-    const programadas = filtradas.filter(c => 
-      c.fecha_cirugia && c.fecha_cirugia.startsWith(fechaDia)
-    );
+    const programadas = filtradas.filter(c => {
+      const fecha = c.fecha_cirugia || c.fecha;
+      return fecha && fecha.startsWith(fechaDia);
+    });
 
     let contenido = `<div class="calendar-day" onclick="asignarFecha('${fechaDia}')">
                       <div class="day-number">${d}</div>`;
@@ -578,13 +577,11 @@ async function renderCalendarCirugias() {
     calendario.innerHTML += contenido;
   }
 
-  // 🔹 Rellenar hasta llegar a 42 celdas de días
   while (totalDias < 42) {
     calendario.innerHTML += `<div class="empty-day"></div>`;
     totalDias++;
   }
 
-  // Refrescar la tabla
   cargarOrdenes();
 }
       // ==================== CAMBIAR MES CALENDARIO ====================//
@@ -684,33 +681,25 @@ async function renderMiniCalendar() {
     console.error(err); 
   }
 
-  const filtradas = cirugias.filter(c => {
-    if (!c.fecha_cirugia) return false;
-    const f = new Date(c.fecha_cirugia);
-    return f.getFullYear() === year && f.getMonth() === month;
-  });
-
   miniCalendario.innerHTML = "";
   ["L","M","X","J","V","S","D"].forEach(d => {
     miniCalendario.innerHTML += `<div class="mini-day-header">${d}</div>`;
   });
 
-  // Espacios en blanco antes del primer día
   for (let i = 1; i < primerDia; i++) {
     miniCalendario.innerHTML += `<div class="mini-calendar-day"></div>`;
   }
 
-  // Días del mes
   for (let d = 1; d <= diasEnMes; d++) {
     const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
-    const programadas = filtradas.filter(c => 
-      c.fecha_cirugia && c.fecha_cirugia.startsWith(fechaDia)
-    );
+    const programadas = cirugias.filter(c => {
+      const fecha = c.fecha_cirugia || c.fecha;
+      return fecha && fecha.startsWith(fechaDia);
+    });
 
     let clase = "mini-calendar-day";
 
     if (programadas.length > 0) {
-      // Si hay varias cirugías en el mismo día, toma el color del primer procedimiento
       const procClase = getColorClass(programadas[0].procedimiento);
 
       if (procClase === "proc-catarata") clase += " has-surgery mini-catarata";
