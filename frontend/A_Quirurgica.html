@@ -173,24 +173,29 @@
     font-size: 0.85rem;
   }
 
-  .calendar-day,
-  .empty-day {
-    background: white;
-    border-radius: 8px;
-    height: 120px;           /* 🔹 altura fija */
-    padding: 4px;
-    font-size: 0.75rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    transition: all 0.3s;
-    overflow: hidden;
-  }
+.calendar-day,
+.empty-day {
+  background: white;
+  border-radius: 8px;
+  height: 120px;           /* 🔹 altura fija */
+  padding: 4px;
+  font-size: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: all 0.3s;
+  overflow: hidden;
+}
 
-  .calendar-day:hover { 
-    transform: translateY(-3px); 
-    box-shadow: 0 3px 8px rgba(0,0,0,0.1); 
-  }
+.calendar-day:hover { 
+  transform: translateY(-3px); 
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1); 
+}
 
-  .empty-day { visibility: hidden; }
+.empty-day {
+  background: transparent;   /* 🔹 mantiene el espacio */
+  border: 1px solid transparent;
+  visibility: visible;       /* 🔹 ya no se oculta */
+}
+
   
   /* Colores procedimientos */
   .proc-catarata { background: #f5cbfd; border-left: 4px solid #e46bf6; }
