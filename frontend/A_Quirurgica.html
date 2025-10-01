@@ -464,7 +464,14 @@
     cargarOrdenes();          // carga tabla de órdenes al inicio
   });
   ;
+// ==================== CAMBIAR MES MINI CALENDARIO ====================
+function cambiarMesMini(offset) {
+  fechaMiniCalendario.setMonth(fechaMiniCalendario.getMonth() + offset);
+  renderMiniCalendar();
+}
 
+
+// ==================== ELIMINAR CIRUGÍA ====================
       function getColorClass(proc) {
         const texto = proc.toLowerCase();
 
