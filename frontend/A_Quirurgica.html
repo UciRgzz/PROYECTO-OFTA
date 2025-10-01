@@ -159,9 +159,9 @@
   .calendar {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    grid-template-rows: 40px repeat(6, 90px); /* 🔹 cabecera fija + 6 semanas fijas */
+    grid-template-rows: 40px repeat(6, 50px); /* 🔹 cabecera fija + 6 semanas fijas */
     gap: 6px;
-    min-height: calc(40px + 6 * 90px);        /* 🔹 calendario siempre del mismo alto */
+    min-height: calc(40px + 6 * 50px);        /* 🔹 calendario siempre del mismo alto */
   }
 
 
@@ -197,14 +197,14 @@
   .empty-day {
   background: #fff;
   border-radius: 8px;
-  height: 120px;
+  height: 50px;
   padding: 4px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .main-calendar {
   min-width: 100%;
-  min-height: calc(40px + 6 * 90px); 
+  min-height: calc(40px + 6 * 50px); 
 }
 
     
