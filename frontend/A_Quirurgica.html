@@ -456,68 +456,75 @@ async function cargarOrdenes(year, month) {
       return "";
     }
 
-    async function renderCalendarCirugias() {
-      const calendario = document.getElementById("calendarioCirugias");
-      const mesActual = document.getElementById("mesCirugia");
+async function renderCalendarCirugias() {
+  const calendario = document.getElementById("calendarioCirugias");
+  const mesActual = document.getElementById("mesCirugia");
 
-      const year = fechaCirugia.getFullYear();
-      const month = fechaCirugia.getMonth();
+  const year = fechaCirugia.getFullYear();
+  const month = fechaCirugia.getMonth();
 
-      mesActual.textContent = fechaCirugia.toLocaleString("es-ES", { month: "long", year: "numeric" });
+  mesActual.textContent = fechaCirugia.toLocaleString("es-ES", { month: "long", year: "numeric" });
 
-      const primerDia = new Date(year, month, 1).getDay() || 7;
-      const diasEnMes = new Date(year, month + 1, 0).getDate();
+  const primerDia = new Date(year, month, 1).getDay() || 7;
+  const diasEnMes = new Date(year, month + 1, 0).getDate();
 
-      let cirugias = [];
-      try {
-        const res = await fetch("/api/cirugias");
-        cirugias = await res.json();
-      } catch (err) { 
-        console.error(err); 
-      }
+  let cirugias = [];
+  try {
+    const res = await fetch("/api/cirugias");
+    cirugias = await res.json();
+  } catch (err) { 
+    console.error(err); 
+  }
 
-      const filtradas = cirugias.filter(c => {
-        const f = new Date(c.fecha);
-        return f.getFullYear() === year && f.getMonth() === month;
+  const filtradas = cirugias.filter(c => {
+    const f = new Date(c.fecha);
+    return f.getFullYear() === year && f.getMonth() === month;
+  });
+
+  calendario.innerHTML = "";
+
+  ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"].forEach(d => {
+    calendario.innerHTML += `<div class="day-header">${d}</div>`;
+  });
+
+  // 🔹 Huecos antes del primer día
+  for (let i = 1; i < primerDia; i++) {
+    calendario.innerHTML += `<div class="empty-day"></div>`;
+  }
+
+  // 🔹 Días del mes
+  for (let d = 1; d <= diasEnMes; d++) {
+    const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
+    const programadas = filtradas.filter(c => c.fecha.startsWith(fechaDia));
+
+    let contenido = `<div class="calendar-day" onclick="asignarFecha('${fechaDia}')">
+                   <div class="day-number">${d}</div>`;
+    if (programadas.length > 0) {
+      programadas.forEach(c => {
+        contenido += `
+          <div class="insumo-item ${getColorClass(c.procedimiento)}">
+            <span>${c.nombre}</span>
+            <button class="btn btn-sm btn-danger" 
+                    onclick="event.stopPropagation(); eliminarCirugia(${c.id})">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>`;
       });
-
-      calendario.innerHTML = "";
-
-      ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"].forEach(d => {
-        calendario.innerHTML += `<div class="day-header">${d}</div>`;
-      });
-
-      for (let i = 1; i < primerDia; i++) {
-        calendario.innerHTML += `<div class="empty-day"></div>`;
-      }
-
-      for (let d = 1; d <= diasEnMes; d++) {
-        const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
-        const programadas = filtradas.filter(c => c.fecha.startsWith(fechaDia));
-
-        let contenido = `<div class="calendar-day" onclick="asignarFecha('${fechaDia}')">
-                       <div class="day-number">${d}</div>`;
-        if (programadas.length > 0) {
-          programadas.forEach(c => {
-            contenido += `
-              <div class="insumo-item ${getColorClass(c.procedimiento)}">
-                <span>${c.nombre}</span>
-                <button class="btn btn-sm btn-danger" 
-                        onclick="event.stopPropagation(); eliminarCirugia(${c.id})">
-                  <i class="fas fa-trash"></i>
-                </button>
-              </div>`;
-          });
-
-
-        }
-        contenido += "</div>";
-        calendario.innerHTML += contenido;
-      }
-
-      // 🔹 Refrescar la tabla también
-      cargarOrdenes(); // sin filtros|
     }
+    contenido += "</div>";
+    calendario.innerHTML += contenido;
+  }
+
+  // 🔹 Completar siempre a 42 celdas (6 semanas * 7 días)
+  const totalCeldas = 42 + 7; // 42 días + 7 headers
+  const actuales = calendario.querySelectorAll("div").length;
+  for (let i = actuales; i < totalCeldas; i++) {
+    calendario.innerHTML += `<div class="empty-day"></div>`;
+  }
+
+  // 🔹 Refrescar la tabla también
+  cargarOrdenes();
+}
 
     function cambiarMesCirugia(offset) {
       fechaCirugia.setMonth(fechaCirugia.getMonth() + offset);
