@@ -1638,6 +1638,7 @@ app.post('/api/set-departamento', isAdmin, (req, res) => {
 
 
 // ==================== AGENDA QUIRÚRGICA ====================
+
 // Listar todas las órdenes pendientes o con fecha asignada
 app.get("/api/ordenes", verificarSesion, async (req, res) => {
   try {
@@ -1664,7 +1665,7 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
         ON e.numero_expediente = o.expediente_id 
        AND e.departamento = o.departamento
       WHERE o.departamento = $1
-      ORDER BY o.fecha DESC
+      ORDER BY o.fecha_cirugia NULLS LAST
     `, [depto]);
 
     res.json(result.rows);
@@ -1674,7 +1675,7 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
   }
 });
 
-// Asignar fecha de cirugía
+// Asignar o eliminar fecha de cirugía
 app.put("/api/ordenes/:id/agendar", verificarSesion, async (req, res) => {
   try {
     const { id } = req.params;
@@ -1693,7 +1694,7 @@ app.put("/api/ordenes/:id/agendar", verificarSesion, async (req, res) => {
       return res.status(404).json({ error: "Orden no encontrada" });
     }
 
-    res.json({ mensaje: "✅ Cirugía agendada", orden: result.rows[0] });
+    res.json({ mensaje: fecha_cirugia ? "✅ Cirugía agendada" : "🗑️ Cirugía eliminada", orden: result.rows[0] });
   } catch (err) {
     console.error("Error en /api/ordenes/:id/agendar:", err);
     res.status(500).json({ error: err.message });
