@@ -849,6 +849,7 @@ $(document).ready(function () {
 });
 
 // Nueva función para filtrar órdenes por rango
+// Nueva función para filtrar órdenes por rango
 async function cargarOrdenesPorRango(desde, hasta) {
   try {
     const res = await fetch(`/api/ordenes?desde=${desde}&hasta=${hasta}`);
@@ -857,10 +858,9 @@ async function cargarOrdenesPorRango(desde, hasta) {
     const tbody = document.getElementById("tablaOrdenes");
 
     if (ordenes.length === 0) {
-  tbody.innerHTML = `<tr><td colspan="11" class="text-muted">Sin resultados en este rango</td></tr>`;
-  return;
-}
-
+      tbody.innerHTML = `<tr><td colspan="11" class="text-muted">Sin resultados en este rango</td></tr>`;
+      return;
+    }
 
     tbody.innerHTML = ordenes.map(o => `
       <tr>
@@ -874,7 +874,17 @@ async function cargarOrdenesPorRango(desde, hasta) {
         <td><span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">${o.status}</span></td>
         <td>${o.tipo_lente || '-'}</td>
         <td>${o.fecha_cirugia ? new Date(o.fecha_cirugia).toLocaleDateString("es-MX") : '-'}</td>
-        <td> ... acciones ... </td>
+        <td>
+          ${o.fecha_cirugia ? 
+            '<span class="text-muted">Asignado</span>' : 
+            `<button class="btn btn-sm btn-primary" onclick="abrirCalendario(${o.id})">
+              <i class="fas fa-calendar-plus"></i> Agendar
+            </button>`}
+          ${o.fecha_cirugia ? `
+            <button class="btn btn-sm btn-warning mt-1" onclick="editarCirugia(${o.id})">
+              <i class="fas fa-edit"></i> Reprogramar
+            </button>` : ''}
+        </td>
       </tr>
     `).join('');
   } catch (err) {
