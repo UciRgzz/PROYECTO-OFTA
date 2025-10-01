@@ -477,9 +477,12 @@
   }
 
       document.addEventListener("DOMContentLoaded", () => {
-    renderCalendarCirugias(); // carga inicial
-    renderMiniCalendar();     // carga mini calendario
-    cargarOrdenes();          // carga tabla de órdenes al inicio
+  renderCalendarCirugias();
+  renderMiniCalendar();
+
+  const hoy = moment().format("YYYY-MM-DD");
+  cargarOrdenesPorRango(hoy, hoy);
+  document.getElementById("filtroRangoOrdenes").value = moment().format("DD/MM/YYYY") + " - " + moment().format("DD/MM/YYYY");
   });
   ;
 // ==================== CAMBIAR MES MINI CALENDARIO ====================
@@ -847,7 +850,15 @@ async function cargarOrdenesPorRango(desde, hasta) {
     const res = await fetch(`/api/ordenes?desde=${desde}&hasta=${hasta}`);
     let ordenes = await res.json();
 
-    document.getElementById("tablaOrdenes").innerHTML = ordenes.map(o => `
+    const tbody = document.getElementById("tablaOrdenes");
+
+    if (ordenes.length === 0) {
+  tbody.innerHTML = `<tr><td colspan="11" class="text-muted">Sin resultados en este rango</td></tr>`;
+  return;
+}
+
+
+    tbody.innerHTML = ordenes.map(o => `
       <tr>
         <td>${o.expediente}</td>
         <td>${o.edad}</td>
@@ -866,6 +877,7 @@ async function cargarOrdenesPorRango(desde, hasta) {
     console.error("Error filtrando órdenes:", err);
   }
 }
+
 
 
     </script>
