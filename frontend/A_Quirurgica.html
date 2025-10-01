@@ -392,22 +392,20 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+
       // ====================== VARIABLES GLOBALES ======================
   let fechaCirugia = new Date();
-  let fechaMiniCalendario = new Date();
   let ordenSeleccionada = null;
 
 
     // ====================== FORMATEADOR DE FECHAS ======================
 function formatFecha(fecha) {
   if (!fecha) return '<span class="text-muted">No asignado</span>';
-  // si ya viene como Date, conviértelo
-  const f = (typeof fecha === "string") 
-    ? new Date(fecha + "T00:00:00") 
-    : new Date(fecha);
+  const f = new Date(fecha);
   if (isNaN(f)) return '<span class="text-muted">No asignado</span>';
   return f.toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
+
 
 
 // ====================== TABLA ======================
@@ -541,7 +539,7 @@ async function renderCalendarCirugias() {
   // Normalizamos fechas
   const filtradas = cirugias.filter(c => {
     if (!c.fecha_cirugia) return false;
-    const f = new Date(c.fecha_cirugia + "T00:00:00");
+    const f = new Date(c.fecha_cirugia);  // usar la fecha tal cual viene de la BD
     return f.getFullYear() === year && f.getMonth() === month;
   });
 
