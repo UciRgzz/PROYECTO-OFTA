@@ -477,13 +477,17 @@
   }
 
       document.addEventListener("DOMContentLoaded", () => {
-  renderCalendarCirugias();
-  renderMiniCalendar();
+        renderCalendarCirugias();
+        renderMiniCalendar();
 
-  const hoy = moment().format("YYYY-MM-DD");
-  cargarOrdenesPorRango(hoy, hoy);
-  document.getElementById("filtroRangoOrdenes").value = moment().format("DD/MM/YYYY") + " - " + moment().format("DD/MM/YYYY");
-  });
+        const hoy = moment().format("YYYY-MM-DD");
+        cargarOrdenesPorRango(hoy, hoy);
+
+        // 🔹 Mostrar en el input que cargaste hoy
+        const input = document.getElementById("filtroRangoOrdenes");
+        input.value = moment().format("DD/MM/YYYY") + " - " + moment().format("DD/MM/YYYY");
+      });
+
   ;
 // ==================== CAMBIAR MES MINI CALENDARIO ====================
 function cambiarMesMini(offset) {
