@@ -156,45 +156,110 @@
   .current-month { font-size: 1rem; font-weight: 600; color: var(--primary-color); }
   
   /* === CALENDARIO GRANDE FIJO === */
-  /* === CALENDARIO GRANDE FIJO === */
-.calendar {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: auto repeat(6, 120px); /* 🔹 1 fila headers + 6 semanas fijas */
-  gap: 6px;
-}
+  .calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-template-rows: auto repeat(6, 120px); /* 🔹 siempre 6 semanas */
+    gap: 6px;
+  }
 
-.day-header {
-  text-align: center;
-  padding: 10px;
-  background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
-  color: white;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.85rem;
-}
+  .day-header {
+    text-align: center;
+    padding: 10px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
+    color: white;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
 
-.calendar-day,
-.empty-day {
-  background: white;
-  border-radius: 8px;
-  height: 120px;           /* 🔹 altura fija */
-  padding: 4px;
-  font-size: 0.75rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  transition: all 0.3s;
-  overflow: hidden;        /* 🔹 evita que se expanda */
-}
+  .calendar-day,
+  .empty-day {
+    background: white;
+    border-radius: 8px;
+    height: 120px;           /* 🔹 altura fija */
+    padding: 4px;
+    font-size: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: all 0.3s;
+    overflow: hidden;
+  }
 
-.calendar-day:hover { 
-  transform: translateY(-3px); 
-  box-shadow: 0 3px 8px rgba(0,0,0,0.1); 
-}
+  .calendar-day:hover { 
+    transform: translateY(-3px); 
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1); 
+  }
 
-.empty-day { 
-  visibility: hidden; 
-}
+  .empty-day { visibility: hidden; }
+  
+  /* Colores procedimientos */
+  .proc-catarata { background: #f5cbfd; border-left: 4px solid #e46bf6; }
+  .proc-consulta { background: #c9e7fd; border-left: 4px solid #2196f3; }
+  .proc-lente { background: #f7f9d2; border-left: 4px solid #fbf866; }
+  
+  /* 🔹 Eventos simplificados */
+  .insumo-item {
+    padding: 4px 6px;
+    margin-bottom: 4px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .insumo-item .btn-sm { padding: 2px 6px; font-size: 0.65rem; }
+  
+  .badge { font-size: 0.8rem; padding: 5px 10px; border-radius: 20px; }
+  .modal-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
+    color: white;
+  }
+  
+  /* === MINI CALENDARIO FIJO === */
+  .calendar-container { display: flex; gap: 20px; }
+  .mini-calendar { width: 250px; min-height: 280px; }
+  .mini-calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .mini-calendar-month { font-weight: 600; color: var(--primary-color); }
+  .mini-calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; min-height: 200px; }
+  .mini-day-header { font-weight: 600; text-align: center; font-size: 0.75rem; }
+  .mini-calendar-day {
+    text-align: center;
+    padding: 5px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    min-height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .mini-calendar-day.has-surgery { background-color: #ffe0b2; font-weight: bold; }
+  .mini-calendar-day:empty::after { content: ""; display: block; height: 18px; }
+  
+  .calendar-legend { margin-top: 15px; font-size: 0.8rem; }
+  .legend-item { display: flex; align-items: center; margin-bottom: 5px; }
+  .legend-color { width: 16px; height: 16px; margin-right: 6px; border-radius: 3px; }
+  
+  @media (max-width: 768px) {
+    h1 { font-size: 2rem; }
+    .table-responsive { overflow-x: auto; }
+    .card-header { font-size: 1.1rem; padding: 15px; }
+    .calendar-nav { flex-direction: column; gap: 10px; }
+    .calendar { grid-template-columns: repeat(1, 1fr); }
+    .calendar-container { flex-direction: column; }
+    .mini-calendar { width: 100%; }
+  }
+  
+  /* 🔹 Botones de navegación del mini calendario */
+  .mini-calendar-header .btn {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  .mini-calendar-header .btn i { font-size: 0.75rem; }
 </style>
+
 
 
 </head>
