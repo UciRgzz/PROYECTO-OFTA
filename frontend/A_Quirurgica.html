@@ -449,11 +449,12 @@
                   <i class="fas fa-plus-circle"></i> Añadir Lente
                 </button>`}
           </td>
-          <td>
-            ${o.fecha_cirugia 
-              ? new Date(o.fecha_cirugia).toLocaleDateString("es-MX") 
-              : '<span class="text-muted">No asignado</span>'}
-          </td>
+         <td>
+        ${o.fecha_cirugia 
+          ? o.fecha_cirugia.split("T")[0].split("-").reverse().join("/") 
+          : '<span class="text-muted">No asignado</span>'}
+      </td>
+
           <td>
             ${o.fecha_cirugia ? 
               '<span class="text-muted">Asignado</span>' : 
