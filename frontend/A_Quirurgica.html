@@ -562,11 +562,20 @@ async function renderCalendarCirugias() {
     totalDias++;
     const fechaDia = `${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
       const programadas = filtradas.filter(c => {
-        const f = (typeof c.fecha_cirugia === "string") 
-          ? c.fecha_cirugia 
-          : new Date(c.fecha_cirugia).toISOString().split("T")[0];
+        if (!c.fecha_cirugia) return false;
+
+        // Normalizar a "YYYY-MM-DD"
+        let f;
+        if (typeof c.fecha_cirugia === "string") {
+          f = c.fecha_cirugia.split("T")[0];  // si viene como "2025-10-09" o "2025-10-09T00:00:00"
+        } else {
+          const d = new Date(c.fecha_cirugia);
+          f = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+        }
+
         return f === fechaDia;
       });
+
 
 
     let contenido = `<div class="calendar-day" onclick="asignarFecha('${fechaDia}')">
