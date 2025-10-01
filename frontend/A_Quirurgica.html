@@ -415,83 +415,102 @@
   let ordenSeleccionada = null;
 
 
-      // ====================== TABLA ======================
-  async function cargarOrdenes(year, month) {
-    try {
-      const res = await fetch('/api/ordenes');
-      let ordenes = await res.json();
+    // ====================== FORMATEADOR DE FECHAS ======================
+function formatFecha(fecha) {
+  if (!fecha) return '<span class="text-muted">No asignado</span>';
+  const f = new Date(fecha + "T00:00:00"); // fuerza a medianoche local
+  return f.toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
 
-      // 🔹 Si hay año/mes, filtramos por ese mes
-      if (year !== undefined && month !== undefined) {
-        ordenes = ordenes.filter(o => {
-          if (!o.fecha_cirugia) return true; // mostrar también las que aún no tienen fecha
-          const f = new Date(o.fecha_cirugia);
-          return f.getFullYear() === year && f.getMonth() === month;
-        });
-      }
+// ====================== TABLA ======================
+async function cargarOrdenes(year, month) {
+  try {
+    const res = await fetch('/api/ordenes');
+    let ordenes = await res.json();
 
-      document.getElementById("tablaOrdenes").innerHTML = ordenes.map(o => `
-        <tr>
-          <td>${o.expediente}</td>
-          <td>${o.edad}</td>
-          <td>${o.nombre}</td>
-          <td>${o.procedimiento}</td>
-          <td>$${parseFloat(o.total).toLocaleString("es-MX", {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-          <td>$${parseFloat(o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-          <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-
-          <td><span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">${o.status}</span></td>
-          <td>
-            ${o.tipo_lente 
-              ? `<span class="badge bg-info" style="cursor:pointer" onclick="editarLente(${o.id}, '${o.tipo_lente}')">${o.tipo_lente}</span>` 
-              : `<button class="btn btn-sm btn-secondary" 
-                        onclick="editarLente(${o.id}, '')">
-                  <i class="fas fa-plus-circle"></i> Añadir Lente
-                </button>`}
-          </td>
-       <td>
-        ${o.fecha_cirugia 
-          ? new Date(o.fecha_cirugia).toLocaleDateString("es-MX") 
-          : '<span class="text-muted">No asignado</span>'}
-      </td>
-
-
-
-          <td>
-            ${o.fecha_cirugia ? 
-              '<span class="text-muted">Asignado</span>' : 
-              `<button class="btn btn-sm btn-primary" 
-                      onclick="abrirCalendario(${o.id})">
-                <i class="fas fa-calendar-plus"></i> Agendar
-              </button>`}
-            ${o.fecha_cirugia ? `
-              <button class="btn btn-sm btn-warning mt-1" 
-                      onclick="editarCirugia(${o.id})">
-                <i class="fas fa-edit"></i> Reprogramar
-              </button>
-            ` : ''}
-          </td>
-        </tr>
-      `).join('');
-    } catch (err) {
-      console.error("Error cargando órdenes:", err);
-      mostrarError("Error", "No se pudieron cargar las órdenes");
-    }
-  }
-
-      document.addEventListener("DOMContentLoaded", () => {
-        renderCalendarCirugias();
-        renderMiniCalendar();
-
-        const hoy = moment().format("YYYY-MM-DD");
-        cargarOrdenesPorRango(hoy, hoy);
-
-        // 🔹 Mostrar en el input que cargaste hoy
-        const input = document.getElementById("filtroRangoOrdenes");
-        input.value = moment().format("DD/MM/YYYY") + " - " + moment().format("DD/MM/YYYY");
+    if (year !== undefined && month !== undefined) {
+      ordenes = ordenes.filter(o => {
+        if (!o.fecha_cirugia) return true;
+        const f = new Date(o.fecha_cirugia + "T00:00:00");
+        return f.getFullYear() === year && f.getMonth() === month;
       });
+    }
 
-  ;
+    document.getElementById("tablaOrdenes").innerHTML = ordenes.map(o => `
+      <tr>
+        <td>${o.expediente}</td>
+        <td>${o.edad}</td>
+        <td>${o.nombre}</td>
+        <td>${o.procedimiento}</td>
+        <td>$${parseFloat(o.total).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+        <td>$${parseFloat(o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+        <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+        <td><span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">${o.status}</span></td>
+        <td>${o.tipo_lente || '-'}</td>
+        <td>${formatFecha(o.fecha_cirugia)}</td>
+        <td>
+          ${o.fecha_cirugia ? 
+            '<span class="text-muted">Asignado</span>' : 
+            `<button class="btn btn-sm btn-primary" onclick="abrirCalendario(${o.id})">
+              <i class="fas fa-calendar-plus"></i> Agendar
+            </button>`}
+          ${o.fecha_cirugia ? `
+            <button class="btn btn-sm btn-warning mt-1" onclick="editarCirugia(${o.id})">
+              <i class="fas fa-edit"></i> Reprogramar
+            </button>` : ''}
+        </td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    console.error("Error cargando órdenes:", err);
+    mostrarError("Error", "No se pudieron cargar las órdenes");
+  }
+}
+
+// ====================== FILTRO DE FECHAS PARA ÓRDENES ======================
+async function cargarOrdenesPorRango(desde, hasta) {
+  try {
+    const res = await fetch(`/api/ordenes?desde=${desde}&hasta=${hasta}`);
+    let ordenes = await res.json();
+
+    const tbody = document.getElementById("tablaOrdenes");
+
+    if (ordenes.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="11" class="text-muted">Sin resultados en este rango</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = ordenes.map(o => `
+      <tr>
+        <td>${o.expediente}</td>
+        <td>${o.edad}</td>
+        <td>${o.nombre}</td>
+        <td>${o.procedimiento}</td>
+        <td>$${parseFloat(o.total).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+        <td>$${parseFloat(o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+        <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+        <td><span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">${o.status}</span></td>
+        <td>${o.tipo_lente || '-'}</td>
+        <td>${formatFecha(o.fecha_cirugia)}</td>
+        <td>
+          ${o.fecha_cirugia ? 
+            '<span class="text-muted">Asignado</span>' : 
+            `<button class="btn btn-sm btn-primary" onclick="abrirCalendario(${o.id})">
+              <i class="fas fa-calendar-plus"></i> Agendar
+            </button>`}
+          ${o.fecha_cirugia ? `
+            <button class="btn btn-sm btn-warning mt-1" onclick="editarCirugia(${o.id})">
+              <i class="fas fa-edit"></i> Reprogramar
+            </button>` : ''}
+        </td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    console.error("Error filtrando órdenes:", err);
+  }
+}
+
+
 // ==================== CAMBIAR MES MINI CALENDARIO ====================
 function cambiarMesMini(offset) {
   fechaMiniCalendario.setMonth(fechaMiniCalendario.getMonth() + offset);

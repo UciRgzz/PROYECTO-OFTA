@@ -1638,7 +1638,6 @@ app.post('/api/set-departamento', isAdmin, (req, res) => {
 
 
 // ==================== MODULO DE AGENDA QUIRÚRGICA ====================
-
 // Listar todas las órdenes (de hoy por defecto, o con filtro de fechas)
 app.get("/api/ordenes", verificarSesion, async (req, res) => {
   try {
