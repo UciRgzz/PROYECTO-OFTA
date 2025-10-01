@@ -401,9 +401,14 @@
     // ====================== FORMATEADOR DE FECHAS ======================
 function formatFecha(fecha) {
   if (!fecha) return '<span class="text-muted">No asignado</span>';
-  const f = new Date(fecha + "T00:00:00"); // fuerza a medianoche local
+  // si ya viene como Date, conviértelo
+  const f = (typeof fecha === "string") 
+    ? new Date(fecha + "T00:00:00") 
+    : new Date(fecha);
+  if (isNaN(f)) return '<span class="text-muted">No asignado</span>';
   return f.toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
+
 
 // ====================== TABLA ======================
 async function cargarOrdenes(year, month) {
@@ -555,12 +560,14 @@ async function renderCalendarCirugias() {
 
   for (let d = 1; d <= diasEnMes; d++) {
     totalDias++;
-    const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
+    const fechaDia = `${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+      const programadas = filtradas.filter(c => {
+        const f = (typeof c.fecha_cirugia === "string") 
+          ? c.fecha_cirugia 
+          : new Date(c.fecha_cirugia).toISOString().split("T")[0];
+        return f === fechaDia;
+      });
 
-    const programadas = filtradas.filter(c => {
-      const f = new Date(c.fecha_cirugia + "T00:00:00").toISOString().split("T")[0];
-      return f === fechaDia;
-    });
 
     let contenido = `<div class="calendar-day" onclick="asignarFecha('${fechaDia}')">
                       <div class="day-number">${d}</div>`;
