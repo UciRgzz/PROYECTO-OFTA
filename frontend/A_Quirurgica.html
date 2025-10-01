@@ -268,6 +268,13 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     .mini-calendar-header .btn i { font-size: 0.75rem; }
+
+    /* 🔹 Forzar ancho máximo al modal de calendario */
+#modalCalendario .modal-dialog {
+  max-width: 95%;   /* ocupa casi todo el viewport */
+  width: 100%;
+}
+
   </style>
 
 
@@ -313,14 +320,14 @@
 
 
   <!-- Modal Calendario -->
-  <div class="modal fade" id="modalCalendario" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title"><i class="fas fa-calendar"></i> Calendario de Cirugías</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
+<div class="modal fade" id="modalCalendario" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-calendar"></i> Calendario de Cirugías</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
           <div class="calendar-container">
             <!-- Mini calendario -->
             <div class="mini-calendar">
