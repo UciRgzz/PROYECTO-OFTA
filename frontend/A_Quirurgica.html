@@ -550,10 +550,10 @@ async function renderCalendarCirugias() {
     console.error(err); 
   }
 
+  // Normalizamos fechas
   const filtradas = cirugias.filter(c => {
-    const fecha = c.fecha_cirugia || c.fecha;   
-    if (!fecha) return false;
-    const f = new Date(fecha + "T00:00:00");
+    if (!c.fecha_cirugia) return false;
+    const f = new Date(c.fecha_cirugia + "T00:00:00");
     return f.getFullYear() === year && f.getMonth() === month;
   });
 
@@ -573,9 +573,10 @@ async function renderCalendarCirugias() {
   for (let d = 1; d <= diasEnMes; d++) {
     totalDias++;
     const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
+
     const programadas = filtradas.filter(c => {
-      const fecha = c.fecha_cirugia || c.fecha;
-      return fecha && fecha.startsWith(fechaDia);
+      const f = new Date(c.fecha_cirugia + "T00:00:00").toISOString().split("T")[0];
+      return f === fechaDia;
     });
 
     let contenido = `<div class="calendar-day" onclick="asignarFecha('${fechaDia}')">
@@ -711,17 +712,17 @@ async function renderMiniCalendar() {
 
   for (let d = 1; d <= diasEnMes; d++) {
     const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
+
     const programadas = cirugias.filter(c => {
-      const fecha = c.fecha_cirugia || c.fecha;
-if (!fecha) return false;
-return (new Date(fecha + "T00:00:00")).toISOString().split("T")[0] === fechaDia;
+      if (!c.fecha_cirugia) return false;
+      const f = new Date(c.fecha_cirugia + "T00:00:00").toISOString().split("T")[0];
+      return f === fechaDia;
     });
 
     let clase = "mini-calendar-day";
 
     if (programadas.length > 0) {
       const procClase = getColorClass(programadas[0].procedimiento);
-
       if (procClase === "proc-catarata") clase += " has-surgery mini-catarata";
       if (procClase === "proc-consulta") clase += " has-surgery mini-consulta";
       if (procClase === "proc-lente") clase += " has-surgery mini-lente";
