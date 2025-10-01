@@ -236,13 +236,14 @@
   }
   
   .calendar-day {
-    background: white;
-    border-radius: 8px;
-    min-height: 120px;
-    padding: 8px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    transition: all 0.3s;
-  }
+  background: white;
+  border-radius: 8px;
+  min-height: 90px;   /* antes 120px */
+  padding: 5px;       /* menos espacio */
+  font-size: 0.85rem; /* texto más compacto */
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  transition: all 0.3s;
+}
   
   .calendar-day:hover {
     transform: translateY(-3px);
@@ -250,10 +251,11 @@
   }
   
   .day-number {
-    font-weight: 600;
-    margin-bottom: 5px;
-    color: var(--primary-color);
-  }
+  font-weight: 600;
+  margin-bottom: 3px;
+  font-size: 0.8rem;  /* más pequeño */
+  color: var(--primary-color);
+}
   
   /* Colores por tipo de procedimiento */
   .proc-catarata { 
@@ -272,20 +274,30 @@
   }
   
   .insumo-item {
-    padding: 6px;
-    margin-bottom: 6px;
-    border-radius: 5px;
-    font-size: 0.85rem;
-  }
+  padding: 4px 6px;
+  margin-bottom: 4px;
+  border-radius: 4px;
+  font-size: 0.75rem;   /* más compacto */
+  line-height: 1.2;
+}
   
   .insumo-name {
-    font-weight: 600;
-  }
+  font-weight: 600;
+  font-size: 0.8rem;
+  margin-bottom: 2px;
+}
   
   .insumo-info {
-    font-size: 0.8rem;
-    color: #555;
-  }
+  font-size: 0.75rem;
+  color: #444;
+  margin-bottom: 2px;
+}
+/* 🔹 Botón de eliminar más pequeño */
+.insumo-item .btn-sm {
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  margin-top: 2px;
+}
   
   .badge {
     font-size: 0.8rem;
@@ -632,18 +644,17 @@ async function cargarOrdenes(year, month) {
                        <div class="day-number">${d}</div>`;
         if (programadas.length > 0) {
           programadas.forEach(c => {
-            contenido += `
-              <div class="insumo-item ${getColorClass(c.procedimiento)}">
-                <div class="insumo-name">${c.nombre}</div>
-                <div class="insumo-info">Proc: ${c.procedimiento}</div>
-                <div class="insumo-info">Dr: ${c.medico}</div>
-                ${c.tipo_lente ? `<div class="insumo-info">Lente: ${c.tipo_lente}</div>` : ""}
-                <button class="btn btn-sm btn-danger mt-1" onclick="event.stopPropagation(); eliminarCirugia(${c.id})">
-                  <i class="fas fa-trash"></i> Eliminar
-                </button>
+          contenido += `
+            <div class="insumo-item ${getColorClass(c.procedimiento)}">
+              <div class="insumo-name">${c.nombre}</div>
+              <div class="insumo-info">${c.procedimiento}</div>
+              <button class="btn btn-sm btn-danger" 
+                      onclick="event.stopPropagation(); eliminarCirugia(${c.id})">
+                <i class="fas fa-trash"></i> Eliminar
+              </button>
+            </div>`;
+        });
 
-              </div>`;
-          });
         }
         contenido += "</div>";
         calendario.innerHTML += contenido;
