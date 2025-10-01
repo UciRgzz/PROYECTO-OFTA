@@ -618,56 +618,60 @@
       }
 
   // ====================== MINI CALENDARIO ======================
-  async function renderMiniCalendar() {
-    const miniCalendario = document.getElementById("miniCalendarioCirugias");
-    const miniMesActual = document.getElementById("miniMesCirugia");
+async function renderMiniCalendar() {
+  const miniCalendario = document.getElementById("miniCalendarioCirugias");
+  const miniMesActual = document.getElementById("miniMesCirugia");
 
-    const year = fechaMiniCalendario.getFullYear();
-    const month = fechaMiniCalendario.getMonth();
+  const year = fechaMiniCalendario.getFullYear();
+  const month = fechaMiniCalendario.getMonth();
 
-    miniMesActual.textContent = fechaMiniCalendario.toLocaleString("es-ES", { month: "long", year: "numeric" });
+  miniMesActual.textContent = fechaMiniCalendario.toLocaleString("es-ES", { month: "long", year: "numeric" });
 
-    const primerDia = new Date(year, month, 1).getDay() || 7;
-    const diasEnMes = new Date(year, month + 1, 0).getDate();
+  const primerDia = new Date(year, month, 1).getDay() || 7;
+  const diasEnMes = new Date(year, month + 1, 0).getDate();
 
-    let cirugias = [];
-    try {
-      const res = await fetch("/api/cirugias");
-      cirugias = await res.json();
-    } catch (err) { console.error(err); }
+  let cirugias = [];
+  try {
+    const res = await fetch("/api/cirugias");
+    cirugias = await res.json();
+  } catch (err) { console.error(err); }
 
-    const filtradas = cirugias.filter(c => {
-      const f = new Date(c.fecha);
-      return f.getFullYear() === year && f.getMonth() === month;
-    });
+  const filtradas = cirugias.filter(c => {
+    const f = new Date(c.fecha);
+    return f.getFullYear() === year && f.getMonth() === month;
+  });
 
-    miniCalendario.innerHTML = "";
-    ["L","M","X","J","V","S","D"].forEach(d => {
-      miniCalendario.innerHTML += `<div class="mini-day-header">${d}</div>`;
-    });
+  miniCalendario.innerHTML = "";
+  ["L","M","X","J","V","S","D"].forEach(d => {
+    miniCalendario.innerHTML += `<div class="mini-day-header">${d}</div>`;
+  });
 
-    for (let i = 1; i < primerDia; i++) {
-      miniCalendario.innerHTML += `<div class="mini-calendar-day"></div>`;
+  for (let i = 1; i < primerDia; i++) {
+    miniCalendario.innerHTML += `<div class="mini-calendar-day"></div>`;
+  }
+
+  for (let d = 1; d <= diasEnMes; d++) {
+    const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
+    const programadas = filtradas.filter(c => c.fecha.startsWith(fechaDia));
+
+    let clase = "mini-calendar-day";
+    let estiloExtra = "";
+
+    if (programadas.length > 0) {
+      // Si hay varias cirugías en el mismo día, toma el color del primer procedimiento
+      const procClase = getColorClass(programadas[0].procedimiento);
+
+      if (procClase === "proc-catarata") estiloExtra = "background-color:#f5cbfd; border-left:3px solid #e46bf6;";
+      if (procClase === "proc-consulta") estiloExtra = "background-color:#c9e7fd; border-left:3px solid #2196f3;";
+      if (procClase === "proc-lente") estiloExtra = "background-color:#f7f9d2; border-left:3px solid #fbf866;";
+
+      clase += " has-surgery";
     }
 
-    for (let d = 1; d <= diasEnMes; d++) {
-      const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
-      const programadas = filtradas.filter(c => c.fecha.startsWith(fechaDia));
-      let clase = "mini-calendar-day";
-      if (programadas.length > 0) clase += " has-surgery";
-      miniCalendario.innerHTML += `<div class="${clase}" onclick="seleccionarDiaMini('${fechaDia}')">${d}</div>`;
-    }
+    miniCalendario.innerHTML += `<div class="${clase}" style="${estiloExtra}" onclick="seleccionarDiaMini('${fechaDia}')">${d}</div>`;
   }
+}
 
-  function cambiarMesMini(offset) {
-    fechaMiniCalendario.setMonth(fechaMiniCalendario.getMonth() + offset);
-    renderMiniCalendar();
-  }
-
-  function seleccionarDiaMini(fecha) {
-    fechaCirugia = new Date(fecha);
-    renderCalendarCirugias();
-  }
 
 
       // ==================== ABRIR MODAL CALENDARIO ====================
