@@ -553,7 +553,7 @@ async function renderCalendarCirugias() {
   const filtradas = cirugias.filter(c => {
     const fecha = c.fecha_cirugia || c.fecha;   
     if (!fecha) return false;
-    const f = new Date(fecha);
+    const f = new Date(fecha + "T00:00:00");
     return f.getFullYear() === year && f.getMonth() === month;
   });
 
@@ -713,7 +713,8 @@ async function renderMiniCalendar() {
     const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
     const programadas = cirugias.filter(c => {
       const fecha = c.fecha_cirugia || c.fecha;
-      return fecha && fecha.startsWith(fechaDia);
+if (!fecha) return false;
+return (new Date(fecha + "T00:00:00")).toISOString().split("T")[0] === fechaDia;
     });
 
     let clase = "mini-calendar-day";
