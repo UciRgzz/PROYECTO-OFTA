@@ -160,7 +160,7 @@
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 6px;
-    min-height: 500px;   /* asegura altura total fija */
+    min-height: 550px;   /* asegura altura total fija */
   }
   .day-header {
     text-align: center;
@@ -171,19 +171,24 @@
     font-weight: 600;
     font-size: 0.85rem;
   }
-  .calendar-day {
+  .calendar-day,
+  .empty-day {
     background: white;
     border-radius: 8px;
-    min-height: 100px;   /* asegura altura fija de cada celda */
+    min-height: 120px;   /* altura fija de cada celda */
     padding: 4px;
     font-size: 0.75rem;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     transition: all 0.3s;
     display: flex;
     flex-direction: column;
+    justify-content: flex-start;
   }
   .calendar-day:hover { transform: translateY(-3px); box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
   .day-number { font-weight: 600; margin-bottom: 2px; font-size: 0.7rem; color: var(--primary-color); }
+  
+  /* Para que los días vacíos mantengan espacio */
+  .empty-day { visibility: hidden; }
   
   /* Colores procedimientos */
   .proc-catarata { background: #f5cbfd; border-left: 4px solid #e46bf6; }
@@ -240,6 +245,7 @@
   }
   .mini-calendar-header .btn i { font-size: 0.75rem; }
 </style>
+
 
 
 
