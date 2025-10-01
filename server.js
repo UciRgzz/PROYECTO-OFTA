@@ -1637,14 +1637,15 @@ app.post('/api/set-departamento', isAdmin, (req, res) => {
 });
 
 
-// ==================== AGENDA QUIRÚRGICA ====================
+// ==================== MODULO DE AGENDA QUIRÚRGICA ====================
 
-// Listar todas las órdenes pendientes o con fecha asignada
+// Listar todas las órdenes (con o sin filtro de fechas)
 app.get("/api/ordenes", verificarSesion, async (req, res) => {
   try {
     let depto = getDepartamento(req);
+    const { desde, hasta } = req.query;
 
-    const result = await pool.query(`
+    let query = `
       SELECT 
         o.id,
         e.numero_expediente AS expediente,
@@ -1665,15 +1666,27 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
         ON e.numero_expediente = o.expediente_id 
        AND e.departamento = o.departamento
       WHERE o.departamento = $1
-      ORDER BY o.fecha_cirugia NULLS LAST
-    `, [depto]);
+    `;
 
+    const params = [depto];
+
+    // 🔹 Si hay rango, agregamos condición extra
+    if (desde && hasta) {
+      query += ` AND o.fecha_cirugia BETWEEN $2 AND $3`;
+      params.push(desde, hasta);
+    }
+
+    query += ` ORDER BY o.fecha_cirugia NULLS LAST`;
+
+    const result = await pool.query(query, params);
     res.json(result.rows);
+
   } catch (err) {
     console.error("Error en /api/ordenes:", err);
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // Asignar o eliminar fecha de cirugía
 app.put("/api/ordenes/:id/agendar", verificarSesion, async (req, res) => {
