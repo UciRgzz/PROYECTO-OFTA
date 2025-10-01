@@ -415,12 +415,13 @@ async function cargarOrdenes(year, month) {
     let ordenes = await res.json();
 
     if (year !== undefined && month !== undefined) {
-      ordenes = ordenes.filter(o => {
-        if (!o.fecha_cirugia) return true;
-        const f = new Date(o.fecha_cirugia + "T00:00:00");
-        return f.getFullYear() === year && f.getMonth() === month;
-      });
-    }
+  ordenes = ordenes.filter(o => {
+    if (!o.fecha_cirugia) return true;
+    const f = new Date(o.fecha_cirugia);
+    return f.getFullYear() === year && f.getMonth() === month;
+  });
+}
+
 
     document.getElementById("tablaOrdenes").innerHTML = ordenes.map(o => `
       <tr>
