@@ -159,31 +159,33 @@
  .calendar {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: 40px repeat(6, 120px); /* 🔹 fila fija de cabecera + 6 semanas fijas */
+  grid-template-rows: 40px repeat(6, 120px); /* 🔹 cabecera fija + 6 semanas fijas */
   gap: 6px;
-  min-height: calc(40px + 6 * 120px);        /* 🔹 alto total siempre constante */
+  min-height: calc(40px + 6 * 120px);        /* 🔹 calendario siempre del mismo alto */
 }
 
 
   .day-header {
-    text-align: center;
-    padding: 10px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
-    color: white;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.85rem;
-  }
+  text-align: center;
+  padding: 10px;
+  background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
+  color: white;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  height: 40px;             /* 🔹 altura fija */
+  line-height: 20px;
+}
 
+.calendar-day,
 .calendar-day,
 .empty-day {
   background: white;
   border-radius: 8px;
-  height: 120px;           /* 🔹 altura fija */
+  height: 120px;           
   padding: 4px;
   font-size: 0.75rem;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  transition: all 0.3s;
   overflow: hidden;
 }
 
@@ -193,9 +195,8 @@
 }
 
 .empty-day {
-  background: transparent;   /* 🔹 mantiene el espacio */
+  background: transparent;
   border: 1px solid transparent;
-  visibility: visible;       /* 🔹 ya no se oculta */
 }
 
   
