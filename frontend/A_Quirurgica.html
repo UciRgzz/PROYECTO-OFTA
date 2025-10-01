@@ -156,13 +156,15 @@
     .current-month { font-size: 1rem; font-weight: 600; color: var(--primary-color); }
     
     /* === CALENDARIO GRANDE FIJO === */
-  .calendar {
+ .calendar {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(90px, 1fr)); /* 🔹 columnas más angostas */
   grid-template-rows: 40px repeat(6, 80px); /* cabecera + 6 filas iguales */
   gap: 6px;
+  justify-content: center; /* 🔹 centra el calendario dentro del modal */
   min-height: calc(40px + 6 * 80px);
 }
+
 
 
     .day-header {
