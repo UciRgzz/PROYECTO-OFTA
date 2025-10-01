@@ -483,22 +483,27 @@ async function renderCalendarCirugias() {
 
   calendario.innerHTML = "";
 
+  // Cabeceras
   ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"].forEach(d => {
     calendario.innerHTML += `<div class="day-header">${d}</div>`;
   });
 
-  // 🔹 Huecos antes del primer día
+  let totalDias = 0;
+
+  // Huecos antes del primer día
   for (let i = 1; i < primerDia; i++) {
     calendario.innerHTML += `<div class="empty-day"></div>`;
+    totalDias++;
   }
 
-  // 🔹 Días del mes
+  // Días del mes
   for (let d = 1; d <= diasEnMes; d++) {
+    totalDias++;
     const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
     const programadas = filtradas.filter(c => c.fecha.startsWith(fechaDia));
 
     let contenido = `<div class="calendar-day" onclick="asignarFecha('${fechaDia}')">
-                   <div class="day-number">${d}</div>`;
+                       <div class="day-number">${d}</div>`;
     if (programadas.length > 0) {
       programadas.forEach(c => {
         contenido += `
@@ -515,14 +520,13 @@ async function renderCalendarCirugias() {
     calendario.innerHTML += contenido;
   }
 
-  // 🔹 Completar siempre a 42 celdas (6 semanas * 7 días)
-  const totalCeldas = 42 + 7; // 42 días + 7 headers
-  const actuales = calendario.querySelectorAll("div").length;
-  for (let i = actuales; i < totalCeldas; i++) {
+  // 🔹 Rellenar hasta llegar a 42 celdas de días
+  while (totalDias < 42) {
     calendario.innerHTML += `<div class="empty-day"></div>`;
+    totalDias++;
   }
 
-  // 🔹 Refrescar la tabla también
+  // Refrescar la tabla
   cargarOrdenes();
 }
 
