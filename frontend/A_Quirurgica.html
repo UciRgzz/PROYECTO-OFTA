@@ -336,27 +336,42 @@
         <h5 class="modal-title"><i class="fas fa-calendar"></i> Calendario de Cirugías</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body">
-          <div class="calendar-container">
-            <!-- Mini calendario -->
-              </div>
-              <div class="mini-calendar-grid" id="miniCalendarioCirugias"></div>
-              <div class="calendar-legend">
-                <h6>Leyenda de Procedimientos</h6>
-                <div class="legend-item">
-                  <div class="legend-color" style="background-color: #f5cbfd; border-left: 4px solid #e46bf6;"></div>
-                  <div class="legend-text">Cirugía de Catarata</div>
-                </div>
-                <div class="legend-item">
-                  <div class="legend-color" style="background-color: #c9e7fd; border-left: 4px solid #2196f3;"></div>
-                  <div class="legend-text">Consulta</div>
-                </div>
-                <div class="legend-item">
-                  <div class="legend-color" style="background-color: #f7f9d2; border-left: 4px solid #fbf866;"></div>
-                  <div class="legend-text">Procedimiento de Lente</div>
-                </div>
-              </div>
-            </div>
+<div class="modal-body">
+  <div class="calendar-container">
+    <!-- Solo la leyenda -->
+    <div class="calendar-legend">
+      <h6>Leyenda de Procedimientos</h6>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #f5cbfd; border-left: 4px solid #e46bf6;"></div>
+        <div class="legend-text">Cirugía de Catarata</div>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #c9e7fd; border-left: 4px solid #2196f3;"></div>
+        <div class="legend-text">Consulta</div>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #f7f9d2; border-left: 4px solid #fbf866;"></div>
+        <div class="legend-text">Procedimiento de Lente</div>
+      </div>
+    </div>
+
+    <!-- Calendario principal -->
+    <div class="main-calendar">
+      <div class="calendar-nav">
+        <button class="btn btn-primary" onclick="cambiarMesCirugia(-1)">
+          <i class="fas fa-chevron-left"></i> Mes anterior
+        </button>
+        <div class="current-month" id="mesCirugia"></div>
+        <button class="btn btn-primary" onclick="cambiarMesCirugia(1)">
+          Mes siguiente <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+      <div class="calendar" id="calendarioCirugias"></div>
+    </div>
+  </div>
+</div>
+
+
             <!-- Calendario principal -->
             <div class="main-calendar">
               <div class="calendar-nav">
