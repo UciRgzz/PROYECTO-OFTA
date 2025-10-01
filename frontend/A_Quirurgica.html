@@ -161,7 +161,6 @@
     text-align: center;
   }
 
-  /* Ajustes de ancho por columna */
   .table th:nth-child(1), .table td:nth-child(1) { width: 5%; }
   .table th:nth-child(2), .table td:nth-child(2) { width: 6%; }
   .table th:nth-child(3), .table td:nth-child(3) { width: 15%; }
@@ -174,17 +173,8 @@
   .table th:nth-child(10), .table td:nth-child(10) { width: 10%; }
   .table th:nth-child(11), .table td:nth-child(11) { width: 12%; }
   
-  .table tr:last-child td {
-    border-bottom: none;
-  }
-  
-  .table tr:nth-child(odd) {
-    background: #f9f9f9;
-  }
-  
-  .table tr:hover {
-    background-color: #eef6ff;
-  }
+  .table tr:nth-child(odd) { background: #f9f9f9; }
+  .table tr:hover { background-color: #eef6ff; }
   
   .success-alert {
     display: none;
@@ -203,19 +193,24 @@
     font-size: 0.9rem;
   }
   
+  /* 🔹 Barra de navegación compacta */
   .calendar-nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 20px 0;
-    padding: 15px;
+    margin: 15px 0;
+    padding: 8px 12px;
     background: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
   }
-  
+  .calendar-nav .btn {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    border-radius: 6px;
+  }
   .current-month {
-    font-size: 1.5rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--primary-color);
   }
@@ -223,7 +218,7 @@
   .calendar {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 6px; /* reducido */
+    gap: 6px;
   }
   
   .day-header {
@@ -239,18 +234,16 @@
   .calendar-day {
     background: white;
     border-radius: 8px;
-    min-height: 70px;   /* más compacto */
+    min-height: 70px;
     padding: 4px;
     font-size: 0.75rem;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     transition: all 0.3s;
   }
-  
   .calendar-day:hover {
     transform: translateY(-3px);
     box-shadow: 0 3px 8px rgba(0,0,0,0.1);
   }
-  
   .day-number {
     font-weight: 600;
     margin-bottom: 2px;
@@ -258,46 +251,24 @@
     color: var(--primary-color);
   }
   
-  /* Colores por tipo de procedimiento */
-  .proc-catarata { 
-    background: #f5cbfd; 
-    border-left: 4px solid #e46bf6; 
-  }
+  /* Colores procedimientos */
+  .proc-catarata { background: #f5cbfd; border-left: 4px solid #e46bf6; }
+  .proc-consulta { background: #c9e7fd; border-left: 4px solid #2196f3; }
+  .proc-lente { background: #f7f9d2; border-left: 4px solid #fbf866; }
   
-  .proc-consulta { 
-    background: #c9e7fd; 
-    border-left: 4px solid #2196f3; 
-  }
-  
-  .proc-lente { 
-    background: #f7f9d2; 
-    border-left: 4px solid #fbf866; 
-  }
-  
+  /* 🔹 Eventos simplificados */
   .insumo-item {
     padding: 4px 6px;
     margin-bottom: 4px;
     border-radius: 4px;
     font-size: 0.7rem;
-    line-height: 1.2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
-  
-  .insumo-name {
-    font-weight: 600;
-    font-size: 0.75rem;
-    margin-bottom: 2px;
-  }
-  
-  .insumo-info {
-    font-size: 0.7rem;
-    color: #444;
-    margin-bottom: 2px;
-  }
-  
   .insumo-item .btn-sm {
     padding: 2px 6px;
     font-size: 0.65rem;
-    margin-top: 2px;
   }
   
   .badge {
@@ -310,104 +281,31 @@
     background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
     color: white;
   }
-
-  /* === MINI CALENDARIO Y LEYENDA === */
-  .calendar-container {
-    display: flex;
-    gap: 20px;
-  }
-
-  .mini-calendar {
-    width: 250px;
-  }
-
-  .mini-calendar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-  }
-
-  .mini-calendar-month {
-    font-weight: 600;
-    color: var(--primary-color);
-  }
-
-  .mini-calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
-  }
-
-  .mini-day-header {
-    font-weight: 600;
-    text-align: center;
-    font-size: 0.75rem;
-  }
-
-  .mini-calendar-day {
-    text-align: center;
-    padding: 5px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.75rem;
-  }
-
-  .mini-calendar-day.has-surgery {
-    background-color: #ffe0b2;
-    font-weight: bold;
-  }
-
-  .calendar-legend {
-    margin-top: 15px;
-    font-size: 0.8rem;
-  }
-
-  .legend-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 5px;
-  }
-
-  .legend-color {
-    width: 16px;
-    height: 16px;
-    margin-right: 6px;
-    border-radius: 3px;
-  }
-
+  
+  /* === MINI CALENDARIO === */
+  .calendar-container { display: flex; gap: 20px; }
+  .mini-calendar { width: 250px; }
+  .mini-calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .mini-calendar-month { font-weight: 600; color: var(--primary-color); }
+  .mini-calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .mini-day-header { font-weight: 600; text-align: center; font-size: 0.75rem; }
+  .mini-calendar-day { text-align: center; padding: 5px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; }
+  .mini-calendar-day.has-surgery { background-color: #ffe0b2; font-weight: bold; }
+  .calendar-legend { margin-top: 15px; font-size: 0.8rem; }
+  .legend-item { display: flex; align-items: center; margin-bottom: 5px; }
+  .legend-color { width: 16px; height: 16px; margin-right: 6px; border-radius: 3px; }
+  
   @media (max-width: 768px) {
-    h1 {
-      font-size: 2rem;
-    }
-    
-    .table-responsive {
-      overflow-x: auto;
-    }
-    
-    .card-header {
-      font-size: 1.1rem;
-      padding: 15px;
-    }
-    
-    .calendar-nav {
-      flex-direction: column;
-      gap: 15px;
-    }
-    
-    .calendar {
-      grid-template-columns: repeat(1, 1fr);
-    }
-
-    .calendar-container {
-      flex-direction: column;
-    }
-
-    .mini-calendar {
-      width: 100%;
-    }
+    h1 { font-size: 2rem; }
+    .table-responsive { overflow-x: auto; }
+    .card-header { font-size: 1.1rem; padding: 15px; }
+    .calendar-nav { flex-direction: column; gap: 10px; }
+    .calendar { grid-template-columns: repeat(1, 1fr); }
+    .calendar-container { flex-direction: column; }
+    .mini-calendar { width: 100%; }
   }
 </style>
+
 
 
 </head>
@@ -647,16 +545,16 @@ async function cargarOrdenes(year, month) {
                        <div class="day-number">${d}</div>`;
         if (programadas.length > 0) {
           programadas.forEach(c => {
-          contenido += `
-            <div class="insumo-item ${getColorClass(c.procedimiento)}">
-              <div class="insumo-name">${c.nombre}</div>
-              <div class="insumo-info">${c.procedimiento}</div>
-              <button class="btn btn-sm btn-danger" 
-                      onclick="event.stopPropagation(); eliminarCirugia(${c.id})">
-                <i class="fas fa-trash"></i> Eliminar
-              </button>
-            </div>`;
-        });
+            contenido += `
+              <div class="insumo-item ${getColorClass(c.procedimiento)}">
+                <span>${c.nombre}</span>
+                <button class="btn btn-sm btn-danger" 
+                        onclick="event.stopPropagation(); eliminarCirugia(${c.id})">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>`;
+          });
+
 
         }
         contenido += "</div>";
