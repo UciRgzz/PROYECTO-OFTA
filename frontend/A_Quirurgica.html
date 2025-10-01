@@ -498,7 +498,7 @@ async function cargarOrdenes(year, month) {
       }
 
       // 🔹 Refrescar la tabla también
-      cargarOrdenes(year, month);
+      cargarOrdenes(); // sin filtros|
     }
 
     function cambiarMesCirugia(offset) {
