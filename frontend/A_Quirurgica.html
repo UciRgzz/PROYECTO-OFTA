@@ -421,10 +421,10 @@ async function cargarOrdenes(year, month) {
   }
 }
 
-    // ====================== CALENDARIO ======================
     document.addEventListener("DOMContentLoaded", () => {
   renderCalendarCirugias(); // carga inicial
   renderMiniCalendar();     // carga mini calendario
+  cargarOrdenes();          // carga tabla de órdenes al inicio
 });
 ;
 
