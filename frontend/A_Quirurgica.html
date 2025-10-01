@@ -24,10 +24,7 @@
     min-height: 100vh;
   }
   
-  .container {
-    max-width: 1400px;
-    margin: 0 auto;
-  }
+  .container { max-width: 1400px; margin: 0 auto; }
   
   header {
     text-align: center;
@@ -39,16 +36,8 @@
     box-shadow: 0 6px 15px rgba(0,0,0,0.1);
   }
   
-  h1 {
-    font-size: 2.5rem;
-    margin-bottom: 10px;
-    font-weight: 700;
-  }
-  
-  .description {
-    font-size: 1.1rem;
-    opacity: 0.9;
-  }
+  h1 { font-size: 2.5rem; margin-bottom: 10px; font-weight: 700; }
+  .description { font-size: 1.1rem; opacity: 0.9; }
   
   .card {
     background: white;
@@ -68,15 +57,8 @@
     display: flex;
     align-items: center;
   }
-  
-  .card-header i {
-    margin-right: 12px;
-    font-size: 1.5rem;
-  }
-  
-  .card-body {
-    padding: 25px;
-  }
+  .card-header i { margin-right: 12px; font-size: 1.5rem; }
+  .card-body { padding: 25px; }
   
   .btn {
     cursor: pointer;
@@ -96,53 +78,31 @@
     color: white;
     box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
   }
-  
-  .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4);
-  }
-  
-  .btn-primary i {
-    margin-right: 8px;
-  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4); }
+  .btn-primary i { margin-right: 8px; }
   
   .btn-danger {
     background: linear-gradient(135deg, var(--accent-color) 0%, #c0392b 100%);
     color: white;
     box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
   }
-  
-  .btn-danger:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(231, 76, 60, 0.4);
-  }
+  .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(231, 76, 60, 0.4); }
   
   .btn-warning {
     background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
     color: white;
     box-shadow: 0 4px 10px rgba(243, 156, 18, 0.3);
   }
-  
-  .btn-warning:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(243, 156, 18, 0.4);
-  }
+  .btn-warning:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(243, 156, 18, 0.4); }
   
   .btn-info {
     background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
     color: white;
     box-shadow: 0 4px 10px rgba(23, 162, 184, 0.3);
   }
+  .btn-info:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(23, 162, 184, 0.4); }
   
-  .btn-info:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(23, 162, 184, 0.4);
-  }
-  
-  .btn-sm {
-    padding: 8px 15px;
-    font-size: 0.9rem;
-  }
+  .btn-sm { padding: 8px 15px; font-size: 0.9rem; }
   
   .table {
     width: 100%;
@@ -153,14 +113,7 @@
     overflow: hidden;
     box-shadow: 0 6px 20px rgba(0,0,0,0.08);
   }
-
-  .table th,
-  .table td {
-    font-size: 0.85rem;
-    padding: 8px;
-    text-align: center;
-  }
-
+  .table th, .table td { font-size: 0.85rem; padding: 8px; text-align: center; }
   .table th:nth-child(1), .table td:nth-child(1) { width: 5%; }
   .table th:nth-child(2), .table td:nth-child(2) { width: 6%; }
   .table th:nth-child(3), .table td:nth-child(3) { width: 15%; }
@@ -186,12 +139,7 @@
     border: 1px solid #c3e6cb;
   }
   
-  .footer {
-    text-align: center;
-    margin-top: 40px;
-    color: #6c757d;
-    font-size: 0.9rem;
-  }
+  .footer { text-align: center; margin-top: 40px; color: #6c757d; font-size: 0.9rem; }
   
   /* 🔹 Barra de navegación compacta */
   .calendar-nav {
@@ -204,23 +152,16 @@
     border-radius: 8px;
     box-shadow: 0 3px 8px rgba(0,0,0,0.08);
   }
-  .calendar-nav .btn {
-    padding: 6px 12px;
-    font-size: 0.85rem;
-    border-radius: 6px;
-  }
-  .current-month {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--primary-color);
-  }
+  .calendar-nav .btn { padding: 6px 12px; font-size: 0.85rem; border-radius: 6px; }
+  .current-month { font-size: 1rem; font-weight: 600; color: var(--primary-color); }
   
+  /* 🔹 Calendario grande fijo */
   .calendar {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 6px;
+    min-height: 500px;   /* asegura altura total fija */
   }
-  
   .day-header {
     text-align: center;
     padding: 10px;
@@ -230,26 +171,19 @@
     font-weight: 600;
     font-size: 0.85rem;
   }
-  
   .calendar-day {
     background: white;
     border-radius: 8px;
-    min-height: 70px;
+    min-height: 100px;   /* asegura altura fija de cada celda */
     padding: 4px;
     font-size: 0.75rem;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
   }
-  .calendar-day:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-  }
-  .day-number {
-    font-weight: 600;
-    margin-bottom: 2px;
-    font-size: 0.7rem;
-    color: var(--primary-color);
-  }
+  .calendar-day:hover { transform: translateY(-3px); box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
+  .day-number { font-weight: 600; margin-bottom: 2px; font-size: 0.7rem; color: var(--primary-color); }
   
   /* Colores procedimientos */
   .proc-catarata { background: #f5cbfd; border-left: 4px solid #e46bf6; }
@@ -266,17 +200,9 @@
     justify-content: space-between;
     align-items: center;
   }
-  .insumo-item .btn-sm {
-    padding: 2px 6px;
-    font-size: 0.65rem;
-  }
+  .insumo-item .btn-sm { padding: 2px 6px; font-size: 0.65rem; }
   
-  .badge {
-    font-size: 0.8rem;
-    padding: 5px 10px;
-    border-radius: 20px;
-  }
-  
+  .badge { font-size: 0.8rem; padding: 5px 10px; border-radius: 20px; }
   .modal-header {
     background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
     color: white;
@@ -304,20 +230,17 @@
     .calendar-container { flex-direction: column; }
     .mini-calendar { width: 100%; }
   }
-
+  
   /* 🔹 Botones de navegación del mini calendario */
-.mini-calendar-header .btn {
-  padding: 4px 8px;      /* más compacto */
-  font-size: 0.75rem;    /* texto más chico */
-  border-radius: 6px;    /* esquinas menos redondeadas */
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-.mini-calendar-header .btn i {
-  font-size: 0.75rem;    /* íconos más pequeños */
-}
-
+  .mini-calendar-header .btn {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  .mini-calendar-header .btn i { font-size: 0.75rem; }
 </style>
+
 
 
 
