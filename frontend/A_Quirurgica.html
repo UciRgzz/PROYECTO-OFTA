@@ -156,13 +156,13 @@
     .current-month { font-size: 1rem; font-weight: 600; color: var(--primary-color); }
     
     /* === CALENDARIO GRANDE FIJO === */
- .calendar {
+.calendar {
   display: grid;
-  grid-template-columns: repeat(7, minmax(90px, 1fr)); /* 🔹 columnas más angostas */
-  grid-template-rows: 40px repeat(6, 80px); /* cabecera + 6 filas iguales */
-  gap: 6px;
-  justify-content: center; /* 🔹 centra el calendario dentro del modal */
-  min-height: calc(40px + 6 * 80px);
+  grid-template-columns: repeat(7, minmax(60px, 1fr)); /* 🔹 columnas mucho más pequeñas */
+  grid-template-rows: 30px repeat(6, 60px); /* 🔹 filas más bajas */
+  gap: 4px;
+  justify-content: center;
+  min-height: calc(30px + 6 * 60px);
 }
 
 
@@ -182,11 +182,11 @@
 .calendar-day,
 .empty-day {
   background: white;
-  border-radius: 8px;
-  height: 80px;     /* todas iguales */
-  padding: 4px;
-  font-size: 0.75rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border-radius: 6px;
+  height: 60px;        /* 🔹 más pequeñas */
+  padding: 2px;
+  font-size: 0.7rem;   /* 🔹 texto más chico */
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
   overflow: hidden;
 }
 
@@ -197,10 +197,10 @@
 
 
 .main-calendar {
-  min-width: 100%;
-  max-width: 900px;
+  width: 100%;
+  max-width: 500px;   /* 🔹 más compacto */
   margin: 0 auto;
-  min-height: calc(40px + 6 * 80px); /* ✅ ahora consistente con el grid */
+  min-height: calc(30px + 6 * 60px);
 }
 
     
