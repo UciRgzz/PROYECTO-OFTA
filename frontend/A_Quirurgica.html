@@ -223,39 +223,40 @@
   .calendar {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 10px;
+    gap: 6px; /* reducido */
   }
   
   .day-header {
     text-align: center;
-    padding: 12px;
+    padding: 10px;
     background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
     color: white;
     border-radius: 8px;
     font-weight: 600;
+    font-size: 0.85rem;
   }
   
   .calendar-day {
-  background: white;
-  border-radius: 8px;
-  min-height: 90px;   /* antes 120px */
-  padding: 5px;       /* menos espacio */
-  font-size: 0.85rem; /* texto más compacto */
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-  transition: all 0.3s;
-}
+    background: white;
+    border-radius: 8px;
+    min-height: 70px;   /* más compacto */
+    padding: 4px;
+    font-size: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: all 0.3s;
+  }
   
   .calendar-day:hover {
     transform: translateY(-3px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
   }
   
   .day-number {
-  font-weight: 600;
-  margin-bottom: 3px;
-  font-size: 0.8rem;  /* más pequeño */
-  color: var(--primary-color);
-}
+    font-weight: 600;
+    margin-bottom: 2px;
+    font-size: 0.7rem;
+    color: var(--primary-color);
+  }
   
   /* Colores por tipo de procedimiento */
   .proc-catarata { 
@@ -274,30 +275,30 @@
   }
   
   .insumo-item {
-  padding: 4px 6px;
-  margin-bottom: 4px;
-  border-radius: 4px;
-  font-size: 0.75rem;   /* más compacto */
-  line-height: 1.2;
-}
+    padding: 4px 6px;
+    margin-bottom: 4px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    line-height: 1.2;
+  }
   
   .insumo-name {
-  font-weight: 600;
-  font-size: 0.8rem;
-  margin-bottom: 2px;
-}
+    font-weight: 600;
+    font-size: 0.75rem;
+    margin-bottom: 2px;
+  }
   
   .insumo-info {
-  font-size: 0.75rem;
-  color: #444;
-  margin-bottom: 2px;
-}
-/* 🔹 Botón de eliminar más pequeño */
-.insumo-item .btn-sm {
-  padding: 2px 6px;
-  font-size: 0.7rem;
-  margin-top: 2px;
-}
+    font-size: 0.7rem;
+    color: #444;
+    margin-bottom: 2px;
+  }
+  
+  .insumo-item .btn-sm {
+    padding: 2px 6px;
+    font-size: 0.65rem;
+    margin-top: 2px;
+  }
   
   .badge {
     font-size: 0.8rem;
@@ -341,14 +342,15 @@
   .mini-day-header {
     font-weight: 600;
     text-align: center;
+    font-size: 0.75rem;
   }
 
   .mini-calendar-day {
     text-align: center;
-    padding: 6px;
+    padding: 5px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 0.75rem;
   }
 
   .mini-calendar-day.has-surgery {
@@ -358,7 +360,7 @@
 
   .calendar-legend {
     margin-top: 15px;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
   }
 
   .legend-item {
@@ -368,9 +370,9 @@
   }
 
   .legend-color {
-    width: 20px;
-    height: 20px;
-    margin-right: 8px;
+    width: 16px;
+    height: 16px;
+    margin-right: 6px;
     border-radius: 3px;
   }
 
@@ -406,6 +408,7 @@
     }
   }
 </style>
+
 
 </head>
 <body>
