@@ -158,11 +158,11 @@
     /* === CALENDARIO GRANDE FIJO === */
 .calendar {
   display: grid;
-  grid-template-columns: repeat(7, minmax(70px, 1fr)); /* 🔹 más ancho */
-  grid-template-rows: 35px repeat(6, 70px); /* 🔹 más alto */
+  grid-template-columns: repeat(7, minmax(75px, 1fr)); /* 🔹 ancho mayor */
+  grid-template-rows: 35px repeat(6, 75px); /* 🔹 alto mayor */
   gap: 5px;
   justify-content: center;
-  min-height: calc(35px + 6 * 70px);
+  min-height: calc(35px + 6 * 75px);
 }
 
 
@@ -181,9 +181,9 @@
 
 .calendar-day,
 .empty-day {
-  height: 70px;       /* 🔹 celdas más amplias */
-  font-size: 0.8rem;  /* 🔹 texto un poco más grande */
-  padding: 3px;
+  height: 75px;       /* 🔹 celdas más amplias */
+  font-size: 0.85rem; /* 🔹 texto un poco más grande */
+  padding: 4px;
 }
 
 .calendar-day:hover { 
@@ -194,9 +194,9 @@
 
 .main-calendar {
   width: 100%;
-  max-width: 600px;   /* 🔹 calendario total más amplio */
+  max-width: 650px;   /* 🔹 ancho total más amplio */
   margin: 0 auto;
-  min-height: calc(35px + 6 * 70px);
+  min-height: calc(35px + 6 * 75px);
 }
 
     
