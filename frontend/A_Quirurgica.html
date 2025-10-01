@@ -894,7 +894,7 @@ async function cargarOrdenesPorRango(desde, hasta) {
         <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
         <td><span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">${o.status}</span></td>
         <td>${o.tipo_lente || '-'}</td>
-        <td>${o.fecha_cirugia ? new Date(o.fecha_cirugia).toLocaleDateString("es-MX") : '-'}</td>
+        <td>${formatFecha(o.fecha_cirugia)}</td>
         <td>
           ${o.fecha_cirugia ? 
             '<span class="text-muted">Asignado</span>' : 
