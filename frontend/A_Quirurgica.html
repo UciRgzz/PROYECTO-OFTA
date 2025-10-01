@@ -339,17 +339,6 @@
       <div class="modal-body">
           <div class="calendar-container">
             <!-- Mini calendario -->
-            <div class="mini-calendar">
-              <div class="mini-calendar-header">
-                <div class="mini-calendar-month" id="miniMesCirugia"></div>
-                <div>
-                  <button class="btn btn-sm btn-primary" onclick="cambiarMesMini(-1)">
-                    <i class="fas fa-chevron-left"></i>
-                  </button>
-                  <button class="btn btn-sm btn-primary" onclick="cambiarMesMini(1)">
-                    <i class="fas fa-chevron-right"></i>
-                  </button>
-                </div>
               </div>
               <div class="mini-calendar-grid" id="miniCalendarioCirugias"></div>
               <div class="calendar-legend">
@@ -755,7 +744,7 @@ async function renderMiniCalendar() {
 
           ordenSeleccionada = null;
           renderCalendarCirugias();   
-          renderMiniCalendar();
+          cargarOrdenes();
 
 
           // Cierra el modal después de asignar
@@ -788,7 +777,8 @@ async function renderMiniCalendar() {
               });
               mostrarExito("Cirugía eliminada", "La cirugía ha sido eliminada del calendario");
               renderCalendarCirugias(); 
-              renderMiniCalendar();
+              cargarOrdenes();
+
             } catch (err) {
               console.error("Error al eliminar cirugía:", err);
               mostrarError("Error", "No se pudo eliminar la cirugía");
@@ -915,7 +905,6 @@ async function cargarOrdenesPorRango(desde, hasta) {
 
 document.addEventListener("DOMContentLoaded", () => {
   renderCalendarCirugias();
-  renderMiniCalendar();
   cargarOrdenes();
 });
 
