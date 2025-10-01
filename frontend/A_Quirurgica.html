@@ -156,12 +156,14 @@
   .current-month { font-size: 1rem; font-weight: 600; color: var(--primary-color); }
   
   /* === CALENDARIO GRANDE FIJO === */
-  .calendar {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    grid-template-rows: auto repeat(6, 120px); /* 🔹 siempre 6 semanas */
-    gap: 6px;
-  }
+ .calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: 40px repeat(6, 120px); /* 🔹 fila fija de cabecera + 6 semanas fijas */
+  gap: 6px;
+  min-height: calc(40px + 6 * 120px);        /* 🔹 alto total siempre constante */
+}
+
 
   .day-header {
     text-align: center;
