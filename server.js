@@ -1883,12 +1883,7 @@ app.get('/api/mis-permisos', verificarSesion, async (req, res) => {
 });
 
 
-// ==================== LOGOUT ====================
-app.get('/api/logout', (req, res) => {
-    req.session.destroy(() => {
-        res.redirect('/login/login.html');
-    });
-});
+
 
 // ==================== SITEMAP DINÁMICO ====================
 const fs = require('fs');
