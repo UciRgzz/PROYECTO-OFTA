@@ -835,7 +835,7 @@ async function renderMiniCalendar() {
         });
       }
 
-      // ====================== FILTRO DE FECHAS PARA ÓRDENES ======================
+// ====================== FILTRO DE FECHAS PARA ÓRDENES ======================
 $(document).ready(function () {
   $('#filtroRangoOrdenes').daterangepicker({
     autoUpdateInput: false,
@@ -879,10 +879,14 @@ $(document).ready(function () {
     $(this).val('');
     cargarOrdenes(); // todas
   });
+
+  // 🔹 Inicializar en Hoy automáticamente
+  const hoy = moment();
+  $('#filtroRangoOrdenes').val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
+  cargarOrdenesPorRango(hoy.format("YYYY-MM-DD"), hoy.format("YYYY-MM-DD"));
 });
 
-// Nueva función para filtrar órdenes por rango
-// Nueva función para filtrar órdenes por rango
+// ====================== FUNCIÓN DE CARGA POR RANGO ======================
 async function cargarOrdenesPorRango(desde, hasta) {
   try {
     const res = await fetch(`/api/ordenes?desde=${desde}&hasta=${hasta}`);
@@ -932,9 +936,9 @@ async function cargarOrdenesPorRango(desde, hasta) {
   }
 }
 
+// ====================== AL CARGAR LA PÁGINA ======================
 document.addEventListener("DOMContentLoaded", () => {
   renderCalendarCirugias();
-  cargarOrdenes();
 });
 
 
