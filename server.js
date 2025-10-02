@@ -1678,10 +1678,13 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
     const params = [depto];
 
     if (desde && hasta) {
-  query += ` AND (COALESCE(o.fecha_cirugia, o.fecha)::date BETWEEN $2 AND $3)`;
-  params.push(desde, hasta);
-}
-
+      // 🔹 Si el cliente manda un rango, usar ese
+      query += ` AND (COALESCE(o.fecha_cirugia, o.fecha)::date BETWEEN $2 AND $3)`;
+      params.push(desde, hasta);
+    } else {
+      // 🔹 Si no manda rango, mostrar solo las de HOY
+      query += ` AND (COALESCE(o.fecha_cirugia, o.fecha)::date = CURRENT_DATE)`;
+    }
 
     query += ` ORDER BY o.fecha_cirugia NULLS LAST`;
 
@@ -1693,7 +1696,6 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 
 // Asignar o eliminar fecha de cirugía
