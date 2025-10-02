@@ -433,7 +433,13 @@ async function cargarOrdenes(year, month) {
         <td>$${parseFloat(o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
         <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
         <td><span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">${o.status}</span></td>
-        <td>${o.tipo_lente || '-'}</td>
+        <td>
+          <span>${o.tipo_lente || '-'}</span><br>
+          <button class="btn btn-sm btn-info mt-1" onclick="editarLente(${o.id}, '${o.tipo_lente || ""}')">
+            <i class="fas fa-pen"></i> ${o.tipo_lente ? 'Editar' : 'Añadir'}
+          </button>
+        </td>
+
         <td>${formatFecha(o.fecha_cirugia)}</td>
         <td>
           ${o.fecha_cirugia ? 
@@ -477,7 +483,13 @@ async function cargarOrdenesPorRango(desde, hasta) {
         <td>$${parseFloat(o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
         <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
         <td><span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">${o.status}</span></td>
-        <td>${o.tipo_lente || '-'}</td>
+        <td>
+          <span>${o.tipo_lente || '-'}</span><br>
+          <button class="btn btn-sm btn-info mt-1" onclick="editarLente(${o.id}, '${o.tipo_lente || ""}')">
+            <i class="fas fa-pen"></i> ${o.tipo_lente ? 'Editar' : 'Añadir'}
+          </button>
+        </td>
+
         <td>${formatFecha(o.fecha_cirugia)}</td>
         <td>
           ${o.fecha_cirugia ? 
@@ -892,7 +904,13 @@ async function cargarOrdenesPorRango(desde, hasta) {
         <td>$${parseFloat(o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
         <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
         <td><span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">${o.status}</span></td>
-        <td>${o.tipo_lente || '-'}</td>
+        <td>
+          <span>${o.tipo_lente || '-'}</span><br>
+          <button class="btn btn-sm btn-info mt-1" onclick="editarLente(${o.id}, '${o.tipo_lente || ""}')">
+            <i class="fas fa-pen"></i> ${o.tipo_lente ? 'Editar' : 'Añadir'}
+          </button>
+        </td>
+
         <td>${formatFecha(o.fecha_cirugia)}</td>
         <td>
           ${o.fecha_cirugia ? 
