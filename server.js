@@ -1664,7 +1664,7 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
         (r.precio - r.monto_pagado) AS diferencia,
         o.estatus AS status,
         o.tipo_lente,
-        o.fecha AS fecha_creacion,
+        r.fecha AS fecha_creacion,       -- 🔹 ahora viene de recibos
         o.fecha_cirugia AS fecha_agendada
       FROM ordenes_medicas o
       JOIN recibos r 
@@ -1679,10 +1679,10 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
     const params = [depto];
 
     if (desde && hasta) {
-      query += ` AND (COALESCE(o.fecha_cirugia, o.fecha)::date BETWEEN $2 AND $3)`;
+      query += ` AND (COALESCE(o.fecha_cirugia, r.fecha)::date BETWEEN $2 AND $3)`;
       params.push(desde, hasta);
     } else {
-      query += ` AND (COALESCE(o.fecha_cirugia, o.fecha)::date = CURRENT_DATE)`;
+      query += ` AND (COALESCE(o.fecha_cirugia, r.fecha)::date = CURRENT_DATE)`;
     }
 
     query += ` ORDER BY o.fecha_cirugia NULLS LAST`;
