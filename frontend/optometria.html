@@ -691,8 +691,12 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 
   // Al cargar la página → filtrar HOY
-  $('#filtroRangoOpto').val(moment().format('DD/MM/YYYY')); // mostrar hoy en el input
-  cargarOptometrias(hoy, hoy);
+document.addEventListener("DOMContentLoaded", function() {
+  const hoy = moment().format("YYYY-MM-DD");
+
+  $('#filtroRangoOpto').val(moment().format('DD/MM/YYYY'));
+  cargarOptometrias(hoy, hoy);   // aquí ya manda desde y hasta con hoy
+});
 });
 
   </script>

@@ -1316,7 +1316,7 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
 app.get("/api/optometria", verificarSesion, async (req, res) => {
   try {
     let depto = getDepartamento(req);
-    const { filtro, desde, hasta } = req.query; // ahora aceptamos rango también
+    const { filtro, desde, hasta } = req.query;
 
     let query = `
       SELECT o.*, e.nombre_completo AS nombre
@@ -1326,6 +1326,7 @@ app.get("/api/optometria", verificarSesion, async (req, res) => {
        AND o.departamento = e.departamento
       WHERE o.departamento = $1
     `;
+
     let params = [depto];
 
     if (desde && hasta) {
