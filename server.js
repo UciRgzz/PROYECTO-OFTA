@@ -1667,8 +1667,9 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
         (o.precio - COALESCE(SUM(p.monto), 0)) AS diferencia,     -- ✅ calcular diferencia real
         o.estatus AS status,
         o.tipo_lente,
-        r.fecha AS fecha_creacion,       
+        r.fecha AS fecha_creacion,
         o.fecha_cirugia AS fecha_agendada
+
       FROM ordenes_medicas o
       JOIN recibos r 
         ON r.id = o.folio_recibo 
