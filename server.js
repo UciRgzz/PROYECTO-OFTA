@@ -1649,6 +1649,7 @@ app.post('/api/set-departamento', isAdmin, (req, res) => {
 
 
 // ==================== MODULO DE AGENDA QUIRÚRGICA ====================
+// ==================== MODULO DE AGENDA QUIRÚRGICA ====================
 app.get("/api/ordenes", verificarSesion, async (req, res) => {
   try {
     let depto = getDepartamento(req);
@@ -1661,9 +1662,9 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
         e.edad,
         e.nombre_completo AS nombre,
         o.procedimiento,
-        r.precio AS total,
-        r.monto_pagado AS pagos,
-        (r.precio - r.monto_pagado) AS diferencia,
+        o.precio AS total,                                        -- ✅ usar precio de la orden
+        COALESCE(SUM(p.monto), 0) AS pagos,                       -- ✅ sumar pagos asociados
+        (o.precio - COALESCE(SUM(p.monto), 0)) AS diferencia,     -- ✅ calcular diferencia real
         o.estatus AS status,
         o.tipo_lente,
         r.fecha AS fecha_creacion,       
@@ -1675,6 +1676,9 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
       JOIN expedientes e 
         ON e.numero_expediente = o.expediente_id 
        AND e.departamento = o.departamento
+      LEFT JOIN pagos p 
+        ON p.orden_id = o.id 
+       AND p.departamento = o.departamento
       WHERE o.departamento = $1
     `;
 
@@ -1687,7 +1691,12 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
       query += ` AND (COALESCE(o.fecha_cirugia, r.fecha)::date = CURRENT_DATE)`;
     }
 
-    query += ` ORDER BY r.fecha DESC, o.fecha_cirugia NULLS LAST`;
+    query += `
+      GROUP BY o.id, e.numero_expediente, e.edad, e.nombre_completo, 
+               o.procedimiento, o.precio, o.estatus, o.tipo_lente, 
+               r.fecha, o.fecha_cirugia
+      ORDER BY r.fecha DESC, o.fecha_cirugia NULLS LAST
+    `;
 
     const result = await pool.query(query, params);
     res.json(result.rows);
