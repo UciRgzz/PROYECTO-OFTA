@@ -484,10 +484,11 @@ async function cargarOrdenesPorRango(desde, hasta) {
         <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
         <td><span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">${o.status}</span></td>
         <td>
-          <span>${o.tipo_lente || '-'}</span><br>
-          <button class="btn btn-sm btn-info mt-1" onclick="editarLente(${o.id}, '${o.tipo_lente || ""}')">
-            <i class="fas fa-pen"></i> ${o.tipo_lente ? 'Editar' : 'Añadir'}
-          </button>
+          <span class="tipo-lente-editable text-primary fw-bold" 
+                style="cursor:pointer;" 
+                onclick="editarLente(${o.id}, '${o.tipo_lente || ""}')">
+            ${o.tipo_lente || '-'}
+          </span>
         </td>
 
         <td>${formatFecha(o.fecha_cirugia)}</td>
@@ -905,10 +906,11 @@ async function cargarOrdenesPorRango(desde, hasta) {
         <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
         <td><span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">${o.status}</span></td>
         <td>
-          <span>${o.tipo_lente || '-'}</span><br>
-          <button class="btn btn-sm btn-info mt-1" onclick="editarLente(${o.id}, '${o.tipo_lente || ""}')">
-            <i class="fas fa-pen"></i> ${o.tipo_lente ? 'Editar' : 'Añadir'}
-          </button>
+          <span class="tipo-lente-editable text-primary fw-bold" 
+                style="cursor:pointer;" 
+                onclick="editarLente(${o.id}, '${o.tipo_lente || ""}')">
+            ${o.tipo_lente || '-'}
+          </span>
         </td>
 
         <td>${formatFecha(o.fecha_cirugia)}</td>
