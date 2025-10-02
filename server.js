@@ -1646,7 +1646,6 @@ app.post('/api/set-departamento', isAdmin, (req, res) => {
 
 
 // ==================== MODULO DE AGENDA QUIRÚRGICA ====================
-// Listar todas las órdenes (de hoy por defecto, o con filtro de fechas)
 app.get("/api/ordenes", verificarSesion, async (req, res) => {
   try {
     let depto = getDepartamento(req);
@@ -1678,12 +1677,8 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
     const params = [depto];
 
     if (desde && hasta) {
-      // 🔹 Si hay rango en query
-      query += ` AND o.fecha_cirugia BETWEEN $2 AND $3`;
+      query += ` AND (o.fecha_cirugia BETWEEN $2 AND $3 OR o.fecha_cirugia IS NULL)`;
       params.push(desde, hasta);
-    } else {
-      // 🔹 Si no hay rango → solo mostrar las de HOY
-      query += ` AND o.fecha_cirugia = CURRENT_DATE`;
     }
 
     query += ` ORDER BY o.fecha_cirugia NULLS LAST`;
@@ -1696,6 +1691,7 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 // Asignar o eliminar fecha de cirugía
