@@ -547,7 +547,7 @@ app.get('/api/pacientes', verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== MODULO RECIBOS ====================
+// ==================== MODULO DE RECIBOS ====================
 // ==================== Guardar recibo ====================
 app.post('/api/recibos', verificarSesion, async (req, res) => {
   const { fecha, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo } = req.body;
@@ -1678,11 +1678,11 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
     const params = [depto];
 
     if (desde && hasta) {
-      // 🔹 Si el cliente manda un rango, usar ese
+      // ✅ Si el cliente manda rango, usarlo
       query += ` AND (COALESCE(o.fecha_cirugia, o.fecha)::date BETWEEN $2 AND $3)`;
       params.push(desde, hasta);
     } else {
-      // 🔹 Si no manda rango, mostrar solo las de HOY
+      // ✅ Si no manda rango, mostrar solo HOY
       query += ` AND (COALESCE(o.fecha_cirugia, o.fecha)::date = CURRENT_DATE)`;
     }
 
