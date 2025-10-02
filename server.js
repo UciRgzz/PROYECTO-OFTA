@@ -1664,7 +1664,8 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
         (r.precio - r.monto_pagado) AS diferencia,
         o.estatus AS status,
         o.tipo_lente,
-        o.fecha_cirugia
+        o.fecha AS fecha_creacion,
+        o.fecha_cirugia AS fecha_agendada
       FROM ordenes_medicas o
       JOIN recibos r 
         ON r.id = o.folio_recibo 
@@ -1678,11 +1679,9 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
     const params = [depto];
 
     if (desde && hasta) {
-      // ✅ Si el cliente manda rango, usarlo
       query += ` AND (COALESCE(o.fecha_cirugia, o.fecha)::date BETWEEN $2 AND $3)`;
       params.push(desde, hasta);
     } else {
-      // ✅ Si no manda rango, mostrar solo HOY
       query += ` AND (COALESCE(o.fecha_cirugia, o.fecha)::date = CURRENT_DATE)`;
     }
 
@@ -1696,6 +1695,7 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 // Asignar o eliminar fecha de cirugía

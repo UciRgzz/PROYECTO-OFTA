@@ -307,20 +307,23 @@
       <div class="table-responsive">
         <table class="table table-bordered align-middle">
           <thead>
-            <tr>
-              <th>Expediente</th>
-              <th>Edad</th>
-              <th>Nombre</th>
-              <th>Procedimiento</th>
-              <th>Total Orden</th>
-              <th>Pagos Realizados</th>
-              <th>Diferencia</th>
-              <th>Status</th>
-              <th>Tipo de Lente</th>
-              <th>Agendado</th> <!-- 🔹 Nueva columna -->
-              <th>Acciones</th>
-            </tr>
-          </thead>
+            <thead>
+  <tr>
+    <th>Expediente</th>
+    <th>Edad</th>
+    <th>Nombre</th>
+    <th>Procedimiento</th>
+    <th>Total Orden</th>
+    <th>Pagos Realizados</th>
+    <th>Diferencia</th>
+    <th>Status</th>
+    <th>Tipo de Lente</th>
+    <th>Creación</th>   <!-- 🔹 nueva columna -->
+    <th>Agendado</th>   <!-- 🔹 ya la tienes -->
+    <th>Acciones</th>
+  </tr>
+</thead>
+
           <tbody id="tablaOrdenes"></tbody>
         </table>
       </div>
@@ -393,9 +396,10 @@
 
     <script>
 
-      // ====================== VARIABLES GLOBALES ======================
-  let fechaCirugia = new Date();
-  let ordenSeleccionada = null;
+// ====================== VARIABLES GLOBALES ======================
+let fechaCirugia = new Date();         // 🔹 faltaba declarar
+let fechaMiniCalendario = new Date();
+let ordenSeleccionada = null;
 
 
     // ====================== FORMATEADOR DE FECHAS ======================
@@ -416,47 +420,47 @@ async function cargarOrdenes(year, month) {
 
     if (year !== undefined && month !== undefined) {
   ordenes = ordenes.filter(o => {
-    if (!o.fecha_cirugia) return true;
-    const f = new Date(o.fecha_cirugia);
+    if (!o.fecha_agendada) return true;
+      const f = new Date(o.fecha_agendada);
     return f.getFullYear() === year && f.getMonth() === month;
   });
 }
 
+// Ordenar por fecha de creación descendente  
+document.getElementById("tablaOrdenes").innerHTML = ordenes.map(o => `
+  <tr>
+    <td>${o.expediente}</td>
+    <td>${o.edad}</td>
+    <td>${o.nombre}</td>
+    <td>${o.procedimiento}</td>
+    <td>$${parseFloat(o.total).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+    <td>$${parseFloat(o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+    <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+    <td><span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">${o.status}</span></td>
+    <td>
+      <span class="lente-btn text-primary fw-bold"
+            style="cursor:pointer;"
+            data-id="${o.id}"
+            data-valor="${o.tipo_lente || ""}">
+        ${o.tipo_lente || '<span class="text-muted">Asignar</span>'}
+      </span>
+    </td>
+    <td>${formatFecha(o.fecha_creacion)}</td>
+    <td>${formatFecha(o.fecha_agendada)}</td>
+    <td>
+      ${o.fecha_agendada ? 
+        '<span class="text-muted">Asignado</span>' : 
+        `<button class="btn btn-sm btn-primary" onclick="abrirCalendario(${o.id})">
+          <i class="fas fa-calendar-plus"></i> Agendar
+        </button>`}
+      ${o.fecha_agendada ?  `
+        <button class="btn btn-sm btn-warning mt-1" onclick="editarCirugia(${o.id})">
+          <i class="fas fa-edit"></i> Reprogramar
+        </button>` : ''}
+    </td>
+  </tr>
+`).join('');
 
-    document.getElementById("tablaOrdenes").innerHTML = ordenes.map(o => `
-      <tr>
-        <td>${o.expediente}</td>
-        <td>${o.edad}</td>
-        <td>${o.nombre}</td>
-        <td>${o.procedimiento}</td>
-        <td>$${parseFloat(o.total).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-        <td>$${parseFloat(o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-        <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-        <td><span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">${o.status}</span></td>
-        <td>
-          <span class="lente-btn text-primary fw-bold"
-                style="cursor:pointer;"
-                data-id="${o.id}"
-                data-valor="${o.tipo_lente || ""}">
-            ${o.tipo_lente || '<span class="text-muted">Asignar</span>'}
-          </span>
-        </td>
-
-
-        <td>${formatFecha(o.fecha_cirugia)}</td>
-        <td>
-          ${o.fecha_cirugia ? 
-            '<span class="text-muted">Asignado</span>' : 
-            `<button class="btn btn-sm btn-primary" onclick="abrirCalendario(${o.id})">
-              <i class="fas fa-calendar-plus"></i> Agendar
-            </button>`}
-          ${o.fecha_cirugia ? `
-            <button class="btn btn-sm btn-warning mt-1" onclick="editarCirugia(${o.id})">
-              <i class="fas fa-edit"></i> Reprogramar
-            </button>` : ''}
-        </td>
-      </tr>
-    `).join('');
   } catch (err) {
     console.error("Error cargando órdenes:", err);
     mostrarError("Error", "No se pudieron cargar las órdenes");
@@ -476,40 +480,41 @@ async function cargarOrdenesPorRango(desde, hasta) {
       return;
     }
 
+    // Ordenar por fecha de creación descendente  
     tbody.innerHTML = ordenes.map(o => `
-      <tr>
-        <td>${o.expediente}</td>
-        <td>${o.edad}</td>
-        <td>${o.nombre}</td>
-        <td>${o.procedimiento}</td>
-        <td>$${parseFloat(o.total).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-        <td>$${parseFloat(o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-        <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-        <td><span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">${o.status}</span></td>
-        <td>
-          <span class="lente-btn text-primary fw-bold"
-                style="cursor:pointer;"
-                data-id="${o.id}"
-                data-valor="${o.tipo_lente || ""}">
-            ${o.tipo_lente || '<span class="text-muted">Asignar</span>'}
-          </span>
-        </td>
+  <tr>
+    <td>${o.expediente}</td>
+    <td>${o.edad}</td>
+    <td>${o.nombre}</td>
+    <td>${o.procedimiento}</td>
+    <td>$${parseFloat(o.total).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+    <td>$${parseFloat(o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+    <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+    <td><span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">${o.status}</span></td>
+    <td>
+      <span class="lente-btn text-primary fw-bold"
+            style="cursor:pointer;"
+            data-id="${o.id}"
+            data-valor="${o.tipo_lente || ""}">
+        ${o.tipo_lente || '<span class="text-muted">Asignar</span>'}
+      </span>
+    </td>
+    <td>${formatFecha(o.fecha_creacion)}</td>
+    <td>${formatFecha(o.fecha_agendada)}</td>
+    <td>
+      ${o.fecha_agendada ? 
+        '<span class="text-muted">Asignado</span>' : 
+        `<button class="btn btn-sm btn-primary" onclick="abrirCalendario(${o.id})">
+          <i class="fas fa-calendar-plus"></i> Agendar
+        </button>`}
+      ${o.fecha_agendada ? `
+        <button class="btn btn-sm btn-warning mt-1" onclick="editarCirugia(${o.id})">
+          <i class="fas fa-edit"></i> Reprogramar
+        </button>` : ''}
+    </td>
+  </tr>
+`).join('');
 
-
-        <td>${formatFecha(o.fecha_cirugia)}</td>
-        <td>
-          ${o.fecha_cirugia ? 
-            '<span class="text-muted">Asignado</span>' : 
-            `<button class="btn btn-sm btn-primary" onclick="abrirCalendario(${o.id})">
-              <i class="fas fa-calendar-plus"></i> Agendar
-            </button>`}
-          ${o.fecha_cirugia ? `
-            <button class="btn btn-sm btn-warning mt-1" onclick="editarCirugia(${o.id})">
-              <i class="fas fa-edit"></i> Reprogramar
-            </button>` : ''}
-        </td>
-      </tr>
-    `).join('');
   } catch (err) {
     console.error("Error filtrando órdenes:", err);
   }
@@ -557,8 +562,8 @@ async function renderCalendarCirugias() {
 
   // Normalizamos fechas
   const filtradas = cirugias.filter(c => {
-    if (!c.fecha_cirugia) return false;
-    const f = new Date(c.fecha_cirugia);  // usar la fecha tal cual viene de la BD
+    if (!c.fecha_agendada) return false;
+const f = new Date(c.fecha_agendada); // usar la fecha tal cual viene de la BD
     return f.getFullYear() === year && f.getMonth() === month;
   });
 
@@ -579,7 +584,7 @@ async function renderCalendarCirugias() {
     totalDias++;
     const fechaDia = `${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
       const programadas = filtradas.filter(c => {
-        if (!c.fecha_cirugia) return false;
+        if (!c.fecha_agendada) return false;
 
         // Normalizar a "YYYY-MM-DD"
         let f;
@@ -642,7 +647,7 @@ async function renderCalendarCirugias() {
               await fetch(`/api/ordenes/${idOrden}/agendar`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ fecha_cirugia: fecha })
+                body: JSON.stringify({ fecha_agendada: fecha })
               });
               mostrarExito("Cirugía agendada", "La cirugía ha sido agendada correctamente");
               renderCalendarCirugias();
@@ -730,8 +735,8 @@ async function renderMiniCalendar() {
     const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
 
     const programadas = cirugias.filter(c => {
-      if (!c.fecha_cirugia) return false;
-      const f = new Date(c.fecha_cirugia + "T00:00:00").toISOString().split("T")[0];
+      if (!c.fecha_agendada) return false;
+const f = new Date(c.fecha_agendada + "T00:00:00").toISOString().split("T")[0];
       return f === fechaDia;
     });
 
@@ -759,60 +764,58 @@ async function renderMiniCalendar() {
 
       // ==================== ASIGNAR FECHA DESDE EL CALENDARIO ====================
       async function asignarFecha(fecha) {
-        if (!ordenSeleccionada) return;
+  if (!ordenSeleccionada) return;
 
-        try {
-          await fetch(`/api/ordenes/${ordenSeleccionada}/agendar`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ fecha_cirugia: fecha })
-          });
-          mostrarExito("Cirugía asignada", `Fecha: ${fecha}`);
+  try {
+    await fetch(`/api/ordenes/${ordenSeleccionada}/agendar`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fecha_agendada: fecha })
+    });
+    mostrarExito("Cirugía asignada", `Fecha: ${fecha}`);
 
-          ordenSeleccionada = null;
-          renderCalendarCirugias();   
-          cargarOrdenes();
+    ordenSeleccionada = null;
+    renderCalendarCirugias();   
+    cargarOrdenes();
 
-
-          // Cierra el modal después de asignar
-          const modal = bootstrap.Modal.getInstance(document.getElementById("modalCalendario"));
-          modal.hide();
-        } catch (err) {
-          console.error("Error al asignar cirugía:", err);
-          mostrarError("Error", "No se pudo asignar la cirugía");
-        }
-      }
+    // Cierra el modal después de asignar
+    const modal = bootstrap.Modal.getInstance(document.getElementById("modalCalendario"));
+    modal.hide();
+  } catch (err) {
+    console.error("Error al asignar cirugía:", err);
+    mostrarError("Error", "No se pudo asignar la cirugía");
+  }
+}
 
       // ==================== ELIMINAR CIRUGÍA ====================
-      function eliminarCirugia(idOrden) {
-        Swal.fire({
-          title: '¿Eliminar cirugía?',
-          text: "Esta acción no se puede deshacer.",
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#d33',
-          cancelButtonColor: '#3085d6',
-          confirmButtonText: 'Sí, eliminar',
-          cancelButtonText: 'Cancelar'
-        }).then(async (result) => {
-          if (result.isConfirmed) {
-            try {
-              await fetch(`/api/ordenes/${idOrden}/agendar`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ fecha_cirugia: null })
-              });
-              mostrarExito("Cirugía eliminada", "La cirugía ha sido eliminada del calendario");
-              renderCalendarCirugias(); 
-              cargarOrdenes();
-
-            } catch (err) {
-              console.error("Error al eliminar cirugía:", err);
-              mostrarError("Error", "No se pudo eliminar la cirugía");
-            }
-          }
+ function eliminarCirugia(idOrden) {
+  Swal.fire({
+    title: '¿Eliminar cirugía?',
+    text: "Esta acción no se puede deshacer.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        await fetch(`/api/ordenes/${idOrden}/agendar`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fecha_agendada: null })
         });
+        mostrarExito("Cirugía eliminada", "La cirugía ha sido eliminada del calendario");
+        renderCalendarCirugias(); 
+        cargarOrdenes();
+      } catch (err) {
+        console.error("Error al eliminar cirugía:", err);
+        mostrarError("Error", "No se pudo eliminar la cirugía");
       }
+    }
+  });
+}
 
       // ==================== FUNCIONES DE NOTIFICACIÓN ====================
       function mostrarExito(titulo, mensaje) {
@@ -891,57 +894,6 @@ $(document).ready(function () {
   cargarOrdenesPorRango(hoy.format("YYYY-MM-DD"), hoy.format("YYYY-MM-DD"));
 });
 
-// ====================== FUNCIÓN DE CARGA POR RANGO ======================
-async function cargarOrdenesPorRango(desde, hasta) {
-  try {
-    const res = await fetch(`/api/ordenes?desde=${desde}&hasta=${hasta}`);
-    let ordenes = await res.json();
-
-    const tbody = document.getElementById("tablaOrdenes");
-
-    if (ordenes.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="11" class="text-muted">Sin resultados en este rango</td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = ordenes.map(o => `
-      <tr>
-        <td>${o.expediente}</td>
-        <td>${o.edad}</td>
-        <td>${o.nombre}</td>
-        <td>${o.procedimiento}</td>
-        <td>$${parseFloat(o.total).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-        <td>$${parseFloat(o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-        <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-        <td><span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">${o.status}</span></td>
-        <td>
-          <span class="lente-btn text-primary fw-bold"
-                style="cursor:pointer;"
-                data-id="${o.id}"
-                data-valor="${o.tipo_lente || ""}">
-            ${o.tipo_lente || '<span class="text-muted">Asignar</span>'}
-          </span>
-        </td>
-
-
-        <td>${formatFecha(o.fecha_cirugia)}</td>
-        <td>
-          ${o.fecha_cirugia ? 
-            '<span class="text-muted">Asignado</span>' : 
-            `<button class="btn btn-sm btn-primary" onclick="abrirCalendario(${o.id})">
-              <i class="fas fa-calendar-plus"></i> Agendar
-            </button>`}
-          ${o.fecha_cirugia ? `
-            <button class="btn btn-sm btn-warning mt-1" onclick="editarCirugia(${o.id})">
-              <i class="fas fa-edit"></i> Reprogramar
-            </button>` : ''}
-        </td>
-      </tr>
-    `).join('');
-  } catch (err) {
-    console.error("Error filtrando órdenes:", err);
-  }
-}
 
 // ====================== AL CARGAR LA PÁGINA ======================
 document.addEventListener("DOMContentLoaded", () => {
