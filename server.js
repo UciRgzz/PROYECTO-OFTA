@@ -1677,9 +1677,10 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
     const params = [depto];
 
     if (desde && hasta) {
-      query += ` AND (o.fecha_cirugia BETWEEN $2 AND $3 OR o.fecha_cirugia IS NULL)`;
-      params.push(desde, hasta);
-    }
+  query += ` AND (COALESCE(o.fecha_cirugia, o.fecha)::date BETWEEN $2 AND $3)`;
+  params.push(desde, hasta);
+}
+
 
     query += ` ORDER BY o.fecha_cirugia NULLS LAST`;
 
