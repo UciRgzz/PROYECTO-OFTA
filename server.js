@@ -577,17 +577,18 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 
     const recibo = result.rows[0];
 
-    // 👇 Extra: si el recibo es "Orden de Cirugía", crear también en agenda y órdenes
+    // 👇 Extra: si el recibo es "Orden de Cirugía", crear también en ordenes_medicas y agenda_quirurgica
     if (tipo === "OrdenCirugia") {
+      // Crear orden médica con fecha = fecha del recibo y fecha_cirugia en NULL
       await pool.query(
-  `INSERT INTO ordenes_medicas (
-     expediente_id, folio_recibo, procedimiento, tipo, precio, estatus, fecha, fecha_cirugia, departamento, medico
-   )
-   VALUES ($1,$2,$3,$4,$5,'Pendiente',$6,$6,$7,$8)`,
-  [paciente_id, recibo.id, procedimiento, tipo, precio, fecha, depto, "Pendiente"]
-);
+        `INSERT INTO ordenes_medicas (
+           expediente_id, folio_recibo, procedimiento, tipo, precio, estatus, fecha, fecha_cirugia, departamento, medico
+         )
+         VALUES ($1,$2,$3,$4,$5,'Pendiente',$6,NULL,$7,$8)`,
+        [paciente_id, recibo.id, procedimiento, tipo, precio, fecha, depto, "Pendiente"]
+      );
 
-
+      // Crear registro en agenda_quirurgica con la misma fecha del recibo
       await pool.query(
         `INSERT INTO agenda_quirurgica (
            paciente_id, procedimiento, fecha, departamento, recibo_id
@@ -603,6 +604,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
     res.status(500).json({ error: "Error al guardar recibo" });
   }
 });
+
 
 
 
@@ -1664,7 +1666,7 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
         (r.precio - r.monto_pagado) AS diferencia,
         o.estatus AS status,
         o.tipo_lente,
-        r.fecha AS fecha_creacion,       -- ✅ usar la fecha del recibo
+        r.fecha AS fecha_creacion,       
         o.fecha_cirugia AS fecha_agendada
       FROM ordenes_medicas o
       JOIN recibos r 
