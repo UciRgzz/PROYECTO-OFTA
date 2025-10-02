@@ -434,11 +434,14 @@ async function cargarOrdenes(year, month) {
         <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
         <td><span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">${o.status}</span></td>
         <td>
-          <span>${o.tipo_lente || '-'}</span><br>
-          <button class="btn btn-sm btn-info mt-1" onclick="editarLente(${o.id}, '${o.tipo_lente || ""}')">
-            <i class="fas fa-pen"></i> ${o.tipo_lente ? 'Editar' : 'Añadir'}
-          </button>
+          <span class="lente-btn text-primary fw-bold"
+                style="cursor:pointer;"
+                data-id="${o.id}"
+                data-valor="${o.tipo_lente || ""}">
+            ${o.tipo_lente || '<span class="text-muted">Asignar</span>'}
+          </span>
         </td>
+
 
         <td>${formatFecha(o.fecha_cirugia)}</td>
         <td>
@@ -484,12 +487,14 @@ async function cargarOrdenesPorRango(desde, hasta) {
         <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
         <td><span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">${o.status}</span></td>
         <td>
-          <span class="tipo-lente-editable text-primary fw-bold" 
-                style="cursor:pointer;" 
-                onclick="editarLente(${o.id}, '${o.tipo_lente || ""}')">
-            ${o.tipo_lente || '-'}
+          <span class="lente-btn text-primary fw-bold"
+                style="cursor:pointer;"
+                data-id="${o.id}"
+                data-valor="${o.tipo_lente || ""}">
+            ${o.tipo_lente || '<span class="text-muted">Asignar</span>'}
           </span>
         </td>
+
 
         <td>${formatFecha(o.fecha_cirugia)}</td>
         <td>
@@ -910,12 +915,14 @@ async function cargarOrdenesPorRango(desde, hasta) {
         <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
         <td><span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">${o.status}</span></td>
         <td>
-          <span class="tipo-lente-editable text-primary fw-bold" 
-                style="cursor:pointer;" 
-                onclick="editarLente(${o.id}, '${o.tipo_lente || ""}')">
-            ${o.tipo_lente || '-'}
+          <span class="lente-btn text-primary fw-bold"
+                style="cursor:pointer;"
+                data-id="${o.id}"
+                data-valor="${o.tipo_lente || ""}">
+            ${o.tipo_lente || '<span class="text-muted">Asignar</span>'}
           </span>
         </td>
+
 
         <td>${formatFecha(o.fecha_cirugia)}</td>
         <td>
@@ -939,6 +946,50 @@ async function cargarOrdenesPorRango(desde, hasta) {
 // ====================== AL CARGAR LA PÁGINA ======================
 document.addEventListener("DOMContentLoaded", () => {
   renderCalendarCirugias();
+});
+
+document.addEventListener("click", async (e) => {
+  if (e.target.classList.contains("lente-btn")) {
+    const ordenId = e.target.dataset.id;
+    const valorActual = e.target.dataset.valor;
+
+    const { value: nuevoValor } = await Swal.fire({
+      title: valorActual ? 'Editar Tipo de Lente' : 'Asignar Tipo de Lente',
+      input: 'text',
+      inputValue: valorActual || '',
+      inputPlaceholder: 'Ejemplo: Lente Intraocular',
+      showCancelButton: true,
+      confirmButtonText: 'Guardar',
+      cancelButtonText: 'Cancelar',
+      preConfirm: (valor) => {
+        if (!valor.trim()) {
+          Swal.showValidationMessage('Debes ingresar un tipo de lente');
+        }
+        return valor;
+      }
+    });
+
+    if (!nuevoValor) return;
+
+    try {
+      const res = await fetch(`/api/ordenes/${ordenId}/lente`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tipo_lente: nuevoValor })
+      });
+
+      if (res.ok) {
+        Swal.fire('✅ Guardado', 'Tipo de lente actualizado', 'success');
+        const hoyStr = moment().format("YYYY-MM-DD");
+        cargarOrdenesPorRango(hoyStr, hoyStr); // refresca lista
+      } else {
+        Swal.fire('❌ Error', 'No se pudo actualizar el tipo de lente', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      Swal.fire('❌ Error', 'Ocurrió un error en el servidor', 'error');
+    }
+  }
 });
 
 
