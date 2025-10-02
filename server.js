@@ -1241,7 +1241,8 @@ app.post("/api/seleccionar-sucursal", verificarSesion, (req, res) => {
   res.json({ ok: true, sucursal });
 });
 
-// ==================== MÓDULO OPTOMETRÍA ====================
+// ==================== MODULO DE OPTOMETRÍA ====================
+
 // Guardar nueva evaluación de optometría
 app.post("/api/optometria", verificarSesion, async (req, res) => {
   try {
@@ -1312,6 +1313,7 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
   }
 });
 
+
 // Obtener evaluaciones de optometría (con nombre de paciente) con filtros
 app.get("/api/optometria", verificarSesion, async (req, res) => {
   try {
@@ -1330,7 +1332,7 @@ app.get("/api/optometria", verificarSesion, async (req, res) => {
     let params = [depto];
 
     if (desde && hasta) {
-      query += " AND DATE(o.fecha) BETWEEN $2 AND $3";
+      query += " AND DATE(o.fecha) BETWEEN $2::date AND $3::date";
       params.push(desde, hasta);
     } else if (filtro === "hoy") {
       query += " AND DATE(o.fecha) = CURRENT_DATE";
@@ -1373,6 +1375,7 @@ app.get("/api/expedientes/:id/optometria", verificarSesion, async (req, res) => 
   }
 });
 
+
 // Eliminar evaluación de optometría
 app.delete("/api/optometria/:id", isAdmin, async (req, res) => {
   try {
@@ -1394,6 +1397,7 @@ app.delete("/api/optometria/:id", isAdmin, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // Obtener nombre del paciente por número de expediente
 app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
