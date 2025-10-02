@@ -1664,7 +1664,7 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
         (r.precio - r.monto_pagado) AS diferencia,
         o.estatus AS status,
         o.tipo_lente,
-        r.fecha AS fecha_creacion,       -- 🔹 ahora viene de recibos
+        r.fecha AS fecha_creacion,       -- ✅ usar la fecha del recibo
         o.fecha_cirugia AS fecha_agendada
       FROM ordenes_medicas o
       JOIN recibos r 
@@ -1685,7 +1685,7 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
       query += ` AND (COALESCE(o.fecha_cirugia, r.fecha)::date = CURRENT_DATE)`;
     }
 
-    query += ` ORDER BY o.fecha_cirugia NULLS LAST`;
+    query += ` ORDER BY r.fecha DESC, o.fecha_cirugia NULLS LAST`;
 
     const result = await pool.query(query, params);
     res.json(result.rows);
