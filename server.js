@@ -577,7 +577,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 
     const recibo = result.rows[0];
 
-    // 👇 Extra: si el recibo es "Orden de Cirugía", crear también en ordenes_medicas y agenda_quirurgica
+    // 👇 Si el recibo es "Orden de Cirugía"
     if (tipo === "OrdenCirugia") {
       await pool.query(
         `INSERT INTO ordenes_medicas (
@@ -596,8 +596,8 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
       );
     }
 
-    // 👇 Extra: si el recibo es "Consulta Oftalmológica", crear en agenda_consultas
-    if (tipo === "Consulta Oftalmológica") {
+    // 👇 Si el recibo es una Consulta Oftalmológica (detectamos por procedimiento, no solo por tipo)
+    if (procedimiento === "Consulta Oftalmológica") {
       await pool.query(
         `INSERT INTO agenda_consultas (
            recibo_id, numero_expediente, departamento, procedimiento, fecha
@@ -613,6 +613,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
     res.status(500).json({ error: "Error al guardar recibo" });
   }
 });
+
 
 
 // ==================== Listar recibos ====================
