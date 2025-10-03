@@ -229,22 +229,23 @@
     }
 
     consultas.forEach(c => {
-      const fila = document.createElement("tr");
-      fila.innerHTML = `
-        <td>${c.id}</td>
-        <td>${c.paciente}</td>
-        <td>${formatearFecha(c.fecha)}</td>
-        <td>${c.hora || '-'}</td>
-        <td>${c.medico}</td>
-        <td>${c.estado}</td>
-        <td>
-          <button class="btn btn-primary btn-sm" onclick="crearOrden(${c.id})">
-            <i class="fas fa-file-medical"></i> Generar Orden
-          </button>
-        </td>
-      `;
-      tbody.appendChild(fila);
-    });
+  const fila = document.createElement("tr");
+  fila.innerHTML = `
+    <td>${c.id}</td>
+    <td>${c.paciente}</td>
+    <td>${formatearFecha(c.fecha)}</td>
+    <td>${c.hora || '-'}</td>
+    <td>${c.medico}</td>
+    <td>${c.estado}</td>
+    <td>
+      <span class="badge bg-${c.estado === 'Pendiente' ? 'warning' : 'success'}">
+        ${c.estado}
+      </span>
+    </td>
+  `;
+  tbody.appendChild(fila);
+});
+
   } catch (err) {
     console.error("Error cargando consultas:", err);
     mostrarError("Error", "No se pudieron cargar las consultas");
