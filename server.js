@@ -616,6 +616,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 
 
 
+
 // ==================== Listar recibos ====================
 app.get('/api/recibos', verificarSesion, async (req, res) => {
   try {
@@ -1823,6 +1824,54 @@ app.get("/api/consultas", verificarSesion, async (req, res) => {
   } catch (err) {
     console.error("Error en /api/consultas:", err);
     res.status(500).json({ error: "Error al obtener consultas" });
+  }
+});
+
+// ==================== CREAR ORDEN DESDE CONSULTA ====================
+app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
+  try {
+    const { consultaId } = req.body;
+    let depto = getDepartamento(req);
+
+    if (consultaId) {
+      // Buscar la consulta
+      const consultaResult = await pool.query(
+        `SELECT a.id, a.numero_expediente, a.procedimiento, a.fecha, r.id AS recibo_id
+         FROM agenda_consultas a
+         JOIN recibos r ON r.id = a.recibo_id AND r.departamento = a.departamento
+         WHERE a.id = $1 AND a.departamento = $2`,
+        [consultaId, depto]
+      );
+
+      if (consultaResult.rows.length === 0) {
+        return res.status(404).json({ error: "Consulta no encontrada" });
+      }
+
+      const consulta = consultaResult.rows[0];
+
+      // Generar la orden médica básica
+      const result = await pool.query(
+        `INSERT INTO ordenes_medicas (
+          expediente_id, folio_recibo, procedimiento, tipo, precio, estatus, fecha, departamento
+        )
+        VALUES ($1,$2,$3,'Consulta',$4,'Pendiente',$5,$6)
+        RETURNING *`,
+        [consulta.numero_expediente, consulta.recibo_id, consulta.procedimiento, 0, consulta.fecha, depto]
+      );
+
+      // Marcar consulta como atendida
+      await pool.query(
+        `UPDATE agenda_consultas SET estado = 'Atendida' WHERE id = $1 AND departamento = $2`,
+        [consultaId, depto]
+      );
+
+      return res.json({ mensaje: "✅ Orden creada desde consulta", orden: result.rows[0] });
+    }
+
+    res.status(400).json({ error: "Faltan datos para crear la orden" });
+  } catch (err) {
+    console.error("Error creando orden:", err);
+    res.status(500).json({ error: "Error al crear orden desde consulta" });
   }
 });
 
