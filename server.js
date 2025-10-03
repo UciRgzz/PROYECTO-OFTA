@@ -1949,7 +1949,9 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
       ciclopejia,
       hora_tp,
       problemas,
-      plan
+      plan,
+      tipo_lente,
+      precio
     } = req.body;
 
     // Buscar el recibo
@@ -1982,13 +1984,13 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         expediente_id, folio_recibo, medico, diagnostico, lado, procedimiento, tipo, precio,
         anexos, conjuntiva, cornea, camara_anterior, cristalino,
         retina, macula, nervio_optico, ciclopejia, hora_tp,
-        problemas, plan, estatus, fecha, departamento
+        problemas, plan, tipo_lente, estatus, fecha, departamento
       )
       VALUES (
         $1,$2,$3,$4,$5,$6,$7,$8,
         $9,$10,$11,$12,$13,
         $14,$15,$16,$17,$18,
-        $19,$20,'Pendiente',NOW(),$21
+        $19,$20,$21,'Pendiente',NOW(),$22
       )
       RETURNING *`,
       [
@@ -1997,10 +1999,10 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         medico, diagnostico, lado,
         procedimientoNombre,
         recibo.tipo,
-        procedimientoPrecio,
+        precio || procedimientoPrecio, // si viene precio en el form lo usa, si no el del catálogo
         anexos, conjuntiva, cornea, camara_anterior, cristalino,
         retina, macula, nervio_optico, ciclopejia, hora_tp,
-        problemas, plan, depto
+        problemas, plan, tipo_lente, depto
       ]
     );
 
@@ -2010,9 +2012,6 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
     res.status(500).json({ error: "Error al crear orden médica" });
   }
 });
-
-
-
 
 
 // ==================== GESTIÓN DE PERMISOS ====================
