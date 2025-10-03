@@ -1827,14 +1827,15 @@ app.get("/api/consultas", verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== CREAR ORDEN DESDE CONSULTA ====================
+// ==================== CREAR ORDEN MÉDICA (Consulta o Recibo) ====================
 app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
   try {
-    const { consultaId } = req.body;
     let depto = getDepartamento(req);
 
-    if (consultaId) {
-      // Buscar la consulta
+    // --- Caso 1: Generar orden desde una consulta ---
+    if (req.body.consultaId) {
+      const { consultaId } = req.body;
+
       const consultaResult = await pool.query(
         `SELECT a.id, a.numero_expediente, a.procedimiento, a.fecha, r.id AS recibo_id
          FROM agenda_consultas a
@@ -1849,7 +1850,6 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
 
       const consulta = consultaResult.rows[0];
 
-      // Generar la orden médica básica
       const result = await pool.query(
         `INSERT INTO ordenes_medicas (
           expediente_id, folio_recibo, procedimiento, tipo, precio, estatus, fecha, departamento
@@ -1859,7 +1859,7 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         [consulta.numero_expediente, consulta.recibo_id, consulta.procedimiento, 0, consulta.fecha, depto]
       );
 
-      // Marcar consulta como atendida
+      // marcar consulta como atendida
       await pool.query(
         `UPDATE agenda_consultas SET estado = 'Atendida' WHERE id = $1 AND departamento = $2`,
         [consultaId, depto]
@@ -1868,12 +1868,86 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
       return res.json({ mensaje: "✅ Orden creada desde consulta", orden: result.rows[0] });
     }
 
-    res.status(400).json({ error: "Faltan datos para crear la orden" });
+    // --- Caso 2: Generar orden desde recibo con datos completos ---
+    const {
+      folio_recibo,
+      medico,
+      diagnostico,
+      lado,
+      procedimiento_id,
+      anexos,
+      conjuntiva,
+      cornea,
+      camara_anterior,
+      cristalino,
+      retina,
+      macula,
+      nervio_optico,
+      ciclopejia,
+      hora_tp,
+      problemas,
+      plan
+    } = req.body;
+
+    // Buscar el recibo
+    const reciboResult = await pool.query(
+      `SELECT id, paciente_id, tipo 
+       FROM recibos 
+       WHERE id = $1 AND departamento = $2`,
+      [folio_recibo, depto]
+    );
+
+    if (reciboResult.rows.length === 0) {
+      return res.status(404).json({ error: "No se encontró el recibo en esta sucursal" });
+    }
+    const recibo = reciboResult.rows[0];
+
+    // Buscar nombre y precio del procedimiento en catálogo
+    const procResult = await pool.query(
+      `SELECT nombre, precio FROM catalogo_procedimientos WHERE id = $1`,
+      [procedimiento_id]
+    );
+
+    if (procResult.rows.length === 0) {
+      return res.status(404).json({ error: "No se encontró el procedimiento en el catálogo" });
+    }
+    const { nombre: procedimientoNombre, precio: procedimientoPrecio } = procResult.rows[0];
+
+    // Guardar la orden
+    const result = await pool.query(
+      `INSERT INTO ordenes_medicas (
+        expediente_id, folio_recibo, medico, diagnostico, lado, procedimiento, tipo, precio,
+        anexos, conjuntiva, cornea, camara_anterior, cristalino,
+        retina, macula, nervio_optico, ciclopejia, hora_tp,
+        problemas, plan, estatus, fecha, departamento
+      )
+      VALUES (
+        $1,$2,$3,$4,$5,$6,$7,$8,
+        $9,$10,$11,$12,$13,
+        $14,$15,$16,$17,$18,
+        $19,$20,'Pendiente',NOW(),$21
+      )
+      RETURNING *`,
+      [
+        recibo.paciente_id,
+        recibo.id,
+        medico, diagnostico, lado,
+        procedimientoNombre,
+        recibo.tipo,
+        procedimientoPrecio,
+        anexos, conjuntiva, cornea, camara_anterior, cristalino,
+        retina, macula, nervio_optico, ciclopejia, hora_tp,
+        problemas, plan, depto
+      ]
+    );
+
+    return res.json({ mensaje: "✅ Orden médica creada correctamente", orden: result.rows[0] });
   } catch (err) {
-    console.error("Error creando orden:", err);
-    res.status(500).json({ error: "Error al crear orden desde consulta" });
+    console.error("Error en /api/ordenes_medicas:", err);
+    res.status(500).json({ error: "Error al crear orden médica" });
   }
 });
+
 
 
 
