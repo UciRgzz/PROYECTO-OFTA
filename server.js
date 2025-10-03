@@ -577,8 +577,9 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 
     const recibo = result.rows[0];
 
-    // 👇 Si el recibo es "Orden de Cirugía"
+    // 👇 Extra: si el recibo es "Orden de Cirugía", crear también en ordenes_medicas y agenda_quirurgica
     if (tipo === "OrdenCirugia") {
+      // Crear orden médica con fecha = fecha del recibo y fecha_cirugia en NULL
       await pool.query(
         `INSERT INTO ordenes_medicas (
            expediente_id, folio_recibo, procedimiento, tipo, precio, estatus, fecha, fecha_cirugia, departamento, medico
@@ -587,23 +588,13 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
         [paciente_id, recibo.id, procedimiento, tipo, precio, fecha, depto, "Pendiente"]
       );
 
+      // Crear registro en agenda_quirurgica con la misma fecha del recibo
       await pool.query(
         `INSERT INTO agenda_quirurgica (
            paciente_id, procedimiento, fecha, departamento, recibo_id
          )
          VALUES ($1,$2,$3,$4,$5)`,
         [paciente_id, procedimiento, fecha, depto, recibo.id]
-      );
-    }
-
-    // 👇 Si el recibo es una Consulta Oftalmológica (detectamos por procedimiento, no solo por tipo)
-    if (procedimiento === "Consulta Oftalmológica") {
-      await pool.query(
-        `INSERT INTO agenda_consultas (
-           recibo_id, numero_expediente, departamento, procedimiento, fecha
-         )
-         VALUES ($1, $2, $3, $4, $5)`,
-        [recibo.id, paciente_id, depto, procedimiento, fecha]
       );
     }
 
@@ -666,7 +657,7 @@ app.get('/api/recibos', verificarSesion, async (req, res) => {
 
 
 
-// ==================== Eliminar recibo (y dependencias) ====================
+// Eliminar recibo (con pagos y órdenes asociadas)
 app.delete('/api/recibos/:id', isAdmin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -682,32 +673,16 @@ app.delete('/api/recibos/:id', isAdmin, async (req, res) => {
       [id, depto]
     );
 
-    // 2. Eliminar consultas asociadas
-    await pool.query(
-      `DELETE FROM agenda_consultas 
-       WHERE recibo_id = $1 AND departamento = $2`,
-      [id, depto]
-    );
-
-    // 3. Eliminar cirugías asociadas
-    await pool.query(
-      `DELETE FROM agenda_quirurgica 
-       WHERE recibo_id = $1 AND departamento = $2`,
-      [id, depto]
-    );
-
-    // 4. Eliminar órdenes médicas
+    // 2. Eliminar órdenes médicas asociadas al recibo
     await pool.query(
       `DELETE FROM ordenes_medicas 
        WHERE folio_recibo = $1 AND departamento = $2`,
       [id, depto]
     );
 
-    // 5. Eliminar el recibo
+    // 3. Eliminar el recibo
     const result = await pool.query(
-      `DELETE FROM recibos 
-       WHERE id = $1 AND departamento = $2 
-       RETURNING *`,
+      'DELETE FROM recibos WHERE id = $1 AND departamento = $2 RETURNING *',
       [id, depto]
     );
 
@@ -865,56 +840,15 @@ app.get("/api/pendientes-medico", verificarSesion, async (req, res) => {
 });
 
 
-// ==================== GUARDAR ORDEN MÉDICA (consulta o recibo) ====================
+// ==================== GUARDAR ORDEN MÉDICA ====================
 app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
   try {
-    let depto = getDepartamento(req);
-
-    // --- Caso 1: Generar orden desde Agenda de Consultas ---
-    if (req.body.consultaId) {
-      const { consultaId, medico, diagnostico } = req.body;
-
-      const consultaResult = await pool.query(
-        `SELECT a.id, a.numero_expediente, a.procedimiento, a.fecha, r.id AS recibo_id
-         FROM agenda_consultas a
-         JOIN recibos r ON r.id = a.recibo_id AND r.departamento = a.departamento
-         WHERE a.id = $1 AND a.departamento = $2`,
-        [consultaId, depto]
-      );
-
-      if (consultaResult.rows.length === 0) {
-        return res.status(404).json({ error: "Consulta no encontrada" });
-      }
-
-      const consulta = consultaResult.rows[0];
-
-      const result = await pool.query(
-        `INSERT INTO ordenes_medicas (
-          expediente_id, folio_recibo, procedimiento, tipo, precio, estatus, fecha, medico, diagnostico, departamento
-        )
-        VALUES ($1,$2,$3,'Consulta',0,'Pendiente',$4,$5,$6,$7)
-        RETURNING *`,
-        [consulta.numero_expediente, consulta.recibo_id, consulta.procedimiento, consulta.fecha, medico, diagnostico, depto]
-      );
-
-      // marcar consulta como atendida
-      await pool.query(
-        `UPDATE agenda_consultas 
-         SET estado = 'Atendida', medico = $1, hora = TO_CHAR(NOW(),'HH24:MI')
-         WHERE id = $2 AND departamento = $3`,
-        [medico, consultaId, depto]
-      );
-
-      return res.json({ mensaje: "✅ Orden creada desde consulta", orden: result.rows[0] });
-    }
-
-    // --- Caso 2: Guardar orden desde módulo médico ---
     const {
       folio_recibo,
       medico,
       diagnostico,
       lado,
-      procedimiento_id,
+      procedimiento_id, //viene como id desde el frontend
       anexos,
       conjuntiva,
       cornea,
@@ -929,7 +863,9 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
       plan
     } = req.body;
 
-    // Buscar recibo
+    let depto = getDepartamento(req);
+
+    // Buscar el recibo
     const reciboResult = await pool.query(
       `SELECT id, paciente_id, tipo 
        FROM recibos 
@@ -942,18 +878,18 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
     }
     const recibo = reciboResult.rows[0];
 
-    // Buscar procedimiento en catálogo
+    // Buscar nombre y precio del procedimiento en el catálogo
     const procResult = await pool.query(
       `SELECT nombre, precio FROM catalogo_procedimientos WHERE id = $1`,
       [procedimiento_id]
     );
 
     if (procResult.rows.length === 0) {
-      return res.status(404).json({ error: "Procedimiento no encontrado" });
+      return res.status(404).json({ error: "No se encontró el procedimiento en el catálogo" });
     }
     const { nombre: procedimientoNombre, precio: procedimientoPrecio } = procResult.rows[0];
 
-    // Guardar la orden
+    // Guardar la orden con precio incluido
     const result = await pool.query(
       `INSERT INTO ordenes_medicas (
         expediente_id, folio_recibo, medico, diagnostico, lado, procedimiento, tipo, precio,
@@ -974,25 +910,17 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         medico, diagnostico, lado,
         procedimientoNombre,
         recibo.tipo,
-        procedimientoPrecio,
+        procedimientoPrecio, //ahora guarda precio en la orden
         anexos, conjuntiva, cornea, camara_anterior, cristalino,
         retina, macula, nervio_optico, ciclopejia, hora_tp,
         problemas, plan, depto
       ]
     );
 
-    // Actualizar agenda_consultas si la consulta existe
-    await pool.query(
-      `UPDATE agenda_consultas 
-       SET estado = 'Atendida', medico = $1, hora = TO_CHAR(NOW(),'HH24:MI')
-       WHERE recibo_id = $2 AND departamento = $3`,
-      [medico, recibo.id, depto]
-    );
-
-    return res.json({ mensaje: "✅ Orden médica creada correctamente", orden: result.rows[0] });
+    res.json({ mensaje: "Orden médica creada correctamente", orden: result.rows[0] });
   } catch (err) {
-    console.error("Error en /api/ordenes_medicas:", err);
-    res.status(500).json({ error: "Error al crear orden médica" });
+    console.error("Error al guardar orden médica:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -1862,177 +1790,6 @@ app.get("/api/cirugias", verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== MODULO DE AGENDA DE CONSULTAS ====================
-app.get("/api/consultas", verificarSesion, async (req, res) => {
-  try {
-    const depto = getDepartamento(req);
-    const result = await pool.query(
-      `SELECT a.id, 
-              a.numero_expediente, 
-              e.nombre_completo AS paciente,
-              a.procedimiento, 
-              a.fecha, 
-              a.hora, 
-              a.medico, 
-              a.estado
-       FROM agenda_consultas a
-       JOIN expedientes e 
-         ON e.numero_expediente = a.numero_expediente
-        AND e.departamento = a.departamento
-       WHERE a.departamento = $1
-       ORDER BY a.fecha DESC, a.hora ASC`,
-      [depto]
-    );
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Error en /api/consultas:", err);
-    res.status(500).json({ error: "Error al obtener consultas" });
-  }
-});
-
-// ==================== CREAR ORDEN MÉDICA (Consulta o Recibo) ====================
-app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
-  console.log("📩 Datos recibidos en /api/ordenes_medicas:", req.body);
-
-  try {
-    let depto = getDepartamento(req);
-
-    // --- Caso 1: Generar orden desde una consulta ---
-    if (req.body.consultaId) {
-      const { consultaId } = req.body;
-
-      const consultaResult = await pool.query(
-        `SELECT a.id, a.numero_expediente, a.procedimiento, a.fecha, r.id AS recibo_id
-         FROM agenda_consultas a
-         JOIN recibos r ON r.id = a.recibo_id AND r.departamento = a.departamento
-         WHERE a.id = $1 AND a.departamento = $2`,
-        [consultaId, depto]
-      );
-
-      if (consultaResult.rows.length === 0) {
-        return res.status(404).json({ error: "Consulta no encontrada" });
-      }
-
-      const consulta = consultaResult.rows[0];
-
-      const result = await pool.query(
-        `INSERT INTO ordenes_medicas (
-          expediente_id, folio_recibo, procedimiento, tipo, precio, estatus, fecha, departamento
-        )
-        VALUES ($1,$2,$3,'Consulta',$4,'Pendiente',$5,$6)
-        RETURNING *`,
-        [
-          consulta.numero_expediente,
-          consulta.recibo_id,
-          consulta.procedimiento || "Consulta",
-          0,
-          consulta.fecha,
-          depto
-        ]
-      );
-
-      // marcar consulta como atendida
-      await pool.query(
-        `UPDATE agenda_consultas SET estado = 'Atendida' WHERE id = $1 AND departamento = $2`,
-        [consultaId, depto]
-      );
-
-      return res.json({ mensaje: "✅ Orden creada desde consulta", orden: result.rows[0] });
-    }
-
-    // --- Caso 2: Generar orden desde recibo con datos completos ---
-    const {
-      folio_recibo,
-      medico,
-      diagnostico,
-      lado,
-      procedimiento_id,
-      anexos,
-      conjuntiva,
-      cornea,
-      camara_anterior,
-      cristalino,
-      retina,
-      macula,
-      nervio_optico,
-      ciclopejia,
-      hora_tp,
-      problemas,
-      plan,
-      tipo_lente
-    } = req.body;
-
-    // Buscar el recibo
-    const reciboResult = await pool.query(
-      `SELECT id, paciente_id, tipo 
-       FROM recibos 
-       WHERE id = $1 AND departamento = $2`,
-      [folio_recibo, depto]
-    );
-
-    if (reciboResult.rows.length === 0) {
-      return res.status(404).json({ error: "No se encontró el recibo en esta sucursal" });
-    }
-    const recibo = reciboResult.rows[0];
-
-    // Buscar nombre y precio del procedimiento en catálogo
-    const procResult = await pool.query(
-      `SELECT nombre, precio FROM catalogo_procedimientos WHERE id = $1`,
-      [procedimiento_id]
-    );
-
-    if (procResult.rows.length === 0) {
-      return res.status(404).json({ error: "No se encontró el procedimiento en el catálogo" });
-    }
-    const { nombre: procedimientoNombre, precio: procedimientoPrecio } = procResult.rows[0];
-
-    // Guardar la orden
-    const result = await pool.query(
-      `INSERT INTO ordenes_medicas (
-        expediente_id, folio_recibo, medico, diagnostico, lado, procedimiento, tipo, precio,
-        anexos, conjuntiva, cornea, camara_anterior, cristalino,
-        retina, macula, nervio_optico, ciclopejia, hora_tp,
-        problemas, plan, tipo_lente, estatus, fecha, departamento
-      )
-      VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,
-        $9,$10,$11,$12,$13,
-        $14,$15,$16,$17,$18,
-        $19,$20,$21,'Pendiente',NOW(),$22
-      )
-      RETURNING *`,
-      [
-        recibo.paciente_id || null,
-        recibo.id || null,
-        medico || null,
-        diagnostico || null,
-        lado || null,
-        procedimientoNombre || null,
-        recibo.tipo || "Consulta",
-        procedimientoPrecio || 0,
-        anexos || null,
-        conjuntiva || null,
-        cornea || null,
-        camara_anterior || null,
-        cristalino || null,
-        retina || null,
-        macula || null,
-        nervio_optico || null,
-        ciclopejia || null,
-        hora_tp || null,
-        problemas || null,
-        plan || null,
-        tipo_lente || null,
-        depto || null
-      ]
-    );
-
-    return res.json({ mensaje: "✅ Orden médica creada correctamente", orden: result.rows[0] });
-  } catch (err) {
-    console.error("❌ Error en /api/ordenes_medicas:", err);
-    res.status(500).json({ error: "Error al crear orden médica" });
-  }
-});
 
 
 // ==================== GESTIÓN DE PERMISOS ====================
