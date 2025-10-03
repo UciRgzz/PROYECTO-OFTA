@@ -1892,6 +1892,8 @@ app.get("/api/consultas", verificarSesion, async (req, res) => {
 
 // ==================== CREAR ORDEN MÉDICA (Consulta o Recibo) ====================
 app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
+  console.log("📩 Datos recibidos en /api/ordenes_medicas:", req.body);
+
   try {
     let depto = getDepartamento(req);
 
@@ -1919,7 +1921,14 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         )
         VALUES ($1,$2,$3,'Consulta',$4,'Pendiente',$5,$6)
         RETURNING *`,
-        [consulta.numero_expediente, consulta.recibo_id, consulta.procedimiento, 0, consulta.fecha, depto]
+        [
+          consulta.numero_expediente,
+          consulta.recibo_id,
+          consulta.procedimiento || "Consulta",
+          0,
+          consulta.fecha,
+          depto
+        ]
       );
 
       // marcar consulta como atendida
@@ -1950,8 +1959,7 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
       hora_tp,
       problemas,
       plan,
-      tipo_lente,
-      precio
+      tipo_lente
     } = req.body;
 
     // Buscar el recibo
@@ -1994,21 +2002,34 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
       )
       RETURNING *`,
       [
-        recibo.paciente_id,
-        recibo.id,
-        medico, diagnostico, lado,
-        procedimientoNombre,
-        recibo.tipo,
-        precio || procedimientoPrecio, // si viene precio en el form lo usa, si no el del catálogo
-        anexos, conjuntiva, cornea, camara_anterior, cristalino,
-        retina, macula, nervio_optico, ciclopejia, hora_tp,
-        problemas, plan, tipo_lente, depto
+        recibo.paciente_id || null,
+        recibo.id || null,
+        medico || null,
+        diagnostico || null,
+        lado || null,
+        procedimientoNombre || null,
+        recibo.tipo || "Consulta",
+        procedimientoPrecio || 0,
+        anexos || null,
+        conjuntiva || null,
+        cornea || null,
+        camara_anterior || null,
+        cristalino || null,
+        retina || null,
+        macula || null,
+        nervio_optico || null,
+        ciclopejia || null,
+        hora_tp || null,
+        problemas || null,
+        plan || null,
+        tipo_lente || null,
+        depto || null
       ]
     );
 
     return res.json({ mensaje: "✅ Orden médica creada correctamente", orden: result.rows[0] });
   } catch (err) {
-    console.error("Error en /api/ordenes_medicas:", err);
+    console.error("❌ Error en /api/ordenes_medicas:", err);
     res.status(500).json({ error: "Error al crear orden médica" });
   }
 });
