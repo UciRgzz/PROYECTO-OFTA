@@ -218,7 +218,7 @@
     // ====================== CARGAR CONSULTAS ======================
     async function cargarConsultas() {
   try {
-    const resp = await fetch("http://localhost:3000/api/consultas");
+    const resp = await fetch("/api/consultas");
     const consultas = await resp.json();
     const tbody = document.getElementById("tabla-consultas");
     tbody.innerHTML = "";
@@ -255,7 +255,7 @@
     // ====================== CREAR ORDEN ======================
     async function crearOrden(consultaId) {
   try {
-    const resp = await fetch("http://localhost:3000/api/ordenes_medicas", {
+    const resp = await fetch("/api/ordenes_medicas", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ consultaId })
@@ -265,7 +265,7 @@
       mostrarExito("Orden generada", "La orden se ha generado correctamente");
 
       // ✅ Marcar consulta como atendida
-      await fetch(`http://localhost:3000/api/consultas/${consultaId}/atender`, {
+      await fetch(`/api/consultas/${consultaId}/atender`, {
         method: "PUT"
       });
 

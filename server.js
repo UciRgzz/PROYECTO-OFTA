@@ -1827,6 +1827,7 @@ app.get("/api/consultas", verificarSesion, async (req, res) => {
 
 
 
+
 // ==================== GESTIÓN DE PERMISOS ====================
 // Listar usuarios (para asignar módulos)
 app.get('/api/usuarios', isAdmin, async (req, res) => {
