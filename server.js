@@ -579,7 +579,6 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 
     // 👇 Extra: si el recibo es "Orden de Cirugía", crear también en ordenes_medicas y agenda_quirurgica
     if (tipo === "OrdenCirugia") {
-      // Crear orden médica con fecha = fecha del recibo y fecha_cirugia en NULL
       await pool.query(
         `INSERT INTO ordenes_medicas (
            expediente_id, folio_recibo, procedimiento, tipo, precio, estatus, fecha, fecha_cirugia, departamento, medico
@@ -588,7 +587,6 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
         [paciente_id, recibo.id, procedimiento, tipo, precio, fecha, depto, "Pendiente"]
       );
 
-      // Crear registro en agenda_quirurgica con la misma fecha del recibo
       await pool.query(
         `INSERT INTO agenda_quirurgica (
            paciente_id, procedimiento, fecha, departamento, recibo_id
@@ -598,14 +596,23 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
       );
     }
 
+    // 👇 Extra: si el recibo es "Consulta Oftalmológica", crear en agenda_consultas
+    if (tipo === "Consulta Oftalmológica") {
+      await pool.query(
+        `INSERT INTO agenda_consultas (
+           recibo_id, numero_expediente, departamento, procedimiento, fecha
+         )
+         VALUES ($1, $2, $3, $4, $5)`,
+        [recibo.id, paciente_id, depto, procedimiento, fecha]
+      );
+    }
+
     res.json({ mensaje: "✅ Recibo guardado correctamente", recibo });
   } catch (err) {
     console.error("Error al guardar recibo:", err);
     res.status(500).json({ error: "Error al guardar recibo" });
   }
 });
-
-
 
 
 // ==================== Listar recibos ====================
@@ -1649,7 +1656,6 @@ app.post('/api/set-departamento', isAdmin, (req, res) => {
 
 
 // ==================== MODULO DE AGENDA QUIRÚRGICA ====================
-// ==================== MODULO DE AGENDA QUIRÚRGICA ====================
 app.get("/api/ordenes", verificarSesion, async (req, res) => {
   try {
     let depto = getDepartamento(req);
@@ -1788,6 +1794,28 @@ app.get("/api/cirugias", verificarSesion, async (req, res) => {
   } catch (err) {
     console.error("Error en /api/cirugias:", err);
     res.status(500).json({ error: err.message });
+  }
+});
+
+// ==================== MODULO DE AGENDA DE CONSULTAS ====================
+app.get("/api/consultas", verificarSesion, async (req, res) => {
+  try {
+    const depto = getDepartamento(req); // tu helper de sesión
+    const result = await pool.query(
+      `SELECT a.id, a.numero_expediente, e.nombre_completo AS paciente,
+              a.procedimiento, a.fecha, a.hora, a.medico, a.estado
+       FROM agenda_consultas a
+       JOIN expedientes e 
+         ON e.numero_expediente = a.numero_expediente
+        AND e.departamento = a.departamento
+       WHERE a.departamento = $1
+       ORDER BY a.fecha DESC, a.hora ASC`,
+      [depto]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error en /api/consultas:", err);
+    res.status(500).json({ error: "Error al obtener consultas" });
   }
 });
 

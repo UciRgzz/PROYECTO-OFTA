@@ -158,16 +158,19 @@
       <div class="card-body">
         <div class="table-responsive">
           <table class="table table-bordered align-middle">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Paciente</th>
-                <th>Fecha</th>
-                <th>Hora</th>
-                <th>Médico</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
+            
+           <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Paciente</th>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Médico</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+
             <tbody id="tabla-consultas">
               <!-- JS rellena -->
             </tbody>
@@ -214,59 +217,68 @@
 
     // ====================== CARGAR CONSULTAS ======================
     async function cargarConsultas() {
-      try {
-        const resp = await fetch("http://localhost:3000/consultas");
-        const consultas = await resp.json();
-        const tbody = document.getElementById("tabla-consultas");
-        tbody.innerHTML = "";
+  try {
+    const resp = await fetch("http://localhost:3000/api/consultas");
+    const consultas = await resp.json();
+    const tbody = document.getElementById("tabla-consultas");
+    tbody.innerHTML = "";
 
-        if (consultas.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="6" class="text-muted">No hay consultas programadas</td></tr>`;
-          return;
-        }
-
-        consultas.forEach(c => {
-          const fila = document.createElement("tr");
-          fila.innerHTML = `
-            <td>${c.id}</td>
-            <td>${c.paciente}</td>
-            <td>${formatearFecha(c.fecha)}</td>
-            <td>${c.hora}</td>
-            <td>${c.medico}</td>
-            <td>
-              <button class="btn btn-primary btn-sm" onclick="crearOrden(${c.id})">
-                <i class="fas fa-file-medical"></i> Generar Orden
-              </button>
-            </td>
-          `;
-          tbody.appendChild(fila);
-        });
-      } catch (err) {
-        console.error("Error cargando consultas:", err);
-        mostrarError("Error", "No se pudieron cargar las consultas");
-      }
+    if (consultas.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" class="text-muted">No hay consultas programadas</td></tr>`;
+      return;
     }
+
+    consultas.forEach(c => {
+      const fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td>${c.id}</td>
+        <td>${c.paciente}</td>
+        <td>${formatearFecha(c.fecha)}</td>
+        <td>${c.hora || '-'}</td>
+        <td>${c.medico}</td>
+        <td>${c.estado}</td>
+        <td>
+          <button class="btn btn-primary btn-sm" onclick="crearOrden(${c.id})">
+            <i class="fas fa-file-medical"></i> Generar Orden
+          </button>
+        </td>
+      `;
+      tbody.appendChild(fila);
+    });
+  } catch (err) {
+    console.error("Error cargando consultas:", err);
+    mostrarError("Error", "No se pudieron cargar las consultas");
+  }
+}
+
 
     // ====================== CREAR ORDEN ======================
     async function crearOrden(consultaId) {
-      try {
-        const resp = await fetch("http://localhost:3000/ordenes", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ consultaId })
-        });
-        
-        if (resp.ok) {
-          mostrarExito("Orden generada", "La orden se ha generado correctamente");
-          cargarConsultas(); // refresca la lista
-        } else {
-          mostrarError("Error", "No se pudo generar la orden");
-        }
-      } catch (err) {
-        console.error("Error generando orden:", err);
-        mostrarError("Error", "Ocurrió un error al generar la orden");
-      }
+  try {
+    const resp = await fetch("http://localhost:3000/api/ordenes_medicas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ consultaId })
+    });
+    
+    if (resp.ok) {
+      mostrarExito("Orden generada", "La orden se ha generado correctamente");
+
+      // ✅ Marcar consulta como atendida
+      await fetch(`http://localhost:3000/api/consultas/${consultaId}/atender`, {
+        method: "PUT"
+      });
+
+      cargarConsultas(); // refresca la lista
+    } else {
+      mostrarError("Error", "No se pudo generar la orden");
     }
+  } catch (err) {
+    console.error("Error generando orden:", err);
+    mostrarError("Error", "Ocurrió un error al generar la orden");
+  }
+}
+
 
     // ====================== FORMATEAR FECHA ======================
     function formatearFecha(fecha) {
