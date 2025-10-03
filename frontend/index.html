@@ -331,6 +331,7 @@ async function mostrarSeccion(seccion){
     insumos: "/frontend/insumos.html",
     usuarios: "/frontend/admin/usuarios.html",   // este sí está dentro de admin
     agendaquirurgica: "/frontend/A_Quirurgica.html",
+    agendaconsultas: "/frontend/agendaConsultas.html",
     asignarmodulos: "/frontend/A_modulos.html"
   };
   const main = document.getElementById('main-content');
@@ -768,12 +769,12 @@ async function cargarMenu() {
     let permisos = [];
 
     if (data.usuario.rol === "admin") {
-      // Admin ve TODOS los módulos
-      permisos = [
-        "expedientes","recibos","cierredecaja","medico",
-        "ordenes","optometria","insumos","usuarios",
-        "agendaquirurgica","asignarmodulos"
-      ];
+    permisos = [
+      "expedientes","recibos","cierredecaja","medico",
+      "ordenes","optometria","insumos","usuarios",
+      "agendaquirurgica","agendaconsultas","asignarmodulos"
+    ];
+
     } else {
       // Usuario normal → consultar sus permisos reales
       const permisosRes = await fetch("/api/mis-permisos");
@@ -808,6 +809,10 @@ async function cargarMenu() {
       if (permisos.includes("agendaquirurgica")) {
         html += `<a href="#" onclick="mostrarSeccion('agendaquirurgica')"><i class="material-icons">event</i> Agenda Quirúrgica</a>`;
       }
+      if (permisos.includes("agendaconsultas")) {
+        html += `<a href="#" onclick="mostrarSeccion('agendaconsultas')"><i class="material-icons">event_note</i> Agenda Consultas</a>`;
+      }
+
       if (permisos.includes("ordenes")) {
         html += `<a href="#" onclick="mostrarSeccion('ordenes')"><i class="material-icons">assignment</i> Órdenes</a>`;
       }
