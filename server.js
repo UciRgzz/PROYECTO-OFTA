@@ -1450,16 +1450,16 @@ const upload = multer({ storage });
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
-// 1. Guardar insumo manual
+// Guardar insumo manual
 app.post('/api/insumos', verificarSesion, async (req, res) => {
   try {
-    const { fecha, folio, concepto, monto, archivo } = req.body;
+    const { fecha, folio, concepto, monto } = req.body;
     let depto = getDepartamento(req);  
 
     const result = await pool.query(
-      `INSERT INTO insumos (fecha, folio, concepto, monto, archivo, departamento) 
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [fecha, folio, concepto, monto, archivo || null, depto]
+      `INSERT INTO insumos (fecha, folio, concepto, monto, departamento) 
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [fecha, folio, concepto, monto, depto]
     );
 
     res.json({ mensaje: '✅ Insumo agregado', insumo: result.rows[0] });
@@ -1661,9 +1661,9 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
         e.edad,
         e.nombre_completo AS nombre,
         o.procedimiento,
-        o.precio AS total,                                        -- ✅ usar precio de la orden
-        COALESCE(SUM(p.monto), 0) AS pagos,                       -- ✅ sumar pagos asociados
-        (o.precio - COALESCE(SUM(p.monto), 0)) AS diferencia,     -- ✅ calcular diferencia real
+        o.precio AS total,                                        
+        COALESCE(SUM(p.monto), 0) AS pagos,                      
+        (o.precio - COALESCE(SUM(p.monto), 0)) AS diferencia,     
         o.estatus AS status,
         o.tipo_lente,
         r.fecha AS fecha_creacion,
