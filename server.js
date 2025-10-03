@@ -1802,11 +1802,17 @@ app.get("/api/consultas", verificarSesion, async (req, res) => {
   try {
     const depto = getDepartamento(req);
     const result = await pool.query(
-      `SELECT a.id, a.paciente_id, e.nombre_completo AS paciente,
-              a.procedimiento, a.fecha, a.hora, a.medico, a.estado
+      `SELECT a.id, 
+              a.numero_expediente, 
+              e.nombre_completo AS paciente,
+              a.procedimiento, 
+              a.fecha, 
+              a.hora, 
+              a.medico, 
+              a.estado
        FROM agenda_consultas a
        JOIN expedientes e 
-         ON e.numero_expediente = a.paciente_id
+         ON e.numero_expediente = a.numero_expediente
         AND e.departamento = a.departamento
        WHERE a.departamento = $1
        ORDER BY a.fecha DESC, a.hora ASC`,
@@ -1818,7 +1824,6 @@ app.get("/api/consultas", verificarSesion, async (req, res) => {
     res.status(500).json({ error: "Error al obtener consultas" });
   }
 });
-
 
 
 
