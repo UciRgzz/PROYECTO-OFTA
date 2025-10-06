@@ -1662,6 +1662,8 @@ app.post('/api/set-departamento', isAdmin, (req, res) => {
 
 
 // ==================== MODULO DE AGENDA QUIRÚRGICA ====================
+
+// Obtener órdenes médicas
 app.get("/api/ordenes", verificarSesion, async (req, res) => {
   try {
     let depto = getDepartamento(req);
@@ -1680,8 +1682,8 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
         o.estatus AS status,
         o.tipo_lente,
         r.fecha AS fecha_creacion,
-        o.fecha_cirugia AS fecha_agendada
-
+        o.fecha_cirugia AS fecha_agendada,
+        o.hora_cirugia
       FROM ordenes_medicas o
       JOIN recibos r 
         ON r.id = o.folio_recibo 
@@ -1707,7 +1709,7 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
     query += `
       GROUP BY o.id, e.numero_expediente, e.edad, e.nombre_completo, 
                o.procedimiento, o.precio, o.estatus, o.tipo_lente, 
-               r.fecha, o.fecha_cirugia
+               r.fecha, o.fecha_cirugia, o.hora_cirugia
       ORDER BY r.fecha DESC, o.fecha_cirugia NULLS LAST
     `;
 
@@ -1721,11 +1723,69 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
 });
 
 
+// ==================== ASIGNAR O ELIMINAR FECHA DE CIRUGÍA ====================
+app.put("/api/ordenes/:id/agendar", verificarSesion, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { fecha_cirugia, hora_cirugia } = req.body;
+    let depto = getDepartamento(req);
 
-// Asignar o eliminar fecha de cirugía
+    const result = await pool.query(
+      `UPDATE ordenes_medicas
+       SET fecha_cirugia = $1,
+           hora_cirugia = $2
+       WHERE id = $3 AND departamento = $4
+       RETURNING *`,
+      [fecha_cirugia, hora_cirugia, id, depto]
+    );
+
+    if (result.rows.length === 0)
+      return res.status(404).json({ error: "Orden no encontrada" });
+
+    res.json({
+      mensaje: fecha_cirugia
+        ? "✅ Cirugía agendada"
+        : "🗑️ Cirugía eliminada",
+      orden: result.rows[0]
+    });
+  } catch (err) {
+    console.error("Error en /api/ordenes/:id/agendar:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+// ==================== EDITAR TIPO DE LENTE ====================
+app.put("/api/ordenes/:id/lente", verificarSesion, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { tipo_lente } = req.body;
+    let depto = getDepartamento(req);
+
+    const result = await pool.query(
+      `UPDATE ordenes_medicas
+       SET tipo_lente = $1
+       WHERE id = $2 AND departamento = $3
+       RETURNING *`,
+      [tipo_lente, id, depto]
+    );
+
+    if (result.rows.length === 0)
+      return res.status(404).json({ error: "Orden no encontrada" });
+
+    res.json({ mensaje: "✅ Tipo de lente actualizado", orden: result.rows[0] });
+  } catch (err) {
+    console.error("Error en /api/ordenes/:id/lente:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+// ==================== LISTAR CIRUGÍAS (para calendario) ====================
 app.get("/api/cirugias", verificarSesion, async (req, res) => {
   try {
     let depto = getDepartamento(req);
+
     const result = await pool.query(`
       SELECT 
         o.id,
@@ -1752,60 +1812,6 @@ app.get("/api/cirugias", verificarSesion, async (req, res) => {
 });
 
 
-// Editar tipo de lente después de agendar
-app.put("/api/ordenes/:id/lente", verificarSesion, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { tipo_lente } = req.body;
-    let depto = getDepartamento(req);
-
-    const result = await pool.query(
-      `UPDATE ordenes_medicas
-       SET tipo_lente = $1
-       WHERE id = $2 AND departamento = $3
-       RETURNING *`,
-      [tipo_lente, id, depto]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Orden no encontrada" });
-    }
-
-    res.json({ mensaje: "✅ Tipo de lente actualizado", orden: result.rows[0] });
-  } catch (err) {
-    console.error("Error en /api/ordenes/:id/lente:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Listar solo cirugías con fecha (para el calendario)
-app.get("/api/cirugias", verificarSesion, async (req, res) => {
-  try {
-    let depto = getDepartamento(req);
-
-    const result = await pool.query(`
-      SELECT 
-        o.id,
-        e.nombre_completo AS nombre,
-        o.procedimiento,
-        o.medico,
-        o.tipo_lente,
-        o.fecha_cirugia
-      FROM ordenes_medicas o
-      JOIN expedientes e 
-        ON e.numero_expediente = o.expediente_id 
-       AND e.departamento = o.departamento
-      WHERE o.departamento = $1
-        AND o.fecha_cirugia IS NOT NULL
-      ORDER BY o.fecha_cirugia ASC
-    `, [depto]);
-
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Error en /api/cirugias:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
 
 
 
