@@ -517,6 +517,17 @@
       return f.toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric" });
     }
 
+    // ====================== FORMATEAR HORA EN 12H ======================
+    function convertirHora12(hora) {
+      if (!hora) return '';
+      let [h, m] = hora.split(':');
+      h = parseInt(h);
+      const sufijo = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12; // convierte 0 en 12
+      return `${h}:${m.padStart(2, '0')} ${sufijo}`;
+    }
+
+
     // ====================== TABLA ======================
     async function cargarOrdenes(year, month) {
       try {
@@ -556,7 +567,7 @@
             </td>
             <td>
               ${formatFecha(o.fecha_agendada)}
-              ${o.hora_cirugia ? `<br><small>${o.hora_cirugia.slice(0,5)} hrs</small>` : ""}
+              ${o.hora_cirugia ? `<br><small>${convertirHora12(o.hora_cirugia)}</small>` : ""}
             </td>
 
             <td>
@@ -617,7 +628,7 @@
             </td>
             <td>
               ${formatFecha(o.fecha_agendada)}
-              ${o.hora_cirugia ? `<br><small>${o.hora_cirugia.slice(0,5)} hrs</small>` : ""}
+              ${o.hora_cirugia ? `<br><small>${convertirHora12(o.hora_cirugia)}</small>` : ""}
             </td>
 
             <td>
