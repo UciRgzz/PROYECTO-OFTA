@@ -15,6 +15,16 @@
       --accent-color: #e74c3c;
       --light-color: #f8f9fa;
       --dark-color: #343a40;
+      --success-color: #28a745;
+      --warning-color: #ffc107;
+      --info-color: #17a2b8;
+      --gradient-primary: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
+      --gradient-secondary: linear-gradient(135deg, var(--secondary-color) 0%, #2c80b9 100%);
+      --gradient-accent: linear-gradient(135deg, var(--accent-color) 0%, #c0392b 100%);
+      --gradient-header: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      --shadow-light: 0 6px 20px rgba(0,0,0,0.08);
+      --shadow-medium: 0 8px 25px rgba(0,0,0,0.12);
+      --shadow-heavy: 0 12px 30px rgba(0,0,0,0.15);
     }
     
     body {
@@ -23,6 +33,7 @@
       padding: 20px;
       color: #333;
       min-height: 100vh;
+      line-height: 1.6;
     }
     
     .container {
@@ -33,41 +44,73 @@
     header {
       text-align: center;
       margin-bottom: 30px;
-      padding: 20px;
-      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      padding: 25px;
+      background: var(--gradient-header);
       color: white;
-      border-radius: 10px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      box-shadow: var(--shadow-medium);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.3);
     }
     
     h1 {
       font-size: 2.5rem;
       margin-bottom: 10px;
       font-weight: 700;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
     
     .description {
       font-size: 1.1rem;
       opacity: 0.9;
+      max-width: 600px;
+      margin: 0 auto;
     }
     
     .card {
       background: white;
       border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      box-shadow: var(--shadow-light);
       margin-bottom: 30px;
       overflow: hidden;
       border: none;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-heavy);
     }
     
     .card-header {
-      background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
+      background: var(--gradient-primary);
       color: white;
       padding: 18px 25px;
       font-size: 1.3rem;
       font-weight: 600;
       display: flex;
       align-items: center;
+      position: relative;
+    }
+    
+    .card-header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.2);
     }
     
     .card-header i {
@@ -76,32 +119,36 @@
     }
     
     .card-body {
-      padding: 25px;
+      padding: 30px;
     }
     
     .form-group {
       margin-bottom: 25px;
+      position: relative;
     }
     
     label {
       font-weight: 600;
       margin-bottom: 8px;
       color: var(--primary-color);
+      display: block;
     }
     
-    input, select {
+    .form-control {
       padding: 12px 15px;
       border: 1px solid #ddd;
       border-radius: 8px;
       font-size: 1rem;
       width: 100%;
       transition: all 0.3s;
+      background-color: #fdfdfd;
     }
     
-    input:focus, select:focus {
+    .form-control:focus {
       border-color: var(--secondary-color);
       box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
       outline: none;
+      background-color: white;
     }
     
     .btn {
@@ -115,10 +162,41 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 5px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.5);
+      opacity: 0;
+      border-radius: 100%;
+      transform: scale(1, 1) translate(-50%);
+      transform-origin: 50% 50%;
+    }
+    
+    .btn:focus:not(:active)::after {
+      animation: ripple 1s ease-out;
+    }
+    
+    @keyframes ripple {
+      0% {
+        transform: scale(0, 0);
+        opacity: 0.5;
+      }
+      100% {
+        transform: scale(20, 20);
+        opacity: 0;
+      }
     }
     
     .btn-primary {
-      background: linear-gradient(135deg, var(--secondary-color) 0%, #2c80b9 100%);
+      background: var(--gradient-secondary);
       color: white;
       box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
     }
@@ -133,7 +211,7 @@
     }
     
     .btn-danger {
-      background: linear-gradient(135deg, var(--accent-color) 0%, #c0392b 100%);
+      background: var(--gradient-accent);
       color: white;
       box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
     }
@@ -148,22 +226,36 @@
       font-size: 0.9rem;
     }
     
+    .table-container {
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: var(--shadow-light);
+    }
+    
     .table {
       width: 100%;
       border-collapse: collapse;
-      margin: 20px 0;
+      margin: 0;
       background: white;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
     }
     
     .table th {
-      background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
+      background: var(--gradient-primary);
       color: white;
       padding: 15px;
       text-align: left;
       font-weight: 600;
+      position: relative;
+    }
+    
+    .table th::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.2);
     }
     
     .table td {
@@ -175,18 +267,46 @@
       border-bottom: none;
     }
     
+    .table tr {
+      transition: background-color 0.2s ease;
+    }
+    
     .table tr:hover {
       background-color: #f8f9fa;
     }
     
+    .badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    
+    .badge-admin {
+      background: var(--gradient-secondary);
+      color: white;
+    }
+    
+    .badge-user {
+      background: #6c757d;
+      color: white;
+    }
+    
     .success-alert {
       display: none;
-      padding: 15px;
+      padding: 15px 20px;
       background: #d4edda;
       color: #155724;
       border-radius: 8px;
       margin-bottom: 20px;
       border: 1px solid #c3e6cb;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      animation: fadeIn 0.5s ease;
+    }
+    
+    .success-alert i {
+      margin-right: 10px;
+      color: var(--success-color);
     }
     
     .footer {
@@ -194,6 +314,25 @@
       margin-top: 40px;
       color: #6c757d;
       font-size: 0.9rem;
+      padding: 20px;
+      border-top: 1px solid #e9ecef;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #6c757d;
+    }
+    
+    .empty-state i {
+      font-size: 3rem;
+      margin-bottom: 15px;
+      color: #dee2e6;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     
     @media (max-width: 768px) {
@@ -201,8 +340,22 @@
         font-size: 2rem;
       }
       
+      .card-body {
+        padding: 20px;
+      }
+      
+      .btn {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+      
       .table-responsive {
-        overflow-x: auto;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      
+      .table th, .table td {
+        padding: 12px 10px;
       }
     }
   </style>
@@ -211,7 +364,7 @@
   <div class="container">
     <header>
       <h1><i class="fas fa-users"></i> Gestión de Usuarios</h1>
-      <p class="description">Administra los usuarios del sistema Oftavisión.</p>
+      <p class="description">Administra los usuarios del sistema Oftavisión de forma eficiente y segura.</p>
     </header>
 
     <div class="success-alert" id="successAlert">
@@ -275,19 +428,28 @@
         <i class="fas fa-list-alt"></i> Usuarios Registrados
       </div>
       <div class="card-body">
-        <div class="table-responsive">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Nómina</th>
-                <th>Usuario</th>
-                <th>Rol</th>
-                <th>Departamento</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="usersTable"></tbody>
-          </table>
+        <div class="table-container">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Nómina</th>
+                  <th>Usuario</th>
+                  <th>Rol</th>
+                  <th>Departamento</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="usersTable">
+                <!-- Los usuarios se cargarán aquí dinámicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div id="emptyState" class="empty-state" style="display: none;">
+          <i class="fas fa-users"></i>
+          <h3>No hay usuarios registrados</h3>
+          <p>Comienza agregando un nuevo usuario usando el formulario superior.</p>
         </div>
       </div>
     </div>
@@ -302,6 +464,7 @@
   <script>
     const form = document.getElementById('addUserForm');
     const tableBody = document.getElementById('usersTable');
+    const emptyState = document.getElementById('emptyState');
 
     // Crear usuario con SweetAlert
     form.addEventListener('submit', async (e) => {
@@ -338,19 +501,25 @@
         const users = await res.json();
         
         if (res.ok) {
-          tableBody.innerHTML = users.map(u => `
-            <tr>
-              <td>${u.nomina}</td>
-              <td>${u.username}</td>
-              <td><span class="badge bg-${u.rol === 'admin' ? 'primary' : 'secondary'}">${u.rol}</span></td>
-              <td>${u.departamento || ''}</td>
-              <td>
-                <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.nomina}')">
-                  <i class="fas fa-trash-alt"></i> Eliminar
-                </button>
-              </td>
-            </tr>
-          `).join('');
+          if (users.length === 0) {
+            tableBody.innerHTML = '';
+            emptyState.style.display = 'block';
+          } else {
+            emptyState.style.display = 'none';
+            tableBody.innerHTML = users.map(u => `
+              <tr>
+                <td>${u.nomina}</td>
+                <td>${u.username}</td>
+                <td><span class="badge ${u.rol === 'admin' ? 'badge-admin' : 'badge-user'}">${u.rol}</span></td>
+                <td>${u.departamento || ''}</td>
+                <td>
+                  <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.nomina}')">
+                    <i class="fas fa-trash-alt"></i> Eliminar
+                  </button>
+                </td>
+              </tr>
+            `).join('');
+          }
         } else {
           mostrarError("Error", "No se pudieron cargar los usuarios");
         }
@@ -369,7 +538,8 @@
         showCancelButton: true,
         confirmButtonText: 'Sí, eliminar',
         cancelButtonText: 'Cancelar',
-        confirmButtonColor: '#e74c3c'
+        confirmButtonColor: '#e74c3c',
+        reverseButtons: true
       });
 
       if (!confirm.isConfirmed) return;
@@ -416,7 +586,8 @@
       Swal.fire({
         icon: 'error',
         title: titulo,
-        text: mensaje
+        text: mensaje,
+        confirmButtonColor: '#3498db'
       });
     }
 
