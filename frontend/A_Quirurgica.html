@@ -603,7 +603,7 @@ async function cargarOrdenesPorRango(desde, hasta) {
         return "";
       }
 
-  // ==================== RENDERIZAR CALENDARIO ====================
+// ==================== RENDERIZAR CALENDARIO ====================
 async function renderCalendarCirugias() {
   const calendario = document.getElementById("calendarioCirugias");
   const mesActual = document.getElementById("mesCirugia");
@@ -624,7 +624,7 @@ async function renderCalendarCirugias() {
     console.error(err); 
   }
 
-  // Filtramos las del mes actual
+  // 🔹 Filtrar cirugías del mes actual
   const filtradas = cirugias.filter(c => {
     if (!c.fecha_agendada) return false;
     const f = new Date(c.fecha_agendada);
@@ -633,46 +633,48 @@ async function renderCalendarCirugias() {
 
   calendario.innerHTML = "";
 
+  // Encabezados de días
   ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"].forEach(d => {
     calendario.innerHTML += `<div class="day-header">${d}</div>`;
   });
 
   let totalDias = 0;
 
-  // Días vacíos antes del primer día
+  // Espacios vacíos hasta el primer día del mes
   for (let i = 1; i < primerDia; i++) {
     calendario.innerHTML += `<div class="empty-day"></div>`;
     totalDias++;
   }
 
-  // Generar cada día
+  // 🔹 Generar días con sus cirugías
   for (let d = 1; d <= diasEnMes; d++) {
     totalDias++;
     const fechaDia = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 
+    // Buscar cirugías agendadas ese día
     const programadas = filtradas.filter(c => {
       if (!c.fecha_agendada) return false;
-      let f = c.fecha_agendada.split("T")[0];
+
+      let f;
+      if (typeof c.fecha_agendada === "string") {
+        f = c.fecha_agendada.split("T")[0];
+      } else {
+        const d2 = new Date(c.fecha_agendada);
+        f = `${d2.getFullYear()}-${String(d2.getMonth() + 1).padStart(2, "0")}-${String(d2.getDate()).padStart(2, "0")}`;
+      }
+
       return f === fechaDia;
     });
 
-    // Si hay cirugías ese día → lo marcamos
-    let claseDia = "calendar-day";
-    if (programadas.length > 0) claseDia += " day-busy"; // resalta con borde verde
+    // Contenido del día
+    let contenido = `<div class="calendar-day" onclick="asignarFecha('${fechaDia}')">
+                       <div class="day-number">${d}</div>`;
 
-    let contenido = `<div class="${claseDia}" onclick="asignarFecha('${fechaDia}')">
-                       <div class="day-number fw-bold">${d}</div>`;
-
-    // Mostrar cada cirugía en su color original
     if (programadas.length > 0) {
       programadas.forEach(c => {
-        const claseColor = getColorClass(c.procedimiento);
         contenido += `
-          <div class="insumo-item ${claseColor}">
-            <div>
-              <strong>${c.nombre}</strong><br>
-              <small>${c.procedimiento}</small>
-            </div>
+          <div class="insumo-item ${getColorClass(c.procedimiento)}">
+            <span>${c.nombre} - ${c.procedimiento}</span>
             <button class="btn btn-sm btn-danger"
                     onclick="event.stopPropagation(); eliminarCirugia(${c.id})">
               <i class="fas fa-trash"></i>
@@ -685,7 +687,7 @@ async function renderCalendarCirugias() {
     calendario.innerHTML += contenido;
   }
 
-  // Completar celdas vacías hasta llenar la cuadrícula (6 filas)
+  // Rellenar hasta completar las 6 filas (42 celdas)
   while (totalDias < 42) {
     calendario.innerHTML += `<div class="empty-day"></div>`;
     totalDias++;
@@ -693,7 +695,6 @@ async function renderCalendarCirugias() {
 
   cargarOrdenes();
 }
-
       // ==================== CAMBIAR MES CALENDARIO ====================//
       function cambiarMesCirugia(offset) {
         fechaCirugia.setMonth(fechaCirugia.getMonth() + offset);
