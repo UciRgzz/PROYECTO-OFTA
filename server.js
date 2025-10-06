@@ -554,7 +554,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
   let depto = getDepartamento(req);
 
   try {
-    // Buscar expediente en la sucursal/departamento actual
+    // Verificar paciente en el departamento
     const expediente = await pool.query(
       "SELECT numero_expediente FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
       [paciente_id, depto]
@@ -564,10 +564,9 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
       return res.status(400).json({ error: "El paciente no existe en este departamento" });
     }
 
-    // Usar el número de expediente como folio
     const folio = expediente.rows[0].numero_expediente;
 
-    // Insertar recibo
+    // Insertar recibo principal
     const result = await pool.query(
       `INSERT INTO recibos (fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, departamento) 
        VALUES ($1::date, $2, $3, $4, $5, $6, $7, $8, $9)
@@ -577,43 +576,28 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 
     const recibo = result.rows[0];
 
-    // 👇 Si el tipo de recibo es Orden de Cirugía, crear orden y reflejar pago
+    // Solo si es Orden de Cirugía
     if (tipo === "OrdenCirugia") {
-      // Crear orden médica
-      await pool.query(
+      // Crear orden médica con el precio correcto
+      const ordenInsert = await pool.query(
         `INSERT INTO ordenes_medicas (
-           expediente_id, folio_recibo, procedimiento, tipo, precio, estatus, fecha, fecha_cirugia, departamento, medico
+           expediente_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, fecha_cirugia, departamento, medico
          )
-         VALUES ($1,$2,$3,$4,$5,'Pendiente',$6,NULL,$7,$8)`,
-        [paciente_id, recibo.id, procedimiento, tipo, precio, fecha, depto, "Pendiente"]
+         VALUES ($1,$2,$3,$4,$5,$6,($5-$6),'Pendiente',$7,NULL,$8,$9)
+         RETURNING id`,
+        [paciente_id, recibo.id, procedimiento, tipo, precio, monto_pagado, fecha, depto, "Pendiente"]
       );
 
-      // Obtener ID de la orden recién creada
-      const orden = await pool.query(
-        `SELECT id FROM ordenes_medicas 
-         WHERE folio_recibo = $1 AND departamento = $2 
-         ORDER BY id DESC LIMIT 1`,
-        [recibo.id, depto]
-      );
+      const ordenId = ordenInsert.rows[0].id;
 
-      const ordenId = orden.rows[0].id;
-
-      // Registrar pago inicial correspondiente al recibo
+      // Registrar el pago inicial en tabla pagos
       await pool.query(
         `INSERT INTO pagos (orden_id, monto, forma_pago, fecha, departamento)
-         VALUES ($1, $2, $3, $4, $5)`,
+         VALUES ($1,$2,$3,$4,$5)`,
         [ordenId, monto_pagado, forma_pago, fecha, depto]
       );
 
-      // Actualizar la orden médica con el pago inicial
-      await pool.query(
-        `UPDATE ordenes_medicas 
-         SET pagado = $1, pendiente = (precio - $1)
-         WHERE id = $2 AND departamento = $3`,
-        [monto_pagado, ordenId, depto]
-      );
-
-      // Crear registro en agenda quirúrgica
+      // Agregar a agenda quirúrgica
       await pool.query(
         `INSERT INTO agenda_quirurgica (
            paciente_id, procedimiento, fecha, departamento, recibo_id
