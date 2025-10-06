@@ -1537,34 +1537,27 @@ app.post(
       let insertados = 0;
 
       for (let row of data) {
-        // === Fecha ===
         let fecha = row.Fecha;
+
+        // === CORRECCIÓN DEFINITIVA ===
         if (typeof fecha === "number") {
-          // Conversión correcta sin UTC (evita restar un día)
-          const epoch = new Date(1899, 11, 30); // base de Excel (1900-01-00)
-          const excelDate = new Date(epoch.getTime() + fecha * 86400000);
+          // Excel usa base 1900 + bug del año bisiesto
+          const epoch = new Date(1899, 11, 30);
+          const excelDate = new Date(epoch.getTime() + (fecha - 1) * 86400000);
+
+          // Crear fecha local manualmente
           const yyyy = excelDate.getFullYear();
           const mm = String(excelDate.getMonth() + 1).padStart(2, "0");
           const dd = String(excelDate.getDate()).padStart(2, "0");
           fecha = `${yyyy}-${mm}-${dd}`;
-
         } else if (typeof fecha === "string") {
           fecha = fecha.trim().replace(/\./g, "/").replace(/-/g, "/");
           const partes = fecha.split("/");
-
           if (partes.length === 3) {
             if (parseInt(partes[0]) > 12) {
-              // formato DD/MM/YYYY
-              fecha = `${partes[2]}-${partes[1].padStart(
-                2,
-                "0"
-              )}-${partes[0].padStart(2, "0")}`;
+              fecha = `${partes[2]}-${partes[1].padStart(2, "0")}-${partes[0].padStart(2, "0")}`;
             } else {
-              // formato MM/DD/YYYY
-              fecha = `${partes[2]}-${partes[0].padStart(
-                2,
-                "0"
-              )}-${partes[1].padStart(2, "0")}`;
+              fecha = `${partes[2]}-${partes[0].padStart(2, "0")}-${partes[1].padStart(2, "0")}`;
             }
           } else {
             const parsed = new Date(fecha);
@@ -1601,7 +1594,6 @@ app.post(
           continue;
         }
 
-        // === Guardar en BD ===
         await pool.query(
           `INSERT INTO insumos (fecha, folio, concepto, monto, archivo, departamento) 
            VALUES ($1,$2,$3,$4,$5,$6)`,
