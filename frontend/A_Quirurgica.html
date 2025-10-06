@@ -770,7 +770,7 @@ const f = new Date(c.fecha_agendada + "T00:00:00").toISOString().split("T")[0];
     await fetch(`/api/ordenes/${ordenSeleccionada}/agendar`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fecha_agendada: fecha })
+      body: JSON.stringify({ fecha_cirugia: fecha })
     });
     mostrarExito("Cirugía asignada", `Fecha: ${fecha}`);
 
@@ -804,7 +804,7 @@ const f = new Date(c.fecha_agendada + "T00:00:00").toISOString().split("T")[0];
         await fetch(`/api/ordenes/${idOrden}/agendar`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ fecha_agendada: null })
+          body: JSON.stringify({ fecha_cirugia: null })
         });
         mostrarExito("Cirugía eliminada", "La cirugía ha sido eliminada del calendario");
         renderCalendarCirugias(); 
