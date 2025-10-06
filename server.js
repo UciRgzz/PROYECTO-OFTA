@@ -1540,7 +1540,12 @@ app.post(
         // === Fecha ===
         let fecha = row.Fecha;
         if (typeof fecha === "number") {
-          fecha = xlsx.SSF.format("yyyy-mm-dd", fecha);
+          // Convierte fecha Excel a objeto Date respetando zona horaria local
+          const excelDate = new Date(Math.round((fecha - 25569) * 86400 * 1000));
+          // Ajusta al horario local (evita desfase -1 día)
+          const localDate = new Date(excelDate.getTime() + excelDate.getTimezoneOffset() * 60000 * -1);
+          fecha = localDate.toISOString().split("T")[0];
+
         } else if (typeof fecha === "string") {
           fecha = fecha.trim().replace(/\./g, "/").replace(/-/g, "/");
           const partes = fecha.split("/");
