@@ -1522,11 +1522,9 @@ app.post(
 
       if (!depto) {
         console.warn("⚠️ Departamento no detectado al subir Excel");
-        return res
-          .status(401)
-          .json({
-            error: "No se pudo identificar el departamento del usuario",
-          });
+        return res.status(401).json({
+          error: "No se pudo identificar el departamento del usuario",
+        });
       }
 
       const workbook = xlsx.readFile(req.file.path);
@@ -1536,20 +1534,19 @@ app.post(
       let insertados = 0;
 
       for (let row of data) {
+        // === FECHA (CORREGIDO SIN DESFASE) ===
         let fecha = row.Fecha;
 
-        // === CONVERSIÓN FINAL SIN DESFASE ===
         if (typeof fecha === "number") {
-          // Excel numérico → convertir correctamente sin UTC ni restas
+          // Excel numérico → convertir correctamente sin UTC
           const epoch = new Date(1899, 11, 30); // Base Excel (1900-01-00)
           const excelDate = new Date(epoch.getTime() + fecha * 86400000);
 
-          // Fecha local (sin UTC)
+          // Fecha local sin desfase
           const yyyy = excelDate.getFullYear();
           const mm = String(excelDate.getMonth() + 1).padStart(2, "0");
           const dd = String(excelDate.getDate()).padStart(2, "0");
           fecha = `${yyyy}-${mm}-${dd}`;
-
         } else if (typeof fecha === "string") {
           // Normalizar texto de fecha
           fecha = fecha.trim().replace(/\./g, "/").replace(/-/g, "/");
@@ -1558,10 +1555,16 @@ app.post(
           if (partes.length === 3) {
             if (parseInt(partes[0]) > 12) {
               // Formato DD/MM/YYYY
-              fecha = `${partes[2]}-${partes[1].padStart(2, "0")}-${partes[0].padStart(2, "0")}`;
+              fecha = `${partes[2]}-${partes[1].padStart(
+                2,
+                "0"
+              )}-${partes[0].padStart(2, "0")}`;
             } else {
               // Formato MM/DD/YYYY
-              fecha = `${partes[2]}-${partes[0].padStart(2, "0")}-${partes[1].padStart(2, "0")}`;
+              fecha = `${partes[2]}-${partes[0].padStart(
+                2,
+                "0"
+              )}-${partes[1].padStart(2, "0")}`;
             }
           } else {
             const parsed = new Date(fecha);
@@ -1577,31 +1580,50 @@ app.post(
           }
         }
 
-        // === Folio ===
+        // === FOLIO ===
         let folio = row.Folio;
         if (folio == null || folio === "") continue;
         folio = String(folio).replace(/[^\w\s-]/g, "").trim();
 
-        // === Concepto ===
+        // === CONCEPTO ===
         let concepto = String(row.Concepto || "").trim();
 
-        // === Monto ===
-        let montoTexto = String(row.Monto || "0")
-          .replace(/[^0-9.,]/g, "")
-          .replace(",", ".");
-        let monto = parseFloat(montoTexto);
-        if (isNaN(monto)) monto = 0;
+        // === MONTO (CORREGIDO ROBUSTO) ===
+        let montoTexto = (row.Monto || "")
+          .toString()
+          .trim()
+          .replace(/\s+/g, "") // quita espacios invisibles
+          .replace(/[^\d.,-]/g, "") // elimina símbolos no numéricos
+          .replace(/(\.\d{3,})/, ""); // limpia separadores de miles incorrectos
 
-        // Validación final
+        // Normalizar separadores decimales (coma y punto)
+        if (montoTexto.includes(",") && montoTexto.includes(".")) {
+          const lastComma = montoTexto.lastIndexOf(",");
+          const lastDot = montoTexto.lastIndexOf(".");
+          montoTexto =
+            lastDot > lastComma
+              ? montoTexto.replace(/,/g, "")
+              : montoTexto.replace(/\./g, "").replace(",", ".");
+        } else {
+          montoTexto = montoTexto.replace(",", ".");
+        }
+
+        let monto = parseFloat(montoTexto);
+        if (isNaN(monto) || monto <= 0) {
+          console.log("⚠️ Monto inválido, se omite:", row.Monto);
+          continue;
+        }
+
+        // === VALIDACIÓN FINAL ===
         if (!fecha || !folio || !concepto || monto <= 0) {
           console.log("⚠️ Fila inválida, se omite:", row);
           continue;
         }
 
-        // === Guardar en BD ===
+        // === GUARDAR EN BD ===
         await pool.query(
-          `INSERT INTO insumos (fecha, folio, concepto, monto, archivo, departamento) 
-           VALUES ($1,$2,$3,$4,$5,$6)`,
+          `INSERT INTO insumos (fecha, folio, concepto, monto, archivo, departamento)
+           VALUES ($1, $2, $3, $4, $5, $6)`,
           [fecha, folio, concepto, monto, req.file.filename, depto]
         );
         insertados++;
@@ -1616,6 +1638,7 @@ app.post(
     }
   }
 );
+
 
 // ==================== 4. Eliminar insumo ====================
 app.delete("/api/insumos/:id", isAdmin, async (req, res) => {
