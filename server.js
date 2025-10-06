@@ -1540,11 +1540,13 @@ app.post(
         // === Fecha ===
         let fecha = row.Fecha;
         if (typeof fecha === "number") {
-          // Convierte fecha Excel a objeto Date respetando zona horaria local
-          const excelDate = new Date(Math.round((fecha - 25569) * 86400 * 1000));
-          // Ajusta al horario local (evita desfase -1 día)
-          const localDate = new Date(excelDate.getTime() + excelDate.getTimezoneOffset() * 60000 * -1);
-          fecha = localDate.toISOString().split("T")[0];
+          // Conversión correcta sin UTC (evita restar un día)
+          const epoch = new Date(1899, 11, 30); // base de Excel (1900-01-00)
+          const excelDate = new Date(epoch.getTime() + fecha * 86400000);
+          const yyyy = excelDate.getFullYear();
+          const mm = String(excelDate.getMonth() + 1).padStart(2, "0");
+          const dd = String(excelDate.getDate()).padStart(2, "0");
+          fecha = `${yyyy}-${mm}-${dd}`;
 
         } else if (typeof fecha === "string") {
           fecha = fecha.trim().replace(/\./g, "/").replace(/-/g, "/");
@@ -1567,7 +1569,10 @@ app.post(
           } else {
             const parsed = new Date(fecha);
             if (!isNaN(parsed)) {
-              fecha = parsed.toISOString().split("T")[0];
+              const yyyy = parsed.getFullYear();
+              const mm = String(parsed.getMonth() + 1).padStart(2, "0");
+              const dd = String(parsed.getDate()).padStart(2, "0");
+              fecha = `${yyyy}-${mm}-${dd}`;
             } else {
               console.log("⚠️ Fecha inválida, se omite:", row.Fecha);
               continue;
@@ -1645,7 +1650,6 @@ app.delete("/api/insumos/:id", isAdmin, async (req, res) => {
     res.status(500).json({ error: "Error eliminando insumo" });
   }
 });
-
 
 
 
