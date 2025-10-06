@@ -554,7 +554,11 @@
                 ${o.tipo_lente || '<span class="text-muted">Asignar</span>'}
               </span>
             </td>
-            <td>${formatFecha(o.fecha_agendada)}</td>
+            <td>
+              ${formatFecha(o.fecha_agendada)}
+              ${o.hora_cirugia ? `<br><small>${o.hora_cirugia.slice(0,5)} hrs</small>` : ""}
+            </td>
+
             <td>
               ${o.fecha_agendada ? 
                 '<span class="text-muted">Asignado</span>' : 
@@ -611,7 +615,11 @@
                 ${o.tipo_lente || '<span class="text-muted">Asignar</span>'}
               </span>
             </td>
-            <td>${formatFecha(o.fecha_agendada)}</td>
+            <td>
+              ${formatFecha(o.fecha_agendada)}
+              ${o.hora_cirugia ? `<br><small>${o.hora_cirugia.slice(0,5)} hrs</small>` : ""}
+            </td>
+
             <td>
               ${o.fecha_agendada ? 
                 '<span class="text-muted">Asignado</span>' : 
