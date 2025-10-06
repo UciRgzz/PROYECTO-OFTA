@@ -1482,6 +1482,7 @@ app.post('/api/insumos', verificarSesion, async (req, res) => {
   }
 });
 
+
 // 2. Listar insumos
 app.get('/api/insumos', verificarSesion, async (req, res) => {
   try {
@@ -1499,75 +1500,77 @@ app.get('/api/insumos', verificarSesion, async (req, res) => {
   }
 });
 
-// 3. Subir Excel
+
+// 3. Subir Excel (corregido y robusto)
 app.post('/api/insumos/upload', verificarSesion, upload.single('excelFile'), async (req, res) => {
   try {
     let depto = getDepartamento(req);
-
     const workbook = xlsx.readFile(req.file.path);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const data = xlsx.utils.sheet_to_json(sheet, { defval: "" });
 
+    let insertados = 0;
+
     for (let row of data) {
       // === Fecha ===
       let fecha = row.Fecha;
+      if (typeof fecha === "number") {
+        // Fecha en formato numérico de Excel
+        fecha = xlsx.SSF.format("yyyy-mm-dd", fecha);
+      } else if (typeof fecha === "string") {
+        // Normalizar separadores
+        fecha = fecha.trim().replace(/\./g, "/").replace(/-/g, "/");
+        const partes = fecha.split("/");
 
-     if (typeof fecha === "number") {
-  // Fecha almacenada como número de Excel
-  fecha = xlsx.SSF.format("yyyy-mm-dd", fecha);
-} else if (typeof fecha === "string") {
-  // Normalizar separadores
-  fecha = fecha.trim().replace(/\./g, "/").replace(/-/g, "/");
-  const partes = fecha.split("/");
+        if (partes.length === 3) {
+          // Si el primer número es > 12 → formato DD/MM/YYYY
+          if (parseInt(partes[0]) > 12) {
+            fecha = `${partes[2]}-${partes[1].padStart(2, "0")}-${partes[0].padStart(2, "0")}`;
+          } else {
+            // Sino, asume formato MM/DD/YYYY
+            fecha = `${partes[2]}-${partes[0].padStart(2, "0")}-${partes[1].padStart(2, "0")}`;
+          }
+        } else {
+          // Último intento: convertir con Date()
+          const parsed = new Date(fecha);
+          if (!isNaN(parsed)) {
+            fecha = parsed.toISOString().split("T")[0];
+          } else {
+            console.log("⚠️ Fecha inválida, se omite:", row.Fecha);
+            continue;
+          }
+        }
+      }
 
-  if (partes.length === 3) {
-    // Si el primer número es > 12 → formato DD/MM/YYYY
-    if (parseInt(partes[0]) > 12) {
-      fecha = `${partes[2]}-${partes[1].padStart(2, "0")}-${partes[0].padStart(2, "0")}`;
-    } else {
-      // Sino, asume formato MM/DD/YYYY
-      fecha = `${partes[2]}-${partes[0].padStart(2, "0")}-${partes[1].padStart(2, "0")}`;
-    }
-  } else {
-    // Último intento: convertir con Date()
-    const parsed = new Date(fecha);
-    if (!isNaN(parsed)) {
-      fecha = parsed.toISOString().split("T")[0];
-    } else {
-      console.log("Fecha inválida:", row.Fecha);
-      continue;
-    }
-  }
-}
-
-
-      // === Folio === (quitar links y caracteres extra)
-      let folio = String(row.Folio || "")
-        .replace(/[^0-9]/g, "")   // dejar solo números
-        .trim();
+      // === Folio ===
+      let folio = row.Folio;
+      if (folio == null || folio === "") continue;
+      folio = String(folio).replace(/[^\w\s-]/g, "").trim(); // Permite letras o guiones
 
       // === Concepto ===
       let concepto = String(row.Concepto || "").trim();
 
-      // === Monto === (quitar $, comas y espacios)
-      let monto = parseFloat(
-        String(row.Monto || "0").replace(/[^0-9.]/g, "")
-      );
+      // === Monto ===
+      let montoTexto = String(row.Monto || "0").replace(/[^0-9.,]/g, "").replace(",", ".");
+      let monto = parseFloat(montoTexto);
+      if (isNaN(monto)) monto = 0;
 
-      if (!fecha || !folio || !concepto || isNaN(monto)) {
-        console.log("Fila inválida, se omite:", row);
+      // Validación final
+      if (!fecha || !folio || !concepto || monto <= 0) {
+        console.log("⚠️ Fila inválida, se omite:", row);
         continue;
       }
 
-      // Guardar en BD
+      // === Guardar en BD ===
       await pool.query(
         `INSERT INTO insumos (fecha, folio, concepto, monto, archivo, departamento) 
          VALUES ($1,$2,$3,$4,$5,$6)`,
         [fecha, folio, concepto, monto, req.file.filename, depto]
       );
+      insertados++;
     }
 
-    res.json({ mensaje: '✅ Excel procesado y guardado correctamente' });
+    res.json({ mensaje: `✅ Excel procesado correctamente (${insertados} registros guardados)` });
   } catch (err) {
     console.error("Error procesando Excel:", err);
     res.status(500).json({ error: 'Error procesando Excel' });
@@ -1596,6 +1599,7 @@ app.delete('/api/insumos/:id', isAdmin, async (req, res) => {
     res.status(500).json({ error: "Error eliminando insumo" });
   }
 });
+
 
 
 //==================== MÓDULO CREAR USUARIO ADMIN ====================//
