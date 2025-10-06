@@ -181,8 +181,8 @@
 
 .calendar-day,
 .empty-day {
-  height: 120px;       /* 🔹 celdas más amplias */
-  font-size: 0.85rem; /* 🔹 texto un poco más grande */
+  height: 130px;       /* 🔹 celdas más amplias */
+  font-size: 0.80rem; /* 🔹 texto un poco más grande */
   padding: 4px;
 }
 
@@ -778,7 +778,7 @@ async function renderCalendarCirugias() {
         });
       }
 
-  // ====================== MINI CALENDARIO ======================
+// ====================== MINI CALENDARIO ======================
 async function renderMiniCalendar() {
   const miniCalendario = document.getElementById("miniCalendarioCirugias");
   const miniMesActual = document.getElementById("miniMesCirugia");
@@ -786,7 +786,10 @@ async function renderMiniCalendar() {
   const year = fechaMiniCalendario.getFullYear();
   const month = fechaMiniCalendario.getMonth();
 
-  miniMesActual.textContent = fechaMiniCalendario.toLocaleString("es-ES", { month: "long", year: "numeric" });
+  miniMesActual.textContent = fechaMiniCalendario.toLocaleString("es-ES", {
+    month: "long",
+    year: "numeric"
+  });
 
   const primerDia = new Date(year, month, 1).getDay() || 7;
   const diasEnMes = new Date(year, month + 1, 0).getDate();
@@ -795,12 +798,12 @@ async function renderMiniCalendar() {
   try {
     const res = await fetch("/api/cirugias");
     cirugias = await res.json();
-  } catch (err) { 
-    console.error(err); 
+  } catch (err) {
+    console.error(err);
   }
 
   miniCalendario.innerHTML = "";
-  ["L","M","X","J","V","S","D"].forEach(d => {
+  ["L", "M", "X", "J", "V", "S", "D"].forEach(d => {
     miniCalendario.innerHTML += `<div class="mini-day-header">${d}</div>`;
   });
 
@@ -811,9 +814,10 @@ async function renderMiniCalendar() {
   for (let d = 1; d <= diasEnMes; d++) {
     const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
 
+    // 🔹 Corregido: usar fecha_cirugia en lugar de fecha_agendada
     const programadas = cirugias.filter(c => {
-      if (!c.fecha_agendada) return false;
-const f = new Date(c.fecha_agendada + "T00:00:00").toISOString().split("T")[0];
+      if (!c.fecha_cirugia) return false;
+      const f = new Date(c.fecha_cirugia + "T00:00:00").toISOString().split("T")[0];
       return f === fechaDia;
     });
 
