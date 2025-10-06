@@ -549,24 +549,32 @@ app.get('/api/pacientes', verificarSesion, async (req, res) => {
 
 // ==================== MODULO DE RECIBOS =======================================================
 // ==================== GUARDAR RECIBO ====================
-// ==================== MODULO DE RECIBOS ====================
+// ==================== GUARDAR RECIBO ====================
 app.post("/api/recibos", verificarSesion, async (req, res) => {
   const { fecha, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo } = req.body;
   const depto = getDepartamento(req);
 
+  const client = await pool.connect();
+
   try {
-    // 1️⃣ Verificar paciente
-    const expediente = await pool.query(
-      "SELECT numero_expediente FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
+    await client.query("BEGIN");
+
+    // Verificar paciente
+    const expediente = await client.query(
+      "SELECT numero_expediente, nombre_completo FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
       [paciente_id, depto]
     );
-    if (expediente.rows.length === 0)
+
+    if (expediente.rows.length === 0) {
+      await client.query("ROLLBACK");
       return res.status(400).json({ error: "El paciente no existe en este departamento" });
+    }
 
     const folio = expediente.rows[0].numero_expediente;
+    const nombrePaciente = expediente.rows[0].nombre_completo;
 
-    // 2️⃣ Insertar recibo
-    const result = await pool.query(
+    // Crear recibo
+    const result = await client.query(
       `INSERT INTO recibos (
          fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, departamento
        ) VALUES ($1::date, $2, $3, $4, $5, $6, $7, $8, $9)
@@ -576,45 +584,83 @@ app.post("/api/recibos", verificarSesion, async (req, res) => {
 
     const recibo = result.rows[0];
 
-    // 3️⃣ Si es orden de cirugía, crear también orden médica
+    // Si es Orden de Cirugía
     if (tipo === "OrdenCirugia") {
-      const ordenInsert = await pool.query(
+      // Verificar que sea un procedimiento de cirugía
+      const esCirugia = procedimiento.toLowerCase().includes("cirugía") || 
+                       procedimiento.toLowerCase().includes("catarata") ||
+                       procedimiento.toLowerCase().includes("quirúrgico") ||
+                       procedimiento.toLowerCase().includes("quirurgico") ||
+                       procedimiento.toLowerCase().includes("operación") ||
+                       procedimiento.toLowerCase().includes("operacion");
+
+      if (!esCirugia) {
+        await client.query("ROLLBACK");
+        return res.status(400).json({
+          error: "El tipo de recibo 'OrdenCirugia' solo se permite con procedimientos quirúrgicos"
+        });
+      }
+
+      // Crear orden médica directamente
+      const orden = await client.query(
         `INSERT INTO ordenes_medicas (
-            expediente_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente,
-            estatus, fecha, fecha_cirugia, departamento, medico
+           expediente_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente,
+           estatus, fecha, departamento, medico
          ) VALUES (
-            $1, $2, $3, $4, $5, $6, ($5 - $6),
-            CASE WHEN $6 >= $5 THEN 'Pagado' ELSE 'Pendiente' END,
-            $7, $7, $8, COALESCE($9, 'Sin asignar')
+           $1, $2, $3, $4, $5, $6, ($5 - $6),
+           CASE WHEN $6 >= $5 THEN 'Pagado' ELSE 'Pendiente' END,
+           $7, $8, 'Pendiente'
          )
          RETURNING id`,
-        [paciente_id, recibo.id, procedimiento, tipo, precio, monto_pagado, fecha, depto, null]
+        [paciente_id, recibo.id, procedimiento, tipo, precio, monto_pagado, fecha, depto]
       );
 
-      const ordenId = ordenInsert.rows[0].id;
+      const ordenId = orden.rows[0].id;
 
-      // Insertar pago inicial
-      await pool.query(
-        `INSERT INTO pagos (orden_id, monto, forma_pago, fecha, departamento)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [ordenId, monto_pagado, forma_pago, fecha, depto]
+      // Registrar pago directamente en la tabla pagos
+      await client.query(
+        `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [ordenId, paciente_id, monto_pagado, forma_pago, fecha, depto]
       );
 
       // Registrar en agenda quirúrgica
-      await pool.query(
-        `INSERT INTO agenda_quirurgica (paciente_id, procedimiento, fecha, departamento, recibo_id)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [paciente_id, procedimiento, fecha, depto, recibo.id]
+      await client.query(
+        `INSERT INTO agenda_quirurgica (paciente_id, nombre_paciente, procedimiento, fecha, departamento, recibo_id, orden_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [paciente_id, nombrePaciente, procedimiento, fecha, depto, recibo.id, ordenId]
+      );
+
+      // Actualizar el monto pagado en la orden médica
+      await client.query(
+        `UPDATE ordenes_medicas 
+         SET pagado = $1, 
+             pendiente = (precio - $1),
+             estatus = CASE WHEN $1 >= precio THEN 'Pagado' ELSE 'Pendiente' END
+         WHERE id = $2`,
+        [monto_pagado, ordenId]
       );
     }
 
-    res.json({ mensaje: "✅ Recibo guardado correctamente", recibo });
+    await client.query("COMMIT");
+    
+    res.json({ 
+      mensaje: "✅ Recibo guardado correctamente", 
+      recibo,
+      ordenCreada: tipo === "OrdenCirugia"
+    });
+    
   } catch (err) {
-    console.error("❌ Error al guardar recibo:", err);
-    res.status(500).json({ error: "Error al guardar recibo", detalle: err.message });
+    await client.query("ROLLBACK");
+    console.error("Error al guardar recibo:", err.message);
+    res.status(500).json({ 
+      error: "Error al guardar recibo", 
+      detalle: err.message 
+    });
+  } finally {
+    client.release();
   }
 });
-
 
 // ==================== Listar recibos ====================
 app.get('/api/recibos', verificarSesion, async (req, res) => {
