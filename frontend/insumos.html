@@ -204,35 +204,46 @@ document.getElementById("agendaForm").addEventListener("submit", async (e) => {
 
 
     // Listar insumos del mes actual
-    async function cargarInsumos() {
-      const tabla = document.getElementById("tablaInsumos");
-      try {
-        const res = await fetch("/api/insumos");
-        const insumos = await res.json();
+// Listar insumos del mes actual (corregido)
+async function cargarInsumos() {
+  const tabla = document.getElementById("tablaInsumos");
+  try {
+    const res = await fetch("/api/insumos");
+    const insumos = await res.json();
 
-        const year = fechaActual.getFullYear();
-        const month = fechaActual.getMonth();
+    const year = fechaActual.getFullYear();
+    const month = fechaActual.getMonth();
 
-        // filtrar insumos del mes actual
-        const filtrados = insumos.filter(i => {
-          const f = new Date(i.fecha);
-          return f.getFullYear() === year && f.getMonth() === month;
-        });
+    // 🔹 Normalizar la fecha para evitar errores de zona horaria
+    const filtrados = insumos.filter(i => {
+      let f = i.fecha;
+      if (typeof f === "string" && f.includes("T")) f = f.split("T")[0];
+      const [yy, mm] = f.split("-").map(n => parseInt(n));
+      return yy === year && (mm - 1) === month;
+    });
 
-        tabla.innerHTML = "";
-        filtrados.forEach(i => {
-          tabla.innerHTML += `
-            <tr>
-              <td>${new Date(i.fecha).toLocaleDateString()}</td>
-              <td>${i.folio}</td>
-              <td>${i.concepto}</td>
-              <td>$${parseFloat(i.monto).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-              <td>${i.archivo ? `<a class="download-link" href="/uploads/${encodeURIComponent(i.archivo)}" download><i class="fas fa-download"></i> Descargar</a>` : "-"}</td>
-              <td><button class="btn btn-delete" onclick="eliminarInsumo(${i.id})"><i class="fas fa-trash"></i></button></td>
-            </tr>`;
-        });
-      } catch (err) { console.error(err); }
+    tabla.innerHTML = "";
+    if (filtrados.length === 0) {
+      tabla.innerHTML = `<tr><td colspan="6" class="text-muted">No hay insumos en este mes</td></tr>`;
+      return;
     }
+
+    filtrados.forEach(i => {
+      tabla.innerHTML += `
+        <tr>
+          <td>${new Date(i.fecha).toLocaleDateString()}</td>
+          <td>${i.folio}</td>
+          <td>${i.concepto}</td>
+          <td>$${parseFloat(i.monto).toLocaleString("es-MX", { minimumFractionDigits: 2 })}</td>
+          <td>${i.archivo ? `<a href="/uploads/${encodeURIComponent(i.archivo)}" download><i class="fas fa-download"></i> Descargar</a>` : "-"}</td>
+          <td><button class="btn btn-delete" onclick="eliminarInsumo(${i.id})"><i class="fas fa-trash"></i></button></td>
+        </tr>`;
+    });
+  } catch (err) {
+    console.error(err);
+  }
+}
+
 
     // Eliminar insumo 
 async function eliminarInsumo(id) {
@@ -281,69 +292,73 @@ async function eliminarInsumo(id) {
 }
 
     // Calendario dinámico
-    async function renderCalendar() {
-      const calendario = document.getElementById("calendario");
-      const mesActual = document.getElementById("mesActual");
+// Calendario dinámico (corregido)
+async function renderCalendar() {
+  const calendario = document.getElementById("calendario");
+  const mesActual = document.getElementById("mesActual");
 
-      const year = fechaActual.getFullYear();
-      const month = fechaActual.getMonth();
+  const year = fechaActual.getFullYear();
+  const month = fechaActual.getMonth();
 
-      mesActual.textContent = fechaActual.toLocaleString("es-ES", { month: "long", year: "numeric" });
+  mesActual.textContent = fechaActual.toLocaleString("es-ES", { month: "long", year: "numeric" });
 
-      const primerDia = new Date(year, month, 1).getDay() || 7;
-      const diasEnMes = new Date(year, month + 1, 0).getDate();
+  const primerDia = new Date(year, month, 1).getDay() || 7;
+  const diasEnMes = new Date(year, month + 1, 0).getDate();
 
-      // Traer insumos
-      let insumos = [];
-      try {
-        const res = await fetch("/api/insumos");
-        insumos = await res.json();
-      } catch (err) { console.error(err); }
+  // Traer insumos
+  let insumos = [];
+  try {
+    const res = await fetch("/api/insumos");
+    insumos = await res.json();
+  } catch (err) {
+    console.error(err);
+  }
 
-      // Filtrar los insumos del mes actual
-      const filtrados = insumos.filter(i => {
-        const f = new Date(i.fecha);
-        return f.getFullYear() === year && f.getMonth() === month;
+  // 🔹 Filtrar los insumos del mes actual (sin alterar fechas)
+  const filtrados = insumos.filter(i => {
+    let f = i.fecha;
+    if (typeof f === "string" && f.includes("T")) f = f.split("T")[0];
+    const [yy, mm] = f.split("-").map(n => parseInt(n));
+    return yy === year && (mm - 1) === month;
+  });
+
+  calendario.innerHTML = "";
+
+  // Encabezados
+  ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].forEach(d => {
+    calendario.innerHTML += `<div class="day-header">${d}</div>`;
+  });
+
+  // Vacíos iniciales
+  for (let i = 1; i < primerDia; i++) {
+    calendario.innerHTML += `<div class="empty-day"></div>`;
+  }
+
+  // Días
+  for (let d = 1; d <= diasEnMes; d++) {
+    const fechaDia = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const meds = filtrados.filter(i => {
+      let f = i.fecha;
+      if (typeof f === "string" && f.includes("T")) f = f.split("T")[0];
+      return f === fechaDia;
+    });
+
+    let contenido = `<div class="calendar-day"><div class="day-number">${d}</div>`;
+    if (meds.length > 0) {
+      meds.forEach(m => {
+        contenido += `
+          <div class="insumo-item">
+            <div class="insumo-name">${m.concepto}</div>
+            <div class="insumo-info">Folio: ${m.folio}</div>
+            <div class="insumo-info">Monto: $${parseFloat(m.monto).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+          </div>`;
       });
-
-      calendario.innerHTML = "";
-
-      // Encabezados
-      ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"].forEach(d => {
-        calendario.innerHTML += `<div class="day-header">${d}</div>`;
-      });
-
-      // Vacíos iniciales
-      for (let i = 1; i < primerDia; i++) {
-        calendario.innerHTML += `<div class="empty-day"></div>`;
-      }
-
-      // Días
-      for (let d = 1; d <= diasEnMes; d++) {
-        const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
-        const meds = filtrados.filter(i => i.fecha.startsWith(fechaDia));
-
-        let contenido = `<div class="calendar-day"><div class="day-number">${d}</div>`;
-        if (meds.length > 0) {
-          meds.forEach(m => {
-            contenido += `
-              <div class="insumo-item">
-                <div class="insumo-name">${m.concepto}</div>
-                <div class="insumo-info">Folio: ${m.folio}</div>
-                <div class="insumo-info">Monto: $${parseFloat(m.monto).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-              </div>`;
-          });
-        }
-        contenido += "</div>";
-        calendario.innerHTML += contenido;
-      }
     }
+    contenido += "</div>";
+    calendario.innerHTML += contenido;
+  }
+}
 
-    function cambiarMes(offset) {
-      fechaActual.setMonth(fechaActual.getMonth() + offset);
-      cargarInsumos();
-      renderCalendar();
-    }
   </script>
 </body>
 </html>

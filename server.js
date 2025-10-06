@@ -1443,7 +1443,7 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
 
 
 
-// ==================== MÓDULO INSUMOS ====================
+// ==================== MODULO DE INSUMOS ====================
 
 // Configuración de multer para guardar con nombre único
 const storage = multer.diskStorage({
