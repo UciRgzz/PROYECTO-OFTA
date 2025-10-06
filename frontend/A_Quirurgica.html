@@ -405,10 +405,15 @@ let ordenSeleccionada = null;
     // ====================== FORMATEADOR DE FECHAS ======================
 function formatFecha(fecha) {
   if (!fecha) return '<span class="text-muted">No asignado</span>';
-  const f = new Date(fecha);
+  
+  // 🔹 Toma solo la parte de la fecha sin zona horaria
+  const partes = fecha.split("T")[0].split("-");
+  const f = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
+  
   if (isNaN(f)) return '<span class="text-muted">No asignado</span>';
   return f.toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
+
 
 
 
