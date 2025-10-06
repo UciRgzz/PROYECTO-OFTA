@@ -578,19 +578,22 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 
     // Solo si es Orden de Cirugía
     if (tipo === "OrdenCirugia") {
-      // Crear orden médica con precio y pago inicial
+      // Crear orden médica con precio y pago inicial correctos
       const ordenInsert = await pool.query(
-        `INSERT INTO ordenes_medicas 
-           (expediente_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, fecha_cirugia, departamento, medico)
-         VALUES 
-           ($1, $2, $3, $4, $5, $6, ($5 - $6), 'Pendiente', $7, NULL, $8, 'Pendiente')
+        `INSERT INTO ordenes_medicas (
+           expediente_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente,
+           estatus, fecha, fecha_cirugia, departamento, medico
+         ) VALUES (
+           $1, $2, $3, $4, $5, $6, ($5 - $6),
+           'Pendiente', $7, NULL, $8, 'Pendiente'
+         )
          RETURNING id`,
         [paciente_id, recibo.id, procedimiento, tipo, precio, monto_pagado, fecha, depto]
       );
 
       const ordenId = ordenInsert.rows[0].id;
 
-      // Registrar pago inicial
+      // Registrar pago inicial en tabla pagos
       await pool.query(
         `INSERT INTO pagos (orden_id, monto, forma_pago, fecha, departamento)
          VALUES ($1, $2, $3, $4, $5)`,
@@ -607,7 +610,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 
     res.json({ mensaje: "✅ Recibo guardado correctamente", recibo });
   } catch (err) {
-    console.error("Error al guardar recibo:", err);
+    console.error("Error al guardar recibo:", err.message);
     res.status(500).json({ error: "Error al guardar recibo" });
   }
 });
