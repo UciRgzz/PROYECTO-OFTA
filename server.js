@@ -1512,25 +1512,34 @@ app.post('/api/insumos/upload', verificarSesion, upload.single('excelFile'), asy
       // === Fecha ===
       let fecha = row.Fecha;
 
-      if (typeof fecha === "number") {
-        // Si viene como número de Excel
-        fecha = xlsx.SSF.format("yyyy-mm-dd", fecha);
-      } else if (typeof fecha === "string") {
-        // Si viene como texto (ej: "12/09/2025" o "12-09-2025")
-        const partes = fecha.split(/[/\-]/);
-        if (partes.length === 3) {
-          // Interpretar como DD/MM/YYYY
-          fecha = `${partes[2]}-${partes[1].padStart(2,"0")}-${partes[0].padStart(2,"0")}`;
-        } else {
-          let parsed = new Date(fecha);
-          if (!isNaN(parsed)) {
-            fecha = parsed.toISOString().split("T")[0];
-          } else {
-            console.log("Fecha inválida:", row.Fecha);
-            continue;
-          }
-        }
-      }
+     if (typeof fecha === "number") {
+  // Fecha almacenada como número de Excel
+  fecha = xlsx.SSF.format("yyyy-mm-dd", fecha);
+} else if (typeof fecha === "string") {
+  // Normalizar separadores
+  fecha = fecha.trim().replace(/\./g, "/").replace(/-/g, "/");
+  const partes = fecha.split("/");
+
+  if (partes.length === 3) {
+    // Si el primer número es > 12 → formato DD/MM/YYYY
+    if (parseInt(partes[0]) > 12) {
+      fecha = `${partes[2]}-${partes[1].padStart(2, "0")}-${partes[0].padStart(2, "0")}`;
+    } else {
+      // Sino, asume formato MM/DD/YYYY
+      fecha = `${partes[2]}-${partes[0].padStart(2, "0")}-${partes[1].padStart(2, "0")}`;
+    }
+  } else {
+    // Último intento: convertir con Date()
+    const parsed = new Date(fecha);
+    if (!isNaN(parsed)) {
+      fecha = parsed.toISOString().split("T")[0];
+    } else {
+      console.log("Fecha inválida:", row.Fecha);
+      continue;
+    }
+  }
+}
+
 
       // === Folio === (quitar links y caracteres extra)
       let folio = String(row.Folio || "")
