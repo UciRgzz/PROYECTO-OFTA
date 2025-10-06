@@ -181,7 +181,7 @@
 
 .calendar-day,
 .empty-day {
-  height: 75px;       /* 🔹 celdas más amplias */
+  height: 120px;       /* 🔹 celdas más amplias */
   font-size: 0.85rem; /* 🔹 texto un poco más grande */
   padding: 4px;
 }
@@ -603,7 +603,18 @@ async function cargarOrdenesPorRango(desde, hasta) {
         return "";
       }
 
+
 // ==================== RENDERIZAR CALENDARIO ====================
+function abreviarNombre(nombre) {
+  if (!nombre) return "";
+  const partes = nombre.trim().split(" ");
+  if (partes.length <= 2) return nombre; // si solo tiene nombre y un apellido
+  // Ejemplo: "Laura Méndez Ramírez" → "Laura Méndez R."
+  const abreviado = partes.slice(0, -1).join(" ") + " " + partes[partes.length - 1][0] + ".";
+  return abreviado;
+}
+
+
 async function renderCalendarCirugias() {
   const calendario = document.getElementById("calendarioCirugias");
   const mesActual = document.getElementById("mesCirugia");
@@ -669,7 +680,7 @@ async function renderCalendarCirugias() {
       programadas.forEach(c => {
         contenido += `
           <div class="insumo-item ${getColorClass(c.procedimiento)}">
-            <span>${c.nombre} - ${c.procedimiento}</span>
+            <span>${abreviarNombre(c.nombre)} - ${c.procedimiento}</span>
             <button class="btn btn-sm btn-danger"
                     onclick="event.stopPropagation(); eliminarCirugia(${c.id})">
               <i class="fas fa-trash"></i>
