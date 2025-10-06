@@ -1,12 +1,12 @@
-  <!DOCTYPE html>
-  <html lang="es">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agenda Quirúrgica</title>
-    <link rel="icon" type="image/png" href="/uploads/logo-oftavision2.png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agenda Quirúrgica</title>
+  <link rel="icon" type="image/png" href="/uploads/logo-oftavision2.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     :root {
       --primary-color: #2c3e50;
@@ -155,78 +155,129 @@
     .calendar-nav .btn { padding: 6px 12px; font-size: 0.85rem; border-radius: 6px; }
     .current-month { font-size: 1rem; font-weight: 600; color: var(--primary-color); }
     
-    /* === CALENDARIO GRANDE FIJO === */
-.calendar {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(130px, 1fr)); /* 🔹 más ancho */
-  grid-template-rows: 35px repeat(6, 120px);           /* 🔹 alto equilibrado */
-  gap: 8px;
-  justify-content: center;
-  min-height: calc(35px + 6 * 120px);
-}
-
-
-
-    .day-header {
-    text-align: center;
-    padding: 10px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
-    color: white;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.85rem;
-    height: 40px;             /* 🔹 altura fija */
-    line-height: 20px;
-  }
-
-.calendar-day,
-.empty-day {
-  height: 150px;
-  font-size: 0.85rem;
-  padding: 6px;
-  overflow-y: auto;
-  border-radius: 6px;
-  position: relative;
-}
-
-.day-number {
-  position: absolute;
-  top: 4px;
-  right: 6px;
-  font-weight: 600;
-  font-size: 0.8rem;
-  color: #333;
-}
-
-.insumo-item {
-  margin-top: 18px;
-  padding: 5px 6px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  word-break: break-word;
-}
-
-.calendar-day:hover { 
-  transform: translateY(-3px); 
-  box-shadow: 0 3px 8px rgba(0,0,0,0.1); 
-}
-
-
-.main-calendar {
-  width: 100%;
-  max-width: 950px;   /* 🔹 ancho total mayor */
-  margin: 0 auto;
-  min-height: calc(35px + 6 * 120px);
-}
-
+    /* === CALENDARIO POR HORAS === */
+    .calendar-hourly {
+      display: grid;
+      grid-template-columns: 80px repeat(7, 1fr);
+      gap: 5px;
+      margin-top: 20px;
+    }
     
-    /* Colores procedimientos */
+    .hour-label {
+      background: var(--primary-color);
+      color: white;
+      padding: 10px;
+      text-align: center;
+      font-weight: bold;
+      border-radius: 5px;
+    }
+    
+    .day-header-hourly {
+      background: var(--secondary-color);
+      color: white;
+      padding: 10px;
+      text-align: center;
+      font-weight: bold;
+      border-radius: 5px;
+    }
+    
+    .hour-slot {
+      height: 60px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 5px;
+      background-color: #f9f9f9;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    
+    .hour-slot:hover {
+      background-color: #eef6ff;
+    }
+    
+    .hour-slot.booked {
+      background-color: #e3f2fd;
+      border-left: 4px solid var(--secondary-color);
+    }
+    
+    .surgery-event {
+      font-size: 0.7rem;
+      padding: 3px;
+      border-radius: 3px;
+      margin-bottom: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
     .proc-catarata { background: #f5cbfd; border-left: 4px solid #e46bf6; }
     .proc-consulta { background: #c9e7fd; border-left: 4px solid #2196f3; }
     .proc-lente { background: #f7f9d2; border-left: 4px solid #fbf866; }
+    
+    /* === CALENDARIO GRANDE FIJO === */
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(130px, 1fr));
+      grid-template-rows: 35px repeat(6, 120px);
+      gap: 8px;
+      justify-content: center;
+      min-height: calc(35px + 6 * 120px);
+    }
+
+    .day-header {
+      text-align: center;
+      padding: 10px;
+      background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
+      color: white;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      height: 40px;
+      line-height: 20px;
+    }
+
+    .calendar-day,
+    .empty-day {
+      height: 150px;
+      font-size: 0.85rem;
+      padding: 6px;
+      overflow-y: auto;
+      border-radius: 6px;
+      position: relative;
+    }
+
+    .day-number {
+      position: absolute;
+      top: 4px;
+      right: 6px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      color: #333;
+    }
+
+    .insumo-item {
+      margin-top: 18px;
+      padding: 5px 6px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      word-break: break-word;
+    }
+
+    .calendar-day:hover { 
+      transform: translateY(-3px); 
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1); 
+    }
+
+    .main-calendar {
+      width: 100%;
+      max-width: 950px;
+      margin: 0 auto;
+      min-height: calc(35px + 6 * 120px);
+    }
     
     /* 🔹 Eventos simplificados */
     .insumo-item {
@@ -275,6 +326,16 @@
     .legend-item { display: flex; align-items: center; margin-bottom: 5px; }
     .legend-color { width: 16px; height: 16px; margin-right: 6px; border-radius: 3px; }
     
+    /* === VISTA SEMANAL === */
+    .week-view {
+      display: none;
+      margin-top: 20px;
+    }
+    
+    .view-toggle {
+      margin-bottom: 15px;
+    }
+    
     @media (max-width: 768px) {
       h1 { font-size: 2rem; }
       .table-responsive { overflow-x: auto; }
@@ -283,6 +344,7 @@
       .calendar { grid-template-columns: repeat(1, 1fr); }
       .calendar-container { flex-direction: column; }
       .mini-calendar { width: 100%; }
+      .calendar-hourly { grid-template-columns: 60px repeat(7, 1fr); }
     }
     
     /* 🔹 Botones de navegación del mini calendario */
@@ -295,484 +357,809 @@
     .mini-calendar-header .btn i { font-size: 0.75rem; }
 
     /* 🔹 Forzar ancho máximo al modal de calendario */
-#modalCalendario .modal-dialog {
-  max-width: 95%;   /* ocupa casi todo el viewport */
-  width: 100%;
-}
-
+    #modalCalendario .modal-dialog {
+      max-width: 95%;
+      width: 100%;
+    }
   </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><i class="fas fa-calendar-check"></i> Agenda Quirúrgica</h1>
+      <p class="description">Gestión de cirugías y procedimientos del sistema Oftavisión.</p>
+    </header>
 
+    <div class="success-alert" id="successAlert">
+      <i class="fas fa-check-circle"></i> <span id="successMessage">Operación realizada correctamente.</span>
+    </div>
 
+    <!-- Tabla de órdenes -->
+    <div class="card">
+      <div class="card-header"><i class="fas fa-list"></i> Órdenes de Cirugía</div>
 
-  </head>
-  <body>
-    <div class="container">
-      <header>
-        <h1><i class="fas fa-calendar-check"></i> Agenda Quirúrgica</h1>
-        <p class="description">Gestión de cirugías y procedimientos del sistema Oftavisión.</p>
-      </header>
-
-      <div class="success-alert" id="successAlert">
-        <i class="fas fa-check-circle"></i> <span id="successMessage">Operación realizada correctamente.</span>
+      <!-- 🔎 Filtro de fecha -->
+      <div class="mb-3 px-3">
+        <label for="filtroRangoOrdenes" class="form-label fw-bold">Filtrar por fecha:</label>
+        <input type="text" id="filtroRangoOrdenes" class="form-control" style="max-width:300px;" placeholder="Selecciona un rango de fechas" readonly>
       </div>
 
-  <!-- Tabla de órdenes -->
-  <div class="card">
-    <div class="card-header"><i class="fas fa-list"></i> Órdenes de Cirugía</div>
-
-<!-- 🔎 Filtro de fecha -->
-<div class="mb-3 px-3">
-  <label for="filtroRangoOrdenes" class="form-label fw-bold">Filtrar por fecha:</label>
-  <input type="text" id="filtroRangoOrdenes" class="form-control" style="max-width:300px;" placeholder="Selecciona un rango de fechas" readonly>
-</div>
-
-    <div class="card-body">
-      <div class="table-responsive">
-        <table class="table table-bordered align-middle">
-          <thead>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-bordered align-middle">
             <thead>
-  <tr>
-  <th>Expediente</th>
-  <th>Fecha</th> <!-- 🔹 Movida aquí -->
-  <th>Edad</th>
-  <th>Nombre</th>
-  <th>Procedimiento</th>
-  <th>Total Orden</th>
-  <th>Pagos Realizados</th>
-  <th>Diferencia</th>
-  <th>Status</th>
-  <th>Tipo de Lente</th>
-  <th>Agendado</th>
-  <th>Acciones</th>
-</tr>
-
-</thead>
-
-          <tbody id="tablaOrdenes"></tbody>
-        </table>
+              <tr>
+                <th>Expediente</th>
+                <th>Fecha</th>
+                <th>Edad</th>
+                <th>Nombre</th>
+                <th>Procedimiento</th>
+                <th>Total Orden</th>
+                <th>Pagos Realizados</th>
+                <th>Diferencia</th>
+                <th>Status</th>
+                <th>Tipo de Lente</th>
+                <th>Agendado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tablaOrdenes"></tbody>
+          </table>
+        </div>
       </div>
+    </div>
+
+    <!-- Modal Calendario -->
+    <div class="modal fade" id="modalCalendario" tabindex="-1">
+      <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title"><i class="fas fa-calendar"></i> Calendario de Cirugías</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="view-toggle">
+              <button class="btn btn-primary" id="toggleViewBtn">
+                <i class="fas fa-calendar-week"></i> Cambiar a Vista Semanal
+              </button>
+            </div>
+            
+            <!-- Vista Mensual -->
+            <div id="monthlyView">
+              <div class="calendar-container">
+                <!-- Solo la leyenda -->
+                <div class="calendar-legend">
+                  <h6>Leyenda de Procedimientos</h6>
+                  <div class="legend-item">
+                    <div class="legend-color" style="background-color: #f5cbfd; border-left: 4px solid #e46bf6;"></div>
+                    <div class="legend-text">Cirugía de Catarata</div>
+                  </div>
+                  <div class="legend-item">
+                    <div class="legend-color" style="background-color: #c9e7fd; border-left: 4px solid #2196f3;"></div>
+                    <div class="legend-text">Consulta</div>
+                  </div>
+                  <div class="legend-item">
+                    <div class="legend-color" style="background-color: #f7f9d2; border-left: 4px solid #fbf866;"></div>
+                    <div class="legend-text">Procedimiento de Lente</div>
+                  </div>
+                </div>
+
+                <!-- Calendario principal -->
+                <div class="main-calendar">
+                  <div class="calendar-nav">
+                    <button class="btn btn-primary" onclick="cambiarMesCirugia(-1)">
+                      <i class="fas fa-chevron-left"></i> Mes anterior
+                    </button>
+                    <div class="current-month" id="mesCirugia"></div>
+                    <button class="btn btn-primary" onclick="cambiarMesCirugia(1)">
+                      Mes siguiente <i class="fas fa-chevron-right"></i>
+                    </button>
+                  </div>
+                  <div class="calendar" id="calendarioCirugias"></div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Vista Semanal por Horas -->
+            <div id="weeklyView" class="week-view">
+              <div class="calendar-nav">
+                <button class="btn btn-primary" onclick="cambiarSemana(-1)">
+                  <i class="fas fa-chevron-left"></i> Semana anterior
+                </button>
+                <div class="current-month" id="semanaActual"></div>
+                <button class="btn btn-primary" onclick="cambiarSemana(1)">
+                  Semana siguiente <i class="fas fa-chevron-right"></i>
+                </button>
+              </div>
+              <div class="calendar-hourly" id="calendarioHoras"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>Sistema de Gestión Oftavisión &copy; 2025</p>
     </div>
   </div>
 
+  <!-- Daterangepicker CSS -->
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 
-  <!-- Modal Calendario -->
-<div class="modal fade" id="modalCalendario" tabindex="-1">
-  <div class="modal-dialog modal-xl modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title"><i class="fas fa-calendar"></i> Calendario de Cirugías</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-<div class="modal-body">
-  <div class="calendar-container">
-    <!-- Solo la leyenda -->
-    <div class="calendar-legend">
-      <h6>Leyenda de Procedimientos</h6>
-      <div class="legend-item">
-        <div class="legend-color" style="background-color: #f5cbfd; border-left: 4px solid #e46bf6;"></div>
-        <div class="legend-text">Cirugía de Catarata</div>
-      </div>
-      <div class="legend-item">
-        <div class="legend-color" style="background-color: #c9e7fd; border-left: 4px solid #2196f3;"></div>
-        <div class="legend-text">Consulta</div>
-      </div>
-      <div class="legend-item">
-        <div class="legend-color" style="background-color: #f7f9d2; border-left: 4px solid #fbf866;"></div>
-        <div class="legend-text">Procedimiento de Lente</div>
-      </div>
-    </div>
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-    <!-- Calendario principal -->
-    <div class="main-calendar">
-      <div class="calendar-nav">
-        <button class="btn btn-primary" onclick="cambiarMesCirugia(-1)">
-          <i class="fas fa-chevron-left"></i> Mes anterior
-        </button>
-        <div class="current-month" id="mesCirugia"></div>
-        <button class="btn btn-primary" onclick="cambiarMesCirugia(1)">
-          Mes siguiente <i class="fas fa-chevron-right"></i>
-        </button>
-      </div>
-      <div class="calendar" id="calendarioCirugias"></div>
-    </div>
-  </div>
-</div>
+  <!-- Moment.js + Daterangepicker -->
+  <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 
-      <div class="footer">
-        <p>Sistema de Gestión Oftavisión &copy; 2025</p>
-      </div>
-    </div>
+  <!-- Librerías -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- Daterangepicker CSS -->
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
-
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    <!-- Moment.js + Daterangepicker -->
-    <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-
-
-    <!-- Librerías -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <script>
-
-// ====================== VARIABLES GLOBALES ======================
-let fechaCirugia = new Date();         // 🔹 faltaba declarar
-let fechaMiniCalendario = new Date();
-let ordenSeleccionada = null;
-
+  <script>
+    // ====================== VARIABLES GLOBALES ======================
+    let fechaCirugia = new Date();
+    let fechaMiniCalendario = new Date();
+    let ordenSeleccionada = null;
+    let fechaSemana = new Date(); // Para la vista semanal
+    let vistaActual = 'mensual'; // 'mensual' o 'semanal'
 
     // ====================== FORMATEADOR DE FECHAS ======================
-function formatFecha(fecha) {
-  if (!fecha) return '<span class="text-muted">No asignado</span>';
-  
-  // 🔹 Toma solo la parte de la fecha sin zona horaria
-  const partes = fecha.split("T")[0].split("-");
-  const f = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
-  
-  if (isNaN(f)) return '<span class="text-muted">No asignado</span>';
-  return f.toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric" });
-}
+    function formatFecha(fecha) {
+      if (!fecha) return '<span class="text-muted">No asignado</span>';
+      
+      // 🔹 Toma solo la parte de la fecha sin zona horaria
+      const partes = fecha.split("T")[0].split("-");
+      const f = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
+      
+      if (isNaN(f)) return '<span class="text-muted">No asignado</span>';
+      return f.toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric" });
+    }
 
+    // ====================== TABLA ======================
+    async function cargarOrdenes(year, month) {
+      try {
+        const res = await fetch('/api/ordenes');
+        let ordenes = await res.json();
 
+        if (year !== undefined && month !== undefined) {
+          ordenes = ordenes.filter(o => {
+            if (!o.fecha_agendada) return true;
+            const f = new Date(o.fecha_agendada);
+            return f.getFullYear() === year && f.getMonth() === month;
+          });
+        }
 
+        document.getElementById("tablaOrdenes").innerHTML = ordenes.map(o => `
+          <tr>
+            <td>${o.expediente}</td>
+            <td>${formatFecha(o.fecha_creacion)}</td>
+            <td>${o.edad}</td>
+            <td>${o.nombre}</td>
+            <td>${o.procedimiento}</td>
+            <td>$${parseFloat(o.total).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+            <td>$${parseFloat(o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+            <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+            <td>
+              <span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">
+                ${o.status}
+              </span>
+            </td>
+            <td>
+              <span class="lente-btn text-primary fw-bold"
+                    style="cursor:pointer;"
+                    data-id="${o.id}"
+                    data-valor="${o.tipo_lente || ""}">
+                ${o.tipo_lente || '<span class="text-muted">Asignar</span>'}
+              </span>
+            </td>
+            <td>${formatFecha(o.fecha_agendada)}</td>
+            <td>
+              ${o.fecha_agendada ? 
+                '<span class="text-muted">Asignado</span>' : 
+                `<button class="btn btn-sm btn-primary" onclick="abrirCalendario(${o.id})">
+                  <i class="fas fa-calendar-plus"></i> Agendar
+                </button>`}
+              ${o.fecha_agendada ?  `
+                <button class="btn btn-sm btn-warning mt-1" onclick="editarCirugia(${o.id})">
+                  <i class="fas fa-edit"></i> Reprogramar
+                </button>` : ''}
+            </td>
+          </tr>
+        `).join('');
 
-// ====================== TABLA ======================
-async function cargarOrdenes(year, month) {
-  try {
-    const res = await fetch('/api/ordenes');
-    let ordenes = await res.json();
+      } catch (err) {
+        console.error("Error cargando órdenes:", err);
+        mostrarError("Error", "No se pudieron cargar las órdenes");
+      }
+    }
 
-    if (year !== undefined && month !== undefined) {
-  ordenes = ordenes.filter(o => {
-    if (!o.fecha_agendada) return true;
-      const f = new Date(o.fecha_agendada);
-    return f.getFullYear() === year && f.getMonth() === month;
-  });
-}
+    // ====================== FILTRO DE FECHAS PARA ÓRDENES ======================
+    async function cargarOrdenesPorRango(desde, hasta) {
+      try {
+        const res = await fetch(`/api/ordenes?desde=${desde}&hasta=${hasta}`);
+        let ordenes = await res.json();
 
-// Ordenar por fecha de creación descendente  
-document.getElementById("tablaOrdenes").innerHTML = ordenes.map(o => `
-  <tr>
-    <td>${o.expediente}</td>
-    <td>${o.edad}</td>
-    <td>${o.nombre}</td>
-    <td>${o.procedimiento}</td>
-    <td>$${parseFloat(o.total).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-    <td>$${parseFloat(o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-    <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-    <td><span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">${o.status}</span></td>
-    <td>
-      <span class="lente-btn text-primary fw-bold"
-            style="cursor:pointer;"
-            data-id="${o.id}"
-            data-valor="${o.tipo_lente || ""}">
-        ${o.tipo_lente || '<span class="text-muted">Asignar</span>'}
-      </span>
-    </td>
-    <td>${formatFecha(o.fecha_creacion)}</td>
-    <td>${formatFecha(o.fecha_agendada)}</td>
-    <td>
-      ${o.fecha_agendada ? 
-        '<span class="text-muted">Asignado</span>' : 
-        `<button class="btn btn-sm btn-primary" onclick="abrirCalendario(${o.id})">
-          <i class="fas fa-calendar-plus"></i> Agendar
-        </button>`}
-      ${o.fecha_agendada ?  `
-        <button class="btn btn-sm btn-warning mt-1" onclick="editarCirugia(${o.id})">
-          <i class="fas fa-edit"></i> Reprogramar
-        </button>` : ''}
-    </td>
-  </tr>
-`).join('');
+        const tbody = document.getElementById("tablaOrdenes");
 
-  } catch (err) {
-    console.error("Error cargando órdenes:", err);
-    mostrarError("Error", "No se pudieron cargar las órdenes");
-  }
-}
+        if (ordenes.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="12" class="text-muted">Sin resultados en este rango</td></tr>`;
+          return;
+        }
 
-// ====================== FILTRO DE FECHAS PARA ÓRDENES ======================
-// ====================== TABLA ======================
-async function cargarOrdenes(year, month) {
-  try {
-    const res = await fetch('/api/ordenes');
-    let ordenes = await res.json();
+        tbody.innerHTML = ordenes.map(o => `
+          <tr>
+            <td>${o.expediente}</td>
+            <td>${formatFecha(o.fecha_creacion)}</td>
+            <td>${o.edad}</td>
+            <td>${o.nombre}</td>
+            <td>${o.procedimiento}</td>
+            <td>$${parseFloat(o.total).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+            <td>$${parseFloat(o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+            <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+            <td>
+              <span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">
+                ${o.status}
+              </span>
+            </td>
+            <td>
+              <span class="lente-btn text-primary fw-bold"
+                    style="cursor:pointer;"
+                    data-id="${o.id}"
+                    data-valor="${o.tipo_lente || ""}">
+                ${o.tipo_lente || '<span class="text-muted">Asignar</span>'}
+              </span>
+            </td>
+            <td>${formatFecha(o.fecha_agendada)}</td>
+            <td>
+              ${o.fecha_agendada ? 
+                '<span class="text-muted">Asignado</span>' : 
+                `<button class="btn btn-sm btn-primary" onclick="abrirCalendario(${o.id})">
+                  <i class="fas fa-calendar-plus"></i> Agendar
+                </button>`}
+              ${o.fecha_agendada ? `
+                <button class="btn btn-sm btn-warning mt-1" onclick="editarCirugia(${o.id})">
+                  <i class="fas fa-edit"></i> Reprogramar
+                </button>` : ''}
+            </td>
+          </tr>
+        `).join('');
 
-    if (year !== undefined && month !== undefined) {
-      ordenes = ordenes.filter(o => {
-        if (!o.fecha_agendada) return true;
-        const f = new Date(o.fecha_agendada);
+      } catch (err) {
+        console.error("Error filtrando órdenes:", err);
+      }
+    }
+
+    // ==================== ELIMINAR CIRUGÍA ====================
+    function getColorClass(proc) {
+      const texto = proc.toLowerCase();
+
+      if (texto.includes("catarata")) return "proc-catarata";
+      if (texto.includes("consulta")) return "proc-consulta";
+      if (texto.includes("lente")) return "proc-lente";
+
+      return "";
+    }
+
+    // ==================== RENDERIZAR CALENDARIO ====================
+    function abreviarNombre(nombre) {
+      if (!nombre) return "";
+      const partes = nombre.trim().split(" ");
+      if (partes.length <= 2) return nombre;
+      // Ejemplo: "Laura Méndez Ramírez" → "Laura Méndez R."
+      const abreviado = partes.slice(0, -1).join(" ") + " " + partes[partes.length - 1][0] + ".";
+      return abreviado;
+    }
+
+    async function renderCalendarCirugias() {
+      const calendario = document.getElementById("calendarioCirugias");
+      const mesActual = document.getElementById("mesCirugia");
+
+      const year = fechaCirugia.getFullYear();
+      const month = fechaCirugia.getMonth();
+
+      mesActual.textContent = fechaCirugia.toLocaleString("es-ES", { month: "long", year: "numeric" });
+
+      const primerDia = new Date(year, month, 1).getDay() || 7;
+      const diasEnMes = new Date(year, month + 1, 0).getDate();
+
+      let cirugias = [];
+      try {
+        const res = await fetch("/api/cirugias");
+        cirugias = await res.json();
+      } catch (err) {
+        console.error("Error al cargar cirugías:", err);
+      }
+
+      // 🔹 Filtrar las del mes actual
+      const filtradas = cirugias.filter(c => {
+        if (!c.fecha_cirugia) return false;
+        const f = new Date(c.fecha_cirugia);
         return f.getFullYear() === year && f.getMonth() === month;
       });
-    }
 
-    document.getElementById("tablaOrdenes").innerHTML = ordenes.map(o => `
-      <tr>
-        <td>${o.expediente}</td>
-        <td>${formatFecha(o.fecha_creacion)}</td> <!-- 🔹 Fecha movida aquí -->
-        <td>${o.edad}</td>
-        <td>${o.nombre}</td>
-        <td>${o.procedimiento}</td>
-        <td>$${parseFloat(o.total).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-        <td>$${parseFloat(o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-        <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-        <td>
-          <span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">
-            ${o.status}
-          </span>
-        </td>
-        <td>
-          <span class="lente-btn text-primary fw-bold"
-                style="cursor:pointer;"
-                data-id="${o.id}"
-                data-valor="${o.tipo_lente || ""}">
-            ${o.tipo_lente || '<span class="text-muted">Asignar</span>'}
-          </span>
-        </td>
-        <td>${formatFecha(o.fecha_agendada)}</td>
-        <td>
-          ${o.fecha_agendada ? 
-            '<span class="text-muted">Asignado</span>' : 
-            `<button class="btn btn-sm btn-primary" onclick="abrirCalendario(${o.id})">
-              <i class="fas fa-calendar-plus"></i> Agendar
-            </button>`}
-          ${o.fecha_agendada ?  `
-            <button class="btn btn-sm btn-warning mt-1" onclick="editarCirugia(${o.id})">
-              <i class="fas fa-edit"></i> Reprogramar
-            </button>` : ''}
-        </td>
-      </tr>
-    `).join('');
+      calendario.innerHTML = "";
 
-  } catch (err) {
-    console.error("Error cargando órdenes:", err);
-    mostrarError("Error", "No se pudieron cargar las órdenes");
-  }
-}
+      // Encabezados
+      ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].forEach(d => {
+        calendario.innerHTML += `<div class="day-header">${d}</div>`;
+      });
 
+      let totalDias = 0;
 
-// ==================== CAMBIAR MES MINI CALENDARIO ====================
-// ====================== FILTRO DE FECHAS PARA ÓRDENES ======================
-async function cargarOrdenesPorRango(desde, hasta) {
-  try {
-    const res = await fetch(`/api/ordenes?desde=${desde}&hasta=${hasta}`);
-    let ordenes = await res.json();
-
-    const tbody = document.getElementById("tablaOrdenes");
-
-    if (ordenes.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="12" class="text-muted">Sin resultados en este rango</td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = ordenes.map(o => `
-      <tr>
-        <td>${o.expediente}</td>
-        <td>${formatFecha(o.fecha_creacion)}</td> <!-- 🔹 Fecha movida aquí -->
-        <td>${o.edad}</td>
-        <td>${o.nombre}</td>
-        <td>${o.procedimiento}</td>
-        <td>$${parseFloat(o.total).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-        <td>$${parseFloat(o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-        <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-        <td>
-          <span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">
-            ${o.status}
-          </span>
-        </td>
-        <td>
-          <span class="lente-btn text-primary fw-bold"
-                style="cursor:pointer;"
-                data-id="${o.id}"
-                data-valor="${o.tipo_lente || ""}">
-            ${o.tipo_lente || '<span class="text-muted">Asignar</span>'}
-          </span>
-        </td>
-        <td>${formatFecha(o.fecha_agendada)}</td>
-        <td>
-          ${o.fecha_agendada ? 
-            '<span class="text-muted">Asignado</span>' : 
-            `<button class="btn btn-sm btn-primary" onclick="abrirCalendario(${o.id})">
-              <i class="fas fa-calendar-plus"></i> Agendar
-            </button>`}
-          ${o.fecha_agendada ? `
-            <button class="btn btn-sm btn-warning mt-1" onclick="editarCirugia(${o.id})">
-              <i class="fas fa-edit"></i> Reprogramar
-            </button>` : ''}
-        </td>
-      </tr>
-    `).join('');
-
-  } catch (err) {
-    console.error("Error filtrando órdenes:", err);
-  }
-}
-
-
-
-// ==================== ELIMINAR CIRUGÍA ====================
-      function getColorClass(proc) {
-        const texto = proc.toLowerCase();
-
-        if (texto.includes("catarata")) return "proc-catarata";
-        if (texto.includes("consulta")) return "proc-consulta";
-        if (texto.includes("lente")) return "proc-lente";
-
-        return "";
+      // Espacios antes del primer día
+      for (let i = 1; i < primerDia; i++) {
+        calendario.innerHTML += `<div class="empty-day"></div>`;
+        totalDias++;
       }
 
+      // 🔹 Renderizar los días con sus cirugías
+      for (let d = 1; d <= diasEnMes; d++) {
+        totalDias++;
+        const fechaDia = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 
-// ==================== RENDERIZAR CALENDARIO ====================
-function abreviarNombre(nombre) {
-  if (!nombre) return "";
-  const partes = nombre.trim().split(" ");
-  if (partes.length <= 2) return nombre; // si solo tiene nombre y un apellido
-  // Ejemplo: "Laura Méndez Ramírez" → "Laura Méndez R."
-  const abreviado = partes.slice(0, -1).join(" ") + " " + partes[partes.length - 1][0] + ".";
-  return abreviado;
-}
+        const programadas = filtradas.filter(c => {
+          let f;
+          if (typeof c.fecha_cirugia === "string") {
+            f = c.fecha_cirugia.split("T")[0];
+          } else {
+            const d2 = new Date(c.fecha_cirugia);
+            f = `${d2.getFullYear()}-${String(d2.getMonth() + 1).padStart(2, "0")}-${String(d2.getDate()).padStart(2, "0")}`;
+          }
+          return f === fechaDia;
+        });
 
+        let contenido = `<div class="calendar-day" onclick="asignarFecha('${fechaDia}')">
+                          <div class="day-number">${d}</div>`;
 
-async function renderCalendarCirugias() {
-  const calendario = document.getElementById("calendarioCirugias");
-  const mesActual = document.getElementById("mesCirugia");
+        if (programadas.length > 0) {
+          programadas.forEach(c => {
+            contenido += `
+              <div class="insumo-item ${getColorClass(c.procedimiento)}">
+                <span>${abreviarNombre(c.nombre)} - ${c.procedimiento}</span>
+                <button class="btn btn-sm btn-danger"
+                        onclick="event.stopPropagation(); eliminarCirugia(${c.id})">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>`;
+          });
+        }
 
-  const year = fechaCirugia.getFullYear();
-  const month = fechaCirugia.getMonth();
-
-  mesActual.textContent = fechaCirugia.toLocaleString("es-ES", { month: "long", year: "numeric" });
-
-  const primerDia = new Date(year, month, 1).getDay() || 7;
-  const diasEnMes = new Date(year, month + 1, 0).getDate();
-
-  let cirugias = [];
-  try {
-    const res = await fetch("/api/cirugias");
-    cirugias = await res.json();
-  } catch (err) {
-    console.error("Error al cargar cirugías:", err);
-  }
-
-  // 🔹 Filtrar las del mes actual
-  const filtradas = cirugias.filter(c => {
-    if (!c.fecha_cirugia) return false;
-    const f = new Date(c.fecha_cirugia);
-    return f.getFullYear() === year && f.getMonth() === month;
-  });
-
-  calendario.innerHTML = "";
-
-  // Encabezados
-  ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].forEach(d => {
-    calendario.innerHTML += `<div class="day-header">${d}</div>`;
-  });
-
-  let totalDias = 0;
-
-  // Espacios antes del primer día
-  for (let i = 1; i < primerDia; i++) {
-    calendario.innerHTML += `<div class="empty-day"></div>`;
-    totalDias++;
-  }
-
-  // 🔹 Renderizar los días con sus cirugías
-  for (let d = 1; d <= diasEnMes; d++) {
-    totalDias++;
-    const fechaDia = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-
-    const programadas = filtradas.filter(c => {
-      let f;
-      if (typeof c.fecha_cirugia === "string") {
-        f = c.fecha_cirugia.split("T")[0];
-      } else {
-        const d2 = new Date(c.fecha_cirugia);
-        f = `${d2.getFullYear()}-${String(d2.getMonth() + 1).padStart(2, "0")}-${String(d2.getDate()).padStart(2, "0")}`;
+        contenido += "</div>";
+        calendario.innerHTML += contenido;
       }
-      return f === fechaDia;
-    });
 
-    let contenido = `<div class="calendar-day" onclick="asignarFecha('${fechaDia}')">
-                       <div class="day-number">${d}</div>`;
+      // Rellenar las celdas vacías del calendario
+      while (totalDias < 42) {
+        calendario.innerHTML += `<div class="empty-day"></div>`;
+        totalDias++;
+      }
 
-    if (programadas.length > 0) {
-      programadas.forEach(c => {
-        contenido += `
-          <div class="insumo-item ${getColorClass(c.procedimiento)}">
-            <span>${abreviarNombre(c.nombre)} - ${c.procedimiento}</span>
-            <button class="btn btn-sm btn-danger"
-                    onclick="event.stopPropagation(); eliminarCirugia(${c.id})">
-              <i class="fas fa-trash"></i>
-            </button>
-          </div>`;
+      cargarOrdenes();
+    }
+
+    // ==================== CAMBIAR MES CALENDARIO ====================//
+    function cambiarMesCirugia(offset) {
+      fechaCirugia.setMonth(fechaCirugia.getMonth() + offset);
+      renderCalendarCirugias();
+      renderMiniCalendar();
+    }
+
+    // ==================== AGENDAR CIRUGÍA ====================
+    function agendarCirugia(idOrden) {
+      Swal.fire({
+        title: 'Asignar fecha de cirugía',
+        input: 'date',
+        showCancelButton: true,
+        confirmButtonText: 'Asignar',
+        cancelButtonText: 'Cancelar'
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          const fecha = result.value;
+          try {
+            await fetch(`/api/ordenes/${idOrden}/agendar`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ fecha_agendada: fecha })
+            });
+            mostrarExito("Cirugía agendada", "La cirugía ha sido agendada correctamente");
+            renderCalendarCirugias();
+            renderMiniCalendar();
+
+          } catch (err) {
+            console.error("Error al agendar:", err);
+            mostrarError("Error", "No se pudo agendar la cirugía");
+          }
+        }
       });
     }
 
-    contenido += "</div>";
-    calendario.innerHTML += contenido;
-  }
+    function editarCirugia(idOrden) {
+      ordenSeleccionada = idOrden;
+      const modal = new bootstrap.Modal(document.getElementById("modalCalendario"));
+      modal.show();
+    }
 
-  // Rellenar las celdas vacías del calendario
-  while (totalDias < 42) {
-    calendario.innerHTML += `<div class="empty-day"></div>`;
-    totalDias++;
-  }
-
-  cargarOrdenes();
-}
-
-      // ==================== CAMBIAR MES CALENDARIO ====================//
-      function cambiarMesCirugia(offset) {
-        fechaCirugia.setMonth(fechaCirugia.getMonth() + offset);
-        renderCalendarCirugias();
-        renderMiniCalendar();
-      }
-
-      // ==================== AGENDAR CIRUGÍA ====================
-      function agendarCirugia(idOrden) {
-        Swal.fire({
-          title: 'Asignar fecha de cirugía',
-          input: 'date',
-          showCancelButton: true,
-          confirmButtonText: 'Asignar',
-          cancelButtonText: 'Cancelar'
-        }).then(async (result) => {
-          if (result.isConfirmed) {
-            const fecha = result.value;
-            try {
-              await fetch(`/api/ordenes/${idOrden}/agendar`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ fecha_agendada: fecha })
-              });
-              mostrarExito("Cirugía agendada", "La cirugía ha sido agendada correctamente");
-              renderCalendarCirugias();
-              renderMiniCalendar();
-
-            } catch (err) {
-              console.error("Error al agendar:", err);
-              mostrarError("Error", "No se pudo agendar la cirugía");
-            }
+    // ==================== EDITAR TIPO DE LENTE ====================
+    function editarLente(idOrden, tipoActual) {
+      Swal.fire({
+        title: tipoActual ? 'Editar Tipo de Lente' : 'Añadir Tipo de Lente',
+        input: 'text',
+        inputValue: tipoActual || '',
+        inputPlaceholder: 'Ejemplo: Lente Intraocular',
+        showCancelButton: true,
+        confirmButtonText: 'Guardar',
+        cancelButtonText: 'Cancelar',
+        preConfirm: (valor) => {
+          if (!valor.trim()) {
+            Swal.showValidationMessage('Debes ingresar un tipo de lente');
           }
+          return valor;
+        }
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            await fetch(`/api/ordenes/${idOrden}/lente`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ tipo_lente: result.value })
+            });
+            mostrarExito("Tipo de lente actualizado", "El tipo de lente fue actualizado correctamente");
+            renderMiniCalendar();
+          } catch (err) {
+            console.error("Error al actualizar tipo de lente:", err);
+            mostrarError("Error", "No se pudo actualizar el tipo de lente");
+          }
+        }
+      });
+    }
+
+    // ====================== MINI CALENDARIO ======================
+    async function renderMiniCalendar() {
+      const miniCalendario = document.getElementById("miniCalendarioCirugias");
+      const miniMesActual = document.getElementById("miniMesCirugia");
+
+      const year = fechaMiniCalendario.getFullYear();
+      const month = fechaMiniCalendario.getMonth();
+
+      miniMesActual.textContent = fechaMiniCalendario.toLocaleString("es-ES", {
+        month: "long",
+        year: "numeric"
+      });
+
+      const primerDia = new Date(year, month, 1).getDay() || 7;
+      const diasEnMes = new Date(year, month + 1, 0).getDate();
+
+      let cirugias = [];
+      try {
+        const res = await fetch("/api/cirugias");
+        cirugias = await res.json();
+      } catch (err) {
+        console.error(err);
+      }
+
+      miniCalendario.innerHTML = "";
+      ["L", "M", "X", "J", "V", "S", "D"].forEach(d => {
+        miniCalendario.innerHTML += `<div class="mini-day-header">${d}</div>`;
+      });
+
+      for (let i = 1; i < primerDia; i++) {
+        miniCalendario.innerHTML += `<div class="mini-calendar-day"></div>`;
+      }
+
+      for (let d = 1; d <= diasEnMes; d++) {
+        const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
+
+        // 🔹 Corregido: usar fecha_cirugia en lugar de fecha_agendada
+        const programadas = cirugias.filter(c => {
+          if (!c.fecha_cirugia) return false;
+          const f = new Date(c.fecha_cirugia + "T00:00:00").toISOString().split("T")[0];
+          return f === fechaDia;
         });
-      }
 
-      function editarCirugia(idOrden) {
-        ordenSeleccionada = idOrden;
-        const modal = new bootstrap.Modal(document.getElementById("modalCalendario"));
-        modal.show();
-      }
+        let clase = "mini-calendar-day";
 
-      // ==================== EDITAR TIPO DE LENTE ====================
-      function editarLente(idOrden, tipoActual) {
-        Swal.fire({
-          title: tipoActual ? 'Editar Tipo de Lente' : 'Añadir Tipo de Lente',
+        if (programadas.length > 0) {
+          const procClase = getColorClass(programadas[0].procedimiento);
+          if (procClase === "proc-catarata") clase += " has-surgery mini-catarata";
+          if (procClase === "proc-consulta") clase += " has-surgery mini-consulta";
+          if (procClase === "proc-lente") clase += " has-surgery mini-lente";
+        }
+
+        miniCalendario.innerHTML += `<div class="${clase}" onclick="seleccionarDiaMini('${fechaDia}')">${d}</div>`;
+      }
+    }
+
+    // ==================== ABRIR MODAL CALENDARIO ====================
+    function abrirCalendario(idOrden) {
+      ordenSeleccionada = idOrden;
+      const modal = new bootstrap.Modal(document.getElementById("modalCalendario"));
+      modal.show();
+    }
+
+    // ==================== ASIGNAR FECHA DESDE EL CALENDARIO ====================
+    async function asignarFecha(fecha) {
+      if (!ordenSeleccionada) return;
+
+      try {
+        await fetch(`/api/ordenes/${ordenSeleccionada}/agendar`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fecha_cirugia: fecha })
+        });
+        mostrarExito("Cirugía asignada", `Fecha: ${fecha}`);
+
+        ordenSeleccionada = null;
+        renderCalendarCirugias();   
+        cargarOrdenes();
+
+        // Cierra el modal después de asignar
+        const modal = bootstrap.Modal.getInstance(document.getElementById("modalCalendario"));
+        modal.hide();
+      } catch (err) {
+        console.error("Error al asignar cirugía:", err);
+        mostrarError("Error", "No se pudo asignar la cirugía");
+      }
+    }
+
+    // ==================== ELIMINAR CIRUGÍA ====================
+    function eliminarCirugia(idOrden) {
+      Swal.fire({
+        title: '¿Eliminar cirugía?',
+        text: "Esta acción no se puede deshacer.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            await fetch(`/api/ordenes/${idOrden}/agendar`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ fecha_cirugia: null })
+            });
+            mostrarExito("Cirugía eliminada", "La cirugía ha sido eliminada del calendario");
+            renderCalendarCirugias(); 
+            cargarOrdenes();
+          } catch (err) {
+            console.error("Error al eliminar cirugía:", err);
+            mostrarError("Error", "No se pudo eliminar la cirugía");
+          }
+        }
+      });
+    }
+
+    // ==================== FUNCIONES DE NOTIFICACIÓN ====================
+    function mostrarExito(titulo, mensaje) {
+      document.getElementById('successMessage').textContent = mensaje;
+      document.getElementById('successAlert').style.display = 'block';
+      
+      setTimeout(() => {
+        document.getElementById('successAlert').style.display = 'none';
+      }, 5000);
+      
+      Swal.fire({
+        icon: 'success',
+        title: titulo,
+        text: mensaje,
+        timer: 3000,
+        showConfirmButton: false
+      });
+    }
+
+    function mostrarError(titulo, mensaje) {
+      Swal.fire({
+        icon: 'error',
+        title: titulo,
+        text: mensaje
+      });
+    }
+
+    // ====================== FILTRO DE FECHAS PARA ÓRDENES ======================
+    $(document).ready(function () {
+      $('#filtroRangoOrdenes').daterangepicker({
+        autoUpdateInput: false,
+        locale: {
+          format: 'DD/MM/YYYY',
+          separator: " - ",
+          applyLabel: "Aplicar",
+          cancelLabel: "Cancelar",
+          fromLabel: "Desde",
+          toLabel: "Hasta",
+          customRangeLabel: "Rango personalizado",
+          weekLabel: "S",
+          daysOfWeek: ["Do","Lu","Ma","Mi","Ju","Vi","Sa"],
+          monthNames: [
+            "Enero","Febrero","Marzo","Abril","Mayo","Junio",
+            "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
+          ],
+          firstDay: 1
+        },
+        ranges: {
+          'Hoy': [moment(), moment()],
+          'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+          'Últimos 7 Días': [moment().subtract(6, 'days'), moment()],
+          'Últimos 30 Días': [moment().subtract(29, 'days'), moment()],
+          'Este Mes': [moment().startOf('month'), moment().endOf('month')],
+          'Mes Pasado': [
+            moment().subtract(1, 'month').startOf('month'),
+            moment().subtract(1, 'month').endOf('month')
+          ]
+        }
+      });
+
+      // Cuando aplica el rango
+      $('#filtroRangoOrdenes').on('apply.daterangepicker', function(ev, picker) {
+        $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+        cargarOrdenesPorRango(picker.startDate.format("YYYY-MM-DD"), picker.endDate.format("YYYY-MM-DD"));
+      });
+
+      // Cuando cancela
+      $('#filtroRangoOrdenes').on('cancel.daterangepicker', function(ev, picker) {
+        $(this).val('');
+        cargarOrdenes(); // todas
+      });
+
+      // 🔹 Inicializar en Hoy automáticamente
+      const hoy = moment();
+      $('#filtroRangoOrdenes').val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
+      cargarOrdenesPorRango(hoy.format("YYYY-MM-DD"), hoy.format("YYYY-MM-DD"));
+    });
+
+    // ====================== VISTA SEMANAL POR HORAS ======================
+    function cambiarVista() {
+      const monthlyView = document.getElementById('monthlyView');
+      const weeklyView = document.getElementById('weeklyView');
+      const toggleBtn = document.getElementById('toggleViewBtn');
+      
+      if (vistaActual === 'mensual') {
+        monthlyView.style.display = 'none';
+        weeklyView.style.display = 'block';
+        toggleBtn.innerHTML = '<i class="fas fa-calendar-alt"></i> Cambiar a Vista Mensual';
+        vistaActual = 'semanal';
+        renderCalendarHoras();
+      } else {
+        monthlyView.style.display = 'block';
+        weeklyView.style.display = 'none';
+        toggleBtn.innerHTML = '<i class="fas fa-calendar-week"></i> Cambiar a Vista Semanal';
+        vistaActual = 'mensual';
+      }
+    }
+
+    function cambiarSemana(offset) {
+      fechaSemana.setDate(fechaSemana.getDate() + (offset * 7));
+      renderCalendarHoras();
+    }
+
+    async function renderCalendarHoras() {
+      const calendarioHoras = document.getElementById("calendarioHoras");
+      const semanaActual = document.getElementById("semanaActual");
+      
+      // Obtener el lunes de la semana actual
+      const lunes = new Date(fechaSemana);
+      lunes.setDate(lunes.getDate() - lunes.getDay() + 1);
+      
+      // Obtener el domingo de la semana actual
+      const domingo = new Date(lunes);
+      domingo.setDate(domingo.getDate() + 6);
+      
+      semanaActual.textContent = `${lunes.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit" })} - ${domingo.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" })}`;
+      
+      let cirugias = [];
+      try {
+        const res = await fetch("/api/cirugias");
+        cirugias = await res.json();
+      } catch (err) {
+        console.error("Error al cargar cirugías:", err);
+      }
+      
+      // Generar horarios de 8:00 AM a 6:00 PM
+      const horas = [];
+      for (let h = 8; h <= 18; h++) {
+        horas.push(`${h}:00`);
+      }
+      
+      // Generar días de la semana
+      const dias = [];
+      const fechaActual = new Date(lunes);
+      for (let i = 0; i < 7; i++) {
+        dias.push(new Date(fechaActual));
+        fechaActual.setDate(fechaActual.getDate() + 1);
+      }
+      
+      let html = '';
+      
+      // Encabezado de horas
+      html += '<div class="hour-label">Hora</div>';
+      dias.forEach(dia => {
+        html += `<div class="day-header-hourly">${dia.toLocaleDateString("es-ES", { weekday: "short", day: "2-digit" })}</div>`;
+      });
+      
+      // Filas de horas
+      horas.forEach(hora => {
+        html += `<div class="hour-label">${hora}</div>`;
+        
+        dias.forEach(dia => {
+          const fechaDia = `${dia.getFullYear()}-${String(dia.getMonth() + 1).padStart(2, "0")}-${String(dia.getDate()).padStart(2, "0")}`;
+          
+          // Filtrar cirugías para este día y hora
+          const cirugiasDia = cirugias.filter(c => {
+            if (!c.fecha_cirugia) return false;
+            const fechaCirugia = new Date(c.fecha_cirugia);
+            const fechaCirugiaStr = `${fechaCirugia.getFullYear()}-${String(fechaCirugia.getMonth() + 1).padStart(2, "0")}-${String(fechaCirugia.getDate()).padStart(2, "0")}`;
+            
+            // Comparar fecha y hora (asumiendo que la hora está almacenada en otro campo)
+            return fechaCirugiaStr === fechaDia && c.hora_cirugia === hora;
+          });
+          
+          let clase = "hour-slot";
+          let contenido = '';
+          
+          if (cirugiasDia.length > 0) {
+            clase += " booked";
+            cirugiasDia.forEach(c => {
+              contenido += `<div class="surgery-event ${getColorClass(c.procedimiento)}" title="${c.nombre} - ${c.procedimiento}">
+                            ${abreviarNombre(c.nombre)}
+                          </div>`;
+            });
+          }
+          
+          html += `<div class="${clase}" onclick="asignarFechaHora('${fechaDia}', '${hora}')">${contenido}</div>`;
+        });
+      });
+      
+      calendarioHoras.innerHTML = html;
+    }
+
+    // ==================== ASIGNAR FECHA Y HORA DESDE EL CALENDARIO ====================
+    async function asignarFechaHora(fecha, hora) {
+      if (!ordenSeleccionada) return;
+
+      try {
+        await fetch(`/api/ordenes/${ordenSeleccionada}/agendar`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            fecha_cirugia: fecha,
+            hora_cirugia: hora
+          })
+        });
+        mostrarExito("Cirugía asignada", `Fecha: ${fecha} a las ${hora}`);
+
+        ordenSeleccionada = null;
+        renderCalendarHoras();   
+        cargarOrdenes();
+
+        // Cierra el modal después de asignar
+        const modal = bootstrap.Modal.getInstance(document.getElementById("modalCalendario"));
+        modal.hide();
+      } catch (err) {
+        console.error("Error al asignar cirugía:", err);
+        mostrarError("Error", "No se pudo asignar la cirugía");
+      }
+    }
+
+    // ====================== AL CARGAR LA PÁGINA ======================
+    document.addEventListener("DOMContentLoaded", () => {
+      renderCalendarCirugias();
+      
+      // Configurar el botón de cambio de vista
+      document.getElementById('toggleViewBtn').addEventListener('click', cambiarVista);
+    });
+
+    document.addEventListener("click", async (e) => {
+      if (e.target.classList.contains("lente-btn")) {
+        const ordenId = e.target.dataset.id;
+        const valorActual = e.target.dataset.valor;
+
+        const { value: nuevoValor } = await Swal.fire({
+          title: valorActual ? 'Editar Tipo de Lente' : 'Asignar Tipo de Lente',
           input: 'text',
-          inputValue: tipoActual || '',
+          inputValue: valorActual || '',
           inputPlaceholder: 'Ejemplo: Lente Intraocular',
           showCancelButton: true,
           confirmButtonText: 'Guardar',
@@ -783,274 +1170,30 @@ async function renderCalendarCirugias() {
             }
             return valor;
           }
-        }).then(async (result) => {
-          if (result.isConfirmed) {
-            try {
-              await fetch(`/api/ordenes/${idOrden}/lente`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ tipo_lente: result.value })
-              });
-              mostrarExito("Tipo de lente actualizado", "El tipo de lente fue actualizado correctamente");
-              renderMiniCalendar();
-            } catch (err) {
-              console.error("Error al actualizar tipo de lente:", err);
-              mostrarError("Error", "No se pudo actualizar el tipo de lente");
-            }
+        });
+
+        if (!nuevoValor) return;
+
+        try {
+          const res = await fetch(`/api/ordenes/${ordenId}/lente`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ tipo_lente: nuevoValor })
+          });
+
+          if (res.ok) {
+            Swal.fire('✅ Guardado', 'Tipo de lente actualizado', 'success');
+            const hoyStr = moment().format("YYYY-MM-DD");
+            cargarOrdenesPorRango(hoyStr, hoyStr); // refresca lista
+          } else {
+            Swal.fire('❌ Error', 'No se pudo actualizar el tipo de lente', 'error');
           }
-        });
-      }
-
-// ====================== MINI CALENDARIO ======================
-async function renderMiniCalendar() {
-  const miniCalendario = document.getElementById("miniCalendarioCirugias");
-  const miniMesActual = document.getElementById("miniMesCirugia");
-
-  const year = fechaMiniCalendario.getFullYear();
-  const month = fechaMiniCalendario.getMonth();
-
-  miniMesActual.textContent = fechaMiniCalendario.toLocaleString("es-ES", {
-    month: "long",
-    year: "numeric"
-  });
-
-  const primerDia = new Date(year, month, 1).getDay() || 7;
-  const diasEnMes = new Date(year, month + 1, 0).getDate();
-
-  let cirugias = [];
-  try {
-    const res = await fetch("/api/cirugias");
-    cirugias = await res.json();
-  } catch (err) {
-    console.error(err);
-  }
-
-  miniCalendario.innerHTML = "";
-  ["L", "M", "X", "J", "V", "S", "D"].forEach(d => {
-    miniCalendario.innerHTML += `<div class="mini-day-header">${d}</div>`;
-  });
-
-  for (let i = 1; i < primerDia; i++) {
-    miniCalendario.innerHTML += `<div class="mini-calendar-day"></div>`;
-  }
-
-  for (let d = 1; d <= diasEnMes; d++) {
-    const fechaDia = new Date(year, month, d).toISOString().split("T")[0];
-
-    // 🔹 Corregido: usar fecha_cirugia en lugar de fecha_agendada
-    const programadas = cirugias.filter(c => {
-      if (!c.fecha_cirugia) return false;
-      const f = new Date(c.fecha_cirugia + "T00:00:00").toISOString().split("T")[0];
-      return f === fechaDia;
-    });
-
-    let clase = "mini-calendar-day";
-
-    if (programadas.length > 0) {
-      const procClase = getColorClass(programadas[0].procedimiento);
-      if (procClase === "proc-catarata") clase += " has-surgery mini-catarata";
-      if (procClase === "proc-consulta") clase += " has-surgery mini-consulta";
-      if (procClase === "proc-lente") clase += " has-surgery mini-lente";
-    }
-
-    miniCalendario.innerHTML += `<div class="${clase}" onclick="seleccionarDiaMini('${fechaDia}')">${d}</div>`;
-  }
-}
-
-
-
-      // ==================== ABRIR MODAL CALENDARIO ====================
-      function abrirCalendario(idOrden) {
-        ordenSeleccionada = idOrden;
-        const modal = new bootstrap.Modal(document.getElementById("modalCalendario"));
-        modal.show();
-      }
-
-      // ==================== ASIGNAR FECHA DESDE EL CALENDARIO ====================
-      async function asignarFecha(fecha) {
-  if (!ordenSeleccionada) return;
-
-  try {
-    await fetch(`/api/ordenes/${ordenSeleccionada}/agendar`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fecha_cirugia: fecha })
-    });
-    mostrarExito("Cirugía asignada", `Fecha: ${fecha}`);
-
-    ordenSeleccionada = null;
-    renderCalendarCirugias();   
-    cargarOrdenes();
-
-    // Cierra el modal después de asignar
-    const modal = bootstrap.Modal.getInstance(document.getElementById("modalCalendario"));
-    modal.hide();
-  } catch (err) {
-    console.error("Error al asignar cirugía:", err);
-    mostrarError("Error", "No se pudo asignar la cirugía");
-  }
-}
-
-      // ==================== ELIMINAR CIRUGÍA ====================
- function eliminarCirugia(idOrden) {
-  Swal.fire({
-    title: '¿Eliminar cirugía?',
-    text: "Esta acción no se puede deshacer.",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#3085d6',
-    confirmButtonText: 'Sí, eliminar',
-    cancelButtonText: 'Cancelar'
-  }).then(async (result) => {
-    if (result.isConfirmed) {
-      try {
-        await fetch(`/api/ordenes/${idOrden}/agendar`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ fecha_cirugia: null })
-        });
-        mostrarExito("Cirugía eliminada", "La cirugía ha sido eliminada del calendario");
-        renderCalendarCirugias(); 
-        cargarOrdenes();
-      } catch (err) {
-        console.error("Error al eliminar cirugía:", err);
-        mostrarError("Error", "No se pudo eliminar la cirugía");
-      }
-    }
-  });
-}
-
-      // ==================== FUNCIONES DE NOTIFICACIÓN ====================
-      function mostrarExito(titulo, mensaje) {
-        document.getElementById('successMessage').textContent = mensaje;
-        document.getElementById('successAlert').style.display = 'block';
-        
-        setTimeout(() => {
-          document.getElementById('successAlert').style.display = 'none';
-        }, 5000);
-        
-        Swal.fire({
-          icon: 'success',
-          title: titulo,
-          text: mensaje,
-          timer: 3000,
-          showConfirmButton: false
-        });
-      }
-
-      function mostrarError(titulo, mensaje) {
-        Swal.fire({
-          icon: 'error',
-          title: titulo,
-          text: mensaje
-        });
-      }
-
-// ====================== FILTRO DE FECHAS PARA ÓRDENES ======================
-$(document).ready(function () {
-  $('#filtroRangoOrdenes').daterangepicker({
-    autoUpdateInput: false,
-    locale: {
-      format: 'DD/MM/YYYY',
-      separator: " - ",
-      applyLabel: "Aplicar",
-      cancelLabel: "Cancelar",
-      fromLabel: "Desde",
-      toLabel: "Hasta",
-      customRangeLabel: "Rango personalizado",
-      weekLabel: "S",
-      daysOfWeek: ["Do","Lu","Ma","Mi","Ju","Vi","Sa"],
-      monthNames: [
-        "Enero","Febrero","Marzo","Abril","Mayo","Junio",
-        "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
-      ],
-      firstDay: 1
-    },
-    ranges: {
-      'Hoy': [moment(), moment()],
-      'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-      'Últimos 7 Días': [moment().subtract(6, 'days'), moment()],
-      'Últimos 30 Días': [moment().subtract(29, 'days'), moment()],
-      'Este Mes': [moment().startOf('month'), moment().endOf('month')],
-      'Mes Pasado': [
-        moment().subtract(1, 'month').startOf('month'),
-        moment().subtract(1, 'month').endOf('month')
-      ]
-    }
-  });
-
-  // Cuando aplica el rango
-  $('#filtroRangoOrdenes').on('apply.daterangepicker', function(ev, picker) {
-    $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
-    cargarOrdenesPorRango(picker.startDate.format("YYYY-MM-DD"), picker.endDate.format("YYYY-MM-DD"));
-  });
-
-  // Cuando cancela
-  $('#filtroRangoOrdenes').on('cancel.daterangepicker', function(ev, picker) {
-    $(this).val('');
-    cargarOrdenes(); // todas
-  });
-
-  // 🔹 Inicializar en Hoy automáticamente
-  const hoy = moment();
-  $('#filtroRangoOrdenes').val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
-  cargarOrdenesPorRango(hoy.format("YYYY-MM-DD"), hoy.format("YYYY-MM-DD"));
-});
-
-
-// ====================== AL CARGAR LA PÁGINA ======================
-document.addEventListener("DOMContentLoaded", () => {
-  renderCalendarCirugias();
-});
-
-document.addEventListener("click", async (e) => {
-  if (e.target.classList.contains("lente-btn")) {
-    const ordenId = e.target.dataset.id;
-    const valorActual = e.target.dataset.valor;
-
-    const { value: nuevoValor } = await Swal.fire({
-      title: valorActual ? 'Editar Tipo de Lente' : 'Asignar Tipo de Lente',
-      input: 'text',
-      inputValue: valorActual || '',
-      inputPlaceholder: 'Ejemplo: Lente Intraocular',
-      showCancelButton: true,
-      confirmButtonText: 'Guardar',
-      cancelButtonText: 'Cancelar',
-      preConfirm: (valor) => {
-        if (!valor.trim()) {
-          Swal.showValidationMessage('Debes ingresar un tipo de lente');
+        } catch (err) {
+          console.error(err);
+          Swal.fire('❌ Error', 'Ocurrió un error en el servidor', 'error');
         }
-        return valor;
       }
     });
-
-    if (!nuevoValor) return;
-
-    try {
-      const res = await fetch(`/api/ordenes/${ordenId}/lente`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tipo_lente: nuevoValor })
-      });
-
-      if (res.ok) {
-        Swal.fire('✅ Guardado', 'Tipo de lente actualizado', 'success');
-        const hoyStr = moment().format("YYYY-MM-DD");
-        cargarOrdenesPorRango(hoyStr, hoyStr); // refresca lista
-      } else {
-        Swal.fire('❌ Error', 'No se pudo actualizar el tipo de lente', 'error');
-      }
-    } catch (err) {
-      console.error(err);
-      Swal.fire('❌ Error', 'Ocurrió un error en el servidor', 'error');
-    }
-  }
-});
-
-
-
-    </script>
-
-  </body>
-  </html>
+  </script>
+</body>
+</html>
