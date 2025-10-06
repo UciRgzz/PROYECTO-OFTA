@@ -552,16 +552,18 @@ app.get('/api/pacientes', verificarSesion, async (req, res) => {
 app.post("/api/recibos", verificarSesion, async (req, res) => {
   const { fecha, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo } = req.body;
   const depto = getDepartamento(req);
+
   const client = await pool.connect();
 
   try {
     await client.query("BEGIN");
 
-    // Verificar si el expediente existe
+    // Buscar expediente
     const expediente = await client.query(
-      "SELECT numero_expediente FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
+      "SELECT numero_expediente, nombre_completo FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
       [paciente_id, depto]
     );
+
     if (expediente.rows.length === 0) {
       await client.query("ROLLBACK");
       return res.status(400).json({ error: "El paciente no existe en este departamento" });
@@ -569,58 +571,45 @@ app.post("/api/recibos", verificarSesion, async (req, res) => {
 
     const folio = expediente.rows[0].numero_expediente;
 
-    // Insertar el recibo
+    // Crear recibo
     const result = await client.query(
-      `INSERT INTO recibos (
-         fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, departamento
-       )
-       VALUES ($1::date, $2, $3, $4, $5, $6, $7, $8, $9)
-       RETURNING id`,
+      `INSERT INTO recibos (fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, departamento)
+       VALUES ($1::date,$2,$3,$4,$5,$6,$7,$8,$9)
+       RETURNING *`,
       [fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, depto]
     );
 
     const recibo = result.rows[0];
 
-    // Si el tipo es Orden de Cirugía
+    // Si es Orden de Cirugía
     if (tipo === "OrdenCirugia") {
       // Crear orden médica
       const orden = await client.query(
         `INSERT INTO ordenes_medicas (
            expediente_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente,
            estatus, fecha, departamento, medico
-         ) VALUES (
-           $1, $2, $3, $4, $5, $6, ($5 - $6),
-           CASE WHEN $6 >= $5 THEN 'Pagado' ELSE 'Pendiente' END,
-           $7, $8, 'Pendiente'
          )
+         VALUES ($1,$2,$3,$4,$5,$6,($5 - $6),
+           CASE WHEN $6 >= $5 THEN 'Pagado' ELSE 'Pendiente' END,
+           $7,$8,'Pendiente')
          RETURNING id`,
         [paciente_id, recibo.id, procedimiento, tipo, precio, monto_pagado, fecha, depto]
       );
 
       const ordenId = orden.rows[0].id;
 
-      // Registrar pago en tabla de pagos
+      // Registrar pago
       await client.query(
         `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
+         VALUES ($1,$2,$3,$4,$5,$6)`,
         [ordenId, paciente_id, monto_pagado, forma_pago, fecha, depto]
       );
 
-      // Registrar en agenda quirúrgica (sin nombre_paciente)
+      // Registrar en agenda_quirurgica (sin nombre_paciente)
       await client.query(
         `INSERT INTO agenda_quirurgica (paciente_id, procedimiento, fecha, departamento, recibo_id, orden_id)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
+         VALUES ($1,$2,$3,$4,$5,$6)`,
         [paciente_id, procedimiento, fecha, depto, recibo.id, ordenId]
-      );
-
-      // Actualizar montos de la orden
-      await client.query(
-        `UPDATE ordenes_medicas 
-         SET pagado = $1,
-             pendiente = (precio - $1),
-             estatus = CASE WHEN $1 >= precio THEN 'Pagado' ELSE 'Pendiente' END
-         WHERE id = $2`,
-        [monto_pagado, ordenId]
       );
     }
 
