@@ -553,9 +553,10 @@
             <td>$${parseFloat(o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
             <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
             <td>
-              <span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">
+              <span class="badge ${o.status.toLowerCase() === 'pagado' ? 'bg-success' : 'bg-warning'}">
                 ${o.status}
               </span>
+
             </td>
             <td>
               <span class="lente-btn text-primary fw-bold"
@@ -614,9 +615,10 @@
             <td>$${parseFloat(o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
             <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
             <td>
-              <span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">
+              <span class="badge ${o.status.toLowerCase() === 'pagado' ? 'bg-success' : 'bg-warning'}">
                 ${o.status}
               </span>
+
             </td>
             <td>
               <span class="lente-btn text-primary fw-bold"
