@@ -240,7 +240,7 @@ async function cargarInsumos() {
     filtrados.forEach(i => {
       tabla.innerHTML += `
         <tr>
-          <td>${new Date(i.fecha).toLocaleDateString()}</td>
+          <td>${i.fecha.split("T")[0].split("-").reverse().join("/")}</td>
           <td>${i.folio}</td>
           <td>${i.concepto}</td>
           <td>$${parseFloat(i.monto).toLocaleString("es-MX", { minimumFractionDigits: 2 })}</td>
