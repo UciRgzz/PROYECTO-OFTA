@@ -1035,85 +1035,85 @@
       renderCalendarHoras();
     }
 
-    async function renderCalendarHoras() {
-      const calendarioHoras = document.getElementById("calendarioHoras");
-      const semanaActual = document.getElementById("semanaActual");
+  // ==================== RENDERIZAR CALENDARIO SEMANAL POR HORAS ====================
+async function renderCalendarHoras() {
+  const calendarioHoras = document.getElementById("calendarioHoras");
+  const semanaActual = document.getElementById("semanaActual");
+  
+  // Obtener lunes de la semana actual
+  const lunes = new Date(fechaSemana);
+  lunes.setDate(lunes.getDate() - (lunes.getDay() === 0 ? 6 : lunes.getDay() - 1));
+  
+  // Domingo de la semana
+  const domingo = new Date(lunes);
+  domingo.setDate(domingo.getDate() + 6);
+
+  semanaActual.textContent = `${lunes.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit" })} - ${domingo.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" })}`;
+
+  let cirugias = [];
+  try {
+    const res = await fetch("/api/cirugias");
+    cirugias = await res.json();
+  } catch (err) {
+    console.error("Error al cargar cirugías:", err);
+  }
+
+  // Horas 8:00 a 18:00
+  const horas = [];
+  for (let h = 8; h <= 18; h++) {
+    horas.push(`${String(h).padStart(2, "0")}:00`);
+  }
+
+  // Días de la semana
+  const dias = [];
+  const fechaActual = new Date(lunes);
+  for (let i = 0; i < 7; i++) {
+    dias.push(new Date(fechaActual));
+    fechaActual.setDate(fechaActual.getDate() + 1);
+  }
+
+  let html = '';
+  html += '<div class="hour-label">Hora</div>';
+  dias.forEach(dia => {
+    html += `<div class="day-header-hourly">${dia.toLocaleDateString("es-ES", { weekday: "short", day: "2-digit" })}</div>`;
+  });
+
+  // Filas de horas
+  horas.forEach(hora => {
+    html += `<div class="hour-label">${hora}</div>`;
+
+    dias.forEach(dia => {
+      const fechaDia = `${dia.getFullYear()}-${String(dia.getMonth() + 1).padStart(2, "0")}-${String(dia.getDate()).padStart(2, "0")}`;
       
-      // Obtener el lunes de la semana actual
-      const lunes = new Date(fechaSemana);
-      lunes.setDate(lunes.getDate() - lunes.getDay() + 1);
-      
-      // Obtener el domingo de la semana actual
-      const domingo = new Date(lunes);
-      domingo.setDate(domingo.getDate() + 6);
-      
-      semanaActual.textContent = `${lunes.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit" })} - ${domingo.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" })}`;
-      
-      let cirugias = [];
-      try {
-        const res = await fetch("/api/cirugias");
-        cirugias = await res.json();
-      } catch (err) {
-        console.error("Error al cargar cirugías:", err);
-      }
-      
-      // Generar horarios de 8:00 AM a 6:00 PM
-      const horas = [];
-      for (let h = 8; h <= 18; h++) {
-        horas.push(`${h}:00`);
-      }
-      
-      // Generar días de la semana
-      const dias = [];
-      const fechaActual = new Date(lunes);
-      for (let i = 0; i < 7; i++) {
-        dias.push(new Date(fechaActual));
-        fechaActual.setDate(fechaActual.getDate() + 1);
-      }
-      
-      let html = '';
-      
-      // Encabezado de horas
-      html += '<div class="hour-label">Hora</div>';
-      dias.forEach(dia => {
-        html += `<div class="day-header-hourly">${dia.toLocaleDateString("es-ES", { weekday: "short", day: "2-digit" })}</div>`;
+      // Buscar coincidencias normalizando formato HH:MM
+      const cirugiasDia = cirugias.filter(c => {
+        if (!c.fecha_cirugia || !c.hora_cirugia) return false;
+        const fechaCirugia = c.fecha_cirugia.split("T")[0];
+        const horaSQL = c.hora_cirugia.slice(0,5);
+        return fechaCirugia === fechaDia && horaSQL === hora;
       });
-      
-      // Filas de horas
-      horas.forEach(hora => {
-        html += `<div class="hour-label">${hora}</div>`;
-        
-        dias.forEach(dia => {
-          const fechaDia = `${dia.getFullYear()}-${String(dia.getMonth() + 1).padStart(2, "0")}-${String(dia.getDate()).padStart(2, "0")}`;
-          
-          // Filtrar cirugías para este día y hora
-          const cirugiasDia = cirugias.filter(c => {
-            if (!c.fecha_cirugia) return false;
-            const fechaCirugia = new Date(c.fecha_cirugia);
-            const fechaCirugiaStr = `${fechaCirugia.getFullYear()}-${String(fechaCirugia.getMonth() + 1).padStart(2, "0")}-${String(fechaCirugia.getDate()).padStart(2, "0")}`;
-            
-            // Comparar fecha y hora (asumiendo que la hora está almacenada en otro campo)
-            return fechaCirugiaStr === fechaDia && c.hora_cirugia === hora;
-          });
-          
-          let clase = "hour-slot";
-          let contenido = '';
-          
-          if (cirugiasDia.length > 0) {
-            clase += " booked";
-            cirugiasDia.forEach(c => {
-              contenido += `<div class="surgery-event ${getColorClass(c.procedimiento)}" title="${c.nombre} - ${c.procedimiento}">
-                            ${abreviarNombre(c.nombre)}
-                          </div>`;
-            });
-          }
-          
-          html += `<div class="${clase}" onclick="asignarFechaHora('${fechaDia}', '${hora}')">${contenido}</div>`;
+
+      let clase = "hour-slot";
+      let contenido = '';
+
+      if (cirugiasDia.length > 0) {
+        clase += " booked";
+        cirugiasDia.forEach(c => {
+          contenido += `
+            <div class="surgery-event ${getColorClass(c.procedimiento)}" 
+                 title="${c.nombre} - ${c.procedimiento}">
+              <strong>${abreviarNombre(c.nombre)}</strong><br>
+              <small>${c.procedimiento}</small>
+            </div>`;
         });
-      });
-      
-      calendarioHoras.innerHTML = html;
-    }
+      }
+
+      html += `<div class="${clase}" onclick="asignarFechaHora('${fechaDia}', '${hora}')">${contenido}</div>`;
+    });
+  });
+
+  calendarioHoras.innerHTML = html;
+}
 
     // ==================== ASIGNAR FECHA Y HORA DESDE EL CALENDARIO ====================
     async function asignarFechaHora(fecha, hora) {
