@@ -620,53 +620,48 @@ async function renderCalendarCirugias() {
   try {
     const res = await fetch("/api/cirugias");
     cirugias = await res.json();
-  } catch (err) { 
-    console.error(err); 
+  } catch (err) {
+    console.error("Error al cargar cirugías:", err);
   }
 
-  // 🔹 Filtrar cirugías del mes actual
+  // 🔹 Filtrar las del mes actual
   const filtradas = cirugias.filter(c => {
-    if (!c.fecha_agendada) return false;
-    const f = new Date(c.fecha_agendada);
+    if (!c.fecha_cirugia) return false;
+    const f = new Date(c.fecha_cirugia);
     return f.getFullYear() === year && f.getMonth() === month;
   });
 
   calendario.innerHTML = "";
 
-  // Encabezados de días
-  ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"].forEach(d => {
+  // Encabezados
+  ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].forEach(d => {
     calendario.innerHTML += `<div class="day-header">${d}</div>`;
   });
 
   let totalDias = 0;
 
-  // Espacios vacíos hasta el primer día del mes
+  // Espacios antes del primer día
   for (let i = 1; i < primerDia; i++) {
     calendario.innerHTML += `<div class="empty-day"></div>`;
     totalDias++;
   }
 
-  // 🔹 Generar días con sus cirugías
+  // 🔹 Renderizar los días con sus cirugías
   for (let d = 1; d <= diasEnMes; d++) {
     totalDias++;
     const fechaDia = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 
-    // Buscar cirugías agendadas ese día
     const programadas = filtradas.filter(c => {
-      if (!c.fecha_agendada) return false;
-
       let f;
-      if (typeof c.fecha_agendada === "string") {
-        f = c.fecha_agendada.split("T")[0];
+      if (typeof c.fecha_cirugia === "string") {
+        f = c.fecha_cirugia.split("T")[0];
       } else {
-        const d2 = new Date(c.fecha_agendada);
+        const d2 = new Date(c.fecha_cirugia);
         f = `${d2.getFullYear()}-${String(d2.getMonth() + 1).padStart(2, "0")}-${String(d2.getDate()).padStart(2, "0")}`;
       }
-
       return f === fechaDia;
     });
 
-    // Contenido del día
     let contenido = `<div class="calendar-day" onclick="asignarFecha('${fechaDia}')">
                        <div class="day-number">${d}</div>`;
 
@@ -687,7 +682,7 @@ async function renderCalendarCirugias() {
     calendario.innerHTML += contenido;
   }
 
-  // Rellenar hasta completar las 6 filas (42 celdas)
+  // Rellenar las celdas vacías del calendario
   while (totalDias < 42) {
     calendario.innerHTML += `<div class="empty-day"></div>`;
     totalDias++;
@@ -695,6 +690,7 @@ async function renderCalendarCirugias() {
 
   cargarOrdenes();
 }
+
       // ==================== CAMBIAR MES CALENDARIO ====================//
       function cambiarMesCirugia(offset) {
         fechaCirugia.setMonth(fechaCirugia.getMonth() + offset);
