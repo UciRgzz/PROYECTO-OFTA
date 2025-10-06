@@ -474,6 +474,67 @@ document.getElementById("tablaOrdenes").innerHTML = ordenes.map(o => `
 }
 
 // ====================== FILTRO DE FECHAS PARA ÓRDENES ======================
+// ====================== TABLA ======================
+async function cargarOrdenes(year, month) {
+  try {
+    const res = await fetch('/api/ordenes');
+    let ordenes = await res.json();
+
+    if (year !== undefined && month !== undefined) {
+      ordenes = ordenes.filter(o => {
+        if (!o.fecha_agendada) return true;
+        const f = new Date(o.fecha_agendada);
+        return f.getFullYear() === year && f.getMonth() === month;
+      });
+    }
+
+    document.getElementById("tablaOrdenes").innerHTML = ordenes.map(o => `
+      <tr>
+        <td>${o.expediente}</td>
+        <td>${formatFecha(o.fecha_creacion)}</td> <!-- 🔹 Fecha movida aquí -->
+        <td>${o.edad}</td>
+        <td>${o.nombre}</td>
+        <td>${o.procedimiento}</td>
+        <td>$${parseFloat(o.total).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+        <td>$${parseFloat(o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+        <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+        <td>
+          <span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">
+            ${o.status}
+          </span>
+        </td>
+        <td>
+          <span class="lente-btn text-primary fw-bold"
+                style="cursor:pointer;"
+                data-id="${o.id}"
+                data-valor="${o.tipo_lente || ""}">
+            ${o.tipo_lente || '<span class="text-muted">Asignar</span>'}
+          </span>
+        </td>
+        <td>${formatFecha(o.fecha_agendada)}</td>
+        <td>
+          ${o.fecha_agendada ? 
+            '<span class="text-muted">Asignado</span>' : 
+            `<button class="btn btn-sm btn-primary" onclick="abrirCalendario(${o.id})">
+              <i class="fas fa-calendar-plus"></i> Agendar
+            </button>`}
+          ${o.fecha_agendada ?  `
+            <button class="btn btn-sm btn-warning mt-1" onclick="editarCirugia(${o.id})">
+              <i class="fas fa-edit"></i> Reprogramar
+            </button>` : ''}
+        </td>
+      </tr>
+    `).join('');
+
+  } catch (err) {
+    console.error("Error cargando órdenes:", err);
+    mostrarError("Error", "No se pudieron cargar las órdenes");
+  }
+}
+
+
+// ==================== CAMBIAR MES MINI CALENDARIO ====================
+// ====================== FILTRO DE FECHAS PARA ÓRDENES ======================
 async function cargarOrdenesPorRango(desde, hasta) {
   try {
     const res = await fetch(`/api/ordenes?desde=${desde}&hasta=${hasta}`);
@@ -482,56 +543,53 @@ async function cargarOrdenesPorRango(desde, hasta) {
     const tbody = document.getElementById("tablaOrdenes");
 
     if (ordenes.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="11" class="text-muted">Sin resultados en este rango</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="12" class="text-muted">Sin resultados en este rango</td></tr>`;
       return;
     }
 
-    // Ordenar por fecha de creación descendente  
     tbody.innerHTML = ordenes.map(o => `
-  <tr>
-    <td>${o.expediente}</td>
-    <td>${o.edad}</td>
-    <td>${o.nombre}</td>
-    <td>${o.procedimiento}</td>
-    <td>$${parseFloat(o.total).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-    <td>$${parseFloat(o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-    <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-    <td><span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">${o.status}</span></td>
-    <td>
-      <span class="lente-btn text-primary fw-bold"
-            style="cursor:pointer;"
-            data-id="${o.id}"
-            data-valor="${o.tipo_lente || ""}">
-        ${o.tipo_lente || '<span class="text-muted">Asignar</span>'}
-      </span>
-    </td>
-    <td>${formatFecha(o.fecha_creacion)}</td>
-    <td>${formatFecha(o.fecha_agendada)}</td>
-    <td>
-      ${o.fecha_agendada ? 
-        '<span class="text-muted">Asignado</span>' : 
-        `<button class="btn btn-sm btn-primary" onclick="abrirCalendario(${o.id})">
-          <i class="fas fa-calendar-plus"></i> Agendar
-        </button>`}
-      ${o.fecha_agendada ? `
-        <button class="btn btn-sm btn-warning mt-1" onclick="editarCirugia(${o.id})">
-          <i class="fas fa-edit"></i> Reprogramar
-        </button>` : ''}
-    </td>
-  </tr>
-`).join('');
+      <tr>
+        <td>${o.expediente}</td>
+        <td>${formatFecha(o.fecha_creacion)}</td> <!-- 🔹 Fecha movida aquí -->
+        <td>${o.edad}</td>
+        <td>${o.nombre}</td>
+        <td>${o.procedimiento}</td>
+        <td>$${parseFloat(o.total).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+        <td>$${parseFloat(o.pagos).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+        <td>$${parseFloat(o.diferencia).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+        <td>
+          <span class="badge ${o.status === 'Completado' ? 'bg-success' : 'bg-warning'}">
+            ${o.status}
+          </span>
+        </td>
+        <td>
+          <span class="lente-btn text-primary fw-bold"
+                style="cursor:pointer;"
+                data-id="${o.id}"
+                data-valor="${o.tipo_lente || ""}">
+            ${o.tipo_lente || '<span class="text-muted">Asignar</span>'}
+          </span>
+        </td>
+        <td>${formatFecha(o.fecha_agendada)}</td>
+        <td>
+          ${o.fecha_agendada ? 
+            '<span class="text-muted">Asignado</span>' : 
+            `<button class="btn btn-sm btn-primary" onclick="abrirCalendario(${o.id})">
+              <i class="fas fa-calendar-plus"></i> Agendar
+            </button>`}
+          ${o.fecha_agendada ? `
+            <button class="btn btn-sm btn-warning mt-1" onclick="editarCirugia(${o.id})">
+              <i class="fas fa-edit"></i> Reprogramar
+            </button>` : ''}
+        </td>
+      </tr>
+    `).join('');
 
   } catch (err) {
     console.error("Error filtrando órdenes:", err);
   }
 }
 
-
-// ==================== CAMBIAR MES MINI CALENDARIO ====================
-function cambiarMesMini(offset) {
-  fechaMiniCalendario.setMonth(fechaMiniCalendario.getMonth() + offset);
-  renderMiniCalendar();
-}
 
 
 // ==================== ELIMINAR CIRUGÍA ====================
