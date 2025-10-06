@@ -548,7 +548,7 @@ app.get('/api/pacientes', verificarSesion, async (req, res) => {
 });
 
 // ==================== MODULO DE RECIBOS ====================
-// ==================== GUARDAR RECIBO ====================
+// ==================== GUARDAR RECIBO (CORREGIDO) ====================
 app.post("/api/recibos", verificarSesion, async (req, res) => {
   const { fecha, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo } = req.body;
   const depto = getDepartamento(req);
@@ -557,7 +557,16 @@ app.post("/api/recibos", verificarSesion, async (req, res) => {
   try {
     await client.query("BEGIN");
 
-    // 1️⃣ Verificar existencia del paciente
+    // Convertir tipos a números y fechas válidas
+    const precioNum = parseFloat(precio);
+    const montoNum = parseFloat(monto_pagado);
+    const fechaISO = new Date(fecha).toISOString().split("T")[0];
+
+    if (isNaN(precioNum) || isNaN(montoNum)) {
+      throw new Error("Precio o monto inválido");
+    }
+
+    // Verificar existencia del paciente
     const expediente = await client.query(
       "SELECT numero_expediente, nombre_completo FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
       [paciente_id, depto]
@@ -571,55 +580,52 @@ app.post("/api/recibos", verificarSesion, async (req, res) => {
     const folio = expediente.rows[0].numero_expediente;
     const nombrePaciente = expediente.rows[0].nombre_completo;
 
-    // 2️⃣ Insertar recibo
+    // Insertar recibo
     const reciboResult = await client.query(
       `INSERT INTO recibos 
-         (fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, departamento)
-       VALUES ($1::date, $2, $3, $4, $5, $6, $7, $8, $9)
+        (fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, departamento)
+       VALUES ($1::date, $2, $3, $4, $5::numeric, $6, $7::numeric, $8, $9)
        RETURNING *`,
-      [fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, depto]
+      [fechaISO, folio, paciente_id, procedimiento, precioNum, forma_pago, montoNum, tipo, depto]
     );
 
     const recibo = reciboResult.rows[0];
 
-    // 3️⃣ Si es tipo OrdenCirugia => crear orden médica y reflejar pago
+    // Si es tipo OrdenCirugia => crear orden médica y reflejar pago
     if (tipo === "OrdenCirugia") {
       const ordenInsert = await client.query(
         `INSERT INTO ordenes_medicas (
             expediente_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente,
             estatus, fecha, fecha_cirugia, departamento, medico
          ) VALUES (
-            $1, $2, $3, $4, $5, $6, ($5 - $6),
+            $1, $2, $3, $4, $5::numeric, $6::numeric, ($5 - $6),
             CASE WHEN $6 >= $5 THEN 'Pagado' ELSE 'Pendiente' END,
-            $7, NULL, $8, 'Pendiente'
+            $7::date, NULL, $8, 'Pendiente'
          )
          RETURNING id`,
-        [paciente_id, recibo.id, procedimiento, tipo, precio, monto_pagado, fecha, depto]
+        [paciente_id, recibo.id, procedimiento, tipo, precioNum, montoNum, fechaISO, depto]
       );
 
       const ordenId = ordenInsert.rows[0].id;
 
-      // Registrar el pago inicial
       await client.query(
         `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [ordenId, paciente_id, monto_pagado, forma_pago, fecha, depto]
+         VALUES ($1, $2, $3::numeric, $4, $5::date, $6)`,
+        [ordenId, paciente_id, montoNum, forma_pago, fechaISO, depto]
       );
 
-      // Registrar también en agenda quirúrgica
       await client.query(
         `INSERT INTO agenda_quirurgica (paciente_id, nombre_paciente, procedimiento, fecha, departamento, recibo_id, orden_id)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [paciente_id, nombrePaciente, procedimiento, fecha, depto, recibo.id, ordenId]
+         VALUES ($1, $2, $3, $4::date, $5, $6, $7)`,
+        [paciente_id, nombrePaciente, procedimiento, fechaISO, depto, recibo.id, ordenId]
       );
     }
 
     await client.query("COMMIT");
     res.json({ mensaje: "✅ Recibo guardado correctamente", recibo });
-
   } catch (err) {
     await client.query("ROLLBACK");
-    console.error("❌ Error al guardar recibo:", err.message);
+    console.error("❌ Error al guardar recibo:", err);
     res.status(500).json({ error: "Error al guardar recibo", detalle: err.message });
   } finally {
     client.release();
