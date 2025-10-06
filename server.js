@@ -577,9 +577,9 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 
     const recibo = result.rows[0];
 
-    // 👇 Extra: si el recibo es "Orden de Cirugía", crear también en ordenes_medicas y agenda_quirurgica
+    // 👇 Si el tipo de recibo es Orden de Cirugía, crear orden y reflejar pago
     if (tipo === "OrdenCirugia") {
-      // Crear orden médica con fecha = fecha del recibo y fecha_cirugia en NULL
+      // Crear orden médica
       await pool.query(
         `INSERT INTO ordenes_medicas (
            expediente_id, folio_recibo, procedimiento, tipo, precio, estatus, fecha, fecha_cirugia, departamento, medico
@@ -588,7 +588,32 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
         [paciente_id, recibo.id, procedimiento, tipo, precio, fecha, depto, "Pendiente"]
       );
 
-      // Crear registro en agenda_quirurgica con la misma fecha del recibo
+      // Obtener ID de la orden recién creada
+      const orden = await pool.query(
+        `SELECT id FROM ordenes_medicas 
+         WHERE folio_recibo = $1 AND departamento = $2 
+         ORDER BY id DESC LIMIT 1`,
+        [recibo.id, depto]
+      );
+
+      const ordenId = orden.rows[0].id;
+
+      // Registrar pago inicial correspondiente al recibo
+      await pool.query(
+        `INSERT INTO pagos (orden_id, monto, forma_pago, fecha, departamento)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [ordenId, monto_pagado, forma_pago, fecha, depto]
+      );
+
+      // Actualizar la orden médica con el pago inicial
+      await pool.query(
+        `UPDATE ordenes_medicas 
+         SET pagado = $1, pendiente = (precio - $1)
+         WHERE id = $2 AND departamento = $3`,
+        [monto_pagado, ordenId, depto]
+      );
+
+      // Crear registro en agenda quirúrgica
       await pool.query(
         `INSERT INTO agenda_quirurgica (
            paciente_id, procedimiento, fecha, departamento, recibo_id
