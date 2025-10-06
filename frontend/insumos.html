@@ -114,6 +114,15 @@
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
+
+// === Cambiar mes del calendario ===
+function cambiarMes(delta) {
+  fechaActual.setMonth(fechaActual.getMonth() + delta);
+  renderCalendar();
+  cargarInsumos();
+}
+
+
     let fechaActual = new Date();
 
     document.addEventListener("DOMContentLoaded", () => {

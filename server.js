@@ -1448,26 +1448,32 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
 // Configuración de multer para guardar con nombre único
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, 'uploads')); // carpeta uploads
+    cb(null, path.join(__dirname, "uploads")); // carpeta uploads
   },
   filename: function (req, file, cb) {
     // agrega timestamp al nombre para evitar duplicados
-    const uniqueName = Date.now() + '-' + file.originalname;
+    const uniqueName = Date.now() + "-" + file.originalname;
     cb(null, uniqueName);
-  }
+  },
 });
 
 const upload = multer({ storage });
 
 // Servir los archivos subidos para poder descargarlos
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-
-// Guardar insumo manual
-app.post('/api/insumos', verificarSesion, async (req, res) => {
+// ==================== 1. Guardar insumo manual ====================
+app.post("/api/insumos", verificarSesion, async (req, res) => {
   try {
     const { fecha, folio, concepto, monto } = req.body;
-    let depto = getDepartamento(req);  
+    let depto = getDepartamento(req);
+
+    if (!depto) {
+      console.warn("⚠️ Departamento no detectado en sesión");
+      return res
+        .status(401)
+        .json({ error: "No se pudo identificar el departamento del usuario" });
+    }
 
     const result = await pool.query(
       `INSERT INTO insumos (fecha, folio, concepto, monto, departamento) 
@@ -1475,114 +1481,147 @@ app.post('/api/insumos', verificarSesion, async (req, res) => {
       [fecha, folio, concepto, monto, depto]
     );
 
-    res.json({ mensaje: '✅ Insumo agregado', insumo: result.rows[0] });
+    res.json({ mensaje: "✅ Insumo agregado", insumo: result.rows[0] });
   } catch (err) {
     console.error("Error al guardar insumo:", err);
-    res.status(500).json({ error: 'Error al guardar insumo' });
+    res.status(500).json({ error: "Error al guardar insumo" });
   }
 });
 
-
-// 2. Listar insumos
-app.get('/api/insumos', verificarSesion, async (req, res) => {
+// ==================== 2. Listar insumos ====================
+app.get("/api/insumos", verificarSesion, async (req, res) => {
   try {
-    let depto = getDepartamento(req);  
+    let depto = getDepartamento(req);
+
+    if (!depto) {
+      console.warn("⚠️ Departamento no detectado al listar insumos");
+      return res
+        .status(401)
+        .json({ error: "No se pudo identificar el departamento del usuario" });
+    }
 
     const result = await pool.query(
-      'SELECT * FROM insumos WHERE departamento = $1 ORDER BY fecha ASC',
+      "SELECT * FROM insumos WHERE departamento = $1 ORDER BY fecha ASC",
       [depto]
     );
 
     res.json(result.rows);
   } catch (err) {
     console.error("Error al obtener insumos:", err);
-    res.status(500).json({ error: 'Error al obtener insumos' });
+    res.status(500).json({ error: "Error al obtener insumos" });
   }
 });
 
+// ==================== 3. Subir Excel ====================
+app.post(
+  "/api/insumos/upload",
+  verificarSesion,
+  upload.single("excelFile"),
+  async (req, res) => {
+    try {
+      let depto = getDepartamento(req);
 
-// 3. Subir Excel (corregido y robusto)
-app.post('/api/insumos/upload', verificarSesion, upload.single('excelFile'), async (req, res) => {
-  try {
-    let depto = getDepartamento(req);
-    const workbook = xlsx.readFile(req.file.path);
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const data = xlsx.utils.sheet_to_json(sheet, { defval: "" });
+      if (!depto) {
+        console.warn("⚠️ Departamento no detectado al subir Excel");
+        return res
+          .status(401)
+          .json({
+            error: "No se pudo identificar el departamento del usuario",
+          });
+      }
 
-    let insertados = 0;
+      const workbook = xlsx.readFile(req.file.path);
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const data = xlsx.utils.sheet_to_json(sheet, { defval: "" });
 
-    for (let row of data) {
-      // === Fecha ===
-      let fecha = row.Fecha;
-      if (typeof fecha === "number") {
-        // Fecha en formato numérico de Excel
-        fecha = xlsx.SSF.format("yyyy-mm-dd", fecha);
-      } else if (typeof fecha === "string") {
-        // Normalizar separadores
-        fecha = fecha.trim().replace(/\./g, "/").replace(/-/g, "/");
-        const partes = fecha.split("/");
+      let insertados = 0;
 
-        if (partes.length === 3) {
-          // Si el primer número es > 12 → formato DD/MM/YYYY
-          if (parseInt(partes[0]) > 12) {
-            fecha = `${partes[2]}-${partes[1].padStart(2, "0")}-${partes[0].padStart(2, "0")}`;
+      for (let row of data) {
+        // === Fecha ===
+        let fecha = row.Fecha;
+        if (typeof fecha === "number") {
+          fecha = xlsx.SSF.format("yyyy-mm-dd", fecha);
+        } else if (typeof fecha === "string") {
+          fecha = fecha.trim().replace(/\./g, "/").replace(/-/g, "/");
+          const partes = fecha.split("/");
+
+          if (partes.length === 3) {
+            if (parseInt(partes[0]) > 12) {
+              // formato DD/MM/YYYY
+              fecha = `${partes[2]}-${partes[1].padStart(
+                2,
+                "0"
+              )}-${partes[0].padStart(2, "0")}`;
+            } else {
+              // formato MM/DD/YYYY
+              fecha = `${partes[2]}-${partes[0].padStart(
+                2,
+                "0"
+              )}-${partes[1].padStart(2, "0")}`;
+            }
           } else {
-            // Sino, asume formato MM/DD/YYYY
-            fecha = `${partes[2]}-${partes[0].padStart(2, "0")}-${partes[1].padStart(2, "0")}`;
-          }
-        } else {
-          // Último intento: convertir con Date()
-          const parsed = new Date(fecha);
-          if (!isNaN(parsed)) {
-            fecha = parsed.toISOString().split("T")[0];
-          } else {
-            console.log("⚠️ Fecha inválida, se omite:", row.Fecha);
-            continue;
+            const parsed = new Date(fecha);
+            if (!isNaN(parsed)) {
+              fecha = parsed.toISOString().split("T")[0];
+            } else {
+              console.log("⚠️ Fecha inválida, se omite:", row.Fecha);
+              continue;
+            }
           }
         }
+
+        // === Folio ===
+        let folio = row.Folio;
+        if (folio == null || folio === "") continue;
+        folio = String(folio).replace(/[^\w\s-]/g, "").trim();
+
+        // === Concepto ===
+        let concepto = String(row.Concepto || "").trim();
+
+        // === Monto ===
+        let montoTexto = String(row.Monto || "0")
+          .replace(/[^0-9.,]/g, "")
+          .replace(",", ".");
+        let monto = parseFloat(montoTexto);
+        if (isNaN(monto)) monto = 0;
+
+        // Validación final
+        if (!fecha || !folio || !concepto || monto <= 0) {
+          console.log("⚠️ Fila inválida, se omite:", row);
+          continue;
+        }
+
+        // === Guardar en BD ===
+        await pool.query(
+          `INSERT INTO insumos (fecha, folio, concepto, monto, archivo, departamento) 
+           VALUES ($1,$2,$3,$4,$5,$6)`,
+          [fecha, folio, concepto, monto, req.file.filename, depto]
+        );
+        insertados++;
       }
 
-      // === Folio ===
-      let folio = row.Folio;
-      if (folio == null || folio === "") continue;
-      folio = String(folio).replace(/[^\w\s-]/g, "").trim(); // Permite letras o guiones
-
-      // === Concepto ===
-      let concepto = String(row.Concepto || "").trim();
-
-      // === Monto ===
-      let montoTexto = String(row.Monto || "0").replace(/[^0-9.,]/g, "").replace(",", ".");
-      let monto = parseFloat(montoTexto);
-      if (isNaN(monto)) monto = 0;
-
-      // Validación final
-      if (!fecha || !folio || !concepto || monto <= 0) {
-        console.log("⚠️ Fila inválida, se omite:", row);
-        continue;
-      }
-
-      // === Guardar en BD ===
-      await pool.query(
-        `INSERT INTO insumos (fecha, folio, concepto, monto, archivo, departamento) 
-         VALUES ($1,$2,$3,$4,$5,$6)`,
-        [fecha, folio, concepto, monto, req.file.filename, depto]
-      );
-      insertados++;
+      res.json({
+        mensaje: `✅ Excel procesado correctamente (${insertados} registros guardados)`,
+      });
+    } catch (err) {
+      console.error("Error procesando Excel:", err);
+      res.status(500).json({ error: "Error procesando Excel" });
     }
-
-    res.json({ mensaje: `✅ Excel procesado correctamente (${insertados} registros guardados)` });
-  } catch (err) {
-    console.error("Error procesando Excel:", err);
-    res.status(500).json({ error: 'Error procesando Excel' });
   }
-});
+);
 
-
-// 4. Eliminar insumo
-app.delete('/api/insumos/:id', isAdmin, async (req, res) => {
+// ==================== 4. Eliminar insumo ====================
+app.delete("/api/insumos/:id", isAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    let depto = getDepartamento(req);  
+    let depto = getDepartamento(req);
+
+    if (!depto) {
+      console.warn("⚠️ Departamento no detectado al eliminar insumo");
+      return res
+        .status(401)
+        .json({ error: "No se pudo identificar el departamento del usuario" });
+    }
 
     const result = await pool.query(
       "DELETE FROM insumos WHERE id = $1 AND departamento = $2 RETURNING *",
@@ -1590,7 +1629,9 @@ app.delete('/api/insumos/:id', isAdmin, async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Insumo no encontrado o no pertenece a tu sucursal" });
+      return res.status(404).json({
+        error: "Insumo no encontrado o no pertenece a tu sucursal",
+      });
     }
 
     res.json({ mensaje: "🗑️ Insumo eliminado correctamente" });
@@ -1599,6 +1640,7 @@ app.delete('/api/insumos/:id', isAdmin, async (req, res) => {
     res.status(500).json({ error: "Error eliminando insumo" });
   }
 });
+
 
 
 
