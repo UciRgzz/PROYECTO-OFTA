@@ -1444,7 +1444,6 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
 
 
 // ==================== MODULO DE INSUMOS ====================
-
 // Configuración de multer para guardar con nombre único
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -1539,24 +1538,29 @@ app.post(
       for (let row of data) {
         let fecha = row.Fecha;
 
-        // === CORRECCIÓN DEFINITIVA ===
+        // === CONVERSIÓN FINAL SIN DESFASE ===
         if (typeof fecha === "number") {
-          // Excel usa base 1900 + bug del año bisiesto
-          const epoch = new Date(1899, 11, 30);
-          const excelDate = new Date(epoch.getTime() + (fecha - 1) * 86400000);
+          // Excel numérico → convertir correctamente sin UTC ni restas
+          const epoch = new Date(1899, 11, 30); // Base Excel (1900-01-00)
+          const excelDate = new Date(epoch.getTime() + fecha * 86400000);
 
-          // Crear fecha local manualmente
+          // Fecha local (sin UTC)
           const yyyy = excelDate.getFullYear();
           const mm = String(excelDate.getMonth() + 1).padStart(2, "0");
           const dd = String(excelDate.getDate()).padStart(2, "0");
           fecha = `${yyyy}-${mm}-${dd}`;
+
         } else if (typeof fecha === "string") {
+          // Normalizar texto de fecha
           fecha = fecha.trim().replace(/\./g, "/").replace(/-/g, "/");
           const partes = fecha.split("/");
+
           if (partes.length === 3) {
             if (parseInt(partes[0]) > 12) {
+              // Formato DD/MM/YYYY
               fecha = `${partes[2]}-${partes[1].padStart(2, "0")}-${partes[0].padStart(2, "0")}`;
             } else {
+              // Formato MM/DD/YYYY
               fecha = `${partes[2]}-${partes[0].padStart(2, "0")}-${partes[1].padStart(2, "0")}`;
             }
           } else {
@@ -1594,6 +1598,7 @@ app.post(
           continue;
         }
 
+        // === Guardar en BD ===
         await pool.query(
           `INSERT INTO insumos (fecha, folio, concepto, monto, archivo, departamento) 
            VALUES ($1,$2,$3,$4,$5,$6)`,
@@ -1642,6 +1647,7 @@ app.delete("/api/insumos/:id", isAdmin, async (req, res) => {
     res.status(500).json({ error: "Error eliminando insumo" });
   }
 });
+
 
 
 
