@@ -586,21 +586,9 @@ app.post("/api/recibos", verificarSesion, async (req, res) => {
 
     // Si es Orden de Cirugía
     if (tipo === "OrdenCirugia") {
-      // Verificar que sea un procedimiento de cirugía
-      const esCirugia = procedimiento.toLowerCase().includes("cirugía") || 
-                       procedimiento.toLowerCase().includes("catarata") ||
-                       procedimiento.toLowerCase().includes("quirúrgico") ||
-                       procedimiento.toLowerCase().includes("quirurgico") ||
-                       procedimiento.toLowerCase().includes("operación") ||
-                       procedimiento.toLowerCase().includes("operacion");
-
-      if (!esCirugia) {
-        await client.query("ROLLBACK");
-        return res.status(400).json({
-          error: "El tipo de recibo 'OrdenCirugia' solo se permite con procedimientos quirúrgicos"
-        });
-      }
-
+      // ✅ ELIMINAR LA VALIDACIÓN RESTRICTIVA - Permitir cualquier procedimiento
+      // Ya que el usuario puede querer usar "OrdenCirugia" para diferentes tipos de procedimientos
+      
       // Crear orden médica directamente
       const orden = await client.query(
         `INSERT INTO ordenes_medicas (
@@ -624,12 +612,21 @@ app.post("/api/recibos", verificarSesion, async (req, res) => {
         [ordenId, paciente_id, monto_pagado, forma_pago, fecha, depto]
       );
 
-      // Registrar en agenda quirúrgica
-      await client.query(
-        `INSERT INTO agenda_quirurgica (paciente_id, nombre_paciente, procedimiento, fecha, departamento, recibo_id, orden_id)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [paciente_id, nombrePaciente, procedimiento, fecha, depto, recibo.id, ordenId]
-      );
+      // Registrar en agenda quirúrgica (solo si realmente es una cirugía)
+      // Pero permitimos que pase aunque no sea cirugía para no bloquear el flujo
+      if (procedimiento.toLowerCase().includes("cirugía") || 
+          procedimiento.toLowerCase().includes("catarata") ||
+          procedimiento.toLowerCase().includes("quirúrgico") ||
+          procedimiento.toLowerCase().includes("quirurgico") ||
+          procedimiento.toLowerCase().includes("operación") ||
+          procedimiento.toLowerCase().includes("operacion")) {
+        
+        await client.query(
+          `INSERT INTO agenda_quirurgica (paciente_id, nombre_paciente, procedimiento, fecha, departamento, recibo_id, orden_id)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [paciente_id, nombrePaciente, procedimiento, fecha, depto, recibo.id, ordenId]
+        );
+      }
 
       // Actualizar el monto pagado en la orden médica
       await client.query(
