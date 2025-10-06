@@ -158,11 +158,11 @@
     /* === CALENDARIO GRANDE FIJO === */
 .calendar {
   display: grid;
-  grid-template-columns: repeat(7, minmax(100px, 1fr)); /* 🔹 más ancho */
-  grid-template-rows: 35px repeat(6, 110px);           /* 🔹 más alto */
-  gap: 6px;
+  grid-template-columns: repeat(7, minmax(130px, 1fr)); /* 🔹 más ancho */
+  grid-template-rows: 35px repeat(6, 120px);           /* 🔹 alto equilibrado */
+  gap: 8px;
   justify-content: center;
-  min-height: calc(35px + 6 * 110px);
+  min-height: calc(35px + 6 * 120px);
 }
 
 
@@ -181,13 +181,14 @@
 
 .calendar-day,
 .empty-day {
-  height: 150px;         /* 🔹 más espacio vertical */
+  height: 150px;
   font-size: 0.85rem;
   padding: 6px;
-  overflow-y: auto;      /* 🔹 si hay varias cirugías, que haga scroll */
+  overflow-y: auto;
   border-radius: 6px;
   position: relative;
 }
+
 .day-number {
   position: absolute;
   top: 4px;
@@ -196,8 +197,9 @@
   font-size: 0.8rem;
   color: #333;
 }
+
 .insumo-item {
-  margin-top: 18px;      /* 🔹 baja el contenido para no tapar el número */
+  margin-top: 18px;
   padding: 5px 6px;
   border-radius: 4px;
   font-size: 0.75rem;
@@ -215,9 +217,9 @@
 
 .main-calendar {
   width: 100%;
-  max-width: 680px;   /* 🔹 ancho total más amplio */
+  max-width: 950px;   /* 🔹 ancho total mayor */
   margin: 0 auto;
-  min-height: calc(35px + 6 * 75px);
+  min-height: calc(35px + 6 * 120px);
 }
 
     
