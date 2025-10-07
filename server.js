@@ -374,7 +374,7 @@ function getDepartamento(req) {
 }
 
 
-// ==================== CRUD EXPEDIENTES ====================
+// ==================== MODULO DE EXPEDIENTES ====================
 // ==================== CREAR NUEVO EXPEDIENTE ====================
 app.post('/api/expedientes', verificarSesion, async (req, res) => {
   const {
