@@ -464,7 +464,8 @@
                 ? `<span class="badge bg-success">Pagado</span>`
                 : `<span class="badge bg-warning">${o.estatus}</span>`}
             </td>
-            <td>${new Date(o.fecha).toLocaleDateString("es-MX")}</td>
+            <td>${new Date(o.fecha + "T00:00:00").toLocaleDateString("es-MX")}</td>
+
             <td>
               ${o.estatus === "Pagado"
                 ? `<button class="btn btn-secondary btn-sm" disabled>
@@ -497,7 +498,7 @@
                 ? `<span class="badge bg-success">Pagado</span>`
                 : `<span class="badge bg-warning">${o.estatus}</span>`}
             </td>
-            <td>${new Date(o.fecha).toLocaleDateString("es-MX")}</td>
+            <td>${new Date(o.fecha + "T00:00:00").toLocaleDateString("es-MX")}</td>
                   <td class="d-flex justify-content-center">
         ${o.estatus === "Pagado"
           ? `<button class="btn btn-secondary btn-sm" disabled>
