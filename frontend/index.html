@@ -745,20 +745,17 @@
       } else if(paginas[seccion]){
       fetch(paginas[seccion])
   .then(res => res.text())
-  .then(html => {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    const bodyContent = doc.body.innerHTML;
-    main.innerHTML = `
-      <div class="iframe-wrapper" style="padding:20px;">
-        ${bodyContent}
-      </div>
-    `;
-  })
-  .catch(err => {
-    console.error('Error al cargar la sección:', err);
-    main.innerHTML = `<div class="alert alert-danger">Error cargando el módulo ${seccion}</div>`;
-  });
+.then(html => {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const fullContent = doc.documentElement.innerHTML; // incluye <style> y <head>
+  main.innerHTML = `
+    <div class="iframe-wrapper" style="padding:20px;">
+      ${fullContent}
+    </div>
+  `;
+})
+
 
 
       } else {
