@@ -530,50 +530,52 @@ input:focus, select:focus {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+// === DETECTAR ROL DE USUARIO (antes de cargar datos) ===
+window.usuarioRol = sessionStorage.getItem("usuarioRol") || localStorage.getItem("usuarioRol") || "admin";
+console.log("ROL DETECTADO:", window.usuarioRol);
+
+// === CARGAR EXPEDIENTES ===
 async function cargarExpedientes() {
     const res = await fetch('/api/expedientes');
     const data = await res.json();
     const tbody = document.getElementById('listaExpedientes');
     tbody.innerHTML = '';
 
-    const usuario = { rol: window.usuarioRol || "usuario" }; // usar rol global del index
-
-data.forEach(exp => {
-    tbody.innerHTML += `
-        <tr>
-            <td>${exp.numero_expediente}</td>
-            <td>${exp.nombre_completo}</td>
-            <td>${exp.edad}</td>
-            <td><span class="badge bg-info">${exp.padecimientos}</span></td>
-            <td>${exp.colonia}</td>
-            <td>${exp.ciudad}</td>
-            <td>${exp.telefono1}</td>
-            <td>${exp.telefono2 || ''}</td>
-     <td>
-        <div class="d-flex gap-1 justify-content-center flex-wrap">
-            <button class="btn btn-primary btn-sm" title="Editar" onclick="editarExpediente(${exp.numero_expediente})">
-                <i class="fas fa-edit"></i>
-            </button>
-            <button class="btn btn-warning btn-sm" title="Médico" onclick="verMedico(${exp.numero_expediente}, '${exp.nombre_completo}')">
-                <i class="fas fa-stethoscope"></i>
-            </button>
-            <button class="btn btn-info btn-sm" title="Optometría" onclick="verOptometria(${exp.numero_expediente}, '${exp.nombre_completo}')">
-                <i class="fas fa-eye"></i>
-            </button>
-            ${window.usuarioRol === "admin"
-                ? `<button class="btn btn-danger btn-sm" title="Eliminar" onclick="eliminarExpediente(${exp.numero_expediente})">
-                    <i class="fas fa-trash"></i>
-                    </button>`
-                : ""}
-        </div>
-        </td>
-
-
-        </tr>
-    `;
-});
+    data.forEach(exp => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${exp.numero_expediente}</td>
+                <td>${exp.nombre_completo}</td>
+                <td>${exp.edad}</td>
+                <td><span class="badge bg-info">${exp.padecimientos}</span></td>
+                <td>${exp.colonia}</td>
+                <td>${exp.ciudad}</td>
+                <td>${exp.telefono1}</td>
+                <td>${exp.telefono2 || ''}</td>
+                <td>
+                    <div class="d-flex gap-1 justify-content-center flex-wrap">
+                        <button class="btn btn-primary btn-sm" title="Editar" onclick="editarExpediente(${exp.numero_expediente})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-warning btn-sm" title="Médico" onclick="verMedico(${exp.numero_expediente}, '${exp.nombre_completo}')">
+                            <i class="fas fa-stethoscope"></i>
+                        </button>
+                        <button class="btn btn-info btn-sm" title="Optometría" onclick="verOptometria(${exp.numero_expediente}, '${exp.nombre_completo}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        ${window.usuarioRol === "admin"
+                            ? `<button class="btn btn-danger btn-sm" title="Eliminar" onclick="eliminarExpediente(${exp.numero_expediente})">
+                                <i class="fas fa-trash"></i>
+                               </button>`
+                            : ""}
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
 }
 
+// === NUEVO EXPEDIENTE ===
 function nuevoExpediente() {
     const form = document.getElementById('expedienteForm');
     form.reset();
@@ -584,17 +586,14 @@ function nuevoExpediente() {
     if (tabla) tabla.style.display = 'none';
 }
 
-
+// === CANCELAR FORMULARIO ===
 function cancelarFormulario() {
     document.getElementById('expedienteForm').style.display = 'none';
-
-    // Muestra nuevamente la tarjeta de la lista
     const cardTabla = document.querySelector('.card .fa-list')?.closest('.card');
     if (cardTabla) cardTabla.style.display = 'block';
 }
 
-
-
+// === CALCULAR EDAD ===
 function calcularEdad() {
     const fecha = document.getElementById('fecha_nacimiento').value;
     if (fecha) {
@@ -602,13 +601,12 @@ function calcularEdad() {
         const hoy = new Date();
         let edad = hoy.getFullYear() - nacimiento.getFullYear();
         const mes = hoy.getMonth() - nacimiento.getMonth();
-        if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
-            edad--;
-        }
+        if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
         document.getElementById('edad').value = edad;
     }
 }
 
+// === GUARDAR EXPEDIENTE ===
 async function guardarExpediente(e) {
     e.preventDefault();
     const expediente = {
@@ -649,6 +647,7 @@ async function guardarExpediente(e) {
     cargarExpedientes();
     cancelarFormulario();
 }
+
 
 // =============== EDITAR EXPEDIENTE ==========================================
 // === EDITAR EXPEDIENTE ===
