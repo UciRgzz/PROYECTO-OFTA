@@ -743,7 +743,8 @@
         cargarLista();
 
       } else if(paginas[seccion]){
-        main.innerHTML = `<iframe src="${paginas[seccion]}"></iframe>`;
+       main.innerHTML = `<iframe src="${paginas[seccion]}" style="height: calc(100vh - 80px); border: none; width: 100%;"></iframe>`;
+
 
       } else {
         main.innerHTML = `
