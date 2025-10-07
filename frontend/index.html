@@ -1286,43 +1286,42 @@
         // Construir menú dinámico
         let html = "";
 
-              if (permisos.includes("expedientes")) {
-            html += `<a href="#" onclick="mostrarSeccion('expedientes')"><i class="material-icons">folder</i> Expedientes</a>`;
+          if (permisos.includes("expedientes")) {
+            html += `<a href="javascript:void(0)" onclick="mostrarSeccion('expedientes')"><i class="material-icons">folder</i> Expedientes</a>`;
           }
           if (permisos.includes("optometria")) {
-            html += `<a href="#" onclick="mostrarSeccion('optometria')"><i class="material-icons">visibility</i> Optometría</a>`;
+            html += `<a href="javascript:void(0)" onclick="mostrarSeccion('optometria')"><i class="material-icons">visibility</i> Optometría</a>`;
           }
           if (permisos.includes("recibos")) {
-            html += `<a href="#" onclick="mostrarSeccion('recibos')"><i class="material-icons">receipt</i> Recibos</a>`;
+            html += `<a href="javascript:void(0)" onclick="mostrarSeccion('recibos')"><i class="material-icons">receipt</i> Recibos</a>`;
           }
           if (permisos.includes("medico")) {
-            html += `<a href="#" onclick="mostrarSeccion('medico')"><i class="material-icons">healing</i> Módulo Médico</a>`;
+            html += `<a href="javascript:void(0)" onclick="mostrarSeccion('medico')"><i class="material-icons">healing</i> Módulo Médico</a>`;
           }
           if (permisos.includes("agendaquirurgica")) {
-            html += `<a href="#" onclick="mostrarSeccion('agendaquirurgica')"><i class="material-icons">event</i> Agenda Quirúrgica</a>`;
+            html += `<a href="javascript:void(0)" onclick="mostrarSeccion('agendaquirurgica')"><i class="material-icons">event</i> Agenda Quirúrgica</a>`;
           }
           if (permisos.includes("agendaconsultas")) {
-            html += `<a href="#" onclick="mostrarSeccion('agendaconsultas')"><i class="material-icons">event_note</i> Agenda Consultas</a>`;
+            html += `<a href="javascript:void(0)" onclick="mostrarSeccion('agendaconsultas')"><i class="material-icons">event_note</i> Agenda Consultas</a>`;
           }
-
           if (permisos.includes("ordenes")) {
-            html += `<a href="#" onclick="mostrarSeccion('ordenes')"><i class="material-icons">assignment</i> Órdenes</a>`;
+            html += `<a href="javascript:void(0)" onclick="mostrarSeccion('ordenes')"><i class="material-icons">assignment</i> Órdenes</a>`;
           }
           if (permisos.includes("cierredecaja")) {
-            html += `<a href="#" onclick="mostrarSeccion('cierredecaja')"><i class="material-icons">attach_money</i> Cierre de Caja</a>`;
+            html += `<a href="javascript:void(0)" onclick="mostrarSeccion('cierredecaja')"><i class="material-icons">attach_money</i> Cierre de Caja</a>`;
           }
           if (permisos.includes("insumos")) {
-            html += `<a href="#" onclick="mostrarSeccion('insumos')"><i class="material-icons">inventory</i> Insumos</a>`;
+            html += `<a href="javascript:void(0)" onclick="mostrarSeccion('insumos')"><i class="material-icons">inventory</i> Insumos</a>`;
           }
           // 🔹 Separador para gestión de cuentas
           if (permisos.includes("asignarmodulos") || permisos.includes("usuarios")) {
             html += `<div class="sidebar-divider"></div>`;
           }
           if (permisos.includes("asignarmodulos")) {
-            html += `<a href="#" onclick="mostrarSeccion('asignarmodulos')"><i class="material-icons">settings</i> Asignar Módulos</a>`;
+            html += `<a href="javascript:void(0)" onclick="mostrarSeccion('asignarmodulos')"><i class="material-icons">settings</i> Asignar Módulos</a>`;
           }
           if (permisos.includes("usuarios")) {
-            html += `<a href="#" onclick="mostrarSeccion('usuarios')"><i class="material-icons">group</i> Usuarios</a>`;
+            html += `<a href="javascript:void(0)" onclick="mostrarSeccion('usuarios')"><i class="material-icons">group</i> Usuarios</a>`;
           }
 
         // Insertar el menú o mostrar advertencia si no tiene permisos
