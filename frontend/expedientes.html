@@ -549,9 +549,12 @@ function nuevoExpediente() {
 
 function cancelarFormulario() {
     document.getElementById('expedienteForm').style.display = 'none';
-    const tabla = document.querySelector('.card-body .table-responsive');
-    if (tabla) tabla.style.display = 'block';
+
+    // Muestra nuevamente la tarjeta de la lista
+    const cardTabla = document.querySelector('.card .fa-list')?.closest('.card');
+    if (cardTabla) cardTabla.style.display = 'block';
 }
+
 
 
 function calcularEdad() {
@@ -627,9 +630,11 @@ async function editarExpediente(id) {
     document.getElementById('telefono2').value = data.telefono2;
 
     // Mostrar solo el formulario y ocultar la tabla
-    document.getElementById('expedienteForm').style.display = 'block';
-    const tabla = document.querySelector('.card-body .table-responsive');
-    if (tabla) tabla.style.display = 'none';
+document.getElementById('expedienteForm').style.display = 'block';
+
+// Oculta completamente la tarjeta de "Lista de Expedientes"
+const cardTabla = document.querySelector('.card .fa-list')?.closest('.card');
+if (cardTabla) cardTabla.style.display = 'none';
 }
 
 // === BUSCAR EXPEDIENTE ===
