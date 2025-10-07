@@ -537,14 +537,22 @@ data.forEach(exp => {
 }
 
 function nuevoExpediente() {
-    document.getElementById('expedienteForm').reset();
+    const form = document.getElementById('expedienteForm');
+    form.reset();
     document.getElementById('numero_expediente').value = '';
-    document.getElementById('expedienteForm').style.display = 'block';
+    form.style.display = 'block';
+
+    const tabla = document.querySelector('.card-body .table-responsive');
+    if (tabla) tabla.style.display = 'none';
 }
+
 
 function cancelarFormulario() {
     document.getElementById('expedienteForm').style.display = 'none';
+    const tabla = document.querySelector('.card-body .table-responsive');
+    if (tabla) tabla.style.display = 'block';
 }
+
 
 function calcularEdad() {
     const fecha = document.getElementById('fecha_nacimiento').value;
@@ -601,10 +609,13 @@ async function guardarExpediente(e) {
     cancelarFormulario();
 }
 
+// =============== EDITAR EXPEDIENTE ==========================================
+// === EDITAR EXPEDIENTE ===
 async function editarExpediente(id) {
     const res = await fetch(`/api/expedientes/${id}`);
     const data = await res.json();
 
+    // Rellenar los campos del formulario
     document.getElementById('numero_expediente').value = data.numero_expediente;
     document.getElementById('nombre').value = data.nombre_completo;
     document.getElementById('fecha_nacimiento').value = data.fecha_nacimiento.split('T')[0];
@@ -615,9 +626,13 @@ async function editarExpediente(id) {
     document.getElementById('telefono1').value = data.telefono1;
     document.getElementById('telefono2').value = data.telefono2;
 
+    // Mostrar solo el formulario y ocultar la tabla
     document.getElementById('expedienteForm').style.display = 'block';
+    const tabla = document.querySelector('.card-body .table-responsive');
+    if (tabla) tabla.style.display = 'none';
 }
 
+// === BUSCAR EXPEDIENTE ===
 async function buscarExpediente() {
     const folio = document.getElementById('buscarInput').value.trim();
     if (!folio) return cargarExpedientes();
@@ -638,19 +653,19 @@ async function buscarExpediente() {
                 <td>${data.telefono1}</td>
                 <td>${data.telefono2 || ''}</td>
                 <td>
-                    <div class="d-flex gap-1 flex-wrap justify-content-center">
-                        <button class="btn btn-primary btn-sm" onclick="editarExpediente(${data.numero_expediente})">
-                            <i class="fas fa-edit"></i> Editar
+                    <div class="d-flex gap-1 justify-content-center">
+                        <button class="btn btn-primary btn-sm" title="Editar" onclick="editarExpediente(${data.numero_expediente})">
+                            <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn btn-warning btn-sm" onclick="verMedico(${data.numero_expediente}, '${data.nombre_completo}')">
-                            <i class="fas fa-stethoscope"></i> Médico
+                        <button class="btn btn-warning btn-sm" title="Médico" onclick="verMedico(${data.numero_expediente}, '${data.nombre_completo}')">
+                            <i class="fas fa-stethoscope"></i>
                         </button>
-                        <button class="btn btn-info btn-sm" onclick="verOptometria(${data.numero_expediente}, '${data.nombre_completo}')">
-                            <i class="fas fa-eye"></i> Optometría
+                        <button class="btn btn-info btn-sm" title="Optometría" onclick="verOptometria(${data.numero_expediente}, '${data.nombre_completo}')">
+                            <i class="fas fa-eye"></i>
                         </button>
                         ${usuario.rol === "admin" 
-                            ? `<button class="btn btn-danger btn-sm" onclick="eliminarExpediente(${data.numero_expediente})">
-                                <i class="fas fa-trash"></i> Eliminar
+                            ? `<button class="btn btn-danger btn-sm" title="Eliminar" onclick="eliminarExpediente(${data.numero_expediente})">
+                                <i class="fas fa-trash"></i>
                                </button>` 
                             : "" }
                     </div>
