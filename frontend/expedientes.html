@@ -356,6 +356,49 @@ input:focus, select:focus {
     grid-template-columns: 1fr;
   }
 }
+
+/* === Estilo para tablas dentro de los modales SweetAlert2 === */
+.swal2-html-container table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  background: #fdfdfd; /* Fondo más claro y suave */
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+}
+
+.swal2-html-container th {
+  background: linear-gradient(135deg, #4a637d 0%, #32475b 100%);
+  color: #fff;
+  padding: 10px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.swal2-html-container td {
+  background: #fafafa;
+  color: #333;
+  padding: 10px;
+  border-bottom: 1px solid #e5e5e5;
+  font-size: 0.9rem;
+}
+
+.swal2-html-container tr:nth-child(even) td {
+  background: #f2f7fb;
+}
+
+.swal2-html-container tr:last-child td {
+  border-bottom: none;
+}
+
+.swal2-html-container hr {
+  border: none;
+  border-top: 2px solid #dce3eb;
+  margin: 25px 0;
+}
+
 </style>
 
 
