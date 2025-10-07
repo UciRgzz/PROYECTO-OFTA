@@ -79,13 +79,19 @@ h1 {
 }
 
 .card-body {
-  padding: 25px;
+  padding: 40px;               /* más espacio interno */
   overflow: visible;
+  min-height: 600px;           /* cuadro más alto */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .table-container {
   width: 100%;
-  overflow: visible;
+  overflow-x: auto;
+  overflow-y: visible;
+  padding: 10px;
 }
 
 /* ======== TABLA AJUSTADA ======== */
@@ -103,20 +109,20 @@ h1 {
 .table th, .table td {
   text-align: center;
   vertical-align: middle;
-  font-size: 0.9rem;
-  padding: 14px 10px;
+  font-size: 0.95rem;
+  padding: 16px 12px;          /* más espacio entre celdas */
   word-wrap: break-word;
 }
 
 .table tr {
-  height: 60px;
+  height: 70px;                /* filas más altas */
 }
 
 .table th {
   background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
   color: white;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 1rem;
   white-space: nowrap;
 }
 
@@ -124,26 +130,29 @@ h1 {
 .table tr:hover { background-color: #eef6ff; }
 .table tr:last-child td { border-bottom: none; }
 
-/* Distribución balanceada */
+/* Columnas equilibradas */
 .table th:nth-child(1), .table td:nth-child(1) { width: 4%; }
-.table th:nth-child(2), .table td:nth-child(2) { width: 14%; }
+.table th:nth-child(2), .table td:nth-child(2) { width: 15%; }
 .table th:nth-child(3), .table td:nth-child(3) { width: 10%; }
-.table th:nth-child(4), .table td:nth-child(4) { width: 9%; }
+.table th:nth-child(4), .table td:nth-child(4) { width: 10%; }
 .table th:nth-child(5), .table td:nth-child(5) { width: 5%; }
-.table th:nth-child(6), .table td:nth-child(6) { width: 14%; }
-.table th:nth-child(7), .table td:nth-child(7) { width: 7%; }
-.table th:nth-child(8), .table td:nth-child(8) { width: 7%; }
-.table th:nth-child(9), .table td:nth-child(9) { width: 7%; }
-.table th:nth-child(10), .table td:nth-child(10) { width: 7%; }
+.table th:nth-child(6), .table td:nth-child(6) { width: 15%; }
+.table th:nth-child(7), .table td:nth-child(7) { width: 8%; }
+.table th:nth-child(8), .table td:nth-child(8) { width: 8%; }
+.table th:nth-child(9), .table td:nth-child(9) { width: 8%; }
+.table th:nth-child(10), .table td:nth-child(10) { width: 8%; }
 .table th:nth-child(11), .table td:nth-child(11) { width: 8%; }
 .table th:nth-child(12), .table td:nth-child(12) { width: 8%; }
 .table th:nth-child(13), .table td:nth-child(13) { width: 10%; }
 
+/* Botones centrados y proporcionados */
 .table td button {
   display: inline-block;
   vertical-align: middle;
   margin: 0 auto;
   white-space: nowrap;
+  padding: 6px 10px;
+  font-size: 0.85rem;
 }
 
 /* ======== FIN TABLA ======== */
