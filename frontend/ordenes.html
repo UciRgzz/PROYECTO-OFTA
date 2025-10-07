@@ -463,10 +463,12 @@
               ${o.estatus === "Pagado"
                 ? `<span class="badge bg-success">Pagado</span>`
                 : `<span class="badge bg-warning">${o.estatus}</span>`}
-            </td>
-            <td>${new Date(o.fecha + "T00:00:00").toLocaleDateString("es-MX")}</td>
+            <td>${
+              o.fecha
+                ? new Date(o.fecha.replace(' ', 'T')).toLocaleDateString('es-MX', { timeZone: 'America/Mexico_City' })
+                : ''
+            }</td>
 
-            <td>
               ${o.estatus === "Pagado"
                 ? `<button class="btn btn-secondary btn-sm" disabled>
                      <i class="fas fa-check"></i> Pagado
@@ -497,8 +499,12 @@
               ${o.estatus === "Pagado"
                 ? `<span class="badge bg-success">Pagado</span>`
                 : `<span class="badge bg-warning">${o.estatus}</span>`}
-            </td>
-            <td>${new Date(o.fecha + "T00:00:00").toLocaleDateString("es-MX")}</td>
+            <td>${
+              o.fecha
+                ? new Date(o.fecha.replace(' ', 'T')).toLocaleDateString('es-MX', { timeZone: 'America/Mexico_City' })
+                : ''
+            }</td>
+
                   <td class="d-flex justify-content-center">
         ${o.estatus === "Pagado"
           ? `<button class="btn btn-secondary btn-sm" disabled>
