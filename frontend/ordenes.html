@@ -461,24 +461,24 @@
             <td>$${parseFloat(o.pendiente).toFixed(2)}</td>
 
             <td>
-  ${o.estatus === "Pagado"
-    ? `<span class="badge bg-success">Pagado</span>`
-    : `<span class="badge bg-warning">${o.estatus}</span>`}
-</td>
+                ${o.estatus === "Pagado"
+                  ? `<span class="badge bg-success">Pagado</span>`
+                  : `<span class="badge bg-warning">${o.estatus}</span>`}
+              </td>
 
-<td style="white-space: nowrap; vertical-align: middle;">
-  ${o.fecha ? new Date(new Date(o.fecha).getTime() + 6 * 60 * 60 * 1000).toLocaleDateString("es-MX") : ""}
-</td>
+              <td style="white-space: nowrap; vertical-align: middle;">
+                ${o.fecha ? new Date(new Date(o.fecha).getTime() + 6 * 60 * 60 * 1000).toLocaleDateString("es-MX") : ""}
+              </td>
 
-<td class="text-center">
-  ${o.estatus === "Pagado"
-    ? `<button class="btn btn-secondary btn-sm" disabled>
-         <i class="fas fa-check"></i> Pagado
-       </button>`
-    : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
-        <i class="fas fa-dollar-sign"></i> Pagar
-      </button>`}
-</td>
+              <td class="text-center">
+                ${o.estatus === "Pagado"
+                  ? `<button class="btn btn-secondary btn-sm" disabled>
+                      <i class="fas fa-check"></i> Pagado
+                    </button>`
+                  : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
+                      <i class="fas fa-dollar-sign"></i> Pagar
+                    </button>`}
+              </td>
 
 
           </tr>`).join("");
@@ -499,24 +499,24 @@
             <td>$${parseFloat(o.pagado).toFixed(2)}</td>
             <td>$${parseFloat(o.pendiente).toFixed(2)}</td>
             <td>
-  ${o.estatus === "Pagado"
-    ? `<span class="badge bg-success">Pagado</span>`
-    : `<span class="badge bg-warning">${o.estatus}</span>`}
-</td>
+              ${o.estatus === "Pagado"
+                ? `<span class="badge bg-success">Pagado</span>`
+                : `<span class="badge bg-warning">${o.estatus}</span>`}
+            </td>
 
-<td style="white-space: nowrap; vertical-align: middle;">
-  ${o.fecha ? new Date(new Date(o.fecha).getTime() + 6 * 60 * 60 * 1000).toLocaleDateString("es-MX") : ""}
-</td>
+            <td style="white-space: nowrap; vertical-align: middle;">
+              ${o.fecha ? new Date(new Date(o.fecha).getTime() + 6 * 60 * 60 * 1000).toLocaleDateString("es-MX") : ""}
+            </td>
 
-<td class="text-center">
-  ${o.estatus === "Pagado"
-    ? `<button class="btn btn-secondary btn-sm" disabled>
-         <i class="fas fa-check"></i> Pagado
-       </button>`
-    : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
-        <i class="fas fa-dollar-sign"></i> Pagar
-      </button>`}
-</td>
+            <td class="text-center">
+              ${o.estatus === "Pagado"
+                ? `<button class="btn btn-secondary btn-sm" disabled>
+                    <i class="fas fa-check"></i> Pagado
+                  </button>`
+                : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
+                    <i class="fas fa-dollar-sign"></i> Pagar
+                  </button>`}
+            </td>
 
 
           </tr>`).join("");

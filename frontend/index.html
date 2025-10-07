@@ -24,6 +24,8 @@
   <link rel="icon" type="image/png" href="/uploads/logo-oftavision2.png"> 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+
   <!-- Material Icons -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   
@@ -572,7 +574,10 @@
         <button class="menu-toggle" id="menuToggle">
           <i class="material-icons">menu</i>
         </button>
-        <h4 style="margin: 0; color: var(--primary-color); margin-left: 15px;">OFTASIS</h4>
+        <h4 style="margin: 0; margin-left: 15px; font-family: 'Poppins', sans-serif; font-weight: 700; color: #1e3a5f; letter-spacing: 1px;">
+           OFTASIS
+        </h4>
+
       </div>
       
       <div class="header-right">
@@ -606,43 +611,7 @@
         <img src="/uploads/logo-oftavision.png" 
              alt="Instituto Oftavisión" 
              class="welcome-logo">
-             
-        <div class="stats-container">
-          <div class="stat-card">
-            <div class="stat-icon">
-              <i class="material-icons">folder</i>
-            </div>
-            <div class="stat-value" id="expedientes-count">0</div>
-            <div class="stat-label">Expedientes</div>
-          </div>
-          
-          <div class="stat-card">
-            <div class="stat-icon">
-              <i class="material-icons">event</i>
-            </div>
-            <div class="stat-value" id="citas-count">0</div>
-            <div class="stat-label">Citas Hoy</div>
-          </div>
-          
-          <div class="stat-card">
-            <div class="stat-icon">
-              <i class="material-icons">receipt</i>
-            </div>
-            <div class="stat-value" id="recibos-count">0</div>
-            <div class="stat-label">Recibos Hoy</div>
-          </div>
-          
-          <div class="stat-card">
-            <div class="stat-icon">
-              <i class="material-icons">visibility</i>
-            </div>
-            <div class="stat-value" id="optometria-count">0</div>
-            <div class="stat-label">Optometrías</div>
-          </div>
-        </div>
-      </div>
-    </main>
-  </div>
+
 
   <!-- MODAL ÓRDENES Y OPTOMETRÍA -->
   <div class="modal fade" id="modalOrdenes" tabindex="-1" aria-hidden="true">
@@ -1239,95 +1208,29 @@
             sucursalTexto.textContent = (nombreSucursal === "admin") ? "Admin" : nombreSucursal;
           }
 
-          if (nombreSucursal === "admin") {
-            // Si es admin, mostrar dashboard sin recargar
-            document.getElementById('main-content').innerHTML = `
-              <div class="welcome-container">
-                <h1 class="welcome-title">Bienvenido</h1>
-                <p class="welcome-subtitle">Selecciona una opción del menú.</p>
-                <img src="/uploads/logo-oftavision.png" 
-                    alt="Instituto Oftavisión" 
-                    class="welcome-logo">
-                <div class="stats-container">
-                  <div class="stat-card">
-                    <div class="stat-icon">
-                      <i class="material-icons">folder</i>
-                    </div>
-                    <div class="stat-value" id="expedientes-count">0</div>
-                    <div class="stat-label">Expedientes</div>
-                  </div>
-                  
-                  <div class="stat-card">
-                    <div class="stat-icon">
-                      <i class="material-icons">event</i>
-                    </div>
-                    <div class="stat-value" id="citas-count">0</div>
-                    <div class="stat-label">Citas Hoy</div>
-                  </div>
-                  
-                  <div class="stat-card">
-                    <div class="stat-icon">
-                      <i class="material-icons">receipt</i>
-                    </div>
-                    <div class="stat-value" id="recibos-count">0</div>
-                    <div class="stat-label">Recibos Hoy</div>
-                  </div>
-                  
-                  <div class="stat-card">
-                    <div class="stat-icon">
-                      <i class="material-icons">visibility</i>
-                    </div>
-                    <div class="stat-value" id="optometria-count">0</div>
-                    <div class="stat-label">Optometrías</div>
-                  </div>
-                </div>
-              </div>
-            `;
-            cargarEstadisticas();
+        if (nombreSucursal === "admin") {
+  document.getElementById('main-content').innerHTML = `
+    <div class="welcome-container">
+      <h1 class="welcome-title">Bienvenido al Sistema</h1>
+      <p class="welcome-subtitle">Selecciona una opción del menú para comenzar</p>
+      <img src="/uploads/logo-oftavision.png" 
+           alt="Instituto Oftavisión" 
+           class="welcome-logo">
+    </div>
+  `;
+
+    cargarEstadisticas();
           } else {
-            // ✅ Cambiar sucursal al vuelo con logo incluido
-            document.getElementById('main-content').innerHTML = `
-              <div class="welcome-container">
-                <h1 class="welcome-title">Bienvenido a ${nombreSucursal}</h1>
-                <p class="welcome-subtitle">Selecciona una opción del menú.</p>
-                <img src="/uploads/logo-oftavision.png" 
-                    alt="Instituto Oftavisión" 
-                    class="welcome-logo">
-                <div class="stats-container">
-                  <div class="stat-card">
-                    <div class="stat-icon">
-                      <i class="material-icons">folder</i>
-                    </div>
-                    <div class="stat-value" id="expedientes-count">0</div>
-                    <div class="stat-label">Expedientes</div>
-                  </div>
-                  
-                  <div class="stat-card">
-                    <div class="stat-icon">
-                      <i class="material-icons">event</i>
-                    </div>
-                    <div class="stat-value" id="citas-count">0</div>
-                    <div class="stat-label">Citas Hoy</div>
-                  </div>
-                  
-                  <div class="stat-card">
-                    <div class="stat-icon">
-                      <i class="material-icons">receipt</i>
-                    </div>
-                    <div class="stat-value" id="recibos-count">0</div>
-                    <div class="stat-label">Recibos Hoy</div>
-                  </div>
-                  
-                  <div class="stat-card">
-                    <div class="stat-icon">
-                      <i class="material-icons">visibility</i>
-                    </div>
-                    <div class="stat-value" id="optometria-count">0</div>
-                    <div class="stat-label">Optometrías</div>
-                  </div>
-                </div>
-              </div>
-            `;
+  document.getElementById('main-content').innerHTML = `
+    <div class="welcome-container">
+      <h1 class="welcome-title">Bienvenido al Sistema</h1>
+      <p class="welcome-subtitle">Selecciona una opción del menú para comenzar</p>
+      <img src="/uploads/logo-oftavision.png" 
+           alt="Instituto Oftavisión" 
+           class="welcome-logo">
+    </div>
+  `;
+
             cargarEstadisticas();
           }
         } else {
