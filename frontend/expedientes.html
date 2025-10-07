@@ -4,337 +4,85 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Expedientes</title>
+    <link rel="stylesheet" href="styles.css">
 
-    <!-- Favicon (logo empresa) -->
-    <link rel="icon" type="image/png" href="/uploads/logo-oftavision2.png">
+    <!-- 👇 Favicon (logo empresa) -->
++    <link rel="icon" type="image/png" href="/uploads/logo-oftavision2.png">
 
     <!-- FontAwesome para íconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
-        :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --accent-color: #e74c3c;
-            --success-color: #27ae60;
-            --light-color: #f8f9fa;
-            --dark-color: #343a40;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f0f5ff 0%, #e3f2fd 100%);
-            padding: 20px;
-            color: #333;
-            min-height: 100vh;
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        
+        body { font-family: Arial, sans-serif; background: #f4f4f4; }
+        .container { padding: 20px; max-width: 1200px; margin: auto; }
+
+        /* Encabezado estilo optometría */
         header {
             text-align: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            color: white;
-            border-radius: 10px;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-        }
-        
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-        
-        .card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-            margin-bottom: 30px;
-            overflow: hidden;
-            border: none;
-        }
-        
-        .card-header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
-            color: white;
-            padding: 18px 25px;
-            font-size: 1.3rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-        }
-        
-        .card-header i {
-            margin-right: 12px;
-            font-size: 1.5rem;
-        }
-        
-        .card-body {
-            padding: 25px;
-        }
-        
-        .form-group {
             margin-bottom: 25px;
-        }
-        
-        label {
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--primary-color);
-        }
-        
-        input, select {
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            width: 100%;
-            transition: all 0.3s;
-        }
-        
-        input:focus, select:focus {
-            border-color: var(--secondary-color);
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-            outline: none;
-        }
-        
-        .btn {
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            border: none;
-            border-radius: 8px;
-            padding: 12px 20px;
-            font-size: 1rem;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--secondary-color) 0%, #2c80b9 100%);
-            color: white;
-            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4);
-        }
-        
-        .btn-success {
-            background: linear-gradient(135deg, var(--success-color) 0%, #219653 100%);
-            color: white;
-            box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);
-        }
-        
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(39, 174, 96, 0.4);
-        }
-        
-        .btn-danger {
-            background: linear-gradient(135deg, var(--accent-color) 0%, #c0392b 100%);
-            color: white;
-            box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
-        }
-        
-        .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(231, 76, 60, 0.4);
-        }
-        
-        .btn-warning {
-            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-            color: white;
-            box-shadow: 0 4px 10px rgba(243, 156, 18, 0.3);
-        }
-        
-        .btn-warning:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(243, 156, 18, 0.4);
-        }
-        
-        .btn-sm {
-            padding: 8px 15px;
-            font-size: 0.9rem;
-        }
-        
-        .btn i {
-            margin-right: 8px;
-        }
-        
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-        }
-        
-        .table th {
-            background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
-            color: white;
             padding: 15px;
-            text-align: center;
-            font-weight: 600;
-        }
-        
-        .table td {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-            text-align: center;
-            font-size: 0.9rem;
-        }
-        
-        .table tr:last-child td {
-            border-bottom: none;
-        }
-        
-        .table tr:nth-child(odd) {
-            background: #f9f9f9;
-        }
-        
-        .table tr:hover {
-            background-color: #eef6ff;
-        }
-        
-        .success-alert {
-            display: none;
-            padding: 15px;
-            background: #d4edda;
-            color: #155724;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .footer {
-            text-align: center;
-            margin-top: 40px;
-            color: #6c757d;
-            font-size: 0.9rem;
-        }
-        
-        .badge {
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-        
-        .badge.bg-info {
-            background: linear-gradient(135deg, var(--secondary-color) 0%, #2c80b9 100%) !important;
-        }
-        
-        .badge.bg-success {
-            background: linear-gradient(135deg, var(--success-color) 0%, #219653 100%) !important;
-        }
-        
-        .badge.bg-warning {
-            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%) !important;
-            color: white !important;
-        }
-        
-        .badge.bg-danger {
-            background: linear-gradient(135deg, var(--accent-color) 0%, #c0392b 100%) !important;
-        }
-        
-        .search-section {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        
-        .search-section input {
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            width: 300px;
-            transition: all 0.3s;
-        }
-        
-        .search-section input:focus {
-            border-color: var(--secondary-color);
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-            outline: none;
-        }
-        
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            padding: 15px 20px;
-            background: white;
+            background: linear-gradient(135deg,#2c3e50 0%,#3498db 100%);
+            color: #fff;
             border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
-        
+        header h1 { margin: 0; font-size: 2rem; }
+
+        .top-bar { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .search-section { display: flex; gap: 5px; }
+        .search-section input { padding: 5px; border: 1px solid #ccc; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+        th { background: #eee; }
+        button { padding: 6px 12px; cursor: pointer; border: none; border-radius: 6px; transition: 0.3s; font-weight: 500; }
+
+        /* 🎨 Botones con paleta profesional */
+        /* 🎨 Botones con paleta profesional */
+        .btn-guardar { background: #2e7d32; color: white; }
+        .btn-guardar:hover { background: #1b5e20; }
+
+        .btn-editar { background: #1976d2; color: white; }
+        .btn-editar:hover { background: #0d47a1; }
+
+        .btn-medico { background: #1976d2; color: white; }
+        .btn-medico:hover { background: #0d47a1; }
+
+        .btn-opto { background: #1976d2; color: white; }
+        .btn-opto:hover { background: #0d47a1; }
+
+        .btn-cancelar { background: #dc3545; color: white; }   /* 🔴 Rojo */
+        .btn-cancelar:hover { background: #a71d2a; }
+
+
         #expedienteForm {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-        
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
-        
-        .form-group {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
             margin-bottom: 20px;
         }
-        
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2rem;
-            }
-            
-            .table-responsive {
-                overflow-x: auto;
-            }
-            
-            .card-header {
-                font-size: 1.1rem;
-                padding: 15px;
-            }
-            
-            .btn {
-                width: 100%;
-                margin-bottom: 10px;
-            }
-            
-            .top-bar {
-                flex-direction: column;
-                gap: 15px;
-            }
-            
-            .search-section {
-                width: 100%;
-            }
-            
-            .search-section input {
-                width: 100%;
-            }
-            
-            .form-row {
-                grid-template-columns: 1fr;
-            }
+        input, select {
+            width: 100%;
+            padding: 6px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        /* Modal */
+        #modalMedico {
+            display:none;
+            position:fixed;
+            top:5%;
+            left:50%;
+            transform:translateX(-50%);
+            background:white;
+            padding:20px;
+            border:1px solid #ccc;
+            border-radius:8px;
+            width:80%;
+            max-height:90%;
+            overflow-y:auto;
+            z-index:2000;
         }
     </style>
 </head>
@@ -348,116 +96,66 @@
         <div class="top-bar">
             <div class="search-section">
                 <input type="text" id="buscarInput" placeholder="Buscar por número de expediente o nombre...">
-                <button class="btn btn-primary" onclick="buscarExpediente()">
-                    <i class="fas fa-search"></i> Buscar
-                </button>
+                <button onclick="buscarExpediente()">Buscar</button>
             </div>
-            <button class="btn btn-success" onclick="nuevoExpediente()">
-                <i class="fas fa-plus"></i> Nuevo Expediente
-            </button>
+            <button onclick="nuevoExpediente()">Nuevo Expediente</button>
         </div>
 
         <!-- Formulario Expediente -->
-        <div class="card" id="expedienteForm" style="display:none;">
-            <div class="card-header">
-                <i class="fas fa-file-medical"></i> Formulario de Expediente
-            </div>
-            <div class="card-body">
-                <form onsubmit="guardarExpediente(event)">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Número de Expediente:</label>
-                            <input type="text" id="numero_expediente" readonly placeholder="Se generará automáticamente">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Nombre Completo:</label>
-                            <input type="text" id="nombre" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Fecha de Nacimiento:</label>
-                            <input type="date" id="fecha_nacimiento" required onchange="calcularEdad()">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Edad:</label>
-                            <input type="number" id="edad" readonly>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Padecimientos:</label>
-                            <select id="padecimientos" required>
-                                <option value="">Seleccione...</option>
-                                <option value="DIABETES">DIABETES</option>
-                                <option value="HIPERTENSO">HIPERTENSO</option>
-                                <option value="NINGUNO">NINGUNO</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Colonia:</label>
-                            <input type="text" id="colonia">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Ciudad:</label>
-                            <input type="text" id="ciudad">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Teléfono 1:</label>
-                            <input type="text" id="telefono1">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Teléfono 2:</label>
-                            <input type="text" id="telefono2">
-                        </div>
-                    </div>
-                    
-                    <div class="d-flex gap-2 mt-3">
-                        <button type="submit" class="btn btn-success">
-                            <i class="fas fa-save"></i> Guardar
-                        </button>
-                        <button type="button" class="btn btn-danger" onclick="cancelarFormulario()">
-                            <i class="fas fa-times"></i> Cancelar
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+        <form id="expedienteForm" onsubmit="guardarExpediente(event)" style="display:none;">
+            <label>Número de Expediente:</label>
+            <input type="text" id="numero_expediente" readonly placeholder="Se generará automáticamente">
+
+            <label>Nombre Completo:</label>
+            <input type="text" id="nombre" required>
+
+            <label>Fecha de Nacimiento:</label>
+            <input type="date" id="fecha_nacimiento" required onchange="calcularEdad()">
+
+            <label>Edad:</label>
+            <input type="number" id="edad" readonly>
+
+            <label>Padecimientos:</label>
+            <select id="padecimientos" required>
+                <option value="">Seleccione...</option>
+                <option value="DIABETES">DIABETES</option>
+                <option value="HIPERTENSO">HIPERTENSO</option>
+                <option value="NINGUNO">NINGUNO</option>
+            </select>
+
+            <label>Colonia:</label>
+            <input type="text" id="colonia">
+
+            <label>Ciudad:</label>
+            <input type="text" id="ciudad">
+
+            <label>Teléfono 1:</label>
+            <input type="text" id="telefono1">
+
+            <label>Teléfono 2:</label>
+            <input type="text" id="telefono2">
+
+            <button type="submit" class="btn-guardar">Guardar</button>
+            <button type="button" class="btn-cancelar" onclick="cancelarFormulario()">Cancelar</button>
+        </form>
 
         <!-- Tabla Expedientes -->
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-list"></i> Lista de Expedientes
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Número</th>
-                                <th>Nombre</th>
-                                <th>Edad</th>
-                                <th>Padecimiento</th>
-                                <th>Colonia</th>
-                                <th>Ciudad</th>
-                                <th>Tel. 1</th>
-                                <th>Tel. 2</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="listaExpedientes"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        
-        <div class="footer">
-            <p>Sistema de Gestión Oftavisión &copy; 2025</p>
-        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Número</th>
+                    <th>Nombre</th>
+                    <th>Edad</th>
+                    <th>Padecimiento</th>
+                    <th>Colonia</th>
+                    <th>Ciudad</th>
+                    <th>Tel. 1</th>
+                    <th>Tel. 2</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="listaExpedientes"></tbody>
+        </table>
     </div>
 
     <!-- Modal -->
@@ -466,10 +164,7 @@
         <div id="modalContenido"></div>
         <button onclick="cerrarModal()" class="btn-cancelar mt-2">Cerrar</button>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 async function cargarExpedientes() {
     const res = await fetch('/api/expedientes');
@@ -485,28 +180,18 @@ data.forEach(exp => {
             <td>${exp.numero_expediente}</td>
             <td>${exp.nombre_completo}</td>
             <td>${exp.edad}</td>
-            <td><span class="badge bg-info">${exp.padecimientos}</span></td>
+            <td>${exp.padecimientos}</td>
             <td>${exp.colonia}</td>
             <td>${exp.ciudad}</td>
             <td>${exp.telefono1}</td>
             <td>${exp.telefono2 || ''}</td>
             <td>
-                <div class="d-flex gap-1 flex-wrap justify-content-center">
-                    <button class="btn btn-primary btn-sm" onclick="editarExpediente(${exp.numero_expediente})">
-                        <i class="fas fa-edit"></i> Editar
-                    </button>
-                    <button class="btn btn-warning btn-sm" onclick="verMedico(${exp.numero_expediente}, '${exp.nombre_completo}')">
-                        <i class="fas fa-stethoscope"></i> Médico
-                    </button>
-                    <button class="btn btn-info btn-sm" onclick="verOptometria(${exp.numero_expediente}, '${exp.nombre_completo}')">
-                        <i class="fas fa-eye"></i> Optometría
-                    </button>
-                    ${usuario?.rol === "admin" 
-                        ? `<button class="btn btn-danger btn-sm" onclick="eliminarExpediente(${exp.numero_expediente})">
-                            <i class="fas fa-trash"></i> Eliminar
-                           </button>` 
-                        : "" }
-                </div>
+                <button class="btn-editar" onclick="editarExpediente(${exp.numero_expediente})">Editar</button>
+                <button class="btn-medico" onclick="verMedico(${exp.numero_expediente}, '${exp.nombre_completo}')">Médico</button>
+                <button class="btn-opto" onclick="verOptometria(${exp.numero_expediente}, '${exp.nombre_completo}')">Optometría</button>
+                ${usuario?.rol === "admin" 
+                    ? `<button class="btn-cancelar" onclick="eliminarExpediente(${exp.numero_expediente})">Eliminar</button>` 
+                    : "" }
             </td>
         </tr>
     `;
@@ -609,28 +294,18 @@ async function buscarExpediente() {
                 <td>${data.numero_expediente}</td>
                 <td>${data.nombre_completo}</td>
                 <td>${data.edad}</td>
-                <td><span class="badge bg-info">${data.padecimientos}</span></td>
+                <td>${data.padecimientos}</td>
                 <td>${data.colonia}</td>
                 <td>${data.ciudad}</td>
                 <td>${data.telefono1}</td>
                 <td>${data.telefono2 || ''}</td>
                 <td>
-                    <div class="d-flex gap-1 flex-wrap justify-content-center">
-                        <button class="btn btn-primary btn-sm" onclick="editarExpediente(${data.numero_expediente})">
-                            <i class="fas fa-edit"></i> Editar
-                        </button>
-                        <button class="btn btn-warning btn-sm" onclick="verMedico(${data.numero_expediente}, '${data.nombre_completo}')">
-                            <i class="fas fa-stethoscope"></i> Médico
-                        </button>
-                        <button class="btn btn-info btn-sm" onclick="verOptometria(${data.numero_expediente}, '${data.nombre_completo}')">
-                            <i class="fas fa-eye"></i> Optometría
-                        </button>
-                        ${usuario.rol === "admin" 
-                            ? `<button class="btn btn-danger btn-sm" onclick="eliminarExpediente(${data.numero_expediente})">
-                                <i class="fas fa-trash"></i> Eliminar
-                               </button>` 
-                            : "" }
-                    </div>
+                    <button class="btn-editar" onclick="editarExpediente(${data.numero_expediente})">Editar</button>
+                    <button class="btn-medico" onclick="verMedico(${data.numero_expediente}, '${data.nombre_completo}')">Médico</button>
+                    <button class="btn-opto" onclick="verOptometria(${data.numero_expediente}, '${data.nombre_completo}')">Optometría</button>
+                    ${usuario.rol === "admin" 
+                        ? `<button class="btn-cancelar" onclick="eliminarExpediente(${data.numero_expediente})">Eliminar</button>` 
+                        : "" }
                 </td>
             </tr>
         `;
@@ -781,10 +456,4 @@ async function eliminarExpediente(id) {
     }
 }
 
-// Cargar expedientes al iniciar
-document.addEventListener('DOMContentLoaded', function() {
-    cargarExpedientes();
-});
 </script>
-</body>
-</html>
