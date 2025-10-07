@@ -717,30 +717,9 @@
       // Marcar como activo el elemento del menú que se hizo clic
       event.target.classList.add('active');
 
-      if(seccion === 'expedientes'){
-        main.innerHTML = `
-          <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="mb-0">Gestión de Expedientes</h2>
-            <button class="btn btn-primary" id="btnNuevo">
-              <i class="material-icons me-1">add</i> Nuevo Expediente
-            </button>
-          </div>
-          <div class="card shadow-sm">
-            <div class="card-body">
-              <div class="d-flex justify-content-between mb-3">
-                <input type="text" id="buscarExp" class="form-control w-50" placeholder="Buscar por nombre o número">
-              </div>
-              <div id="formulario-expediente" style="display:none;"></div>
-              <div id="lista-expedientes"></div>
-            </div>
-          </div>
-        `;
-        document.getElementById('btnNuevo').addEventListener('click', () => {
-          document.getElementById('lista-expedientes').style.display = 'none';
-          mostrarFormulario();
-        });
-        document.getElementById('buscarExp').addEventListener('input', filtrarLista);
-        cargarLista();
+if (seccion === 'expedientes') {
+  main.innerHTML = `<iframe src="/frontend/expedientes.html"></iframe>`;
+
 
       } else if(paginas[seccion]){
         main.innerHTML = `<iframe src="${paginas[seccion]}"></iframe>`;
@@ -1287,43 +1266,43 @@
         let html = "";
 
           if (permisos.includes("expedientes")) {
-if (permisos.includes("expedientes")) {
-  html += `<a onclick="mostrarSeccion('expedientes')" style="cursor:pointer;"><i class="material-icons">folder</i> Expedientes</a>`;
-}
-if (permisos.includes("optometria")) {
-  html += `<a onclick="mostrarSeccion('optometria')" style="cursor:pointer;"><i class="material-icons">visibility</i> Optometría</a>`;
-}
-if (permisos.includes("recibos")) {
-  html += `<a onclick="mostrarSeccion('recibos')" style="cursor:pointer;"><i class="material-icons">receipt</i> Recibos</a>`;
-}
-if (permisos.includes("medico")) {
-  html += `<a onclick="mostrarSeccion('medico')" style="cursor:pointer;"><i class="material-icons">healing</i> Módulo Médico</a>`;
-}
-if (permisos.includes("agendaquirurgica")) {
-  html += `<a onclick="mostrarSeccion('agendaquirurgica')" style="cursor:pointer;"><i class="material-icons">event</i> Agenda Quirúrgica</a>`;
-}
-if (permisos.includes("agendaconsultas")) {
-  html += `<a onclick="mostrarSeccion('agendaconsultas')" style="cursor:pointer;"><i class="material-icons">event_note</i> Agenda Consultas</a>`;
-}
-if (permisos.includes("ordenes")) {
-  html += `<a onclick="mostrarSeccion('ordenes')" style="cursor:pointer;"><i class="material-icons">assignment</i> Órdenes</a>`;
-}
-if (permisos.includes("cierredecaja")) {
-  html += `<a onclick="mostrarSeccion('cierredecaja')" style="cursor:pointer;"><i class="material-icons">attach_money</i> Cierre de Caja</a>`;
-}
-if (permisos.includes("insumos")) {
-  html += `<a onclick="mostrarSeccion('insumos')" style="cursor:pointer;"><i class="material-icons">inventory</i> Insumos</a>`;
-}
-// 🔹 Separador para gestión de cuentas
-if (permisos.includes("asignarmodulos") || permisos.includes("usuarios")) {
-  html += `<div class="sidebar-divider"></div>`;
-}
-if (permisos.includes("asignarmodulos")) {
-  html += `<a onclick="mostrarSeccion('asignarmodulos')" style="cursor:pointer;"><i class="material-icons">settings</i> Asignar Módulos</a>`;
-}
-if (permisos.includes("usuarios")) {
-  html += `<a onclick="mostrarSeccion('usuarios')" style="cursor:pointer;"><i class="material-icons">group</i> Usuarios</a>`;
-}
+          if (permisos.includes("expedientes")) {
+            html += `<a onclick="mostrarSeccion('expedientes')" style="cursor:pointer;"><i class="material-icons">folder</i> Expedientes</a>`;
+          }
+          if (permisos.includes("optometria")) {
+            html += `<a onclick="mostrarSeccion('optometria')" style="cursor:pointer;"><i class="material-icons">visibility</i> Optometría</a>`;
+          }
+          if (permisos.includes("recibos")) {
+            html += `<a onclick="mostrarSeccion('recibos')" style="cursor:pointer;"><i class="material-icons">receipt</i> Recibos</a>`;
+          }
+          if (permisos.includes("medico")) {
+            html += `<a onclick="mostrarSeccion('medico')" style="cursor:pointer;"><i class="material-icons">healing</i> Módulo Médico</a>`;
+          }
+          if (permisos.includes("agendaquirurgica")) {
+            html += `<a onclick="mostrarSeccion('agendaquirurgica')" style="cursor:pointer;"><i class="material-icons">event</i> Agenda Quirúrgica</a>`;
+          }
+          if (permisos.includes("agendaconsultas")) {
+            html += `<a onclick="mostrarSeccion('agendaconsultas')" style="cursor:pointer;"><i class="material-icons">event_note</i> Agenda Consultas</a>`;
+          }
+          if (permisos.includes("ordenes")) {
+            html += `<a onclick="mostrarSeccion('ordenes')" style="cursor:pointer;"><i class="material-icons">assignment</i> Órdenes</a>`;
+          }
+          if (permisos.includes("cierredecaja")) {
+            html += `<a onclick="mostrarSeccion('cierredecaja')" style="cursor:pointer;"><i class="material-icons">attach_money</i> Cierre de Caja</a>`;
+          }
+          if (permisos.includes("insumos")) {
+            html += `<a onclick="mostrarSeccion('insumos')" style="cursor:pointer;"><i class="material-icons">inventory</i> Insumos</a>`;
+          }
+          // 🔹 Separador para gestión de cuentas
+          if (permisos.includes("asignarmodulos") || permisos.includes("usuarios")) {
+            html += `<div class="sidebar-divider"></div>`;
+          }
+          if (permisos.includes("asignarmodulos")) {
+            html += `<a onclick="mostrarSeccion('asignarmodulos')" style="cursor:pointer;"><i class="material-icons">settings</i> Asignar Módulos</a>`;
+          }
+          if (permisos.includes("usuarios")) {
+            html += `<a onclick="mostrarSeccion('usuarios')" style="cursor:pointer;"><i class="material-icons">group</i> Usuarios</a>`;
+          }
           }
 
         // Insertar el menú o mostrar advertencia si no tiene permisos
