@@ -9,297 +9,264 @@
   <!-- FontAwesome y Bootstrap -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    :root {
-      --primary-color: #2c3e50;
-      --secondary-color: #3498db;
-      --accent-color: #e74c3c;
-      --success-color: #27ae60;
-      --light-color: #f8f9fa;
-      --dark-color: #343a40;
-    }
-    
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #f0f5ff 0%, #e3f2fd 100%);
-      padding: 20px;
-      color: #333;
-      min-height: 100vh;
-    }
-    
-    .container {
-      max-width: 100%;
-      margin: 0 auto;
-      padding: 0 15px;
-    }
-    
-    header {
-      text-align: center;
-      margin-bottom: 30px;
-      padding: 20px;
-      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-      color: white;
-      border-radius: 10px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-    }
-    
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 10px;
-      font-weight: 700;
-    }
-    
-    .description {
-      font-size: 1.1rem;
-      opacity: 0.9;
-    }
-    
-    .card {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-      margin-bottom: 30px;
-      overflow: hidden;
-      border: none;
-    }
-    
-    .card-header {
-      background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
-      color: white;
-      padding: 18px 25px;
-      font-size: 1.3rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-    }
-    
-    .card-header i {
-      margin-right: 12px;
-      font-size: 1.5rem;
-    }
-    
-    .card-body {
-      padding: 25px;
-      overflow: visible; /* Elimina cualquier scroll */
-    }
-    
-    .table-container {
-      width: 100%;
-      overflow: visible; /* Asegura que no haya scroll */
-    }
-    
-    .table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 20px 0;
-      background: white;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-      table-layout: auto; /* Permite que las columnas se ajusten al contenido */
-    }
-    
-    .table th {
-      background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
-      color: white;
-      padding: 15px 10px;
-      text-align: center;
-      font-weight: 600;
-      font-size: 0.9rem;
-      white-space: nowrap;
-    }
-    
-    .table td {
-      padding: 12px 10px;
-      border-bottom: 1px solid #eee;
-      text-align: center;
-      font-size: 0.9rem;
-      word-wrap: break-word;
-    }
-    
-    .table tr:last-child td {
-      border-bottom: none;
-    }
-    
-    .table tr:nth-child(odd) {
-      background: #f9f9f9;
-    }
-    
-    .table tr:hover {
-      background-color: #eef6ff;
-    }
-    
-    /* Ajustes de columnas para pantallas grandes */
-   .table th:nth-child(1), .table td:nth-child(1) { width: 5%; }  /* Número */
-.table th:nth-child(2), .table td:nth-child(2) { width: 20%; } /* Paciente */
-.table th:nth-child(3), .table td:nth-child(3) { width: 15%; } /* Médico */
-.table th:nth-child(4), .table td:nth-child(4) { width: 15%; } /* Diagnóstico */
-.table th:nth-child(5), .table td:nth-child(5) { width: 5%; }  /* Lado */
-.table th:nth-child(6), .table td:nth-child(6) { width: 15%; } /* Procedimiento */
-.table th:nth-child(7), .table td:nth-child(7) { width: 8%; }  /* Tipo */
-.table th:nth-child(8), .table td:nth-child(8) { width: 8%; }  /* Precio */
-.table th:nth-child(9), .table td:nth-child(9) { width: 8%; }  /* Pagado */
-.table th:nth-child(10), .table td:nth-child(10) { width: 8%; } /* Pendiente */
-.table th:nth-child(11), .table td:nth-child(11) { width: 8%; } /* Estatus */
-.table th:nth-child(12), .table td:nth-child(12) { width: 8%; } /* Fecha */
-.table th:nth-child(13), .table td:nth-child(13) { width: 8%; } /* Acción */
+<style>
+:root {
+  --primary-color: #2c3e50;
+  --secondary-color: #3498db;
+  --accent-color: #e74c3c;
+  --success-color: #27ae60;
+  --light-color: #f8f9fa;
+  --dark-color: #343a40;
+}
 
-    
-    .success-alert {
-      display: none;
-      padding: 15px;
-      background: #d4edda;
-      color: #155724;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      border: 1px solid #c3e6cb;
-    }
-    
-    .footer {
-      text-align: center;
-      margin-top: 40px;
-      color: #6c757d;
-      font-size: 0.9rem;
-    }
-    
-    .badge {
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
-    
-    .badge.bg-info {
-      background: linear-gradient(135deg, var(--secondary-color) 0%, #2c80b9 100%) !important;
-    }
-    
-    .badge.bg-success {
-      background: linear-gradient(135deg, var(--success-color) 0%, #219653 100%) !important;
-    }
-    
-    .badge.bg-warning {
-      background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%) !important;
-      color: white !important;
-    }
-    
-    .badge.bg-danger {
-      background: linear-gradient(135deg, var(--accent-color) 0%, #c0392b 100%) !important;
-    }
-    
-    /* Modal */
-    .modal-content {
-      border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-      border: none;
-    }
-    
-    .modal-header {
-      background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
-      color: white;
-      border-radius: 12px 12px 0 0;
-      padding: 18px 25px;
-    }
-    
-    .modal-title {
-      font-size: 1.3rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-    }
-    
-    .modal-title i {
-      margin-right: 10px;
-    }
-    
-    .btn-close {
-      filter: invert(1);
-    }
-    
-    /* Para textos largos que necesitan truncarse */
-    .text-truncate-cell {
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #f0f5ff 0%, #e3f2fd 100%);
+  padding: 20px;
+  color: #333;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  color: white;
+  border-radius: 10px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+}
+
+h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.description {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  margin-bottom: 30px;
+  overflow: hidden;
+  border: none;
+}
+
+.card-header {
+  background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
+  color: white;
+  padding: 18px 25px;
+  font-size: 1.3rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.card-header i {
+  margin-right: 12px;
+  font-size: 1.5rem;
+}
+
+.card-body {
+  padding: 25px;
+  overflow: visible;
+}
+
+.table-container {
+  width: 100%;
+  overflow: visible;
+}
+
+/* ======== TABLA AJUSTADA ======== */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  table-layout: fixed;
+}
+
+.table th, .table td {
+  text-align: center;
+  vertical-align: middle;
+  font-size: 0.9rem;
+  padding: 14px 10px;
+  word-wrap: break-word;
+}
+
+.table tr {
+  height: 60px;
+}
+
+.table th {
+  background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.table tr:nth-child(odd) { background: #f9f9f9; }
+.table tr:hover { background-color: #eef6ff; }
+.table tr:last-child td { border-bottom: none; }
+
+/* Distribución balanceada */
+.table th:nth-child(1), .table td:nth-child(1) { width: 4%; }
+.table th:nth-child(2), .table td:nth-child(2) { width: 14%; }
+.table th:nth-child(3), .table td:nth-child(3) { width: 10%; }
+.table th:nth-child(4), .table td:nth-child(4) { width: 9%; }
+.table th:nth-child(5), .table td:nth-child(5) { width: 5%; }
+.table th:nth-child(6), .table td:nth-child(6) { width: 14%; }
+.table th:nth-child(7), .table td:nth-child(7) { width: 7%; }
+.table th:nth-child(8), .table td:nth-child(8) { width: 7%; }
+.table th:nth-child(9), .table td:nth-child(9) { width: 7%; }
+.table th:nth-child(10), .table td:nth-child(10) { width: 7%; }
+.table th:nth-child(11), .table td:nth-child(11) { width: 8%; }
+.table th:nth-child(12), .table td:nth-child(12) { width: 8%; }
+.table th:nth-child(13), .table td:nth-child(13) { width: 10%; }
+
+.table td button {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0 auto;
+  white-space: nowrap;
+}
+
+/* ======== FIN TABLA ======== */
+
+.success-alert {
+  display: none;
+  padding: 15px;
+  background: #d4edda;
+  color: #155724;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid #c3e6cb;
+}
+
+.footer {
+  text-align: center;
+  margin-top: 40px;
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.badge {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge.bg-info {
+  background: linear-gradient(135deg, var(--secondary-color) 0%, #2c80b9 100%) !important;
+}
+
+.badge.bg-success {
+  background: linear-gradient(135deg, var(--success-color) 0%, #219653 100%) !important;
+}
+
+.badge.bg-warning {
+  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%) !important;
+  color: white !important;
+}
+
+.badge.bg-danger {
+  background: linear-gradient(135deg, var(--accent-color) 0%, #c0392b 100%) !important;
+}
+
+/* Modal */
+.modal-content {
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  border: none;
+}
+
+.modal-header {
+  background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
+  color: white;
+  border-radius: 12px 12px 0 0;
+  padding: 18px 25px;
+}
+
+.modal-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.modal-title i { margin-right: 10px; }
+.btn-close { filter: invert(1); }
+
+.text-truncate-cell {
   white-space: normal;
   word-wrap: break-word;
   max-width: none;
 }
 
-    
-    /* Responsive para pantallas medianas */
-    @media (max-width: 1200px) {
-      .table th, .table td {
-        font-size: 0.85rem;
-        padding: 10px 8px;
-      }
-      
-      .badge {
-        font-size: 0.7rem;
-        padding: 3px 6px;
-      }
-    }
-    
-    /* Para tablets */
-    @media (max-width: 992px) {
-      .container {
-        padding: 0 10px;
-      }
-      
-      .card-body {
-        padding: 15px;
-      }
-      
-      /* En tablets, ocultamos algunas columnas menos críticas */
-      .table th:nth-child(4), .table td:nth-child(4), /* Diagnóstico */
-      .table th:nth-child(7), .table td:nth-child(7) { /* Tipo */
-        display: none;
-      }
-    }
-    
-    /* Para móviles grandes */
-    @media (max-width: 768px) {
-      h1 {
-        font-size: 2rem;
-      }
-      
-      .card-header {
-        font-size: 1.1rem;
-        padding: 15px;
-      }
-      
-      /* En móviles, ocultamos más columnas para mantener la legibilidad */
-      .table th:nth-child(3), .table td:nth-child(3), /* Médico */
-      .table th:nth-child(4), .table td:nth-child(4), /* Diagnóstico */
-      .table th:nth-child(7), .table td:nth-child(7), /* Tipo */
-      .table th:nth-child(12), .table td:nth-child(12) { /* Fecha */
-        display: none;
-      }
-      
-      .table th, .table td {
-        font-size: 0.8rem;
-        padding: 8px 5px;
-      }
-    }
-    
-    /* Para móviles pequeños */
-    @media (max-width: 576px) {
-      body {
-        padding: 10px;
-      }
-      
-      header {
-        padding: 15px 10px;
-      }
-      
-      h1 {
-        font-size: 1.8rem;
-      }
-      
-      /* En móviles pequeños, simplificamos aún más */
-      .table th:nth-child(1), .table td:nth-child(1), /* Número */
-      .table th:nth-child(9), .table td:nth-child(9), /* Pagado */
-      .table th:nth-child(10), .table td:nth-child(10) { /* Pendiente */
-        display: none;
-      }
-    }
-  </style>
+/* ==== Responsive ==== */
+@media (max-width: 1200px) {
+  .table th, .table td {
+    font-size: 0.85rem;
+    padding: 10px 8px;
+  }
+  .badge {
+    font-size: 0.7rem;
+    padding: 3px 6px;
+  }
+}
+
+@media (max-width: 992px) {
+  .container { padding: 0 10px; }
+  .card-body { padding: 15px; }
+  .table th:nth-child(4), .table td:nth-child(4),
+  .table th:nth-child(7), .table td:nth-child(7) {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  h1 { font-size: 2rem; }
+  .card-header { font-size: 1.1rem; padding: 15px; }
+  .table th:nth-child(3), .table td:nth-child(3),
+  .table th:nth-child(4), .table td:nth-child(4),
+  .table th:nth-child(7), .table td:nth-child(7),
+  .table th:nth-child(12), .table td:nth-child(12) {
+    display: none;
+  }
+  .table th, .table td {
+    font-size: 0.8rem;
+    padding: 8px 5px;
+  }
+}
+
+@media (max-width: 576px) {
+  body { padding: 10px; }
+  header { padding: 15px 10px; }
+  h1 { font-size: 1.8rem; }
+  .table th:nth-child(1), .table td:nth-child(1),
+  .table th:nth-child(9), .table td:nth-child(9),
+  .table th:nth-child(10), .table td:nth-child(10) {
+    display: none;
+  }
+}
+</style>
+
 </head>
 <body>
   <div class="container">
