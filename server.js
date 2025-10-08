@@ -82,6 +82,19 @@ function isAdmin(req, res, next) {
     return res.status(403).json({ error: 'No eres administrador, no puedes eliminar.' });
 }
 
+// ==================== FUNCIÓN: Fecha local México sin desfase ====================
+function fechaLocalMX() {
+  const now = new Date();
+  const mxOffset = -6; // Zona horaria Ciudad de México (UTC-6)
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  const local = new Date(utc + 3600000 * mxOffset);
+  const yyyy = local.getFullYear();
+  const mm = String(local.getMonth() + 1).padStart(2, "0");
+  const dd = String(local.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`; // formato YYYY-MM-DD
+}
+
+
 // ==================== CHECK SESSION ====================
 app.get('/api/check-session', (req, res) => {
     if (req.session && req.session.usuario) {
