@@ -716,16 +716,20 @@ async function cargarOrdenesRango(desde, hasta) {
     document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => {
       // 🕓 Formateo seguro de fecha en hora local México
       let fechaFormateada = "";
-      if (o.fecha) {
-        try {
-          const fecha = new Date(o.fecha);
-          fechaFormateada = fecha.toLocaleDateString("es-MX", {
-            timeZone: "America/Mexico_City"
-          });
-        } catch (e) {
-          fechaFormateada = o.fecha;
-        }
-      }
+if (o.fecha) {
+  try {
+    const partes = o.fecha.split("T")[0].split("-");
+    if (partes.length === 3) {
+      const [anio, mes, dia] = partes;
+      fechaFormateada = `${dia}/${mes}/${anio}`;
+    } else {
+      fechaFormateada = o.fecha;
+    }
+  } catch (e) {
+    fechaFormateada = o.fecha;
+  }
+}
+
 
       return `
       <tr>
