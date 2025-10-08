@@ -732,11 +732,10 @@ async function cargarOrdenesRango(desde, hasta) {
           ${o.estatus === "Pagado"
             ? `<span class="badge bg-success">Pagado</span>`
             : `<span class="badge bg-warning">${o.estatus}</span>`}
-        <td>${
-  o.fecha
-    ? new Date(new Date(o.fecha).getTime() + (6 * 60 * 60 * 1000)).toLocaleDateString("es-MX")
-    : ""
-}</td>
+       <td style="white-space: nowrap; vertical-align: middle;">
+  ${o.fecha ? new Date(o.fecha).toLocaleDateString("es-MX") : ""}
+</td>
+
 
         
         <td class="text-center">
