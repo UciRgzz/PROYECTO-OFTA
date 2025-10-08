@@ -82,27 +82,17 @@
       return res.status(403).json({ error: 'No eres administrador, no puedes eliminar.' });
   }
 
-// ==================== FECHA LOCAL CIUDAD DE MÉXICO CORREGIDA ====================
+// ==================== FECHA LOCAL CIUDAD DE MÉXICO MEJORADA ====================
 function fechaLocalMX() {
-  // Crear fecha actual en zona horaria de México
+  // Enfoque más simple y confiable
   const ahora = new Date();
   
-  // Obtener componentes de fecha en la zona horaria local del servidor
-  // pero ajustado para México
-  const fechaMX = new Date(ahora.toLocaleString("en-US", { timeZone: "America/Mexico_City" }));
+  // Convertir a cadena en zona horaria de México y crear nueva fecha
+  const opciones = { timeZone: "America/Mexico_City", year: 'numeric', month: '2-digit', day: '2-digit' };
+  const fechaMXString = ahora.toLocaleDateString("en-CA", opciones); // Formato YYYY-MM-DD
   
-  // Si el servidor está en otra zona horaria, este enfoque es más seguro:
-  const offsetMX = -6 * 60; // UTC-6 para Ciudad de México (puede variar con horario de verano)
-  const offsetLocal = ahora.getTimezoneOffset();
-  const diferencia = offsetMX - offsetLocal;
-  
-  const fechaAjustada = new Date(ahora.getTime() + diferencia * 60000);
-  
-  const yyyy = fechaAjustada.getFullYear();
-  const mm = String(fechaAjustada.getMonth() + 1).padStart(2, "0");
-  const dd = String(fechaAjustada.getDate()).padStart(2, "0");
-  
-  return `${yyyy}-${mm}-${dd}`;
+  return fechaMXString;
+
 }
 
 
@@ -572,16 +562,16 @@ function fechaLocalMX() {
   });
 
   // ==================== MODULO DE RECIBOS ====================
-  // ==================== Guardar recibo ====================
+// ==================== Guardar recibo CORREGIDO ====================
 app.post('/api/recibos', verificarSesion, async (req, res) => {
   const { fecha, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo } = req.body;
   const depto = getDepartamento(req);
 
   try {
-    // Usar fecha local de México en lugar de la fecha que viene del frontend
+    // Usar fecha local de México
     const fechaCorrecta = fechaLocalMX();
     
-    // Verificar que el paciente exista...
+    // Verificar que el paciente exista
     const expediente = await pool.query(
       "SELECT numero_expediente FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
       [paciente_id, depto]
@@ -605,9 +595,9 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 
     const recibo = result.rows[0];
 
-    // El resto de tu código para órdenes médicas...
+    // Si es una orden de cirugía, crear orden médica y agenda
     if (tipo === "OrdenCirugia") {
-      // Usar fechaCorrecta aquí también
+      // ✅ Insertar orden médica con fecha corregida
       const orden = await pool.query(
         `INSERT INTO ordenes_medicas (
           expediente_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, departamento, medico
@@ -621,7 +611,21 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
         [paciente_id, recibo.id, procedimiento, tipo, precio, monto_pagado, fechaCorrecta, depto]
       );
 
-      // Resto del código...
+      const ordenId = orden.rows[0].id;
+
+      // Registrar pago inicial con fecha corregida
+      await pool.query(
+        `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
+        VALUES ($1, $2, $3, $4, $5, $6)`,
+        [ordenId, paciente_id, monto_pagado, forma_pago, fechaCorrecta, depto]
+      );
+
+      // Insertar en agenda quirúrgica con fecha corregida
+      await pool.query(
+        `INSERT INTO agenda_quirurgica (paciente_id, procedimiento, fecha, departamento, recibo_id, orden_id)
+        VALUES ($1, $2, $3, $4, $5, $6)`,
+        [paciente_id, procedimiento, fechaCorrecta, depto, recibo.id, ordenId]
+      );
     }
 
     res.json({ mensaje: "✅ Recibo guardado correctamente", recibo });
@@ -630,7 +634,6 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
     res.status(500).json({ error: "Error al guardar recibo", detalle: err.message });
   }
 });
-
 
   // ==================== Listar recibos ====================
   app.get('/api/recibos', verificarSesion, async (req, res) => {
@@ -918,94 +921,94 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 
 
   // ==================== GUARDAR ORDEN MÉDICA ====================
-  app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
-    try {
-      const {
-        folio_recibo,
-        medico,
-        diagnostico,
-        lado,
-        procedimiento_id, //viene como id desde el frontend
-        anexos,
-        conjuntiva,
-        cornea,
-        camara_anterior,
-        cristalino,
-        retina,
-        macula,
-        nervio_optico,
-        ciclopejia,
-        hora_tp,
-        problemas,
-        plan
-      } = req.body;
+  // ==================== GUARDAR ORDEN MÉDICA CORREGIDO ====================
+app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
+  try {
+    const {
+      folio_recibo,
+      medico,
+      diagnostico,
+      lado,
+      procedimiento_id,
+      anexos,
+      conjuntiva,
+      cornea,
+      camara_anterior,
+      cristalino,
+      retina,
+      macula,
+      nervio_optico,
+      ciclopejia,
+      hora_tp,
+      problemas,
+      plan
+    } = req.body;
 
-      let depto = getDepartamento(req);
+    let depto = getDepartamento(req);
 
-      // Buscar el recibo
-      const reciboResult = await pool.query(
-        `SELECT id, paciente_id, tipo 
-        FROM recibos 
-        WHERE id = $1 AND departamento = $2`,
-        [folio_recibo, depto]
-      );
+    // Buscar el recibo
+    const reciboResult = await pool.query(
+      `SELECT id, paciente_id, tipo 
+      FROM recibos 
+      WHERE id = $1 AND departamento = $2`,
+      [folio_recibo, depto]
+    );
 
-      if (reciboResult.rows.length === 0) {
-        return res.status(404).json({ error: "No se encontró el recibo en esta sucursal" });
-      }
-      const recibo = reciboResult.rows[0];
-
-      // Buscar nombre y precio del procedimiento en el catálogo
-      const procResult = await pool.query(
-        `SELECT nombre, precio FROM catalogo_procedimientos WHERE id = $1`,
-        [procedimiento_id]
-      );
-
-      if (procResult.rows.length === 0) {
-        return res.status(404).json({ error: "No se encontró el procedimiento en el catálogo" });
-      }
-      const { nombre: procedimientoNombre, precio: procedimientoPrecio } = procResult.rows[0];
-
-      // 📅 Fecha local sin desfase
-      const fechaLocal = fechaLocalMX();
-
-      // Guardar la orden con precio incluido
-      const result = await pool.query(
-        `INSERT INTO ordenes_medicas (
-          expediente_id, folio_recibo, medico, diagnostico, lado, procedimiento, tipo, precio,
-          anexos, conjuntiva, cornea, camara_anterior, cristalino,
-          retina, macula, nervio_optico, ciclopejia, hora_tp,
-          problemas, plan, estatus, fecha, departamento
-        )
-        VALUES (
-          $1,$2,$3,$4,$5,$6,$7,$8,
-          $9,$10,$11,$12,$13,
-          $14,$15,$16,$17,$18,
-          $19,$20,'Pendiente',$21::date,$22
-        )
-        RETURNING *`,
-        [
-          recibo.paciente_id,
-          recibo.id,
-          medico, diagnostico, lado,
-          procedimientoNombre,
-          recibo.tipo,
-          procedimientoPrecio,
-          anexos, conjuntiva, cornea, camara_anterior, cristalino,
-          retina, macula, nervio_optico, ciclopejia, hora_tp,
-          problemas, plan,
-          fechaLocal,  // 👈 ya sin desfase
-          depto
-        ]
-      );
-
-      res.json({ mensaje: "Orden médica creada correctamente", orden: result.rows[0] });
-    } catch (err) {
-      console.error("Error al guardar orden médica:", err);
-      res.status(500).json({ error: err.message });
+    if (reciboResult.rows.length === 0) {
+      return res.status(404).json({ error: "No se encontró el recibo en esta sucursal" });
     }
-  });
+    const recibo = reciboResult.rows[0];
 
+    // Buscar nombre y precio del procedimiento
+    const procResult = await pool.query(
+      `SELECT nombre, precio FROM catalogo_procedimientos WHERE id = $1`,
+      [procedimiento_id]
+    );
+
+    if (procResult.rows.length === 0) {
+      return res.status(404).json({ error: "No se encontró el procedimiento en el catálogo" });
+    }
+    const { nombre: procedimientoNombre, precio: procedimientoPrecio } = procResult.rows[0];
+
+    // 📅 Usar fecha local corregida
+    const fechaCorrecta = fechaLocalMX();
+
+    // Guardar la orden con fecha corregida
+    const result = await pool.query(
+      `INSERT INTO ordenes_medicas (
+        expediente_id, folio_recibo, medico, diagnostico, lado, procedimiento, tipo, precio,
+        anexos, conjuntiva, cornea, camara_anterior, cristalino,
+        retina, macula, nervio_optico, ciclopejia, hora_tp,
+        problemas, plan, estatus, fecha, departamento
+      )
+      VALUES (
+        $1,$2,$3,$4,$5,$6,$7,$8,
+        $9,$10,$11,$12,$13,
+        $14,$15,$16,$17,$18,
+        $19,$20,'Pendiente',$21,$22
+      )
+      RETURNING *`,
+      [
+        recibo.paciente_id,
+        recibo.id,
+        medico, diagnostico, lado,
+        procedimientoNombre,
+        recibo.tipo,
+        procedimientoPrecio,
+        anexos, conjuntiva, cornea, camara_anterior, cristalino,
+        retina, macula, nervio_optico, ciclopejia, hora_tp,
+        problemas, plan,
+        fechaCorrecta,  // 👈 Fecha corregida
+        depto
+      ]
+    );
+
+    res.json({ mensaje: "Orden médica creada correctamente", orden: result.rows[0] });
+  } catch (err) {
+    console.error("Error al guardar orden médica:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
   // ==================== ÓRDENES POR EXPEDIENTE ====================
   app.get("/api/expedientes/:id/ordenes", verificarSesion, async (req, res) => {
