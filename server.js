@@ -740,7 +740,6 @@ app.get('/api/recibos/:id', verificarSesion, async (req, res) => {
 });
 
 // ==================== Abonar a un recibo ====================
-
 app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
   const { id } = req.params;
   const { monto, forma_pago } = req.body;
@@ -750,7 +749,7 @@ app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
   try {
     await client.query("BEGIN");
 
-    // 1️⃣ Insertar el abono
+    // 1️⃣ Insertar el abono en abonos_recibos
     await client.query(
       `INSERT INTO abonos_recibos (recibo_id, monto, forma_pago, fecha, departamento)
        VALUES ($1, $2, $3, NOW(), $4)`,
@@ -773,10 +772,10 @@ app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
 
     const recibo = result.rows[0];
 
-    // 3️⃣ Si el tipo del recibo es OrdenCirugia → actualizar también la orden médica
-    if (recibo.tipo === "OrdenCirugia") {
+    // 3️⃣ Si el recibo es de tipo OrdenCirugia → actualizar orden y registrar pago
+    if (recibo.tipo && recibo.tipo.toLowerCase().includes("orden")) {
       const ordenResult = await client.query(
-        `SELECT id, precio, pagado, pendiente
+        `SELECT id, expediente_id, precio, pagado, pendiente
          FROM ordenes_medicas
          WHERE folio_recibo = $1 AND departamento = $2`,
         [id, depto]
@@ -789,6 +788,7 @@ app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
         const nuevoPendiente = Math.max(0, Number(orden.precio) - nuevoPagado);
         const nuevoEstatus = nuevoPendiente <= 0 ? "Pagado" : "Pendiente";
 
+        // Actualiza totales de la orden médica
         await client.query(
           `UPDATE ordenes_medicas
            SET pagado = $1, pendiente = $2, estatus = $3
@@ -796,13 +796,11 @@ app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
           [nuevoPagado, nuevoPendiente, nuevoEstatus, orden.id, depto]
         );
 
-        // Registrar también en tabla pagos (para historial)
+        // Registrar el pago también en la tabla pagos (para el historial y cierre de caja)
         await client.query(
           `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
-           SELECT o.id, o.expediente_id, $1, $2, NOW(), $3
-           FROM ordenes_medicas o
-           WHERE o.id = $4 AND o.departamento = $3`,
-          [monto, forma_pago, depto, orden.id]
+           VALUES ($1, $2, $3, $4, NOW(), $5)`,
+          [orden.id, orden.expediente_id, monto, forma_pago, depto]
         );
       }
     }
@@ -812,13 +810,15 @@ app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
 
   } catch (err) {
     await client.query("ROLLBACK");
-    console.error("Error al registrar abono:", err);
-    res.status(500).json({ error: "Error al registrar abono" });
+    console.error("❌ Error al registrar abono:", err.message);
+    res.status(500).json({
+      error: "Error al registrar abono",
+      detalle: err.message
+    });
   } finally {
     client.release();
   }
 });
-
 
 // ==================== CATÁLOGO DE PROCEDIMIENTOS ====================
 app.get('/api/procedimientos', verificarSesion, async (req, res) => {
