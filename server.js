@@ -1063,7 +1063,7 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 
     const orden = ordenResult.rows[0];
 
-    // 2️⃣ Insertar el pago
+    // 2️⃣ Registrar el pago
     const pagoResult = await client.query(
       `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
        VALUES ($1, $2, $3, $4, NOW(), $5)
@@ -1071,11 +1071,12 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
       [orden.id, orden.expediente_id, monto, forma_pago, depto]
     );
 
-    // 3️⃣ Recalcular totales de la orden
+    // 3️⃣ Calcular nuevos totales de la orden
     const nuevoPagado = Number(orden.pagado || 0) + monto;
     const nuevoPendiente = Math.max(0, Number(orden.precio || 0) - nuevoPagado);
     const nuevoEstatus = nuevoPendiente <= 0 ? "Pagado" : "Pendiente";
 
+    // 4️⃣ Actualizar orden médica
     await client.query(
       `UPDATE ordenes_medicas
        SET pagado = $1, pendiente = $2, estatus = $3
@@ -1083,8 +1084,8 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
       [nuevoPagado, nuevoPendiente, nuevoEstatus, orden.id, depto]
     );
 
-    // 4️⃣ Si la orden pertenece a un recibo (folio_recibo), sincronizar también el recibo
-    if (orden.folio_recibo) {
+    // 5️⃣ Sincronizar solo si es tipo "OrdenCirugia"
+    if (orden.tipo === "OrdenCirugia") {
       await client.query(
         `UPDATE recibos
          SET monto_pagado = monto_pagado + $1
