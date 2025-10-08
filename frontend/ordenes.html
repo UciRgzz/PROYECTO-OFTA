@@ -713,10 +713,21 @@ async function cargarOrdenesRango(desde, hasta) {
     const data = await res.json();
     ordenesData = data;
 
-    document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
+    document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => {
+      // 🕓 Formateo seguro de fecha sin desfase
+      let fechaFormateada = "";
+      if (o.fecha) {
+        const fechaObj = new Date(o.fecha);
+        fechaFormateada = `${fechaObj.getDate().toString().padStart(2, '0')}/${(fechaObj.getMonth() + 1)
+          .toString()
+          .padStart(2, '0')}/${fechaObj.getFullYear()}`;
+      }
+
+      return `
       <tr>
-        <td>${o.numero || ''}</td>
+        <td>${o.numero || o.expediente_numero || ''}</td>
         <td>${o.paciente}</td>
+
         <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'medico', this.innerText)">
           ${o.medico || 'Pendiente'}
         </td>
@@ -726,6 +737,7 @@ async function cargarOrdenesRango(desde, hasta) {
         <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'lado', this.innerText)">
           ${o.lado || 'Pendiente'}
         </td>
+
         <td>${o.procedimiento}</td>
         <td><span class="badge bg-info">${o.tipo}</span></td>
         <td>$${parseFloat(o.precio).toFixed(2)}</td>
@@ -735,14 +747,10 @@ async function cargarOrdenesRango(desde, hasta) {
           ${o.estatus === "Pagado"
             ? `<span class="badge bg-success">Pagado</span>`
             : `<span class="badge bg-warning">${o.estatus}</span>`}
-        <td style="white-space: nowrap; vertical-align: middle;">
-  ${o.fecha ? new Date(o.fecha).toLocaleDateString("es-MX", { timeZone: "America/Mexico_City" }) : ""}
-</td>
+        </td>
 
+        <td style="white-space: nowrap; vertical-align: middle;">${fechaFormateada}</td>
 
-
-
-        
         <td class="text-center">
           ${o.estatus === "Pagado"
             ? `<button class="btn btn-secondary btn-sm" disabled>
@@ -753,11 +761,13 @@ async function cargarOrdenesRango(desde, hasta) {
               </button>`}
         </td>
       </tr>
-    `).join('');
+    `;
+    }).join('');
   } catch (err) {
     console.error("❌ Error cargando órdenes por rango:", err);
   }
 }
+
 
 
 // ==================== Actualizar campo editable ====================
