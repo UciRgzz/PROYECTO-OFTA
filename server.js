@@ -561,92 +561,74 @@ function fechaLocalMX() {
 
   // ==================== MODULO DE RECIBOS ====================
   // ==================== Guardar recibo ====================
-  app.post('/api/recibos', verificarSesion, async (req, res) => {
-    const { fecha, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo } = req.body;
-    const depto = getDepartamento(req);
+app.post('/api/recibos', verificarSesion, async (req, res) => {
+  const { fecha, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo } = req.body;
+  const depto = getDepartamento(req);
 
-    try {
-      // Verificar que el paciente exista en el departamento
-      const expediente = await pool.query(
-        "SELECT numero_expediente FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
-        [paciente_id, depto]
-      );
+  try {
+    // Verificar que el paciente exista en el departamento
+    const expediente = await pool.query(
+      "SELECT numero_expediente FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
+      [paciente_id, depto]
+    );
 
-      if (expediente.rows.length === 0) {
-        return res.status(400).json({ error: "El paciente no existe en este departamento" });
-      }
-
-      const folio = expediente.rows[0].numero_expediente;
-
-      // Insertar recibo
-      const result = await pool.query(
-        `INSERT INTO recibos 
-          (fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, departamento)
-        VALUES 
-          ($1::date, $2, $3, $4, $5::numeric, $6, $7::numeric, $8, $9)
-        RETURNING *`,
-        [fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, depto]
-      );
-
-      const recibo = result.rows[0];
-
-      // Si es una orden de cirugía, crear orden médica y agenda
-if (tipo === "OrdenCirugia") {
-  // ✅ Fecha real desde PostgreSQL ajustada a zona de México
-  const orden = await pool.query(
-    `INSERT INTO ordenes_medicas (
-      expediente_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, fecha_cirugia, departamento, medico
-    )
-    VALUES (
-      $1, $2, $3, $4, $5::numeric, $6::numeric, ($5::numeric - $6::numeric),
-      CASE WHEN $6::numeric >= $5::numeric THEN 'Pagado' ELSE 'Pendiente' END,
-      (CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City')::date, NULL, $7, 'Pendiente'
-    )
-    RETURNING id`,
-    [paciente_id, recibo.id, procedimiento, tipo, precio, monto_pagado, depto]
-  );
-
-  const ordenId = orden.rows[0].id;
-
-  // Registrar pago inicial
-  await pool.query(
-    `INSERT INTO pagos (orden_id, monto, forma_pago, fecha, departamento)
-     VALUES ($1, $2::numeric, $3, (CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City')::date, $4)`,
-    [ordenId, monto_pagado, forma_pago, depto]
-  );
-
-  // Insertar en agenda quirúrgica (sin nombre_paciente)
-  await pool.query(
-    `INSERT INTO agenda_quirurgica (paciente_id, procedimiento, fecha, departamento, recibo_id, orden_id)
-     VALUES ($1, $2, (CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City')::date, $3, $4, $5)`,
-    [paciente_id, procedimiento, depto, recibo.id, ordenId]
-  );
-}
-
-
-        const ordenId = orden.rows[0].id;
-
-        // Registrar pago inicial
-        await pool.query(
-          `INSERT INTO pagos (orden_id, monto, forma_pago, fecha, departamento)
-          VALUES ($1, $2::numeric, $3, $4::date, $5)`,
-          [ordenId, monto_pagado, forma_pago, fechaLocal, depto]
-        );
-
-        // Insertar en agenda quirúrgica (sin nombre_paciente)
-        await pool.query(
-          `INSERT INTO agenda_quirurgica (paciente_id, procedimiento, fecha, departamento, recibo_id, orden_id)
-          VALUES ($1, $2, $3::date, $4, $5, $6)`,
-          [paciente_id, procedimiento, fechaLocal, depto, recibo.id, ordenId]
-        );
-      }
-
-      res.json({ mensaje: "✅ Recibo guardado correctamente", recibo });
-    } catch (err) {
-      console.error("Error al guardar recibo:", err);
-      res.status(500).json({ error: "Error al guardar recibo", detalle: err.message });
+    if (expediente.rows.length === 0) {
+      return res.status(400).json({ error: "El paciente no existe en este departamento" });
     }
-  });
+
+    const folio = expediente.rows[0].numero_expediente;
+
+    // Insertar recibo
+    const result = await pool.query(
+      `INSERT INTO recibos 
+        (fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, departamento)
+       VALUES 
+        ((CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City')::date, $1, $2, $3, $4::numeric, $5, $6::numeric, $7, $8)
+       RETURNING *`,
+      [folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, depto]
+    );
+
+    const recibo = result.rows[0];
+
+    // Si es una orden de cirugía, crear orden médica y agenda
+    if (tipo === "OrdenCirugia") {
+      // Crear orden médica con fecha local de México
+      const orden = await pool.query(
+        `INSERT INTO ordenes_medicas (
+          expediente_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, fecha_cirugia, departamento, medico
+        )
+        VALUES (
+          $1, $2, $3, $4, $5::numeric, $6::numeric, ($5::numeric - $6::numeric),
+          CASE WHEN $6::numeric >= $5::numeric THEN 'Pagado' ELSE 'Pendiente' END,
+          (CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City')::date, NULL, $7, 'Pendiente'
+        )
+        RETURNING id`,
+        [paciente_id, recibo.id, procedimiento, tipo, precio, monto_pagado, depto]
+      );
+
+      const ordenId = orden.rows[0].id;
+
+      // Registrar pago inicial
+      await pool.query(
+        `INSERT INTO pagos (orden_id, monto, forma_pago, fecha, departamento)
+         VALUES ($1, $2::numeric, $3, (CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City')::date, $4)`,
+        [ordenId, monto_pagado, forma_pago, depto]
+      );
+
+      // Insertar en agenda quirúrgica (sin nombre_paciente)
+      await pool.query(
+        `INSERT INTO agenda_quirurgica (paciente_id, procedimiento, fecha, departamento, recibo_id, orden_id)
+         VALUES ($1, $2, (CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City')::date, $3, $4, $5)`,
+        [paciente_id, procedimiento, depto, recibo.id, ordenId]
+      );
+    }
+
+    res.json({ mensaje: "✅ Recibo guardado correctamente", recibo });
+  } catch (err) {
+    console.error("Error al guardar recibo:", err);
+    res.status(500).json({ error: "Error al guardar recibo", detalle: err.message });
+  }
+});
 
 
 
