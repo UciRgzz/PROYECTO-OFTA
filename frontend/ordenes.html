@@ -714,14 +714,19 @@ async function cargarOrdenesRango(desde, hasta) {
     ordenesData = data;
 
     document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => {
-      // 🕓 Formateo seguro de fecha sin desfase
-      let fechaFormateada = "";
-      if (o.fecha) {
-        const fechaObj = new Date(o.fecha);
-        fechaFormateada = `${fechaObj.getDate().toString().padStart(2, '0')}/${(fechaObj.getMonth() + 1)
-          .toString()
-          .padStart(2, '0')}/${fechaObj.getFullYear()}`;
-      }
+      // 🕓 Formateo seguro de fecha sin desfase (sin convertir a UTC)
+let fechaFormateada = "";
+if (o.fecha) {
+  // Si viene como "2025-10-07" o "2025-10-07T00:00:00.000Z"
+  const partes = o.fecha.split("T")[0].split("-"); // separar solo la parte de la fecha
+  if (partes.length === 3) {
+    const [anio, mes, dia] = partes;
+    fechaFormateada = `${dia}/${mes}/${anio}`;
+  } else {
+    fechaFormateada = o.fecha; // fallback si viene diferente
+  }
+}
+
 
       return `
       <tr>
