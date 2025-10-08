@@ -983,7 +983,9 @@
 // ====================== FILTRO DE FECHAS PARA ÓRDENES ======================
 $(document).ready(function () {
   $('#filtroRangoOrdenes').daterangepicker({
-    autoUpdateInput: false,
+    autoUpdateInput: true, // ✅ mostrar siempre la fecha actual
+    startDate: moment(),   // ✅ desde hoy
+    endDate: moment(),     // ✅ hasta hoy
     locale: {
       format: 'DD/MM/YYYY',
       separator: " - ",
@@ -1013,21 +1015,23 @@ $(document).ready(function () {
     }
   });
 
-  // Cuando aplica el rango
+  // 🔹 Cada vez que se aplica el rango
   $('#filtroRangoOrdenes').on('apply.daterangepicker', function(ev, picker) {
     $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
     cargarOrdenesPorRango(picker.startDate.format("YYYY-MM-DD"), picker.endDate.format("YYYY-MM-DD"));
   });
 
-  // Cuando cancela
+  // 🔹 Cada vez que se cancela
   $('#filtroRangoOrdenes').on('cancel.daterangepicker', function(ev, picker) {
-    $(this).val('');
-    cargarOrdenes(); // sin parámetros → backend usa CURRENT_DATE
+    const hoy = moment();
+    $(this).val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
+    cargarOrdenesPorRango(hoy.format("YYYY-MM-DD"), hoy.format("YYYY-MM-DD"));
   });
 
-  // 🔹 Inicializar sin rango → usa las órdenes de hoy
-  $('#filtroRangoOrdenes').val('');
-  cargarOrdenes(); // ❗ esta llamada sin parámetros deja que el backend devuelva las de hoy
+  // ✅ Inicializar automáticamente con las órdenes de HOY
+  const hoy = moment();
+  $('#filtroRangoOrdenes').val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
+  cargarOrdenesPorRango(hoy.format("YYYY-MM-DD"), hoy.format("YYYY-MM-DD"));
 });
 
 
