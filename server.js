@@ -740,31 +740,82 @@ app.get('/api/recibos/:id', verificarSesion, async (req, res) => {
 });
 
 // ==================== Abonar a un recibo ====================
+
 app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
   const { id } = req.params;
   const { monto, forma_pago } = req.body;
-  let depto = getDepartamento(req);
+  const depto = getDepartamento(req);
+  const client = await pool.connect();
 
   try {
-    // Insertar en tabla abonos (si no la tienes, ahorita te paso el SQL)
-    await pool.query(
+    await client.query("BEGIN");
+
+    // 1️⃣ Insertar el abono
+    await client.query(
       `INSERT INTO abonos_recibos (recibo_id, monto, forma_pago, fecha, departamento)
        VALUES ($1, $2, $3, NOW(), $4)`,
       [id, monto, forma_pago, depto]
     );
 
-    // Actualizar recibo sumando el abono al monto_pagado
-    await pool.query(
+    // 2️⃣ Actualizar monto_pagado en el recibo
+    const result = await client.query(
       `UPDATE recibos
        SET monto_pagado = monto_pagado + $1
-       WHERE id = $2 AND departamento = $3`,
+       WHERE id = $2 AND departamento = $3
+       RETURNING *`,
       [monto, id, depto]
     );
 
-    res.json({ mensaje: "Abono registrado correctamente" });
+    if (result.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Recibo no encontrado" });
+    }
+
+    const recibo = result.rows[0];
+
+    // 3️⃣ Si el tipo del recibo es OrdenCirugia → actualizar también la orden médica
+    if (recibo.tipo === "OrdenCirugia") {
+      const ordenResult = await client.query(
+        `SELECT id, precio, pagado, pendiente
+         FROM ordenes_medicas
+         WHERE folio_recibo = $1 AND departamento = $2`,
+        [id, depto]
+      );
+
+      if (ordenResult.rows.length > 0) {
+        const orden = ordenResult.rows[0];
+
+        const nuevoPagado = Number(orden.pagado || 0) + Number(monto);
+        const nuevoPendiente = Math.max(0, Number(orden.precio) - nuevoPagado);
+        const nuevoEstatus = nuevoPendiente <= 0 ? "Pagado" : "Pendiente";
+
+        await client.query(
+          `UPDATE ordenes_medicas
+           SET pagado = $1, pendiente = $2, estatus = $3
+           WHERE id = $4 AND departamento = $5`,
+          [nuevoPagado, nuevoPendiente, nuevoEstatus, orden.id, depto]
+        );
+
+        // Registrar también en tabla pagos (para historial)
+        await client.query(
+          `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
+           SELECT o.id, o.expediente_id, $1, $2, NOW(), $3
+           FROM ordenes_medicas o
+           WHERE o.id = $4 AND o.departamento = $3`,
+          [monto, forma_pago, depto, orden.id]
+        );
+      }
+    }
+
+    await client.query("COMMIT");
+    res.json({ mensaje: "✅ Abono registrado correctamente" });
+
   } catch (err) {
+    await client.query("ROLLBACK");
     console.error("Error al registrar abono:", err);
     res.status(500).json({ error: "Error al registrar abono" });
+  } finally {
+    client.release();
   }
 });
 
