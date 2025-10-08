@@ -1034,7 +1034,7 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
 // Registrar un pago para una orden (usando orden_id del frontend)
 app.post("/api/pagos", verificarSesion, async (req, res) => {
   const client = await pool.connect();
-  let depto = getDepartamento(req);
+  const depto = getDepartamento(req);
 
   try {
     let { orden_id, monto, forma_pago } = req.body;
@@ -1047,11 +1047,11 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 
     await client.query("BEGIN");
 
-    // 1. Obtener la orden médica
+    // 1. Obtener información de la orden
     const ordenResult = await client.query(
-      `SELECT o.id, o.expediente_id, o.folio_recibo, o.estatus
-       FROM ordenes_medicas o
-       WHERE o.id = $1 AND o.departamento = $2`,
+      `SELECT id, expediente_id, folio_recibo, tipo, precio, pagado
+       FROM ordenes_medicas
+       WHERE id = $1 AND departamento = $2`,
       [orden_id, depto]
     );
 
@@ -1062,86 +1062,47 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 
     const orden = ordenResult.rows[0];
 
-   // 2. Registrar el pago
-const pagoResult = await client.query(
-  `INSERT INTO pagos (
-      orden_id, expediente_id, monto, forma_pago, fecha, departamento
-   )
-   VALUES (
-      $1, $2, $3, $4, 
-      (SELECT fecha FROM recibos WHERE id = $5 AND departamento = $6), 
-      $6
-   )
-   RETURNING *`,
-  [
-    orden.id,            // $1 → orden_id
-    orden.expediente_id, // $2 → expediente_id
-    monto,               // $3 → monto
-    forma_pago,          // $4 → forma_pago
-    orden.folio_recibo,  // $5 → id del recibo
-    depto                // $6 → departamento
-  ]
-);
-
-
-    // 3. Calcular total pagado
-    const sumaPagos = await client.query(
-      `SELECT COALESCE(SUM(monto),0) AS total_pagado
-       FROM pagos
-       WHERE orden_id = $1 AND departamento = $2`,
-      [orden.id, depto]
+    // 2. Insertar el pago
+    const pagoResult = await client.query(
+      `INSERT INTO pagos (
+         orden_id, expediente_id, monto, forma_pago, fecha, departamento
+       )
+       VALUES (
+         $1, $2, $3, $4, NOW(), $5
+       )
+       RETURNING *`,
+      [orden.id, orden.expediente_id, monto, forma_pago, depto]
     );
-    const totalPagado = parseFloat(sumaPagos.rows[0].total_pagado);
 
-// 4. Obtener precio de la orden médica
-const ordenPrecioResult = await client.query(
-  `SELECT precio, folio_recibo 
-   FROM ordenes_medicas 
-   WHERE id = $1 AND departamento = $2`,
-  [orden.id, depto]
-);
+    // 3. Calcular nuevo total pagado y pendiente
+    const nuevoPagado = parseFloat(orden.pagado || 0) + monto;
+    const pendiente = Math.max(0, parseFloat(orden.precio || 0) - nuevoPagado);
+    const estatus = pendiente <= 0 ? "Pagado" : "Pendiente";
 
-if (ordenPrecioResult.rows.length === 0) {
-  await client.query("ROLLBACK");
-  return res.status(404).json({ error: "Orden no encontrada para calcular precio" });
-}
-
-const precioOrden = parseFloat(ordenPrecioResult.rows[0].precio || 0);
-const pendiente = Math.max(0, precioOrden - totalPagado);
-
-// 5. Actualizar acumulado en el recibo (sumar pagos globales)
-const tipoOrdenResult = await client.query(
-  `SELECT tipo FROM ordenes_medicas WHERE id = $1 AND departamento = $2`,
-  [orden.id, depto]
-);
-
-const tipoOrden = tipoOrdenResult.rows[0]?.tipo || "";
-
-if (tipoOrden !== "AtencionMedica" && tipoOrden !== "Atención Médica") {
-  await client.query(
-    `UPDATE recibos
-     SET monto_pagado = monto_pagado + $1
-     WHERE id = $2 AND departamento = $3`,
-    [monto, ordenPrecioResult.rows[0].folio_recibo, depto]
-  );
-}
-
-
-
-    // 6. Actualizar estatus de orden
+    // 4. Actualizar orden médica
     await client.query(
       `UPDATE ordenes_medicas
-       SET estatus = CASE WHEN $1 = 0 THEN 'Pagado' ELSE 'Pendiente' END
-       WHERE id = $2 AND departamento = $3`,
-      [pendiente, orden.id, depto]
+       SET pagado = $1, pendiente = $2, estatus = $3
+       WHERE id = $4 AND departamento = $5`,
+      [nuevoPagado, pendiente, estatus, orden.id, depto]
     );
+
+    // 5. SOLO actualizar recibo si la orden NO es de Atención Médica
+    if (orden.tipo !== "AtencionMedica" && orden.tipo !== "Atención Médica") {
+      await client.query(
+        `UPDATE recibos
+         SET monto_pagado = monto_pagado + $1
+         WHERE id = $2 AND departamento = $3`,
+        [monto, orden.folio_recibo, depto]
+      );
+    }
 
     await client.query("COMMIT");
 
     res.json({
-      message: "Pago registrado con éxito",
+      message: "Pago registrado correctamente",
       pago: pagoResult.rows[0],
-      totalPagado,
+      totalPagado: nuevoPagado,
       pendiente
     });
 
@@ -1153,6 +1114,7 @@ if (tipoOrden !== "AtencionMedica" && tipoOrden !== "Atención Médica") {
     client.release();
   }
 });
+
 
 
 // ==================== CIERRE DE CAJA ====================
