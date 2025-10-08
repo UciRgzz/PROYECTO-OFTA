@@ -953,6 +953,9 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
     }
     const { nombre: procedimientoNombre, precio: procedimientoPrecio } = procResult.rows[0];
 
+    // 📅 Fecha local sin desfase
+    const fechaLocal = fechaLocalMX();
+
     // Guardar la orden con precio incluido
     const result = await pool.query(
       `INSERT INTO ordenes_medicas (
@@ -965,7 +968,7 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         $1,$2,$3,$4,$5,$6,$7,$8,
         $9,$10,$11,$12,$13,
         $14,$15,$16,$17,$18,
-        $19,$20,'Pendiente',NOW(),$21
+        $19,$20,'Pendiente',$21::date,$22
       )
       RETURNING *`,
       [
@@ -974,10 +977,12 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         medico, diagnostico, lado,
         procedimientoNombre,
         recibo.tipo,
-        procedimientoPrecio, //ahora guarda precio en la orden
+        procedimientoPrecio,
         anexos, conjuntiva, cornea, camara_anterior, cristalino,
         retina, macula, nervio_optico, ciclopejia, hora_tp,
-        problemas, plan, depto
+        problemas, plan,
+        fechaLocal,  // 👈 ya sin desfase
+        depto
       ]
     );
 
@@ -987,6 +992,7 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // ==================== ÓRDENES POR EXPEDIENTE ====================
 app.get("/api/expedientes/:id/ordenes", verificarSesion, async (req, res) => {
