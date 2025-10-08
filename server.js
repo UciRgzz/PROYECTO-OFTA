@@ -83,24 +83,16 @@ function isAdmin(req, res, next) {
 }
 
 // ==================== FUNCIÓN: Fecha local México sin desfase ====================
-// ==================== FUNCIÓN: Fecha y hora local México ====================
-function fechaHoraLocalMX() {
+function fechaLocalMX() {
   const now = new Date();
-  // Forzar zona horaria de Ciudad de México
-  return new Intl.DateTimeFormat("sv-SE", {
-    timeZone: "America/Mexico_City",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false
-  })
-    .format(now)
-    .replace(" ", "T"); // formato tipo 2025-10-08T09:23:15
+  const mxOffset = -6; // Zona horaria Ciudad de México (UTC-6)
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  const local = new Date(utc + 3600000 * mxOffset);
+  const yyyy = local.getFullYear();
+  const mm = String(local.getMonth() + 1).padStart(2, "0");
+  const dd = String(local.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`; // formato YYYY-MM-DD
 }
-
 
 
 // ==================== CHECK SESSION ====================
@@ -114,7 +106,7 @@ app.get('/api/check-session', (req, res) => {
 
 // ==================== NOTIFICACIONES ====================
 
-// 📥 Obtener notificaciones
+// Obtener notificaciones
 app.get("/api/notificaciones", verificarSesion, async (req, res) => {
   try {
     const user = req.session.usuario?.username || "desconocido";
@@ -122,51 +114,41 @@ app.get("/api/notificaciones", verificarSesion, async (req, res) => {
 
     let result;
     if (rol === "admin") {
-      // 🔹 Admin ve todas las notificaciones
-      result = await pool.query(`
-        SELECT id, mensaje, usuario, fecha 
-        FROM notificaciones 
-        ORDER BY fecha DESC 
-        LIMIT 50
-      `);
+      // Admin ve todas
+      result = await pool.query(
+        "SELECT id, mensaje, usuario, fecha FROM notificaciones ORDER BY fecha DESC LIMIT 50"
+      );
     } else {
-      // 🔹 Usuario normal ve solo las suyas
-      result = await pool.query(`
-        SELECT id, mensaje, usuario, fecha 
-        FROM notificaciones 
-        WHERE usuario = $1 
-        ORDER BY fecha DESC 
-        LIMIT 20
-      `, [user]);
+      // Usuario normal solo ve las suyas
+      result = await pool.query(
+        "SELECT id, mensaje, usuario, fecha FROM notificaciones WHERE usuario = $1 ORDER BY fecha DESC LIMIT 20",
+        [user]
+      );
     }
 
     res.json(result.rows);
   } catch (err) {
-    console.error("❌ Error obteniendo notificaciones:", err);
+    console.error("Error obteniendo notificaciones:", err);
     res.status(500).json({ error: "No se pudieron cargar las notificaciones" });
   }
 });
 
-// 📤 Registrar cuando un usuario cambia su contraseña
+// Registrar cuando un usuario cambia su contraseña
 app.post("/api/notificacion/cambio-password", verificarSesion, async (req, res) => {
   try {
     const user = req.session.usuario?.username || "desconocido";
-    const fechaMX = fechaLocalMX();
-
     await pool.query(
-      `INSERT INTO notificaciones (mensaje, usuario, fecha) 
-       VALUES ($1, $2, $3)`,
-      [`🔑 El usuario ${user} cambió su contraseña`, user, fechaMX]
+      "INSERT INTO notificaciones (mensaje, usuario) VALUES ($1, $2)",
+      [`🔑 El usuario ${user} cambió su contraseña`, user]
     );
-
     res.json({ ok: true });
   } catch (err) {
-    console.error("❌ Error registrando notificación de contraseña:", err);
+    console.error("Error registrando notificación de contraseña:", err);
     res.status(500).json({ error: "No se pudo registrar notificación" });
   }
 });
 
-// 📤 Registrar cuando un admin crea un nuevo usuario
+// Registrar cuando un admin crea un usuario nuevo
 app.post("/api/notificacion/nuevo-usuario", isAdmin, async (req, res) => {
   try {
     const { nuevo } = req.body;
@@ -174,42 +156,16 @@ app.post("/api/notificacion/nuevo-usuario", isAdmin, async (req, res) => {
       return res.status(400).json({ error: "Falta nombre del nuevo usuario" });
     }
 
-    const fechaMX = fechaLocalMX();
     await pool.query(
-      `INSERT INTO notificaciones (mensaje, usuario, fecha) 
-       VALUES ($1, $2, $3)`,
-      [`👤 Se creó un nuevo usuario: ${nuevo}`, nuevo, fechaMX]
+      "INSERT INTO notificaciones (mensaje, usuario) VALUES ($1, $2)",
+      [`👤 Se creó un nuevo usuario: ${nuevo}`, nuevo]
     );
-
     res.json({ ok: true });
   } catch (err) {
-    console.error("❌ Error registrando notificación de nuevo usuario:", err);
+    console.error("Error registrando notificación de nuevo usuario:", err);
     res.status(500).json({ error: "No se pudo registrar notificación" });
   }
 });
-
-// 📤 Registrar notificación cuando se elimina un usuario (solo admin)
-app.post("/api/notificacion/usuario-eliminado", isAdmin, async (req, res) => {
-  try {
-    const { eliminado } = req.body;
-    if (!eliminado) {
-      return res.status(400).json({ error: "Falta nombre del usuario eliminado" });
-    }
-
-    const fechaMX = fechaLocalMX();
-    await pool.query(
-      `INSERT INTO notificaciones (mensaje, usuario, fecha) 
-       VALUES ($1, $2, $3)`,
-      [`🗑️ El usuario ${eliminado} fue eliminado por un administrador`, 'admin', fechaMX]
-    );
-
-    res.json({ ok: true });
-  } catch (err) {
-    console.error("❌ Error registrando notificación de usuario eliminado:", err);
-    res.status(500).json({ error: "No se pudo registrar notificación" });
-  }
-});
-
 
 
 // ==================== LOGOUT ====================
@@ -377,12 +333,11 @@ app.post('/api/reset-password', async (req, res) => {
     );
 
     // Registrar notificación en la BD
-   const fechaMX = fechaHoraLocalMX();
-await pool.query(
-  "INSERT INTO notificaciones (mensaje, usuario, fecha) VALUES ($1, $2, $3)",
-  [`🔑 El usuario ${user} cambió su contraseña`, user, fechaMX]
-);
-
+    const username = user.rows[0].username;
+    await pool.query(
+      "INSERT INTO notificaciones (mensaje, usuario) VALUES ($1, $2)",
+      [`🔑 El usuario ${username} cambió su contraseña`, username]
+    );
 
     res.json({ mensaje: 'Contraseña restablecida con éxito' });
   } catch (err) {
@@ -612,9 +567,6 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
   const depto = getDepartamento(req);
 
   try {
-    // ✅ SIEMPRE usar fecha local de México, ignorar la del frontend
-    const fechaLocal = fechaLocalMX();
-
     // Verificar que el paciente exista en el departamento
     const expediente = await pool.query(
       "SELECT numero_expediente FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
@@ -627,21 +579,24 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 
     const folio = expediente.rows[0].numero_expediente;
 
-    // Insertar recibo CON FECHA LOCAL
+    // Insertar recibo
     const result = await pool.query(
       `INSERT INTO recibos 
          (fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, departamento)
        VALUES 
          ($1::date, $2, $3, $4, $5::numeric, $6, $7::numeric, $8, $9)
        RETURNING *`,
-      [fechaLocal, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, depto]
+      [fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, depto]
     );
 
     const recibo = result.rows[0];
 
     // Si es una orden de cirugía, crear orden médica y agenda
     if (tipo === "OrdenCirugia") {
-      // Crear orden médica con la MISMA fecha local
+      // 📅 Obtener fecha local exacta sin desfase (México)
+      const fechaLocal = fechaLocalMX();
+
+      // Crear orden médica y reflejar el pago
       const orden = await pool.query(
         `INSERT INTO ordenes_medicas (
            expediente_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, fecha_cirugia, departamento, medico
@@ -657,14 +612,14 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 
       const ordenId = orden.rows[0].id;
 
-      // Registrar pago inicial con la MISMA fecha local
+      // Registrar pago inicial
       await pool.query(
         `INSERT INTO pagos (orden_id, monto, forma_pago, fecha, departamento)
          VALUES ($1, $2::numeric, $3, $4::date, $5)`,
         [ordenId, monto_pagado, forma_pago, fechaLocal, depto]
       );
 
-      // Insertar en agenda quirúrgica con la MISMA fecha local
+      // Insertar en agenda quirúrgica (sin nombre_paciente)
       await pool.query(
         `INSERT INTO agenda_quirurgica (paciente_id, procedimiento, fecha, departamento, recibo_id, orden_id)
          VALUES ($1, $2, $3::date, $4, $5, $6)`,
@@ -678,6 +633,10 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
     res.status(500).json({ error: "Error al guardar recibo", detalle: err.message });
   }
 });
+
+
+
+
 
 // ==================== Listar recibos ====================
 app.get('/api/recibos', verificarSesion, async (req, res) => {
@@ -2152,33 +2111,6 @@ app.get('/api/mis-permisos', verificarSesion, async (req, res) => {
     res.status(500).json([]);
   }
 });
-
-//============ MODULO DE NOTIFICACIONES ============//
-async function actualizarNotificaciones() {
-  const res = await fetch("/api/notificaciones");
-  if (!res.ok) return;
-  const notifs = await res.json();
-
-  const contenedor = document.getElementById("listaNotificaciones");
-  const contador = document.getElementById("contadorNotifs");
-
-  contenedor.innerHTML = "";
-  notifs.forEach(n => {
-    const fecha = new Date(n.fecha);
-    const f = fecha.toLocaleString("es-MX", {
-      timeZone: "America/Mexico_City",
-      dateStyle: "short",
-      timeStyle: "short"
-    });
-    contenedor.innerHTML += `<div class="notif-item"> ${n.mensaje} — ${f}</div>`;
-  });
-
-  contador.textContent = notifs.length;
-}
-
-// Llamar al cargar y luego cada 30 segundos
-actualizarNotificaciones();
-setInterval(actualizarNotificaciones, 30000);
 
 
 
