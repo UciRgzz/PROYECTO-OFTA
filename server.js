@@ -107,6 +107,21 @@ function fechaHoraLocalMX() {
   return fechaFormateada.replace("T", " ");
 }
 
+// ==================== FUNCIÓN: Fecha local México (solo fecha yyyy-mm-dd) ====================
+function fechaLocalMX() {
+  const now = new Date();
+  const opciones = {
+    timeZone: "America/Mexico_City",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  };
+
+  const fechaFormateada = new Intl.DateTimeFormat("en-CA", opciones).format(now);
+  return fechaFormateada; // Ejemplo: 2025-10-08
+}
+
+
 
 
 // ==================== CHECK SESSION ====================
