@@ -1110,12 +1110,22 @@ const precioOrden = parseFloat(ordenPrecioResult.rows[0].precio || 0);
 const pendiente = Math.max(0, precioOrden - totalPagado);
 
 // 5. Actualizar acumulado en el recibo (sumar pagos globales)
-await client.query(
-  `UPDATE recibos
-   SET monto_pagado = monto_pagado + $1
-   WHERE id = $2 AND departamento = $3`,
-  [monto, ordenPrecioResult.rows[0].folio_recibo, depto]
+const tipoOrdenResult = await client.query(
+  `SELECT tipo FROM ordenes_medicas WHERE id = $1 AND departamento = $2`,
+  [orden.id, depto]
 );
+
+const tipoOrden = tipoOrdenResult.rows[0]?.tipo || "";
+
+if (tipoOrden !== "AtencionMedica" && tipoOrden !== "Atención Médica") {
+  await client.query(
+    `UPDATE recibos
+     SET monto_pagado = monto_pagado + $1
+     WHERE id = $2 AND departamento = $3`,
+    [monto, ordenPrecioResult.rows[0].folio_recibo, depto]
+  );
+}
+
 
 
     // 6. Actualizar estatus de orden
