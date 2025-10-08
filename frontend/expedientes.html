@@ -609,6 +609,7 @@ function calcularEdad() {
 // === GUARDAR EXPEDIENTE ===
 async function guardarExpediente(e) {
     e.preventDefault();
+    const id = document.getElementById('numero_expediente').value;
     const expediente = {
         nombre_completo: document.getElementById('nombre').value,
         fecha_nacimiento: document.getElementById('fecha_nacimiento').value,
@@ -620,8 +621,11 @@ async function guardarExpediente(e) {
         telefono2: document.getElementById('telefono2').value
     };
 
-    const res = await fetch('/api/expedientes', {
-        method: 'POST',
+    const url = id ? `/api/expedientes/${id}` : '/api/expedientes';
+    const method = id ? 'PUT' : 'POST';
+
+    const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(expediente)
     });
@@ -631,15 +635,15 @@ async function guardarExpediente(e) {
     if (res.ok) {
         Swal.fire({
             icon: 'success',
-            title: 'Expediente creado',
-            text: `Número: ${data.expediente.numero_expediente}`,
+            title: id ? 'Expediente actualizado' : 'Expediente creado',
+            text: id ? `Número: ${id}` : `Número: ${data.expediente.numero_expediente}`,
             confirmButtonColor: '#3085d6'
         });
     } else {
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: data.error || 'No se pudo crear el expediente',
+            text: data.error || 'No se pudo guardar el expediente',
             confirmButtonColor: '#d33'
         });
     }
