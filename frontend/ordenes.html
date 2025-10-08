@@ -714,19 +714,18 @@ async function cargarOrdenesRango(desde, hasta) {
     ordenesData = data;
 
     document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => {
-      // 🕓 Formateo seguro de fecha sin desfase (sin convertir a UTC)
-let fechaFormateada = "";
-if (o.fecha) {
-  // Si viene como "2025-10-07" o "2025-10-07T00:00:00.000Z"
-  const partes = o.fecha.split("T")[0].split("-"); // separar solo la parte de la fecha
-  if (partes.length === 3) {
-    const [anio, mes, dia] = partes;
-    fechaFormateada = `${dia}/${mes}/${anio}`;
-  } else {
-    fechaFormateada = o.fecha; // fallback si viene diferente
-  }
-}
-
+      // 🕓 Formateo seguro de fecha en hora local México
+      let fechaFormateada = "";
+      if (o.fecha) {
+        try {
+          const fecha = new Date(o.fecha);
+          fechaFormateada = fecha.toLocaleDateString("es-MX", {
+            timeZone: "America/Mexico_City"
+          });
+        } catch (e) {
+          fechaFormateada = o.fecha;
+        }
+      }
 
       return `
       <tr>
@@ -772,8 +771,6 @@ if (o.fecha) {
     console.error("❌ Error cargando órdenes por rango:", err);
   }
 }
-
-
 
 // ==================== Actualizar campo editable ====================
 async function actualizarCampo(id, campo, valor) {
