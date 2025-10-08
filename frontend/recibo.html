@@ -573,7 +573,7 @@
       }
     });
 
- // Guardar recibo
+// ==================== Guardar recibo ====================
 document.getElementById("formRecibo").addEventListener("submit", async function(e) {
   e.preventDefault();
 
@@ -581,8 +581,14 @@ document.getElementById("formRecibo").addEventListener("submit", async function(
   btn.disabled = true; // 🚫 Bloquea el botón mientras se guarda
 
   try {
+    // 📅 Obtener fecha local sin desfase UTC
+    const hoy = new Date();
+    const fechaLocal = new Date(hoy.getTime() - hoy.getTimezoneOffset() * 60000)
+      .toISOString()
+      .split("T")[0];
+
     const datos = {
-      fecha: this.fecha.value,
+      fecha: fechaLocal, // ✅ Fecha local corregida
       paciente_id: pacienteId,
       procedimiento: this.procedimiento.value,
       precio: this.precio.value,
@@ -606,16 +612,11 @@ document.getElementById("formRecibo").addEventListener("submit", async function(
       this.reset();
       document.getElementById("nombrePaciente").value = "";
 
-      // 🔄 Volver a poner la fecha actual en el campo
-      const hoy = new Date();
-      const year = hoy.getFullYear();
-      const month = String(hoy.getMonth() + 1).padStart(2, '0');
-      const day = String(hoy.getDate()).padStart(2, '0');
-      document.getElementById("fecha").value = `${year}-${month}-${day}`;
+      // 🔄 Volver a poner la fecha actual en el campo (sin desfase)
+      document.getElementById("fecha").value = fechaLocal;
 
       // ✅ Recargar datos del día actual
-      const hoyStr = moment().format("YYYY-MM-DD");
-      cargarRecibosRango(hoyStr, hoyStr);
+      cargarRecibosRango(fechaLocal, fechaLocal);
 
       actualizarPrecios();
     } else {
@@ -628,6 +629,7 @@ document.getElementById("formRecibo").addEventListener("submit", async function(
     btn.disabled = false; // ✅ Reactiva el botón cuando termina
   }
 });
+
 
     // Eliminar recibo
 async function eliminarRecibo(id) {
