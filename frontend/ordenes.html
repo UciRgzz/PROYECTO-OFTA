@@ -435,94 +435,100 @@
         orden_id: 3
       }
     ];
-
-    async function cargarOrdenes() {
-      try {
-        // Intenta cargar datos desde la API
-        const res = await fetch("/api/ordenes_medicas");
-        if (res.ok) {
-          ordenesData = await res.json();
-        } else {
-          // Si falla la API, usa datos de ejemplo
-          ordenesData = datosEjemplo;
-        }
-        
-        document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
-          <tr>
-            <td>${o.numero || o.expediente_numero || ''}</td>
-            <td class="text-truncate-cell" title="${o.paciente}">${o.paciente}</td>
-            <td class="text-truncate-cell" title="${o.medico}">${o.medico}</td>
-            <td class="text-truncate-cell" title="${o.diagnostico}">${o.diagnostico}</td>
-            <td>${o.lado}</td>
-            <td class="text-truncate-cell" title="${o.procedimiento}">${o.procedimiento}</td>
-            <td><span class="badge bg-info">${o.tipo}</span></td>
-            <td>$${parseFloat(o.precio).toFixed(2)}</td>
-            <td>$${parseFloat(o.pagado).toFixed(2)}</td>
-            <td>$${parseFloat(o.pendiente).toFixed(2)}</td>
-
-            <td>
-                ${o.estatus === "Pagado"
-                  ? `<span class="badge bg-success">Pagado</span>`
-                  : `<span class="badge bg-warning">${o.estatus}</span>`}
-              </td>
-
-              <td style="white-space: nowrap; vertical-align: middle;">
-                ${o.fecha ? new Date(new Date(o.fecha).getTime() + 6 * 60 * 60 * 1000).toLocaleDateString("es-MX") : ""}
-              </td>
-
-              <td class="text-center">
-                ${o.estatus === "Pagado"
-                  ? `<button class="btn btn-secondary btn-sm" disabled>
-                      <i class="fas fa-check"></i> Pagado
-                    </button>`
-                  : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
-                      <i class="fas fa-dollar-sign"></i> Pagar
-                    </button>`}
-              </td>
-
-
-          </tr>`).join("");
-      } catch (err) { 
-        console.error("Error cargando órdenes:", err);
-        // En caso de error, usa datos de ejemplo
-        ordenesData = datosEjemplo;
-        document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
-          <tr>
-            <td>${o.numero || o.expediente_numero || ''}</td>
-            <td class="text-truncate-cell" title="${o.paciente}">${o.paciente}</td>
-            <td class="text-truncate-cell" title="${o.medico}">${o.medico}</td>
-            <td class="text-truncate-cell" title="${o.diagnostico}">${o.diagnostico}</td>
-            <td>${o.lado}</td>
-            <td class="text-truncate-cell" title="${o.procedimiento}">${o.procedimiento}</td>
-            <td><span class="badge bg-info">${o.tipo}</span></td>
-            <td>$${parseFloat(o.precio).toFixed(2)}</td>
-            <td>$${parseFloat(o.pagado).toFixed(2)}</td>
-            <td>$${parseFloat(o.pendiente).toFixed(2)}</td>
-            <td>
-              ${o.estatus === "Pagado"
-                ? `<span class="badge bg-success">Pagado</span>`
-                : `<span class="badge bg-warning">${o.estatus}</span>`}
-            </td>
-
-            <td style="white-space: nowrap; vertical-align: middle;">
-              ${o.fecha ? new Date(new Date(o.fecha).getTime() + 6 * 60 * 60 * 1000).toLocaleDateString("es-MX") : ""}
-            </td>
-
-            <td class="text-center">
-              ${o.estatus === "Pagado"
-                ? `<button class="btn btn-secondary btn-sm" disabled>
-                    <i class="fas fa-check"></i> Pagado
-                  </button>`
-                : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
-                    <i class="fas fa-dollar-sign"></i> Pagar
-                  </button>`}
-            </td>
-
-
-          </tr>`).join("");
-      }
+// Cargar órdenes desde la API o usar datos de ejemplo
+async function cargarOrdenes() {
+  try {
+    // Intenta cargar datos desde la API
+    const res = await fetch("/api/ordenes_medicas");
+    if (res.ok) {
+      ordenesData = await res.json();
+    } else {
+      // Si falla la API, usa datos de ejemplo
+      ordenesData = datosEjemplo;
     }
+    
+    document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
+      <tr>
+        <td>${o.numero || o.expediente_numero || ''}</td>
+        <td class="text-truncate-cell" title="${o.paciente}">${o.paciente}</td>
+        
+        <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'medico', this.innerText)">
+          ${o.medico || 'Pendiente'}
+        </td>
+        <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'diagnostico', this.innerText)">
+          ${o.diagnostico || 'Pendiente'}
+        </td>
+        <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'lado', this.innerText)">
+          ${o.lado || 'Pendiente'}
+        </td>
 
+        <td class="text-truncate-cell" title="${o.procedimiento}">${o.procedimiento}</td>
+        <td><span class="badge bg-info">${o.tipo}</span></td>
+        <td>$${parseFloat(o.precio).toFixed(2)}</td>
+        <td>$${parseFloat(o.pagado).toFixed(2)}</td>
+        <td>$${parseFloat(o.pendiente).toFixed(2)}</td>
+
+        <td>
+          ${o.estatus === "Pagado"
+            ? `<span class="badge bg-success">Pagado</span>`
+            : `<span class="badge bg-warning">${o.estatus}</span>`}
+        </td>
+
+        <td style="white-space: nowrap; vertical-align: middle;">
+          ${o.fecha ? new Date(new Date(o.fecha).getTime() + 6 * 60 * 60 * 1000).toLocaleDateString("es-MX") : ""}
+        </td>
+
+        <td class="text-center">
+          ${o.estatus === "Pagado"
+            ? `<button class="btn btn-secondary btn-sm" disabled>
+                <i class="fas fa-check"></i> Pagado
+              </button>`
+            : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
+                <i class="fas fa-dollar-sign"></i> Pagar
+              </button>`}
+        </td>
+      </tr>
+    `).join("");
+
+  } catch (err) { 
+    console.error("Error cargando órdenes:", err);
+    // En caso de error, usa datos de ejemplo
+    ordenesData = datosEjemplo;
+    document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
+      <tr>
+        <td>${o.numero || o.expediente_numero || ''}</td>
+        <td class="text-truncate-cell" title="${o.paciente}">${o.paciente}</td>
+        <td>${o.medico || 'Pendiente'}</td>
+        <td>${o.diagnostico || 'Pendiente'}</td>
+        <td>${o.lado || 'Pendiente'}</td>
+        <td class="text-truncate-cell" title="${o.procedimiento}">${o.procedimiento}</td>
+        <td><span class="badge bg-info">${o.tipo}</span></td>
+        <td>$${parseFloat(o.precio).toFixed(2)}</td>
+        <td>$${parseFloat(o.pagado).toFixed(2)}</td>
+        <td>$${parseFloat(o.pendiente).toFixed(2)}</td>
+        <td>
+          ${o.estatus === "Pagado"
+            ? `<span class="badge bg-success">Pagado</span>`
+            : `<span class="badge bg-warning">${o.estatus}</span>`}
+        </td>
+        <td style="white-space: nowrap; vertical-align: middle;">
+          ${o.fecha ? new Date(new Date(o.fecha).getTime() + 6 * 60 * 60 * 1000).toLocaleDateString("es-MX") : ""}
+        </td>
+        <td class="text-center">
+          ${o.estatus === "Pagado"
+            ? `<button class="btn btn-secondary btn-sm" disabled>
+                <i class="fas fa-check"></i> Pagado
+              </button>`
+            : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
+                <i class="fas fa-dollar-sign"></i> Pagar
+              </button>`}
+        </td>
+      </tr>
+    `).join("");
+  }
+}
+
+// Abrir modal de pago
     function abrirPago(index) {
       const o = ordenesData[index];
       document.getElementById("formPago").reset();
@@ -624,6 +630,22 @@
     document.addEventListener("DOMContentLoaded", function() {
       cargarOrdenes();
     });
+// Actualizar campo específico de una orden
+async function actualizarCampo(id, campo, valor) {
+  if (!valor.trim()) return;
+  try {
+    const res = await fetch(`/api/ordenes_medicas/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ [campo]: valor })
+    });
+    if (!res.ok) throw new Error("Error al actualizar");
+  } catch (err) {
+    console.error(err);
+    Swal.fire("Error", "No se pudo actualizar el campo", "error");
+  }
+}
+
   </script>
 </body>
 </html>
