@@ -453,13 +453,13 @@ async function cargarOrdenes() {
         <td class="text-truncate-cell" title="${o.paciente}">${o.paciente}</td>
         
         <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'medico', this.innerText)">
-          ${o.medico || 'Pendiente'}
+          ${o.medico || 'Null'}
         </td>
         <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'diagnostico', this.innerText)">
-          ${o.diagnostico || 'Pendiente'}
+          ${o.diagnostico || 'Null'}
         </td>
         <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'lado', this.innerText)">
-          ${o.lado || 'Pendiente'}
+          ${o.lado || 'Null'}
         </td>
 
         <td class="text-truncate-cell" title="${o.procedimiento}">${o.procedimiento}</td>

@@ -1079,9 +1079,60 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
   }
 });
 
+// ==================== ACTUALIZAR CAMPO DE ORDEN MÉDICA ====================
+app.put("/api/ordenes_medicas/:id", verificarSesion, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { medico, diagnostico, lado } = req.body;
+    const depto = getDepartamento(req);
+
+    // Determinar qué campo se envió
+    const campos = [];
+    const valores = [];
+    let idx = 1;
+
+    if (medico !== undefined) {
+      campos.push(`medico = $${idx++}`);
+      valores.push(medico);
+    }
+    if (diagnostico !== undefined) {
+      campos.push(`diagnostico = $${idx++}`);
+      valores.push(diagnostico);
+    }
+    if (lado !== undefined) {
+      campos.push(`lado = $${idx++}`);
+      valores.push(lado);
+    }
+
+    if (campos.length === 0) {
+      return res.status(400).json({ error: "No se enviaron campos válidos" });
+    }
+
+    // Construir y ejecutar la actualización dinámica
+    const query = `
+      UPDATE ordenes_medicas
+      SET ${campos.join(", ")}
+      WHERE id = $${idx} AND departamento = $${idx + 1}
+      RETURNING *;
+    `;
+    valores.push(id, depto);
+
+    const result = await pool.query(query, valores);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Orden no encontrada" });
+    }
+
+    res.json({ mensaje: "✅ Campo actualizado correctamente", orden: result.rows[0] });
+
+  } catch (err) {
+    console.error("Error en PUT /api/ordenes_medicas/:id:", err);
+    res.status(500).json({ error: "Error al actualizar la orden médica" });
+  }
+});
 
 
-// ==================== PAGOS ====================
+
 // ==================== PAGOS ====================
 // Registrar un pago para una orden (usando orden_id del frontend)
 app.post("/api/pagos", verificarSesion, async (req, res) => {
@@ -1766,7 +1817,6 @@ app.post('/api/set-departamento', isAdmin, (req, res) => {
 
 
 // ==================== MODULO DE AGENDA QUIRÚRGICA ====================
-
 // Obtener órdenes médicas
 app.get("/api/ordenes", verificarSesion, async (req, res) => {
   try {
