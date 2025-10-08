@@ -593,6 +593,9 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 
     // Si es una orden de cirugía, crear orden médica y agenda
     if (tipo === "OrdenCirugia") {
+      // 📅 Obtener fecha local exacta sin desfase (México)
+      const fechaLocal = fechaLocalMX();
+
       // Crear orden médica y reflejar el pago
       const orden = await pool.query(
         `INSERT INTO ordenes_medicas (
@@ -604,7 +607,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
            $7::date, NULL, $8, 'Pendiente'
          )
          RETURNING id`,
-        [paciente_id, recibo.id, procedimiento, tipo, precio, monto_pagado, fecha, depto]
+        [paciente_id, recibo.id, procedimiento, tipo, precio, monto_pagado, fechaLocal, depto]
       );
 
       const ordenId = orden.rows[0].id;
@@ -613,14 +616,14 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
       await pool.query(
         `INSERT INTO pagos (orden_id, monto, forma_pago, fecha, departamento)
          VALUES ($1, $2::numeric, $3, $4::date, $5)`,
-        [ordenId, monto_pagado, forma_pago, fecha, depto]
+        [ordenId, monto_pagado, forma_pago, fechaLocal, depto]
       );
 
       // Insertar en agenda quirúrgica (sin nombre_paciente)
       await pool.query(
         `INSERT INTO agenda_quirurgica (paciente_id, procedimiento, fecha, departamento, recibo_id, orden_id)
          VALUES ($1, $2, $3::date, $4, $5, $6)`,
-        [paciente_id, procedimiento, fecha, depto, recibo.id, ordenId]
+        [paciente_id, procedimiento, fechaLocal, depto, recibo.id, ordenId]
       );
     }
 
@@ -630,6 +633,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
     res.status(500).json({ error: "Error al guardar recibo", detalle: err.message });
   }
 });
+
 
 
 
