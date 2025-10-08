@@ -106,7 +106,7 @@ app.get('/api/check-session', (req, res) => {
 
 // ==================== NOTIFICACIONES ====================
 
-// Obtener notificaciones
+// 📥 Obtener notificaciones
 app.get("/api/notificaciones", verificarSesion, async (req, res) => {
   try {
     const user = req.session.usuario?.username || "desconocido";
@@ -114,41 +114,51 @@ app.get("/api/notificaciones", verificarSesion, async (req, res) => {
 
     let result;
     if (rol === "admin") {
-      // Admin ve todas
-      result = await pool.query(
-        "SELECT id, mensaje, usuario, fecha FROM notificaciones ORDER BY fecha DESC LIMIT 50"
-      );
+      // 🔹 Admin ve todas las notificaciones
+      result = await pool.query(`
+        SELECT id, mensaje, usuario, fecha 
+        FROM notificaciones 
+        ORDER BY fecha DESC 
+        LIMIT 50
+      `);
     } else {
-      // Usuario normal solo ve las suyas
-      result = await pool.query(
-        "SELECT id, mensaje, usuario, fecha FROM notificaciones WHERE usuario = $1 ORDER BY fecha DESC LIMIT 20",
-        [user]
-      );
+      // 🔹 Usuario normal ve solo las suyas
+      result = await pool.query(`
+        SELECT id, mensaje, usuario, fecha 
+        FROM notificaciones 
+        WHERE usuario = $1 
+        ORDER BY fecha DESC 
+        LIMIT 20
+      `, [user]);
     }
 
     res.json(result.rows);
   } catch (err) {
-    console.error("Error obteniendo notificaciones:", err);
+    console.error("❌ Error obteniendo notificaciones:", err);
     res.status(500).json({ error: "No se pudieron cargar las notificaciones" });
   }
 });
 
-// Registrar cuando un usuario cambia su contraseña
+// 📤 Registrar cuando un usuario cambia su contraseña
 app.post("/api/notificacion/cambio-password", verificarSesion, async (req, res) => {
   try {
     const user = req.session.usuario?.username || "desconocido";
+    const fechaMX = fechaLocalMX();
+
     await pool.query(
-      "INSERT INTO notificaciones (mensaje, usuario) VALUES ($1, $2)",
-      [`🔑 El usuario ${user} cambió su contraseña`, user]
+      `INSERT INTO notificaciones (mensaje, usuario, fecha) 
+       VALUES ($1, $2, $3)`,
+      [`🔑 El usuario ${user} cambió su contraseña`, user, fechaMX]
     );
+
     res.json({ ok: true });
   } catch (err) {
-    console.error("Error registrando notificación de contraseña:", err);
+    console.error("❌ Error registrando notificación de contraseña:", err);
     res.status(500).json({ error: "No se pudo registrar notificación" });
   }
 });
 
-// Registrar cuando un admin crea un usuario nuevo
+// 📤 Registrar cuando un admin crea un nuevo usuario
 app.post("/api/notificacion/nuevo-usuario", isAdmin, async (req, res) => {
   try {
     const { nuevo } = req.body;
@@ -156,16 +166,42 @@ app.post("/api/notificacion/nuevo-usuario", isAdmin, async (req, res) => {
       return res.status(400).json({ error: "Falta nombre del nuevo usuario" });
     }
 
+    const fechaMX = fechaLocalMX();
     await pool.query(
-      "INSERT INTO notificaciones (mensaje, usuario) VALUES ($1, $2)",
-      [`👤 Se creó un nuevo usuario: ${nuevo}`, nuevo]
+      `INSERT INTO notificaciones (mensaje, usuario, fecha) 
+       VALUES ($1, $2, $3)`,
+      [`👤 Se creó un nuevo usuario: ${nuevo}`, nuevo, fechaMX]
     );
+
     res.json({ ok: true });
   } catch (err) {
-    console.error("Error registrando notificación de nuevo usuario:", err);
+    console.error("❌ Error registrando notificación de nuevo usuario:", err);
     res.status(500).json({ error: "No se pudo registrar notificación" });
   }
 });
+
+// 📤 Registrar notificación cuando se elimina un usuario (solo admin)
+app.post("/api/notificacion/usuario-eliminado", isAdmin, async (req, res) => {
+  try {
+    const { eliminado } = req.body;
+    if (!eliminado) {
+      return res.status(400).json({ error: "Falta nombre del usuario eliminado" });
+    }
+
+    const fechaMX = fechaLocalMX();
+    await pool.query(
+      `INSERT INTO notificaciones (mensaje, usuario, fecha) 
+       VALUES ($1, $2, $3)`,
+      [`🗑️ El usuario ${eliminado} fue eliminado por un administrador`, 'admin', fechaMX]
+    );
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("❌ Error registrando notificación de usuario eliminado:", err);
+    res.status(500).json({ error: "No se pudo registrar notificación" });
+  }
+});
+
 
 
 // ==================== LOGOUT ====================
