@@ -765,8 +765,9 @@ app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
     // 1️⃣ Insertar el abono en abonos_recibos
     await client.query(
       `INSERT INTO abonos_recibos (recibo_id, monto, forma_pago, fecha, departamento)
-       VALUES ($1, $2, $3, NOW(), $4)`,
-      [id, monto, forma_pago, depto]
+ VALUES ($1, $2, $3, $4, $5)`,
+[id, monto, forma_pago, fechaLocalMX(), depto]
+
     );
 
     // 2️⃣ Actualizar monto_pagado en el recibo
@@ -812,8 +813,9 @@ app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
         // Registrar el pago también en la tabla pagos (para el historial y cierre de caja)
         await client.query(
           `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
-           VALUES ($1, $2, $3, $4, NOW(), $5)`,
-          [orden.id, orden.expediente_id, monto, forma_pago, depto]
+ VALUES ($1, $2, $3, $4, $5, $6)`,
+[orden.id, orden.expediente_id, monto, forma_pago, fechaLocalMX(), depto]
+
         );
       }
     }
@@ -1197,11 +1199,12 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 
     // 2️⃣ Registrar el pago
     const pagoResult = await client.query(
-      `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
-       VALUES ($1, $2, $3, $4, NOW(), $5)
-       RETURNING *`,
-      [orden.id, orden.expediente_id, monto, forma_pago, depto]
-    );
+  `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
+   VALUES ($1, $2, $3, $4, $5, $6)
+   RETURNING *`,
+  [orden.id, orden.expediente_id, monto, forma_pago, fechaLocalMX(), depto]
+);
+
 
     // 3️⃣ Calcular nuevos totales de la orden
     const nuevoPagado = Number(orden.pagado || 0) + monto;
@@ -1403,7 +1406,8 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
         $29,$30,$31,
         $32,$33,
         $34,$35,
-        NOW(), $36
+        NOW(),$36, $37
+
       )
       RETURNING *`,
       [
