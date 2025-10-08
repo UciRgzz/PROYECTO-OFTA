@@ -83,16 +83,24 @@ function isAdmin(req, res, next) {
 }
 
 // ==================== FUNCIÓN: Fecha local México sin desfase ====================
-function fechaLocalMX() {
+// ==================== FUNCIÓN: Fecha y hora local México ====================
+function fechaHoraLocalMX() {
   const now = new Date();
-  const mxOffset = -6; // Zona horaria Ciudad de México (UTC-6)
-  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-  const local = new Date(utc + 3600000 * mxOffset);
-  const yyyy = local.getFullYear();
-  const mm = String(local.getMonth() + 1).padStart(2, "0");
-  const dd = String(local.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`; // formato YYYY-MM-DD
+  // Forzar zona horaria de Ciudad de México
+  return new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "America/Mexico_City",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false
+  })
+    .format(now)
+    .replace(" ", "T"); // formato tipo 2025-10-08T09:23:15
 }
+
 
 
 // ==================== CHECK SESSION ====================
@@ -369,11 +377,12 @@ app.post('/api/reset-password', async (req, res) => {
     );
 
     // Registrar notificación en la BD
-    const username = user.rows[0].username;
-    await pool.query(
-      "INSERT INTO notificaciones (mensaje, usuario) VALUES ($1, $2)",
-      [`🔑 El usuario ${username} cambió su contraseña`, username]
-    );
+   const fechaMX = fechaHoraLocalMX();
+await pool.query(
+  "INSERT INTO notificaciones (mensaje, usuario, fecha) VALUES ($1, $2, $3)",
+  [`🔑 El usuario ${user} cambió su contraseña`, user, fechaMX]
+);
+
 
     res.json({ mensaje: 'Contraseña restablecida con éxito' });
   } catch (err) {
@@ -2143,6 +2152,33 @@ app.get('/api/mis-permisos', verificarSesion, async (req, res) => {
     res.status(500).json([]);
   }
 });
+
+//============ MODULO DE NOTIFICACIONES ============//
+async function actualizarNotificaciones() {
+  const res = await fetch("/api/notificaciones");
+  if (!res.ok) return;
+  const notifs = await res.json();
+
+  const contenedor = document.getElementById("listaNotificaciones");
+  const contador = document.getElementById("contadorNotifs");
+
+  contenedor.innerHTML = "";
+  notifs.forEach(n => {
+    const fecha = new Date(n.fecha);
+    const f = fecha.toLocaleString("es-MX", {
+      timeZone: "America/Mexico_City",
+      dateStyle: "short",
+      timeStyle: "short"
+    });
+    contenedor.innerHTML += `<div class="notif-item"> ${n.mensaje} — ${f}</div>`;
+  });
+
+  contador.textContent = notifs.length;
+}
+
+// Llamar al cargar y luego cada 30 segundos
+actualizarNotificaciones();
+setInterval(actualizarNotificaciones, 30000);
 
 
 
