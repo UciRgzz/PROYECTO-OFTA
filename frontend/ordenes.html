@@ -527,8 +527,11 @@ async function cargarOrdenes() {
           ${o.estatus === "Pagado"
             ? `<span class="badge bg-success">Pagado</span>`
             : `<span class="badge bg-warning">${o.estatus}</span>`}
-        </td>
-        <td>${o.fecha || ""}</td>
+        <td 
+        style="white-space: nowrap; vertical-align: middle;">
+  ${o.fecha ? new Date(o.fecha).toLocaleDateString("es-MX", { timeZone: "UTC" }) : ""}
+</td>
+
 
         <td class="text-center">
           ${o.estatus === "Pagado"
@@ -732,7 +735,10 @@ async function cargarOrdenesRango(desde, hasta) {
           ${o.estatus === "Pagado"
             ? `<span class="badge bg-success">Pagado</span>`
             : `<span class="badge bg-warning">${o.estatus}</span>`}
-        <td>${o.fecha || ""}</td>
+        <td style="white-space: nowrap; vertical-align: middle;">
+  ${o.fecha ? new Date(o.fecha).toLocaleDateString("es-MX", { timeZone: "UTC" }) : ""}
+</td>
+
 
 
         
