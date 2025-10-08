@@ -754,23 +754,7 @@ if (o.fecha) {
             : `<span class="badge bg-warning">${o.estatus}</span>`}
         </td>
 
-        <td style="white-space: nowrap; vertical-align: middle;">
-  ${(() => {
-    if (!o.fecha) return "";
-    const partes = o.fecha.split("T")[0].split("-");
-    if (partes.length === 3) {
-      const [anio, mes, dia] = partes;
-      return `${dia}/${mes}/${anio}`;
-    }
-    try {
-      const fecha = new Date(o.fecha);
-      return fecha.toLocaleDateString("es-MX", { timeZone: "America/Mexico_City" });
-    } catch {
-      return o.fecha;
-    }
-  })()}
-</td>
-
+        <td style="white-space: nowrap; vertical-align: middle;">${fechaFormateada}</td>
 
         <td class="text-center">
           ${o.estatus === "Pagado"
