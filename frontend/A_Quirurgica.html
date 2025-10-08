@@ -752,12 +752,13 @@
       }
 
       // Rellenar las celdas vacías del calendario
-      while (totalDias < 42) {
-        calendario.innerHTML += `<div class="empty-day"></div>`;
-        totalDias++;
-      }
+while (totalDias < 42) {
+  calendario.innerHTML += `<div class="empty-day"></div>`;
+  totalDias++;
+}
 
-      cargarOrdenes();
+// ❌ Se quita esta línea para evitar que borre la tabla
+// cargarOrdenes();
     }
 
     // ==================== CAMBIAR MES CALENDARIO ====================//
@@ -980,51 +981,56 @@
       });
     }
 
-// ====================== FILTRO DE FECHAS PARA ÓRDENES (corregido y fijo en hoy) ======================
-document.addEventListener("DOMContentLoaded", () => {
-  const hoy = moment();
+    // ====================== FILTRO DE FECHAS PARA ÓRDENES ======================
+    $(document).ready(function () {
+      $('#filtroRangoOrdenes').daterangepicker({
+        autoUpdateInput: false,
+        locale: {
+          format: 'DD/MM/YYYY',
+          separator: " - ",
+          applyLabel: "Aplicar",
+          cancelLabel: "Cancelar",
+          fromLabel: "Desde",
+          toLabel: "Hasta",
+          customRangeLabel: "Rango personalizado",
+          weekLabel: "S",
+          daysOfWeek: ["Do","Lu","Ma","Mi","Ju","Vi","Sa"],
+          monthNames: [
+            "Enero","Febrero","Marzo","Abril","Mayo","Junio",
+            "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
+          ],
+          firstDay: 1
+        },
+        ranges: {
+          'Hoy': [moment(), moment()],
+          'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+          'Últimos 7 Días': [moment().subtract(6, 'days'), moment()],
+          'Últimos 30 Días': [moment().subtract(29, 'days'), moment()],
+          'Este Mes': [moment().startOf('month'), moment().endOf('month')],
+          'Mes Pasado': [
+            moment().subtract(1, 'month').startOf('month'),
+            moment().subtract(1, 'month').endOf('month')
+          ]
+        }
+      });
 
-  $('#filtroRangoOrdenes').daterangepicker({
-    autoUpdateInput: true,
-    startDate: hoy,
-    endDate: hoy,
-    locale: {
-      format: 'DD/MM/YYYY',
-      separator: " - ",
-      applyLabel: "Aplicar",
-      cancelLabel: "Cancelar",
-      fromLabel: "Desde",
-      toLabel: "Hasta",
-      customRangeLabel: "Rango personalizado",
-      weekLabel: "S",
-      daysOfWeek: ["Do","Lu","Ma","Mi","Ju","Vi","Sa"],
-      monthNames: [
-        "Enero","Febrero","Marzo","Abril","Mayo","Junio",
-        "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
-      ],
-      firstDay: 1
-    }
-  });
+      // Cuando aplica el rango
+      $('#filtroRangoOrdenes').on('apply.daterangepicker', function(ev, picker) {
+        $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+        cargarOrdenesPorRango(picker.startDate.format("YYYY-MM-DD"), picker.endDate.format("YYYY-MM-DD"));
+      });
 
-  // 🔹 Mostrar siempre el día actual al iniciar
-  $('#filtroRangoOrdenes').val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
+      // Cuando cancela
+      $('#filtroRangoOrdenes').on('cancel.daterangepicker', function(ev, picker) {
+        $(this).val('');
+        cargarOrdenes(); // todas
+      });
 
-  // 🔹 Cargar datos solo después de que el calendario esté listo
-  cargarOrdenesPorRango(hoy.format("YYYY-MM-DD"), hoy.format("YYYY-MM-DD"));
-
-  // 🔹 Mantener comportamiento normal al cambiar el rango
-  $('#filtroRangoOrdenes').on('apply.daterangepicker', function(ev, picker) {
-    $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
-    cargarOrdenesPorRango(picker.startDate.format("YYYY-MM-DD"), picker.endDate.format("YYYY-MM-DD"));
-  });
-
-  $('#filtroRangoOrdenes').on('cancel.daterangepicker', function() {
-    const hoy = moment();
-    $(this).val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
-    cargarOrdenesPorRango(hoy.format("YYYY-MM-DD"), hoy.format("YYYY-MM-DD"));
-  });
-});
-
+      // 🔹 Inicializar en Hoy automáticamente
+      const hoy = moment();
+      $('#filtroRangoOrdenes').val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
+      cargarOrdenesPorRango(hoy.format("YYYY-MM-DD"), hoy.format("YYYY-MM-DD"));
+    });
 
     // ====================== VISTA SEMANAL POR HORAS ======================
     function cambiarVista() {
