@@ -491,7 +491,8 @@ async function cargarOrdenes() {
         </td>
 
         <td style="white-space: nowrap; vertical-align: middle;">
-          ${o.fecha ? new Date(new Date(o.fecha).getTime() + 6 * 60 * 60 * 1000).toLocaleDateString("es-MX") : ""}
+          ${o.fecha ? new Date(o.fecha + "T06:00:00").toLocaleDateString("es-MX") : ""}
+
         </td>
 
         <td class="text-center">
@@ -528,7 +529,7 @@ async function cargarOrdenes() {
             : `<span class="badge bg-warning">${o.estatus}</span>`}
         </td>
         <td style="white-space: nowrap; vertical-align: middle;">
-          ${o.fecha ? new Date(new Date(o.fecha).getTime() + 6 * 60 * 60 * 1000).toLocaleDateString("es-MX") : ""}
+          ${o.fecha ? new Date(o.fecha + "T06:00:00").toLocaleDateString("es-MX") : ""}
         </td>
         <td class="text-center">
           ${o.estatus === "Pagado"
@@ -732,10 +733,11 @@ async function cargarOrdenesRango(desde, hasta) {
           ${o.estatus === "Pagado"
             ? `<span class="badge bg-success">Pagado</span>`
             : `<span class="badge bg-warning">${o.estatus}</span>`}
-       <td style="white-space: nowrap; vertical-align: middle;">
-  ${o.fecha ? new Date(o.fecha).toLocaleDateString("es-MX") : ""}
-</td>
-
+        <td>${
+  o.fecha
+    ? new Date(new Date(o.fecha).getTime() + (6 * 60 * 60 * 1000)).toLocaleDateString("es-MX")
+    : ""
+}</td>
 
         
         <td class="text-center">
