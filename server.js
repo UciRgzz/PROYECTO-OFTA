@@ -1048,9 +1048,9 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 
     await client.query("BEGIN");
 
-    // 1. Obtener la orden
+    // 1️⃣ Obtener la orden médica
     const ordenResult = await client.query(
-      `SELECT id, expediente_id, tipo, precio, pagado, pendiente
+      `SELECT id, expediente_id, tipo, precio, pagado, pendiente, folio_recibo
        FROM ordenes_medicas
        WHERE id = $1 AND departamento = $2`,
       [orden_id, depto]
@@ -1063,7 +1063,7 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 
     const orden = ordenResult.rows[0];
 
-    // 2. Insertar el pago
+    // 2️⃣ Insertar el pago
     const pagoResult = await client.query(
       `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
        VALUES ($1, $2, $3, $4, NOW(), $5)
@@ -1071,34 +1071,40 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
       [orden.id, orden.expediente_id, monto, forma_pago, depto]
     );
 
-    // 3. Recalcular totales
+    // 3️⃣ Recalcular totales de la orden
     const nuevoPagado = Number(orden.pagado || 0) + monto;
-    const pendiente = Math.max(0, Number(orden.precio || 0) - nuevoPagado);
-    const estatus = pendiente <= 0 ? "Pagado" : "Pendiente";
+    const nuevoPendiente = Math.max(0, Number(orden.precio || 0) - nuevoPagado);
+    const nuevoEstatus = nuevoPendiente <= 0 ? "Pagado" : "Pendiente";
 
-    // 4. Actualizar la orden médica
     await client.query(
       `UPDATE ordenes_medicas
        SET pagado = $1, pendiente = $2, estatus = $3
        WHERE id = $4 AND departamento = $5`,
-      [nuevoPagado, pendiente, estatus, orden.id, depto]
+      [nuevoPagado, nuevoPendiente, nuevoEstatus, orden.id, depto]
     );
 
-    // ✅ No actualizar recibos en ningún caso
-    // Los abonos a recibos se gestionan en su propio módulo (/api/recibos/:id/abonos)
+    // 4️⃣ Si la orden pertenece a un recibo (folio_recibo), sincronizar también el recibo
+    if (orden.folio_recibo) {
+      await client.query(
+        `UPDATE recibos
+         SET monto_pagado = monto_pagado + $1
+         WHERE id = $2 AND departamento = $3`,
+        [monto, orden.folio_recibo, depto]
+      );
+    }
 
     await client.query("COMMIT");
 
     res.json({
-      mensaje: "Pago registrado correctamente",
+      mensaje: "✅ Pago registrado correctamente",
       pago: pagoResult.rows[0],
       totalPagado: nuevoPagado,
-      pendiente
+      pendiente: nuevoPendiente
     });
 
   } catch (err) {
     await client.query("ROLLBACK");
-    console.error("Error en /api/pagos:", err);
+    console.error("❌ Error en /api/pagos:", err);
     res.status(500).json({ error: err.message });
   } finally {
     client.release();
