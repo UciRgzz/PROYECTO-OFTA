@@ -433,369 +433,364 @@
   <script>
     let ordenesData = [];
 
-    // ==================== FUNCIÓN AUXILIAR PARA FECHAS ====================
-    function formatearFecha(fechaString) {
-        if (!fechaString) return "";
-        
-        try {
-            // Crear fecha y ajustar por zona horaria de México
-            const fecha = new Date(fechaString);
-            
-            // Ajustar para zona horaria de México (UTC-6)
-            const offsetLocal = fecha.getTimezoneOffset();
-            const offsetMX = -6 * 60; // UTC-6 para Ciudad de México
-            const diferencia = offsetMX - offsetLocal;
-            
-            const fechaAjustada = new Date(fecha.getTime() + diferencia * 60000);
-            
-            const day = fechaAjustada.getDate().toString().padStart(2, '0');
-            const month = (fechaAjustada.getMonth() + 1).toString().padStart(2, '0');
-            const year = fechaAjustada.getFullYear();
-            
-            return `${day}/${month}/${year}`;
-        } catch (e) {
-            console.error("Error formateando fecha:", e);
-            return fechaString;
-        }
-    }
-
     // Datos de ejemplo basados en tu imagen
     const datosEjemplo = [
-        {
-            numero: 3,
-            paciente: "Ana Sofía Hernández López",
-            medico: "Jose Manuel L.",
-            diagnostico: "mckd",
-            lado: "OD",
-            procedimiento: "Cirugía de Catarata",
-            tipo: "Normal",
-            precio: 8000.00,
-            pagado: 300.00,
-            pendiente: 7700.00,
-            estatus: "Pendiente",
-            fecha: "2025-09-22",
-            orden_id: 3
-        }
+      {
+        numero: 3,
+        paciente: "Ana Sofía Hernández López",
+        medico: "Jose Manuel L.",
+        diagnostico: "mckd",
+        lado: "OD",
+        procedimiento: "Cirugía de Catarata",
+        tipo: "Normal",
+        precio: 8000.00,
+        pagado: 300.00,
+        pendiente: 7700.00,
+        estatus: "Pendiente",
+        fecha: "2025-09-22",
+        orden_id: 3
+      }
     ];
-
-    // Cargar órdenes desde la API o usar datos de ejemplo
-    async function cargarOrdenes() {
-        try {
-            // Intenta cargar datos desde la API
-            const res = await fetch("/api/ordenes_medicas");
-            if (res.ok) {
-                ordenesData = await res.json();
-            } else {
-                // Si falla la API, usa datos de ejemplo
-                ordenesData = datosEjemplo;
-            }
-            
-            document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
-                <tr>
-                    <td>${o.numero || o.expediente_numero || ''}</td>
-                    <td class="text-truncate-cell" title="${o.paciente}">${o.paciente}</td>
-                    
-                    <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'medico', this.innerText)">
-                        ${o.medico || 'Null'}
-                    </td>
-                    <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'diagnostico', this.innerText)">
-                        ${o.diagnostico || 'Null'}
-                    </td>
-                    <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'lado', this.innerText)">
-                        ${o.lado || 'Null'}
-                    </td>
-
-                    <td class="text-truncate-cell" title="${o.procedimiento}">${o.procedimiento}</td>
-                    <td><span class="badge bg-info">${o.tipo}</span></td>
-                    <td>$${parseFloat(o.precio).toFixed(2)}</td>
-                    <td>$${parseFloat(o.pagado).toFixed(2)}</td>
-                    <td>$${parseFloat(o.pendiente).toFixed(2)}</td>
-
-                    <td>
-                        ${o.estatus === "Pagado"
-                            ? `<span class="badge bg-success">Pagado</span>`
-                            : `<span class="badge bg-warning">${o.estatus}</span>`}
-                    </td>
-
-                    <td style="white-space: nowrap; vertical-align: middle;">
-                        ${formatearFecha(o.fecha)}
-                    </td>
-
-                    <td class="text-center">
-                        ${o.estatus === "Pagado"
-                            ? `<button class="btn btn-secondary btn-sm" disabled>
-                                <i class="fas fa-check"></i> Pagado
-                            </button>`
-                            : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
-                                <i class="fas fa-dollar-sign"></i> Pagar
-                            </button>`}
-                    </td>
-                </tr>
-            `).join("");
-
-        } catch (err) { 
-            console.error("Error cargando órdenes:", err);
-            // En caso de error, usa datos de ejemplo
-            ordenesData = datosEjemplo;
-            document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
-                <tr>
-                    <td>${o.numero || o.expediente_numero || ''}</td>
-                    <td class="text-truncate-cell" title="${o.paciente}">${o.paciente}</td>
-                    <td>${o.medico || 'Pendiente'}</td>
-                    <td>${o.diagnostico || 'Pendiente'}</td>
-                    <td>${o.lado || 'Pendiente'}</td>
-                    <td class="text-truncate-cell" title="${o.procedimiento}">${o.procedimiento}</td>
-                    <td><span class="badge bg-info">${o.tipo}</span></td>
-                    <td>$${parseFloat(o.precio).toFixed(2)}</td>
-                    <td>$${parseFloat(o.pagado).toFixed(2)}</td>
-                    <td>$${parseFloat(o.pendiente).toFixed(2)}</td>
-                    <td>
-                        ${o.estatus === "Pagado"
-                            ? `<span class="badge bg-success">Pagado</span>`
-                            : `<span class="badge bg-warning">${o.estatus}</span>`}
-                    </td>
-                    <td style="white-space: nowrap; vertical-align: middle;">
-                        ${formatearFecha(o.fecha)}
-                    </td>
-
-                    <td class="text-center">
-                        ${o.estatus === "Pagado"
-                            ? `<button class="btn btn-secondary btn-sm" disabled>
-                                <i class="fas fa-check"></i> Pagado
-                            </button>`
-                            : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
-                                <i class="fas fa-dollar-sign"></i> Pagar
-                            </button>`}
-                    </td>
-                </tr>
-            `).join("");
-        }
+// Cargar órdenes desde la API o usar datos de ejemplo
+async function cargarOrdenes() {
+  try {
+    // Intenta cargar datos desde la API
+    const res = await fetch("/api/ordenes_medicas");
+    if (res.ok) {
+      ordenesData = await res.json();
+    } else {
+      // Si falla la API, usa datos de ejemplo
+      ordenesData = datosEjemplo;
     }
-
-    // Abrir modal de pago
-    function abrirPago(index) {
-        const o = ordenesData[index];
-        document.getElementById("formPago").reset();
-        document.getElementById("orden_id").value = o.orden_id;
-        document.getElementById("pacientePago").textContent = o.paciente;
-        document.getElementById("procedimientoPago").textContent = o.procedimiento;
-        document.getElementById("precioPago").textContent = parseFloat(o.precio).toFixed(2);
-        document.getElementById("pagadoPago").textContent = parseFloat(o.pagado).toFixed(2);
-        document.getElementById("pendientePago").textContent = parseFloat(o.pendiente).toFixed(2);
-        document.getElementById("montoLiquidar").setAttribute("max", o.pendiente);
-        document.getElementById("montoLiquidar").value = "";
+    
+    document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
+      <tr>
+        <td>${o.numero || o.expediente_numero || ''}</td>
+        <td class="text-truncate-cell" title="${o.paciente}">${o.paciente}</td>
         
-        new bootstrap.Modal(document.getElementById("modalPago")).show();
+        <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'medico', this.innerText)">
+          ${o.medico || 'Null'}
+        </td>
+        <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'diagnostico', this.innerText)">
+          ${o.diagnostico || 'Null'}
+        </td>
+        <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'lado', this.innerText)">
+          ${o.lado || 'Null'}
+        </td>
+
+        <td class="text-truncate-cell" title="${o.procedimiento}">${o.procedimiento}</td>
+        <td><span class="badge bg-info">${o.tipo}</span></td>
+        <td>$${parseFloat(o.precio).toFixed(2)}</td>
+        <td>$${parseFloat(o.pagado).toFixed(2)}</td>
+        <td>$${parseFloat(o.pendiente).toFixed(2)}</td>
+
+        <td>
+          ${o.estatus === "Pagado"
+            ? `<span class="badge bg-success">Pagado</span>`
+            : `<span class="badge bg-warning">${o.estatus}</span>`}
+        </td>
+
+        <td style="white-space: nowrap; vertical-align: middle;">
+  ${o.fecha || ""}
+</td>
+
+
+        <td class="text-center">
+          ${o.estatus === "Pagado"
+            ? `<button class="btn btn-secondary btn-sm" disabled>
+                <i class="fas fa-check"></i> Pagado
+              </button>`
+            : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
+                <i class="fas fa-dollar-sign"></i> Pagar
+              </button>`}
+        </td>
+      </tr>
+    `).join("");
+
+  } catch (err) { 
+    console.error("Error cargando órdenes:", err);
+    // En caso de error, usa datos de ejemplo
+    ordenesData = datosEjemplo;
+    document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
+      <tr>
+        <td>${o.numero || o.expediente_numero || ''}</td>
+        <td class="text-truncate-cell" title="${o.paciente}">${o.paciente}</td>
+        <td>${o.medico || 'Pendiente'}</td>
+        <td>${o.diagnostico || 'Pendiente'}</td>
+        <td>${o.lado || 'Pendiente'}</td>
+        <td class="text-truncate-cell" title="${o.procedimiento}">${o.procedimiento}</td>
+        <td><span class="badge bg-info">${o.tipo}</span></td>
+        <td>$${parseFloat(o.precio).toFixed(2)}</td>
+        <td>$${parseFloat(o.pagado).toFixed(2)}</td>
+        <td>$${parseFloat(o.pendiente).toFixed(2)}</td>
+        <td>
+          ${o.estatus === "Pagado"
+            ? `<span class="badge bg-success">Pagado</span>`
+            : `<span class="badge bg-warning">${o.estatus}</span>`}
+        <td style="white-space: nowrap; vertical-align: middle;">
+  ${o.fecha ? new Date(o.fecha).toLocaleDateString("es-MX", { timeZone: "America/Mexico_City" }) : ""}
+</td>
+
+
+
+        <td class="text-center">
+          ${o.estatus === "Pagado"
+            ? `<button class="btn btn-secondary btn-sm" disabled>
+                <i class="fas fa-check"></i> Pagado
+              </button>`
+            : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
+                <i class="fas fa-dollar-sign"></i> Pagar
+              </button>`}
+        </td>
+      </tr>
+    `).join("");
+  }
+}
+
+// Abrir modal de pago
+    function abrirPago(index) {
+      const o = ordenesData[index];
+      document.getElementById("formPago").reset();
+      document.getElementById("orden_id").value = o.orden_id;
+      document.getElementById("pacientePago").textContent = o.paciente;
+      document.getElementById("procedimientoPago").textContent = o.procedimiento;
+      document.getElementById("precioPago").textContent = parseFloat(o.precio).toFixed(2);
+      document.getElementById("pagadoPago").textContent = parseFloat(o.pagado).toFixed(2);
+      document.getElementById("pendientePago").textContent = parseFloat(o.pendiente).toFixed(2);
+      document.getElementById("montoLiquidar").setAttribute("max", o.pendiente);
+      document.getElementById("montoLiquidar").value = "";
+      
+      new bootstrap.Modal(document.getElementById("modalPago")).show();
     }
 
     document.getElementById("formPago").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        
-        const ordenId = document.getElementById("orden_id").value;
-        const monto = parseFloat(document.getElementById("montoLiquidar").value);
-        const pendiente = parseFloat(document.getElementById("pendientePago").textContent);
-        
-        if (monto > pendiente) {
-            mostrarError("Error", "El monto no puede ser mayor al pendiente");
-            return;
-        }
-        
-        if (monto <= 0) {
-            mostrarError("Error", "El monto debe ser mayor a cero");
-            return;
-        }
+      e.preventDefault();
+      
+      const ordenId = document.getElementById("orden_id").value;
+      const monto = parseFloat(document.getElementById("montoLiquidar").value);
+      const pendiente = parseFloat(document.getElementById("pendientePago").textContent);
+      
+      if (monto > pendiente) {
+        mostrarError("Error", "El monto no puede ser mayor al pendiente");
+        return;
+      }
+      
+      if (monto <= 0) {
+        mostrarError("Error", "El monto debe ser mayor a cero");
+        return;
+      }
 
-        const data = {
-            orden_id: ordenId,
-            monto: monto,
-            forma_pago: document.getElementById("formaPago").value
-        };
+      const data = {
+        orden_id: ordenId,
+        monto: monto,
+        forma_pago: document.getElementById("formaPago").value
+      };
 
-        Swal.fire({
-            title: 'Procesando...',
-            text: 'Registrando el pago, por favor espera',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
+      Swal.fire({
+        title: 'Procesando...',
+        text: 'Registrando el pago, por favor espera',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      try {
+        const res = await fetch("/api/pagos", {
+          method: "POST", 
+          headers: { "Content-Type": "application/json" }, 
+          body: JSON.stringify(data)
         });
-
-        try {
-            const res = await fetch("/api/pagos", {
-                method: "POST", 
-                headers: { "Content-Type": "application/json" }, 
-                body: JSON.stringify(data)
-            });
-            
-            if (res.ok) {
-                mostrarExito("¡Éxito!", "Pago registrado con éxito");
-                
-                document.getElementById("formPago").reset();
-                bootstrap.Modal.getInstance(document.getElementById("modalPago")).hide();
-                cargarOrdenes();
-            } else {
-                const errorData = await res.json();
-                mostrarError("Error", errorData.error || 'No se pudo registrar el pago');
-            }
-        } catch (err) {
-            console.error("Error al registrar pago:", err);
-            mostrarError("Error", "Error de conexión al registrar el pago");
+        
+        if (res.ok) {
+          mostrarExito("¡Éxito!", "Pago registrado con éxito");
+          
+          document.getElementById("formPago").reset();
+          bootstrap.Modal.getInstance(document.getElementById("modalPago")).hide();
+          cargarOrdenes();
+        } else {
+          const errorData = await res.json();
+          mostrarError("Error", errorData.error || 'No se pudo registrar el pago');
         }
+      } catch (err) {
+        console.error("Error al registrar pago:", err);
+        mostrarError("Error", "Error de conexión al registrar el pago");
+      }
     });
 
     // Mostrar mensaje de éxito
     function mostrarExito(titulo, mensaje) {
-        document.getElementById('successMessage').textContent = mensaje;
-        document.getElementById('successAlert').style.display = 'block';
-        
-        setTimeout(() => {
-            document.getElementById('successAlert').style.display = 'none';
-        }, 5000);
-        
-        Swal.fire({
-            icon: 'success',
-            title: titulo,
-            text: mensaje,
-            timer: 3000,
-            showConfirmButton: false
-        });
+      document.getElementById('successMessage').textContent = mensaje;
+      document.getElementById('successAlert').style.display = 'block';
+      
+      setTimeout(() => {
+        document.getElementById('successAlert').style.display = 'none';
+      }, 5000);
+      
+      Swal.fire({
+        icon: 'success',
+        title: titulo,
+        text: mensaje,
+        timer: 3000,
+        showConfirmButton: false
+      });
     }
 
     // Mostrar error
     function mostrarError(titulo, mensaje) {
-        Swal.fire({
-            icon: 'error',
-            title: titulo,
-            text: mensaje
-        });
+      Swal.fire({
+        icon: 'error',
+        title: titulo,
+        text: mensaje
+      });
     }
 
     // Cargar órdenes al inicio
     document.addEventListener("DOMContentLoaded", function() {
-        cargarOrdenes();
+      cargarOrdenes();
     });
 
-    // ==================== Inicializar filtro de rango de fechas ====================
-    $(document).ready(function () {
-        const hoy = moment();
+// ==================== Inicializar filtro de rango de fechas ====================
+$(document).ready(function () {
+  const hoy = moment();
 
-        // Configuración inicial del daterangepicker
-        $('#filtroRango').daterangepicker({
-            autoUpdateInput: true,
-            startDate: hoy,
-            endDate: hoy,
-            locale: {
-                format: 'DD/MM/YYYY',
-                separator: ' - ',
-                applyLabel: 'Aplicar',
-                cancelLabel: 'Cancelar',
-                fromLabel: 'Desde',
-                toLabel: 'Hasta',
-                daysOfWeek: ['Do','Lu','Ma','Mi','Ju','Vi','Sa'],
-                monthNames: [
-                    'Enero','Febrero','Marzo','Abril','Mayo','Junio',
-                    'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'
-                ],
-                firstDay: 1
-            },
-            ranges: {
-                'Hoy': [moment(), moment()],
-                'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-                'Últimos 7 días': [moment().subtract(6, 'days'), moment()],
-                'Últimos 30 días': [moment().subtract(29, 'days'), moment()],
-                'Este mes': [moment().startOf('month'), moment().endOf('month')],
-                'Mes pasado': [
-                    moment().subtract(1, 'month').startOf('month'),
-                    moment().subtract(1, 'month').endOf('month')
-                ]
-            }
-        });
+  // Configuración inicial del daterangepicker
+  $('#filtroRango').daterangepicker({
+    autoUpdateInput: true,
+    startDate: hoy,
+    endDate: hoy,
+    locale: {
+      format: 'DD/MM/YYYY',
+      separator: ' - ',
+      applyLabel: 'Aplicar',
+      cancelLabel: 'Cancelar',
+      fromLabel: 'Desde',
+      toLabel: 'Hasta',
+      daysOfWeek: ['Do','Lu','Ma','Mi','Ju','Vi','Sa'],
+      monthNames: [
+        'Enero','Febrero','Marzo','Abril','Mayo','Junio',
+        'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'
+      ],
+      firstDay: 1
+    },
+    ranges: {
+      'Hoy': [moment(), moment()],
+      'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+      'Últimos 7 días': [moment().subtract(6, 'days'), moment()],
+      'Últimos 30 días': [moment().subtract(29, 'days'), moment()],
+      'Este mes': [moment().startOf('month'), moment().endOf('month')],
+      'Mes pasado': [
+        moment().subtract(1, 'month').startOf('month'),
+        moment().subtract(1, 'month').endOf('month')
+      ]
+    }
+  });
 
-        // Mostrar la fecha actual en el input
-        $('#filtroRango').val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
+  // Mostrar la fecha actual en el input
+  $('#filtroRango').val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
 
-        // Cargar automáticamente las órdenes de hoy al abrir la página
-        cargarOrdenesRango(hoy.format('YYYY-MM-DD'), hoy.format('YYYY-MM-DD'));
+  // Cargar automáticamente las órdenes de hoy al abrir la página
+  cargarOrdenesRango(hoy.format('YYYY-MM-DD'), hoy.format('YYYY-MM-DD'));
 
-        // Cuando el usuario aplica un nuevo rango de fechas
-        $('#filtroRango').on('apply.daterangepicker', function (ev, picker) {
-            $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
-            cargarOrdenesRango(picker.startDate.format('YYYY-MM-DD'), picker.endDate.format('YYYY-MM-DD'));
-        });
+  // Cuando el usuario aplica un nuevo rango de fechas
+  $('#filtroRango').on('apply.daterangepicker', function (ev, picker) {
+    $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+    cargarOrdenesRango(picker.startDate.format('YYYY-MM-DD'), picker.endDate.format('YYYY-MM-DD'));
+  });
 
-        // Si cancela el filtro, volver a mostrar "Hoy"
-        $('#filtroRango').on('cancel.daterangepicker', function () {
-            $(this).val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
-            cargarOrdenesRango(hoy.format('YYYY-MM-DD'), hoy.format('YYYY-MM-DD'));
-        });
+  // Si cancela el filtro, volver a mostrar "Hoy"
+  $('#filtroRango').on('cancel.daterangepicker', function () {
+    $(this).val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
+    cargarOrdenesRango(hoy.format('YYYY-MM-DD'), hoy.format('YYYY-MM-DD'));
+  });
+});
+
+
+// ==================== Cargar órdenes por rango ====================
+async function cargarOrdenesRango(desde, hasta) {
+  try {
+    const res = await fetch(`/api/ordenes_medicas?desde=${desde}&hasta=${hasta}`);
+    const data = await res.json();
+    ordenesData = data;
+
+    document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => {
+      // 🕓 Formateo seguro de fecha sin desfase (sin convertir a UTC)
+let fechaFormateada = "";
+if (o.fecha) {
+  // Si viene como "2025-10-07" o "2025-10-07T00:00:00.000Z"
+  const partes = o.fecha.split("T")[0].split("-"); // separar solo la parte de la fecha
+  if (partes.length === 3) {
+    const [anio, mes, dia] = partes;
+    fechaFormateada = `${dia}/${mes}/${anio}`;
+  } else {
+    fechaFormateada = o.fecha; // fallback si viene diferente
+  }
+}
+
+
+      return `
+      <tr>
+        <td>${o.numero || o.expediente_numero || ''}</td>
+        <td>${o.paciente}</td>
+
+        <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'medico', this.innerText)">
+          ${o.medico || 'Pendiente'}
+        </td>
+        <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'diagnostico', this.innerText)">
+          ${o.diagnostico || 'NULL'}
+        </td>
+        <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'lado', this.innerText)">
+          ${o.lado || 'NULL'}
+        </td>
+
+        <td>${o.procedimiento}</td>
+        <td><span class="badge bg-info">${o.tipo}</span></td>
+        <td>$${parseFloat(o.precio).toFixed(2)}</td>
+        <td>$${parseFloat(o.pagado).toFixed(2)}</td>
+        <td>$${parseFloat(o.pendiente).toFixed(2)}</td>
+        <td>
+          ${o.estatus === "Pagado"
+            ? `<span class="badge bg-success">Pagado</span>`
+            : `<span class="badge bg-warning">${o.estatus}</span>`}
+        </td>
+
+        <td style="white-space: nowrap; vertical-align: middle;">${fechaFormateada}</td>
+
+        <td class="text-center">
+          ${o.estatus === "Pagado"
+            ? `<button class="btn btn-secondary btn-sm" disabled>
+                <i class="fas fa-check"></i> Pagado
+              </button>`
+            : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
+                <i class="fas fa-dollar-sign"></i> Pagar
+              </button>`}
+        </td>
+      </tr>
+    `;
+    }).join('');
+  } catch (err) {
+    console.error("❌ Error cargando órdenes por rango:", err);
+  }
+}
+
+
+
+// ==================== Actualizar campo editable ====================
+async function actualizarCampo(id, campo, valor) {
+  if (!valor.trim()) return;
+  try {
+    const res = await fetch(`/api/ordenes_medicas/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ [campo]: valor })
     });
+    if (!res.ok) throw new Error("Error al actualizar");
+  } catch (err) {
+    console.error(err);
+    Swal.fire("Error", "No se pudo actualizar el campo", "error");
+  }
+}
 
-    // ==================== Cargar órdenes por rango ====================
-    async function cargarOrdenesRango(desde, hasta) {
-        try {
-            const res = await fetch(`/api/ordenes_medicas?desde=${desde}&hasta=${hasta}`);
-            const data = await res.json();
-            ordenesData = data;
-
-            document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
-                <tr>
-                    <td>${o.numero || o.expediente_numero || ''}</td>
-                    <td>${o.paciente}</td>
-
-                    <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'medico', this.innerText)">
-                        ${o.medico || 'Pendiente'}
-                    </td>
-                    <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'diagnostico', this.innerText)">
-                        ${o.diagnostico || 'NULL'}
-                    </td>
-                    <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'lado', this.innerText)">
-                        ${o.lado || 'NULL'}
-                    </td>
-
-                    <td>${o.procedimiento}</td>
-                    <td><span class="badge bg-info">${o.tipo}</span></td>
-                    <td>$${parseFloat(o.precio).toFixed(2)}</td>
-                    <td>$${parseFloat(o.pagado).toFixed(2)}</td>
-                    <td>$${parseFloat(o.pendiente).toFixed(2)}</td>
-                    <td>
-                        ${o.estatus === "Pagado"
-                            ? `<span class="badge bg-success">Pagado</span>`
-                            : `<span class="badge bg-warning">${o.estatus}</span>`}
-                    </td>
-
-                    <td style="white-space: nowrap; vertical-align: middle;">${formatearFecha(o.fecha)}</td>
-
-                    <td class="text-center">
-                        ${o.estatus === "Pagado"
-                            ? `<button class="btn btn-secondary btn-sm" disabled>
-                                <i class="fas fa-check"></i> Pagado
-                            </button>`
-                            : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
-                                <i class="fas fa-dollar-sign"></i> Pagar
-                            </button>`}
-                    </td>
-                </tr>
-            `).join('');
-        } catch (err) {
-            console.error("❌ Error cargando órdenes por rango:", err);
-        }
-    }
-
-    // ==================== Actualizar campo editable ====================
-    async function actualizarCampo(id, campo, valor) {
-        if (!valor.trim()) return;
-        try {
-            const res = await fetch(`/api/ordenes_medicas/${id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ [campo]: valor })
-            });
-            if (!res.ok) throw new Error("Error al actualizar");
-        } catch (err) {
-            console.error(err);
-            Swal.fire("Error", "No se pudo actualizar el campo", "error");
-        }
-    }
-</script>
+  </script>
 </body>
 </html>
