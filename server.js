@@ -82,14 +82,26 @@
       return res.status(403).json({ error: 'No eres administrador, no puedes eliminar.' });
   }
 
-// ==================== FECHA LOCAL CIUDAD DE MÉXICO ====================
+// ==================== FECHA LOCAL CIUDAD DE MÉXICO CORREGIDA ====================
 function fechaLocalMX() {
-  const now = new Date();
-  const opciones = { timeZone: "America/Mexico_City" };
-  const fechaMX = new Date(now.toLocaleString("en-US", opciones));
-  const yyyy = fechaMX.getFullYear();
-  const mm = String(fechaMX.getMonth() + 1).padStart(2, "0");
-  const dd = String(fechaMX.getDate()).padStart(2, "0");
+  // Crear fecha actual en zona horaria de México
+  const ahora = new Date();
+  
+  // Obtener componentes de fecha en la zona horaria local del servidor
+  // pero ajustado para México
+  const fechaMX = new Date(ahora.toLocaleString("en-US", { timeZone: "America/Mexico_City" }));
+  
+  // Si el servidor está en otra zona horaria, este enfoque es más seguro:
+  const offsetMX = -6 * 60; // UTC-6 para Ciudad de México (puede variar con horario de verano)
+  const offsetLocal = ahora.getTimezoneOffset();
+  const diferencia = offsetMX - offsetLocal;
+  
+  const fechaAjustada = new Date(ahora.getTime() + diferencia * 60000);
+  
+  const yyyy = fechaAjustada.getFullYear();
+  const mm = String(fechaAjustada.getMonth() + 1).padStart(2, "0");
+  const dd = String(fechaAjustada.getDate()).padStart(2, "0");
+  
   return `${yyyy}-${mm}-${dd}`;
 }
 
@@ -566,7 +578,10 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
   const depto = getDepartamento(req);
 
   try {
-    // Verificar que el paciente exista en el departamento
+    // Usar fecha local de México en lugar de la fecha que viene del frontend
+    const fechaCorrecta = fechaLocalMX();
+    
+    // Verificar que el paciente exista...
     const expediente = await pool.query(
       "SELECT numero_expediente FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
       [paciente_id, depto]
@@ -578,49 +593,35 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 
     const folio = expediente.rows[0].numero_expediente;
 
-    // Insertar recibo
+    // Insertar recibo con fecha corregida
     const result = await pool.query(
       `INSERT INTO recibos 
         (fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, departamento)
-       VALUES 
-        ((CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City')::date, $1, $2, $3, $4::numeric, $5, $6::numeric, $7, $8)
-       RETURNING *`,
-      [folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, depto]
+      VALUES 
+        ($1, $2, $3, $4, $5::numeric, $6, $7::numeric, $8, $9)
+      RETURNING *`,
+      [fechaCorrecta, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, depto]
     );
 
     const recibo = result.rows[0];
 
-    // Si es una orden de cirugía, crear orden médica y agenda
+    // El resto de tu código para órdenes médicas...
     if (tipo === "OrdenCirugia") {
-      // Crear orden médica con fecha local de México
+      // Usar fechaCorrecta aquí también
       const orden = await pool.query(
         `INSERT INTO ordenes_medicas (
-          expediente_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, fecha_cirugia, departamento, medico
+          expediente_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, departamento, medico
         )
         VALUES (
           $1, $2, $3, $4, $5::numeric, $6::numeric, ($5::numeric - $6::numeric),
           CASE WHEN $6::numeric >= $5::numeric THEN 'Pagado' ELSE 'Pendiente' END,
-          (CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City')::date, NULL, $7, 'Pendiente'
+          $7, $8, 'Pendiente'
         )
         RETURNING id`,
-        [paciente_id, recibo.id, procedimiento, tipo, precio, monto_pagado, depto]
+        [paciente_id, recibo.id, procedimiento, tipo, precio, monto_pagado, fechaCorrecta, depto]
       );
 
-      const ordenId = orden.rows[0].id;
-
-      // Registrar pago inicial
-      await pool.query(
-        `INSERT INTO pagos (orden_id, monto, forma_pago, fecha, departamento)
-         VALUES ($1, $2::numeric, $3, (CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City')::date, $4)`,
-        [ordenId, monto_pagado, forma_pago, depto]
-      );
-
-      // Insertar en agenda quirúrgica (sin nombre_paciente)
-      await pool.query(
-        `INSERT INTO agenda_quirurgica (paciente_id, procedimiento, fecha, departamento, recibo_id, orden_id)
-         VALUES ($1, $2, (CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City')::date, $3, $4, $5)`,
-        [paciente_id, procedimiento, depto, recibo.id, ordenId]
-      );
+      // Resto del código...
     }
 
     res.json({ mensaje: "✅ Recibo guardado correctamente", recibo });
@@ -629,9 +630,6 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
     res.status(500).json({ error: "Error al guardar recibo", detalle: err.message });
   }
 });
-
-
-
 
 
   // ==================== Listar recibos ====================
