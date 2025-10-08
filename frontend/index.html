@@ -850,14 +850,15 @@
   }
   cargarMenu();
 
-   // ==================== Notificaciones ====================
+  // ==================== Notificaciones ====================
   const bell = document.getElementById("bell");
   const notifDropdown = document.getElementById("notif-dropdown");
   const notifList = document.getElementById("notif-list");
   const notifCount = document.getElementById("notif-count");
 
-  // === Cargar notificaciones ===
-  async function cargarNotificaciones() {
+  let ultimaCantidad = 0; // almacena la cantidad anterior para detectar nuevas
+
+  async function cargarNotificaciones(marcarLeidas = false) {
     try {
       const res = await fetch("/api/notificaciones");
       if (!res.ok) throw new Error("Error al cargar notificaciones");
@@ -868,6 +869,7 @@
       if (!data || data.length === 0) {
         notifList.innerHTML = `<div class="notification-empty">No hay notificaciones</div>`;
         notifCount.style.display = "none";
+        ultimaCantidad = 0;
         return;
       }
 
@@ -882,20 +884,27 @@
         notifList.appendChild(div);
       });
 
-      notifCount.textContent = data.length;
-      notifCount.style.display = "inline-flex";
+      // Mostrar indicador solo si hay nuevas
+      if (!marcarLeidas && data.length > ultimaCantidad) {
+        notifCount.textContent = data.length - ultimaCantidad;
+        notifCount.style.display = "inline-flex";
+      } else if (marcarLeidas) {
+        notifCount.style.display = "none";
+      }
+
+      ultimaCantidad = data.length;
     } catch (err) {
       console.error("Error mostrando notificaciones:", err);
     }
   }
 
-  // === Mostrar/ocultar panel de notificaciones ===
+  // === Mostrar / ocultar panel ===
   if (bell && notifDropdown) {
     bell.addEventListener("click", async (e) => {
       e.stopPropagation();
-      notifDropdown.classList.toggle("show");
-      if (notifDropdown.classList.contains("show")) {
-        await cargarNotificaciones();
+      const isOpen = notifDropdown.classList.toggle("show");
+      if (isOpen) {
+        await cargarNotificaciones(true); // marcar como vistas
       }
     });
   }
@@ -906,12 +915,12 @@
 
   notifDropdown.addEventListener("click", e => e.stopPropagation());
 
-  // === 🔄 Recarga automática cada 15 segundos ===
+  // === 🔄 Revisar si hay nuevas cada 20s ===
   setInterval(() => {
     cargarNotificaciones();
-  }, 15000);
+  }, 20000);
 
-  // === 🔄 Carga inicial al entrar al sistema ===
+  // === Primera carga ===
   cargarNotificaciones();
 
 </script>
