@@ -527,10 +527,10 @@ async function cargarOrdenes() {
           ${o.estatus === "Pagado"
             ? `<span class="badge bg-success">Pagado</span>`
             : `<span class="badge bg-warning">${o.estatus}</span>`}
-        <td 
-        style="white-space: nowrap; vertical-align: middle;">
-  ${o.fecha ? new Date(o.fecha).toLocaleDateString("es-MX", { timeZone: "UTC" }) : ""}
+        <td style="white-space: nowrap; vertical-align: middle;">
+  ${o.fecha ? new Date(o.fecha).toLocaleDateString("es-MX", { timeZone: "America/Mexico_City" }) : ""}
 </td>
+
 
 
         <td class="text-center">
@@ -736,8 +736,9 @@ async function cargarOrdenesRango(desde, hasta) {
             ? `<span class="badge bg-success">Pagado</span>`
             : `<span class="badge bg-warning">${o.estatus}</span>`}
         <td style="white-space: nowrap; vertical-align: middle;">
-  ${o.fecha ? new Date(o.fecha).toLocaleDateString("es-MX", { timeZone: "UTC" }) : ""}
+  ${o.fecha ? new Date(o.fecha).toLocaleDateString("es-MX", { timeZone: "America/Mexico_City" }) : ""}
 </td>
+
 
 
 
