@@ -737,10 +737,10 @@ async function cargarOrdenesRango(desde, hasta) {
           ${o.medico || 'Pendiente'}
         </td>
         <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'diagnostico', this.innerText)">
-          ${o.diagnostico || 'Pendiente'}
+          ${o.diagnostico || 'NULL'}
         </td>
         <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'lado', this.innerText)">
-          ${o.lado || 'Pendiente'}
+          ${o.lado || 'NULL'}
         </td>
 
         <td>${o.procedimiento}</td>
