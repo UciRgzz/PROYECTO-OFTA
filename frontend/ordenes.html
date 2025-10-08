@@ -647,10 +647,15 @@ async function cargarOrdenes() {
       cargarOrdenes();
     });
 
-// Inicializar filtro de rango de fechas
+// ==================== Inicializar filtro de rango de fechas ====================
 $(document).ready(function () {
+  const hoy = moment();
+
+  // Configuración inicial del daterangepicker
   $('#filtroRango').daterangepicker({
-    autoUpdateInput: false,
+    autoUpdateInput: true,
+    startDate: hoy,
+    endDate: hoy,
     locale: {
       format: 'DD/MM/YYYY',
       separator: ' - ',
@@ -665,8 +670,6 @@ $(document).ready(function () {
       ],
       firstDay: 1
     },
-    startDate: moment(),
-    endDate: moment(),
     ranges: {
       'Hoy': [moment(), moment()],
       'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
@@ -680,52 +683,75 @@ $(document).ready(function () {
     }
   });
 
-  // Aplicar rango seleccionado
+  // Mostrar la fecha actual en el input
+  $('#filtroRango').val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
+
+  // Cargar automáticamente las órdenes de hoy al abrir la página
+  cargarOrdenesRango(hoy.format('YYYY-MM-DD'), hoy.format('YYYY-MM-DD'));
+
+  // Cuando el usuario aplica un nuevo rango de fechas
   $('#filtroRango').on('apply.daterangepicker', function (ev, picker) {
     $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
     cargarOrdenesRango(picker.startDate.format('YYYY-MM-DD'), picker.endDate.format('YYYY-MM-DD'));
   });
 
-  // Resetear al cancelar
-  $('#filtroRango').on('cancel.daterangepicker', function (ev, picker) {
-    $(this).val('');
-    cargarOrdenes();
+  // Si cancela el filtro, volver a mostrar "Hoy"
+  $('#filtroRango').on('cancel.daterangepicker', function () {
+    $(this).val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
+    cargarOrdenesRango(hoy.format('YYYY-MM-DD'), hoy.format('YYYY-MM-DD'));
   });
 });
 
-// Nueva función para cargar órdenes por rango
+
+// ==================== Cargar órdenes por rango ====================
 async function cargarOrdenesRango(desde, hasta) {
   try {
     const res = await fetch(`/api/ordenes_medicas?desde=${desde}&hasta=${hasta}`);
     const data = await res.json();
     ordenesData = data;
+
     document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
       <tr>
         <td>${o.numero || ''}</td>
         <td>${o.paciente}</td>
-        <td>${o.medico || 'null'}</td>
-        <td>${o.diagnostico || 'null'}</td>
-        <td>${o.lado || 'null'}</td>
+        <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'medico', this.innerText)">
+          ${o.medico || 'Pendiente'}
+        </td>
+        <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'diagnostico', this.innerText)">
+          ${o.diagnostico || 'Pendiente'}
+        </td>
+        <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'lado', this.innerText)">
+          ${o.lado || 'Pendiente'}
+        </td>
         <td>${o.procedimiento}</td>
         <td><span class="badge bg-info">${o.tipo}</span></td>
         <td>$${parseFloat(o.precio).toFixed(2)}</td>
         <td>$${parseFloat(o.pagado).toFixed(2)}</td>
         <td>$${parseFloat(o.pendiente).toFixed(2)}</td>
-        <td>${o.estatus}</td>
+        <td>
+          ${o.estatus === "Pagado"
+            ? `<span class="badge bg-success">Pagado</span>`
+            : `<span class="badge bg-warning">${o.estatus}</span>`}
+        </td>
         <td>${o.fecha ? new Date(o.fecha).toLocaleDateString('es-MX') : ''}</td>
         <td class="text-center">
-          <button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
-            <i class="fas fa-dollar-sign"></i> Pagar
-          </button>
+          ${o.estatus === "Pagado"
+            ? `<button class="btn btn-secondary btn-sm" disabled>
+                <i class="fas fa-check"></i> Pagado
+              </button>`
+            : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
+                <i class="fas fa-dollar-sign"></i> Pagar
+              </button>`}
         </td>
       </tr>
     `).join('');
   } catch (err) {
-    console.error("Error cargando órdenes por rango:", err);
+    console.error("❌ Error cargando órdenes por rango:", err);
   }
 }
 
-// Actualizar campo específico de una orden
+
+// ==================== Actualizar campo editable ====================
 async function actualizarCampo(id, campo, valor) {
   if (!valor.trim()) return;
   try {
