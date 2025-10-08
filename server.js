@@ -1039,11 +1039,21 @@ app.get("/api/expedientes/:id/ordenes", verificarSesion, async (req, res) => {
 });
 
 // ==================== LISTAR TODAS LAS ÓRDENES ====================
+// ==================== LISTAR TODAS LAS ÓRDENES (con filtro por rango opcional) ====================
 app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
   try {
     let depto = getDepartamento(req);
-    
-    const result = await pool.query(`
+    const { desde, hasta } = req.query; // 👈 soporte para filtro de rango
+
+    let params = [depto];
+    let where = "o.departamento = $1";
+
+    if (desde && hasta) {
+      params.push(desde, hasta);
+      where += ` AND DATE(o.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
+    }
+
+    const query = `
       SELECT 
         o.id AS orden_id,                          
         e.numero_expediente AS expediente_numero, 
@@ -1065,13 +1075,14 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
       LEFT JOIN pagos p 
         ON p.orden_id = o.id 
        AND p.departamento = o.departamento
-      WHERE o.departamento = $1
+      WHERE ${where}
       GROUP BY o.id, e.numero_expediente, e.nombre_completo, 
                o.medico, o.diagnostico, o.lado, o.procedimiento, 
                o.tipo, o.precio, o.estatus, o.fecha
-      ORDER BY o.fecha DESC
-    `, [depto]);
+      ORDER BY o.fecha DESC;
+    `;
 
+    const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
     console.error("Error en /api/ordenes_medicas:", err);
