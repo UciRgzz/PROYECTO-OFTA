@@ -491,9 +491,9 @@ async function cargarOrdenes() {
         </td>
 
         <td style="white-space: nowrap; vertical-align: middle;">
-          ${o.fecha ? new Date(o.fecha + "T06:00:00").toLocaleDateString("es-MX") : ""}
+  ${o.fecha || ""}
+</td>
 
-        </td>
 
         <td class="text-center">
           ${o.estatus === "Pagado"
@@ -528,9 +528,8 @@ async function cargarOrdenes() {
             ? `<span class="badge bg-success">Pagado</span>`
             : `<span class="badge bg-warning">${o.estatus}</span>`}
         </td>
-        <td style="white-space: nowrap; vertical-align: middle;">
-          ${o.fecha ? new Date(o.fecha + "T06:00:00").toLocaleDateString("es-MX") : ""}
-        </td>
+        <td>${o.fecha || ""}</td>
+
         <td class="text-center">
           ${o.estatus === "Pagado"
             ? `<button class="btn btn-secondary btn-sm" disabled>
