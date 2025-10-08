@@ -1031,6 +1031,7 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
 
 
 // ==================== PAGOS ====================
+// ==================== PAGOS ====================
 // Registrar un pago para una orden (usando orden_id del frontend)
 app.post("/api/pagos", verificarSesion, async (req, res) => {
   const client = await pool.connect();
@@ -1047,9 +1048,9 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 
     await client.query("BEGIN");
 
-    // 1. Obtener información de la orden
+    // 1. Obtener la orden
     const ordenResult = await client.query(
-      `SELECT id, expediente_id, folio_recibo, tipo, precio, pagado
+      `SELECT id, expediente_id, tipo, precio, pagado, pendiente
        FROM ordenes_medicas
        WHERE id = $1 AND departamento = $2`,
       [orden_id, depto]
@@ -1064,22 +1065,18 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 
     // 2. Insertar el pago
     const pagoResult = await client.query(
-      `INSERT INTO pagos (
-         orden_id, expediente_id, monto, forma_pago, fecha, departamento
-       )
-       VALUES (
-         $1, $2, $3, $4, NOW(), $5
-       )
+      `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
+       VALUES ($1, $2, $3, $4, NOW(), $5)
        RETURNING *`,
       [orden.id, orden.expediente_id, monto, forma_pago, depto]
     );
 
-    // 3. Calcular nuevo total pagado y pendiente
-    const nuevoPagado = parseFloat(orden.pagado || 0) + monto;
-    const pendiente = Math.max(0, parseFloat(orden.precio || 0) - nuevoPagado);
+    // 3. Recalcular totales
+    const nuevoPagado = Number(orden.pagado || 0) + monto;
+    const pendiente = Math.max(0, Number(orden.precio || 0) - nuevoPagado);
     const estatus = pendiente <= 0 ? "Pagado" : "Pendiente";
 
-    // 4. Actualizar orden médica
+    // 4. Actualizar la orden médica
     await client.query(
       `UPDATE ordenes_medicas
        SET pagado = $1, pendiente = $2, estatus = $3
@@ -1087,20 +1084,13 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
       [nuevoPagado, pendiente, estatus, orden.id, depto]
     );
 
-    // 5. SOLO actualizar recibo si la orden NO es de Atención Médica
-    if (orden.tipo !== "AtencionMedica" && orden.tipo !== "Atención Médica") {
-      await client.query(
-        `UPDATE recibos
-         SET monto_pagado = monto_pagado + $1
-         WHERE id = $2 AND departamento = $3`,
-        [monto, orden.folio_recibo, depto]
-      );
-    }
+    // ✅ No actualizar recibos en ningún caso
+    // Los abonos a recibos se gestionan en su propio módulo (/api/recibos/:id/abonos)
 
     await client.query("COMMIT");
 
     res.json({
-      message: "Pago registrado correctamente",
+      mensaje: "Pago registrado correctamente",
       pago: pagoResult.rows[0],
       totalPagado: nuevoPagado,
       pendiente
@@ -1114,7 +1104,6 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
     client.release();
   }
 });
-
 
 
 // ==================== CIERRE DE CAJA ====================
