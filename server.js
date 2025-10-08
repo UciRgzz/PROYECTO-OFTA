@@ -82,16 +82,28 @@ function isAdmin(req, res, next) {
     return res.status(403).json({ error: 'No eres administrador, no puedes eliminar.' });
 }
 
-// ==================== FUNCIÓN: Fecha local México sin desfase ====================
-function fechaLocalMX() {
+// ==================== FUNCIÓN: Fecha y hora local México ====================
+function fechaHoraLocalMX() {
   const now = new Date();
-  const mxOffset = -6; // Zona horaria Ciudad de México (UTC-6)
-  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-  const local = new Date(utc + 3600000 * mxOffset);
-  const yyyy = local.getFullYear();
-  const mm = String(local.getMonth() + 1).padStart(2, "0");
-  const dd = String(local.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`; // formato YYYY-MM-DD
+
+  // ✅ Generar fecha y hora exacta en zona de México
+  const options = {
+    timeZone: "America/Mexico_City",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  };
+
+  // 🔹 Devuelve en formato estándar ISO (YYYY-MM-DD HH:mm:ss)
+  const parts = new Intl.DateTimeFormat("sv-SE", options)
+    .format(now)
+    .replace(" ", "T");
+
+  return parts; // Ejemplo: 2025-10-08T09:25:12
 }
 
 
@@ -137,9 +149,11 @@ app.get("/api/notificaciones", verificarSesion, async (req, res) => {
 app.post("/api/notificacion/cambio-password", verificarSesion, async (req, res) => {
   try {
     const user = req.session.usuario?.username || "desconocido";
+    const fechaMX = fechaHoraLocalMX();
+
     await pool.query(
-      "INSERT INTO notificaciones (mensaje, usuario) VALUES ($1, $2)",
-      [`🔑 El usuario ${user} cambió su contraseña`, user]
+      "INSERT INTO notificaciones (mensaje, usuario, fecha) VALUES ($1, $2, $3)",
+      [`🔑 El usuario ${user} cambió su contraseña`, user, fechaMX]
     );
     res.json({ ok: true });
   } catch (err) {
@@ -156,13 +170,34 @@ app.post("/api/notificacion/nuevo-usuario", isAdmin, async (req, res) => {
       return res.status(400).json({ error: "Falta nombre del nuevo usuario" });
     }
 
+    const fechaMX = fechaHoraLocalMX();
     await pool.query(
-      "INSERT INTO notificaciones (mensaje, usuario) VALUES ($1, $2)",
-      [`👤 Se creó un nuevo usuario: ${nuevo}`, nuevo]
+      "INSERT INTO notificaciones (mensaje, usuario, fecha) VALUES ($1, $2, $3)",
+      [`👤 Se creó un nuevo usuario: ${nuevo}`, nuevo, fechaMX]
     );
     res.json({ ok: true });
   } catch (err) {
     console.error("Error registrando notificación de nuevo usuario:", err);
+    res.status(500).json({ error: "No se pudo registrar notificación" });
+  }
+});
+
+// Registrar cuando un admin elimina un usuario
+app.post("/api/notificacion/usuario-eliminado", isAdmin, async (req, res) => {
+  try {
+    const { eliminado } = req.body;
+    if (!eliminado) {
+      return res.status(400).json({ error: "Falta nombre del usuario eliminado" });
+    }
+
+    const fechaMX = fechaHoraLocalMX();
+    await pool.query(
+      "INSERT INTO notificaciones (mensaje, usuario, fecha) VALUES ($1, $2, $3)",
+      [`🗑️ El usuario ${eliminado} fue eliminado por un administrador`, "admin", fechaMX]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("Error registrando notificación de usuario eliminado:", err);
     res.status(500).json({ error: "No se pudo registrar notificación" });
   }
 });
