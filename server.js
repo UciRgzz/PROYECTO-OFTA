@@ -591,23 +591,38 @@ function fechaLocalMX() {
       const recibo = result.rows[0];
 
       // Si es una orden de cirugía, crear orden médica y agenda
-      if (tipo === "OrdenCirugia") {
-        // 📅 Obtener fecha local exacta sin desfase (México)
-        const fechaLocal = fechaLocalMX();
+if (tipo === "OrdenCirugia") {
+  // ✅ Fecha real desde PostgreSQL ajustada a zona de México
+  const orden = await pool.query(
+    `INSERT INTO ordenes_medicas (
+      expediente_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, fecha_cirugia, departamento, medico
+    )
+    VALUES (
+      $1, $2, $3, $4, $5::numeric, $6::numeric, ($5::numeric - $6::numeric),
+      CASE WHEN $6::numeric >= $5::numeric THEN 'Pagado' ELSE 'Pendiente' END,
+      (CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City')::date, NULL, $7, 'Pendiente'
+    )
+    RETURNING id`,
+    [paciente_id, recibo.id, procedimiento, tipo, precio, monto_pagado, depto]
+  );
 
-        // Crear orden médica y reflejar el pago
-        const orden = await pool.query(
-          `INSERT INTO ordenes_medicas (
-            expediente_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, fecha_cirugia, departamento, medico
-          )
-          VALUES (
-            $1, $2, $3, $4, $5::numeric, $6::numeric, ($5::numeric - $6::numeric),
-            CASE WHEN $6::numeric >= $5::numeric THEN 'Pagado' ELSE 'Pendiente' END,
-            $7::date, NULL, $8, 'Pendiente'
-          )
-          RETURNING id`,
-          [paciente_id, recibo.id, procedimiento, tipo, precio, monto_pagado, fechaLocal, depto]
-        );
+  const ordenId = orden.rows[0].id;
+
+  // Registrar pago inicial
+  await pool.query(
+    `INSERT INTO pagos (orden_id, monto, forma_pago, fecha, departamento)
+     VALUES ($1, $2::numeric, $3, (CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City')::date, $4)`,
+    [ordenId, monto_pagado, forma_pago, depto]
+  );
+
+  // Insertar en agenda quirúrgica (sin nombre_paciente)
+  await pool.query(
+    `INSERT INTO agenda_quirurgica (paciente_id, procedimiento, fecha, departamento, recibo_id, orden_id)
+     VALUES ($1, $2, (CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City')::date, $3, $4, $5)`,
+    [paciente_id, procedimiento, depto, recibo.id, ordenId]
+  );
+}
+
 
         const ordenId = orden.rows[0].id;
 
@@ -1409,7 +1424,8 @@ function fechaLocalMX() {
           $29,$30,$31,
           $32,$33,
           $34,$35,
-          NOW(),$36, $37
+          (CURRENT_TIMESTAMP AT TIME ZONE 'America/Mexico_City'), $36, $37
+
 
         )
         RETURNING *`,
