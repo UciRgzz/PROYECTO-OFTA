@@ -491,8 +491,8 @@ async function cargarOrdenes() {
         </td>
 
         <td style="white-space: nowrap; vertical-align: middle;">
-  ${o.fecha || ""}
-</td>
+          ${o.fecha || ""}
+        </td>
 
 
         <td class="text-center">
@@ -528,8 +528,8 @@ async function cargarOrdenes() {
             ? `<span class="badge bg-success">Pagado</span>`
             : `<span class="badge bg-warning">${o.estatus}</span>`}
         <td style="white-space: nowrap; vertical-align: middle;">
-  ${o.fecha ? new Date(o.fecha).toLocaleDateString("es-MX", { timeZone: "America/Mexico_City" }) : ""}
-</td>
+          ${o.fecha ? new Date(o.fecha).toLocaleDateString("es-MX", { timeZone: "America/Mexico_City" }) : ""}
+        </td>
 
 
 
@@ -754,7 +754,15 @@ if (o.fecha) {
             : `<span class="badge bg-warning">${o.estatus}</span>`}
         </td>
 
-        <td style="white-space: nowrap; vertical-align: middle;">${fechaFormateada}</td>
+        <td style="white-space: nowrap; vertical-align: middle;">
+  ${(() => {
+    if (!o.fecha) return "";
+    const soloFecha = o.fecha.split("T")[0]; // toma solo la parte antes de la T
+    const [anio, mes, dia] = soloFecha.split("-");
+    return `${dia}/${mes}/${anio}`; // muestra solo DD/MM/YYYY
+  })()}
+</td>
+
 
         <td class="text-center">
           ${o.estatus === "Pagado"
