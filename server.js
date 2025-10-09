@@ -1300,33 +1300,50 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
   try {
     const { fecha, desde, hasta } = req.query;
-    let depto = getDepartamento(req);
-    let params = [depto];
-    let where = "p.departamento = $1";
+    const depto = getDepartamento(req);
+    const params = [depto];
+    let wherePagos = "p.departamento = $1";
+    let whereRecibos = "r.departamento = $1";
 
+    // === Filtro de fechas ===
     if (fecha) {
       params.push(fecha);
-      where += ` AND DATE(p.fecha) = $${params.length}`;
+      wherePagos += ` AND DATE(p.fecha) = $${params.length}`;
+      whereRecibos += ` AND DATE(r.fecha) = $${params.length}`;
     } else if (desde && hasta) {
       params.push(desde, hasta);
-      where += ` AND DATE(p.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
+      wherePagos += ` AND DATE(p.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
+      whereRecibos += ` AND DATE(r.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
     } else {
-      // 👇 por defecto carga los de hoy
-      where += " AND DATE(p.fecha) = CURRENT_DATE";
+      wherePagos += " AND DATE(p.fecha) = CURRENT_DATE";
+      whereRecibos += " AND DATE(r.fecha) = CURRENT_DATE";
     }
 
-    let query = `
-      SELECT 
+    // === Unir pagos + recibos ===
+    const query = `
+      (
+        SELECT 
           p.forma_pago AS pago,
           o.procedimiento,
           SUM(p.monto) AS total
-      FROM pagos p
-      JOIN ordenes_medicas o 
-        ON o.id = p.orden_id 
-       AND o.departamento = p.departamento
-      WHERE ${where}
-      GROUP BY p.forma_pago, o.procedimiento
-      ORDER BY p.forma_pago, o.procedimiento
+        FROM pagos p
+        JOIN ordenes_medicas o 
+          ON o.id = p.orden_id 
+         AND o.departamento = p.departamento
+        WHERE ${wherePagos}
+        GROUP BY p.forma_pago, o.procedimiento
+      )
+      UNION ALL
+      (
+        SELECT 
+          r.forma_pago AS pago,
+          r.concepto AS procedimiento,
+          SUM(r.monto_pagado) AS total
+        FROM recibos r
+        WHERE ${whereRecibos}
+        GROUP BY r.forma_pago, r.concepto
+      )
+      ORDER BY pago, procedimiento;
     `;
 
     const result = await pool.query(query, params);
@@ -1337,12 +1354,13 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
   }
 });
 
+
 // ==================== LISTADO DE PACIENTES ====================
 app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
   try {
     const { fecha, desde, hasta } = req.query;
-    let depto = getDepartamento(req);
-    let params = [depto];
+    const depto = getDepartamento(req);
+    const params = [depto];
     let where = "o.departamento = $1";
 
     if (fecha) {
@@ -1352,37 +1370,36 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
       params.push(desde, hasta);
       where += ` AND o.fecha::date BETWEEN $${params.length - 1} AND $${params.length}`;
     } else {
-      // 👇 por defecto carga los de hoy
       where += " AND o.fecha::date = CURRENT_DATE";
     }
 
-    let query = `
+    const query = `
       SELECT 
-          o.fecha::date AS fecha,
-          o.id AS orden_id,
-          e.numero_expediente AS folio,
-          e.nombre_completo AS nombre,
-          o.procedimiento,
-          CASE 
-            WHEN (COALESCE(SUM(p.monto),0) < r.precio) THEN 'Pago Pendiente'
-            ELSE 'Pagado'
-          END AS status,
-          STRING_AGG(DISTINCT p.forma_pago, ', ') AS pago,
-          r.precio AS total,
-          (r.precio - COALESCE(SUM(p.monto),0)) AS saldo
+        o.fecha::date AS fecha,
+        e.numero_expediente AS folio,
+        e.nombre_completo AS nombre,
+        o.procedimiento,
+        CASE 
+          WHEN COALESCE(SUM(p.monto), 0) < r.precio THEN 'Pendiente'
+          ELSE 'Pagado'
+        END AS status,
+        STRING_AGG(DISTINCT p.forma_pago, ', ') AS pago,
+        r.precio AS total,
+        COALESCE(SUM(p.monto), 0) AS pagado,
+        (r.precio - COALESCE(SUM(p.monto), 0)) AS saldo
       FROM ordenes_medicas o
       JOIN recibos r 
         ON r.id = o.folio_recibo 
        AND r.departamento = o.departamento
       JOIN expedientes e 
-        ON o.expediente_id = e.numero_expediente 
-       AND e.departamento = o.departamento   
+        ON e.numero_expediente = o.expediente_id 
+       AND e.departamento = o.departamento
       LEFT JOIN pagos p 
         ON p.orden_id = o.id 
        AND p.departamento = o.departamento
-      WHERE ${where}            
-      GROUP BY o.fecha::date, o.id, e.numero_expediente, e.nombre_completo, o.procedimiento, r.precio
-      ORDER BY o.fecha, o.id
+      WHERE ${where}
+      GROUP BY o.fecha::date, e.numero_expediente, e.nombre_completo, o.procedimiento, r.precio
+      ORDER BY o.fecha, folio;
     `;
 
     const result = await pool.query(query, params);
@@ -1392,7 +1409,6 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 
 // ==================== ADMIN: Selección de sucursal ====================
