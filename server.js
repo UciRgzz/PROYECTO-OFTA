@@ -1295,39 +1295,66 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
   }
 });
 
-
-// ====================MODULO DE CIERRE DE CAJA ====================
-// ==================== CIERRE DE CAJA ====================
+// ==================== MODULO DE CIERRE DE CAJA ====================
 app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
   try {
     const { fecha, desde, hasta } = req.query;
-    let depto = getDepartamento(req);
-    let params = [depto];
-    let where = "p.departamento = $1";
+    const depto = getDepartamento(req);
+    const params = [depto];
+
+    // Filtro de fechas
+    let whereRecibos = "r.departamento = $1";
+    let wherePagos = "p.departamento = $1";
 
     if (fecha) {
       params.push(fecha);
-      where += ` AND DATE(p.fecha) = $${params.length}`;
+      whereRecibos += ` AND DATE(r.fecha) = $${params.length}`;
+      wherePagos += ` AND DATE(p.fecha) = $${params.length}`;
     } else if (desde && hasta) {
       params.push(desde, hasta);
-      where += ` AND DATE(p.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
+      whereRecibos += ` AND DATE(r.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
+      wherePagos += ` AND DATE(p.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
     } else {
-      where += " AND DATE(p.fecha) = CURRENT_DATE";
+      whereRecibos += " AND DATE(r.fecha) = CURRENT_DATE";
+      wherePagos += " AND DATE(p.fecha) = CURRENT_DATE";
     }
 
-    // ✅ SOLUCIÓN: Tomar SOLO de la tabla pagos (fuente única de verdad)
-    let query = `
-      SELECT 
+    const query = `
+      WITH resumen AS (
+        -- Recibos directos (sin orden)
+        SELECT 
+          r.forma_pago AS pago,
+          r.procedimiento AS procedimiento,
+          SUM(r.monto_pagado) AS total
+        FROM recibos r
+        LEFT JOIN ordenes_medicas o 
+          ON o.folio_recibo = r.id 
+         AND o.departamento = r.departamento
+        WHERE ${whereRecibos}
+          AND o.id IS NULL
+        GROUP BY r.forma_pago, r.procedimiento
+
+        UNION ALL
+
+        -- Pagos de órdenes médicas
+        SELECT 
           p.forma_pago AS pago,
-          o.procedimiento,
+          o.procedimiento AS procedimiento,
           SUM(p.monto) AS total
-      FROM pagos p
-      JOIN ordenes_medicas o 
-        ON o.id = p.orden_id 
-       AND o.departamento = p.departamento
-      WHERE ${where}
-      GROUP BY p.forma_pago, o.procedimiento
-      ORDER BY p.forma_pago, o.procedimiento
+        FROM pagos p
+        JOIN ordenes_medicas o 
+          ON o.id = p.orden_id
+         AND o.departamento = p.departamento
+        WHERE ${wherePagos}
+        GROUP BY p.forma_pago, o.procedimiento
+      )
+      SELECT 
+        pago,
+        procedimiento,
+        SUM(total) AS total
+      FROM resumen
+      GROUP BY pago, procedimiento
+      ORDER BY pago, procedimiento;
     `;
 
     const result = await pool.query(query, params);
@@ -1338,47 +1365,50 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
   }
 });
 
+
 // ==================== LISTADO DE PACIENTES ====================
 app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
   try {
     const { fecha, desde, hasta } = req.query;
-    let depto = getDepartamento(req);
-    let params = [depto];
-    let where = "p.departamento = $1";
+    const depto = getDepartamento(req);
+    const params = [depto];
+    let where = "r.departamento = $1";
 
     if (fecha) {
       params.push(fecha);
-      where += ` AND DATE(p.fecha) = $${params.length}`;
+      where += ` AND DATE(r.fecha) = $${params.length}`;
     } else if (desde && hasta) {
       params.push(desde, hasta);
-      where += ` AND DATE(p.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
+      where += ` AND DATE(r.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
     } else {
-      where += " AND DATE(p.fecha) = CURRENT_DATE";
+      where += " AND DATE(r.fecha) = CURRENT_DATE";
     }
 
-    // ✅ SOLUCIÓN: Agrupar por PAGO (fecha de pago), no por orden
-    let query = `
+    const query = `
       SELECT 
-          p.fecha::date AS fecha,
-          e.numero_expediente AS folio,
-          e.nombre_completo AS nombre,
-          o.procedimiento,
-          CASE 
-            WHEN o.pendiente > 0 THEN 'Pago Pendiente'
-            ELSE 'Pagado'
-          END AS status,
-          p.forma_pago AS pago,
-          o.precio AS total,
-          o.pendiente AS saldo
-      FROM pagos p
-      JOIN ordenes_medicas o 
-        ON o.id = p.orden_id 
-       AND o.departamento = p.departamento
+        r.fecha::date AS fecha,
+        e.numero_expediente AS folio,
+        e.nombre_completo AS nombre,
+        COALESCE(o.procedimiento, r.procedimiento) AS procedimiento,
+        CASE 
+          WHEN o.id IS NOT NULL AND o.pendiente > 0 THEN 'Pago Pendiente'
+          ELSE 'Pagado'
+        END AS status,
+        COALESCE(p.forma_pago, r.forma_pago) AS pago,
+        COALESCE(o.precio, r.precio) AS total,
+        GREATEST(COALESCE(o.pendiente, 0), 0) AS saldo
+      FROM recibos r
+      LEFT JOIN ordenes_medicas o 
+        ON o.folio_recibo = r.id 
+       AND o.departamento = r.departamento
+      LEFT JOIN pagos p 
+        ON p.orden_id = o.id 
+       AND p.departamento = o.departamento
       JOIN expedientes e 
-        ON e.numero_expediente = o.expediente_id 
-       AND e.departamento = o.departamento
+        ON e.numero_expediente = r.paciente_id 
+       AND e.departamento = r.departamento
       WHERE ${where}
-      ORDER BY p.fecha, e.numero_expediente
+      ORDER BY r.fecha, folio;
     `;
 
     const result = await pool.query(query, params);
@@ -1388,7 +1418,6 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // ==================== ADMIN: Selección de sucursal ====================
 app.post("/api/seleccionar-sucursal", verificarSesion, (req, res) => {
