@@ -1302,72 +1302,92 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
   try {
     const { fecha, desde, hasta } = req.query;
     let depto = getDepartamento(req);
-    const params = [depto];
-
-    // Filtro de fecha
-    let whereRecibos = "r.departamento = $1";
-    let wherePagos = "p.departamento = $1";
+    let params = [depto];
+    let where = "p.departamento = $1";
 
     if (fecha) {
       params.push(fecha);
-      whereRecibos += ` AND DATE(r.fecha) = $${params.length}`;
-      wherePagos += ` AND DATE(p.fecha) = $${params.length}`;
+      where += ` AND DATE(p.fecha) = $${params.length}`;
     } else if (desde && hasta) {
       params.push(desde, hasta);
-      whereRecibos += ` AND DATE(r.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
-      wherePagos += ` AND DATE(p.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
+      where += ` AND DATE(p.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
     } else {
-      whereRecibos += " AND DATE(r.fecha) = CURRENT_DATE";
-      wherePagos += " AND DATE(p.fecha) = CURRENT_DATE";
+      where += " AND DATE(p.fecha) = CURRENT_DATE";
     }
 
-    // Evita duplicar montos de cirugías que ya tienen pagos en "pagos"
-    const query = `
-      WITH resumen AS (
-        -- Recibos que NO están ligados a una orden médica
-        SELECT 
-          r.forma_pago AS pago,
-          r.procedimiento AS procedimiento,
-          SUM(r.monto_pagado) AS total
-        FROM recibos r
-        LEFT JOIN ordenes_medicas o 
-          ON o.folio_recibo = r.id 
-         AND o.departamento = r.departamento
-        WHERE ${whereRecibos}
-          AND o.id IS NULL
-        GROUP BY r.forma_pago, r.procedimiento
-
-        UNION ALL
-
-        -- Pagos de órdenes médicas (solo tabla pagos)
-        SELECT 
-          p.forma_pago AS pago,
-          o.procedimiento AS procedimiento,
-          SUM(p.monto) AS total
-        FROM pagos p
-        JOIN ordenes_medicas o 
-          ON o.id = p.orden_id 
-         AND o.departamento = p.departamento
-        WHERE ${wherePagos}
-        GROUP BY p.forma_pago, o.procedimiento
-      )
+    // ✅ SOLUCIÓN: Tomar SOLO de la tabla pagos (fuente única de verdad)
+    let query = `
       SELECT 
-        pago,
-        procedimiento,
-        SUM(total) AS total
-      FROM resumen
-      GROUP BY pago, procedimiento
-      ORDER BY pago, procedimiento;
+          p.forma_pago AS pago,
+          o.procedimiento,
+          SUM(p.monto) AS total
+      FROM pagos p
+      JOIN ordenes_medicas o 
+        ON o.id = p.orden_id 
+       AND o.departamento = p.departamento
+      WHERE ${where}
+      GROUP BY p.forma_pago, o.procedimiento
+      ORDER BY p.forma_pago, o.procedimiento
     `;
 
     const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
-    console.error("❌ Error en /api/cierre-caja:", err);
+    console.error("Error en /api/cierre-caja:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
+// ==================== LISTADO DE PACIENTES ====================
+app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
+  try {
+    const { fecha, desde, hasta } = req.query;
+    let depto = getDepartamento(req);
+    let params = [depto];
+    let where = "p.departamento = $1";
+
+    if (fecha) {
+      params.push(fecha);
+      where += ` AND DATE(p.fecha) = $${params.length}`;
+    } else if (desde && hasta) {
+      params.push(desde, hasta);
+      where += ` AND DATE(p.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
+    } else {
+      where += " AND DATE(p.fecha) = CURRENT_DATE";
+    }
+
+    // ✅ SOLUCIÓN: Agrupar por PAGO (fecha de pago), no por orden
+    let query = `
+      SELECT 
+          p.fecha::date AS fecha,
+          e.numero_expediente AS folio,
+          e.nombre_completo AS nombre,
+          o.procedimiento,
+          CASE 
+            WHEN o.pendiente > 0 THEN 'Pago Pendiente'
+            ELSE 'Pagado'
+          END AS status,
+          p.forma_pago AS pago,
+          o.precio AS total,
+          o.pendiente AS saldo
+      FROM pagos p
+      JOIN ordenes_medicas o 
+        ON o.id = p.orden_id 
+       AND o.departamento = p.departamento
+      JOIN expedientes e 
+        ON e.numero_expediente = o.expediente_id 
+       AND e.departamento = o.departamento
+      WHERE ${where}
+      ORDER BY p.fecha, e.numero_expediente
+    `;
+
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error en /api/listado-pacientes:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 
 // ==================== ADMIN: Selección de sucursal ====================
