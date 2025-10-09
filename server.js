@@ -1296,99 +1296,74 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 });
 
 
+// ====================MODULO DE CIERRE DE CAJA ====================
 // ==================== CIERRE DE CAJA ====================
 app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
   try {
     const { fecha, desde, hasta } = req.query;
     let depto = getDepartamento(req);
-    let params = [depto];
-    let where = "p.departamento = $1";
+    const params = [depto];
+
+    // Filtro de fecha
+    let whereRecibos = "r.departamento = $1";
+    let wherePagos = "p.departamento = $1";
 
     if (fecha) {
       params.push(fecha);
-      where += ` AND DATE(p.fecha) = $${params.length}`;
+      whereRecibos += ` AND DATE(r.fecha) = $${params.length}`;
+      wherePagos += ` AND DATE(p.fecha) = $${params.length}`;
     } else if (desde && hasta) {
       params.push(desde, hasta);
-      where += ` AND DATE(p.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
+      whereRecibos += ` AND DATE(r.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
+      wherePagos += ` AND DATE(p.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
     } else {
-      // 👇 por defecto carga los de hoy
-      where += " AND DATE(p.fecha) = CURRENT_DATE";
+      whereRecibos += " AND DATE(r.fecha) = CURRENT_DATE";
+      wherePagos += " AND DATE(p.fecha) = CURRENT_DATE";
     }
 
-    let query = `
-      SELECT 
+    // Evita duplicar montos de cirugías que ya tienen pagos en "pagos"
+    const query = `
+      WITH resumen AS (
+        -- Recibos que NO están ligados a una orden médica
+        SELECT 
+          r.forma_pago AS pago,
+          r.procedimiento AS procedimiento,
+          SUM(r.monto_pagado) AS total
+        FROM recibos r
+        LEFT JOIN ordenes_medicas o 
+          ON o.folio_recibo = r.id 
+         AND o.departamento = r.departamento
+        WHERE ${whereRecibos}
+          AND o.id IS NULL
+        GROUP BY r.forma_pago, r.procedimiento
+
+        UNION ALL
+
+        -- Pagos de órdenes médicas (solo tabla pagos)
+        SELECT 
           p.forma_pago AS pago,
-          o.procedimiento,
+          o.procedimiento AS procedimiento,
           SUM(p.monto) AS total
-      FROM pagos p
-      JOIN ordenes_medicas o 
-        ON o.id = p.orden_id 
-       AND o.departamento = p.departamento
-      WHERE ${where}
-      GROUP BY p.forma_pago, o.procedimiento
-      ORDER BY p.forma_pago, o.procedimiento
-    `;
-
-    const result = await pool.query(query, params);
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Error en /api/cierre-caja:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ==================== LISTADO DE PACIENTES ====================
-app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
-  try {
-    const { fecha, desde, hasta } = req.query;
-    let depto = getDepartamento(req);
-    let params = [depto];
-    let where = "o.departamento = $1";
-
-    if (fecha) {
-      params.push(fecha);
-      where += ` AND o.fecha::date = $${params.length}`;
-    } else if (desde && hasta) {
-      params.push(desde, hasta);
-      where += ` AND o.fecha::date BETWEEN $${params.length - 1} AND $${params.length}`;
-    } else {
-      // 👇 por defecto carga los de hoy
-      where += " AND o.fecha::date = CURRENT_DATE";
-    }
-
-    let query = `
+        FROM pagos p
+        JOIN ordenes_medicas o 
+          ON o.id = p.orden_id 
+         AND o.departamento = p.departamento
+        WHERE ${wherePagos}
+        GROUP BY p.forma_pago, o.procedimiento
+      )
       SELECT 
-          o.fecha::date AS fecha,
-          o.id AS orden_id,
-          e.numero_expediente AS folio,
-          e.nombre_completo AS nombre,
-          o.procedimiento,
-          CASE 
-            WHEN (COALESCE(SUM(p.monto),0) < r.precio) THEN 'Pago Pendiente'
-            ELSE 'Pagado'
-          END AS status,
-          STRING_AGG(DISTINCT p.forma_pago, ', ') AS pago,
-          r.precio AS total,
-          (r.precio - COALESCE(SUM(p.monto),0)) AS saldo
-      FROM ordenes_medicas o
-      JOIN recibos r 
-        ON r.id = o.folio_recibo 
-       AND r.departamento = o.departamento
-      JOIN expedientes e 
-        ON o.expediente_id = e.numero_expediente 
-       AND e.departamento = o.departamento   
-      LEFT JOIN pagos p 
-        ON p.orden_id = o.id 
-       AND p.departamento = o.departamento
-      WHERE ${where}            
-      GROUP BY o.fecha::date, o.id, e.numero_expediente, e.nombre_completo, o.procedimiento, r.precio
-      ORDER BY o.fecha, o.id
+        pago,
+        procedimiento,
+        SUM(total) AS total
+      FROM resumen
+      GROUP BY pago, procedimiento
+      ORDER BY pago, procedimiento;
     `;
 
     const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
-    console.error("Error en /api/listado-pacientes:", err);
+    console.error("❌ Error en /api/cierre-caja:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -1663,7 +1638,6 @@ app.get("/api/insumos", verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== 3. Subir Excel ====================
 // ==================== 3. Subir Excel ====================
 app.post(
   "/api/insumos/upload",
