@@ -1302,45 +1302,51 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
     const { fecha, desde, hasta } = req.query;
     const depto = getDepartamento(req);
     const params = [depto];
-    let where = "r.departamento = $1";
+    let whereRecibos = "r.departamento = $1";
+    let wherePagos = "p.departamento = $1";
 
-    // Filtro de fechas
     if (fecha) {
       params.push(fecha);
-      where += ` AND DATE(r.fecha) = $${params.length}`;
+      whereRecibos += ` AND DATE(r.fecha) = $${params.length}`;
+      wherePagos += ` AND DATE(p.fecha) = $${params.length}`;
     } else if (desde && hasta) {
       params.push(desde, hasta);
-      where += ` AND DATE(r.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
+      whereRecibos += ` AND DATE(r.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
+      wherePagos += ` AND DATE(p.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
     } else {
-      where += " AND DATE(r.fecha) = CURRENT_DATE";
+      whereRecibos += " AND DATE(r.fecha) = CURRENT_DATE";
+      wherePagos += " AND DATE(p.fecha) = CURRENT_DATE";
     }
 
-    // Evitar duplicados: solo sumar recibos no ligados a orden o que no sean tipo 'ordencirugia'
+    // Si 'tipo' no existe en recibos, no la uses
     const query = `
       WITH resumen AS (
+        -- Recibos que no están ligados a orden
         SELECT 
           r.forma_pago AS pago,
           r.procedimiento AS procedimiento,
-          r.monto_pagado AS total
+          SUM(r.monto_pagado) AS total
         FROM recibos r
         LEFT JOIN ordenes_medicas o 
-          ON o.folio_recibo = r.id 
+          ON o.folio_recibo = r.id
          AND o.departamento = r.departamento
-        WHERE ${where}
-          AND (o.id IS NULL OR LOWER(r.tipo) <> 'ordencirugia')
+        WHERE ${whereRecibos}
+          AND o.id IS NULL
+        GROUP BY r.forma_pago, r.procedimiento
 
         UNION ALL
 
+        -- Pagos de órdenes
         SELECT 
           p.forma_pago AS pago,
           o.procedimiento AS procedimiento,
-          p.monto AS total
+          SUM(p.monto) AS total
         FROM pagos p
         INNER JOIN ordenes_medicas o 
           ON o.id = p.orden_id
          AND o.departamento = p.departamento
-        WHERE o.departamento = $1
-          ${fecha ? `AND DATE(p.fecha) = $2` : desde && hasta ? `AND DATE(p.fecha) BETWEEN $2 AND $3` : `AND DATE(p.fecha) = CURRENT_DATE`}
+        WHERE ${wherePagos}
+        GROUP BY p.forma_pago, o.procedimiento
       )
       SELECT 
         pago,
