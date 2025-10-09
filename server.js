@@ -1302,7 +1302,6 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
     const depto = getDepartamento(req);
     const params = [depto];
 
-    // ========= Filtros de fecha =========
     let whereRecibos = "r.departamento = $1";
     let wherePagos = "p.departamento = $1";
 
@@ -1319,12 +1318,11 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
       wherePagos += " AND DATE(p.fecha) = CURRENT_DATE";
     }
 
-    // ========= Consulta principal =========
     const query = `
-      WITH 
-      recibos_directos AS (
+      WITH resumen AS (
+        -- Recibos directos
         SELECT 
-          r.forma_pago AS forma_pago,
+          r.forma_pago AS pago,
           r.procedimiento AS procedimiento,
           SUM(r.monto_pagado) AS total
         FROM recibos r
@@ -1334,26 +1332,27 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
         WHERE ${whereRecibos}
           AND o.id IS NULL
         GROUP BY r.forma_pago, r.procedimiento
-      ),
-      pagos_ordenes AS (
+
+        UNION ALL
+
+        -- Pagos de órdenes médicas
         SELECT 
-          p.forma_pago AS forma_pago,
+          p.forma_pago AS pago,
           o.procedimiento AS procedimiento,
           SUM(p.monto) AS total
         FROM pagos p
         JOIN ordenes_medicas o
-          ON o.id = p.orden_id 
+          ON o.id = p.orden_id
          AND o.departamento = p.departamento
         WHERE ${wherePagos}
         GROUP BY p.forma_pago, o.procedimiento
       )
       SELECT 
-        COALESCE(r.forma_pago, p.forma_pago) AS pago,
-        COALESCE(r.procedimiento, p.procedimiento) AS procedimiento,
-        COALESCE(r.total, 0) + COALESCE(p.total, 0) AS total
-      FROM recibos_directos r
-      FULL JOIN pagos_ordenes p
-        ON r.forma_pago = p.forma_pago AND r.procedimiento = p.procedimiento
+        pago,
+        procedimiento,
+        SUM(total) AS total
+      FROM resumen
+      GROUP BY pago, procedimiento
       ORDER BY pago, procedimiento;
     `;
 
@@ -1394,6 +1393,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
         -- Recibos directos
         SELECT 
           r.paciente_id AS paciente_id,
+          MAX(r.fecha)::date AS fecha,
           SUM(r.monto_pagado) AS pagado
         FROM recibos r
         LEFT JOIN ordenes_medicas o 
@@ -1405,9 +1405,10 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
 
         UNION ALL
 
-        -- Pagos de órdenes médicas
+        -- Pagos de órdenes
         SELECT 
           o.expediente_id AS paciente_id,
+          MAX(p.fecha)::date AS fecha,
           SUM(p.monto) AS pagado
         FROM pagos p
         JOIN ordenes_medicas o 
@@ -1419,6 +1420,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
       SELECT 
         e.numero_expediente AS folio,
         e.nombre_completo AS nombre,
+        MAX(pu.fecha) AS fecha,
         SUM(pu.pagado) AS total_pagado
       FROM pagos_union pu
       JOIN expedientes e 
