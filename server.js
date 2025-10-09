@@ -1664,14 +1664,14 @@ app.get("/api/insumos", verificarSesion, async (req, res) => {
 });
 
 // ==================== 3. Subir Excel ====================
+// ==================== 3. Subir Excel ====================
 app.post(
   "/api/insumos/upload",
   verificarSesion,
   upload.single("excelFile"),
   async (req, res) => {
     try {
-      let depto = getDepartamento(req);
-
+      const depto = getDepartamento(req);
       if (!depto) {
         console.warn("⚠️ Departamento no detectado al subir Excel");
         return res.status(401).json({
@@ -1685,70 +1685,48 @@ app.post(
 
       let insertados = 0;
 
-      for (let row of data) {
-        // === FECHA (CORREGIDO SIN DESFASE) ===
+      for (const row of data) {
+        // === FECHA ===
         let fecha = row.Fecha;
-
         if (typeof fecha === "number") {
-          // Excel numérico → convertir correctamente sin UTC
-          const epoch = new Date(1899, 11, 30); // Base Excel (1900-01-00)
+          const epoch = new Date(1899, 11, 30);
           const excelDate = new Date(epoch.getTime() + fecha * 86400000);
-
-          // Fecha local sin desfase
           const yyyy = excelDate.getFullYear();
           const mm = String(excelDate.getMonth() + 1).padStart(2, "0");
           const dd = String(excelDate.getDate()).padStart(2, "0");
           fecha = `${yyyy}-${mm}-${dd}`;
         } else if (typeof fecha === "string") {
-          // Normalizar texto de fecha
           fecha = fecha.trim().replace(/\./g, "/").replace(/-/g, "/");
           const partes = fecha.split("/");
-
           if (partes.length === 3) {
-            if (parseInt(partes[0]) > 12) {
-              // Formato DD/MM/YYYY
-              fecha = `${partes[2]}-${partes[1].padStart(
-                2,
-                "0"
-              )}-${partes[0].padStart(2, "0")}`;
-            } else {
-              // Formato MM/DD/YYYY
-              fecha = `${partes[2]}-${partes[0].padStart(
-                2,
-                "0"
-              )}-${partes[1].padStart(2, "0")}`;
-            }
+            fecha =
+              parseInt(partes[0]) > 12
+                ? `${partes[2]}-${partes[1].padStart(2, "0")}-${partes[0].padStart(2, "0")}`
+                : `${partes[2]}-${partes[0].padStart(2, "0")}-${partes[1].padStart(2, "0")}`;
           } else {
             const parsed = new Date(fecha);
-            if (!isNaN(parsed)) {
-              const yyyy = parsed.getFullYear();
-              const mm = String(parsed.getMonth() + 1).padStart(2, "0");
-              const dd = String(parsed.getDate()).padStart(2, "0");
-              fecha = `${yyyy}-${mm}-${dd}`;
-            } else {
-              console.log("⚠️ Fecha inválida, se omite:", row.Fecha);
-              continue;
-            }
+            if (isNaN(parsed)) continue;
+            const yyyy = parsed.getFullYear();
+            const mm = String(parsed.getMonth() + 1).padStart(2, "0");
+            const dd = String(parsed.getDate()).padStart(2, "0");
+            fecha = `${yyyy}-${mm}-${dd}`;
           }
         }
 
         // === FOLIO ===
-        let folio = row.Folio;
-        if (folio == null || folio === "") continue;
-        folio = String(folio).replace(/[^\w\s-]/g, "").trim();
+        let folio = String(row.Folio || "").replace(/[^\w\s-]/g, "").trim();
+        if (!folio) continue;
 
         // === CONCEPTO ===
-        let concepto = String(row.Concepto || "").trim();
+        const concepto = String(row.Concepto || "").trim();
+        if (!concepto) continue;
 
-        // === MONTO (CORREGIDO ROBUSTO) ===
+        // === MONTO ===
         let montoTexto = (row.Monto || "")
           .toString()
-          .trim()
-          .replace(/\s+/g, "") // quita espacios invisibles
-          .replace(/[^\d.,-]/g, "") // elimina símbolos no numéricos
-          .replace(/(\.\d{3,})/, ""); // limpia separadores de miles incorrectos
-
-        // Normalizar separadores decimales (coma y punto)
+          .replace(/\s+/g, "")
+          .replace(/[^\d.,-]/g, "")
+          .replace(/(\.\d{3,})/, "");
         if (montoTexto.includes(",") && montoTexto.includes(".")) {
           const lastComma = montoTexto.lastIndexOf(",");
           const lastDot = montoTexto.lastIndexOf(".");
@@ -1759,20 +1737,20 @@ app.post(
         } else {
           montoTexto = montoTexto.replace(",", ".");
         }
+        const monto = parseFloat(montoTexto);
+        if (isNaN(monto) || monto <= 0) continue;
 
-        let monto = parseFloat(montoTexto);
-        if (isNaN(monto) || monto <= 0) {
-          console.log("⚠️ Monto inválido, se omite:", row.Monto);
+        // === VERIFICAR DUPLICADO POR FOLIO ===
+        const existe = await pool.query(
+          "SELECT id FROM insumos WHERE folio = $1 AND departamento = $2",
+          [folio, depto]
+        );
+        if (existe.rowCount > 0) {
+          console.log(`⚠️ Folio duplicado omitido: ${folio}`);
           continue;
         }
 
-        // === VALIDACIÓN FINAL ===
-        if (!fecha || !folio || !concepto || monto <= 0) {
-          console.log("⚠️ Fila inválida, se omite:", row);
-          continue;
-        }
-
-        // === GUARDAR EN BD ===
+        // === INSERTAR SIN ID (usa secuencia automática) ===
         await pool.query(
           `INSERT INTO insumos (fecha, folio, concepto, monto, archivo, departamento)
            VALUES ($1, $2, $3, $4, $5, $6)`,
@@ -1780,6 +1758,11 @@ app.post(
         );
         insertados++;
       }
+
+      // === Sincronizar secuencia una sola vez ===
+      await pool.query(
+        `SELECT setval('insumos_id_seq', (SELECT COALESCE(MAX(id),0) FROM insumos) + 1)`
+      );
 
       res.json({
         mensaje: `✅ Excel procesado correctamente (${insertados} registros guardados)`,
