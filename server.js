@@ -1152,29 +1152,39 @@ app.put("/api/ordenes_medicas/:id", verificarSesion, async (req, res) => {
     const { medico, diagnostico, lado } = req.body;
     const depto = getDepartamento(req);
 
-    // Determinar qué campo se envió
+    if (!depto)
+      return res.status(401).json({ error: "Sesión expirada o sin departamento" });
+
+    // Verificar que se envió al menos un campo
     const campos = [];
     const valores = [];
     let idx = 1;
 
     if (medico !== undefined) {
       campos.push(`medico = $${idx++}`);
-      valores.push(medico);
+      valores.push(medico.trim());
     }
     if (diagnostico !== undefined) {
       campos.push(`diagnostico = $${idx++}`);
-      valores.push(diagnostico);
+      valores.push(diagnostico.trim());
     }
     if (lado !== undefined) {
       campos.push(`lado = $${idx++}`);
-      valores.push(lado);
+      valores.push(lado.trim());
     }
 
-    if (campos.length === 0) {
+    if (campos.length === 0)
       return res.status(400).json({ error: "No se enviaron campos válidos" });
-    }
 
-    // Construir y ejecutar la actualización dinámica
+    // Comprobar existencia de la orden
+    const check = await pool.query(
+      "SELECT id FROM ordenes_medicas WHERE id = $1 AND departamento = $2",
+      [id, depto]
+    );
+    if (check.rowCount === 0)
+      return res.status(404).json({ error: "Orden no encontrada o sin acceso" });
+
+    // Query dinámica segura
     const query = `
       UPDATE ordenes_medicas
       SET ${campos.join(", ")}
@@ -1185,17 +1195,21 @@ app.put("/api/ordenes_medicas/:id", verificarSesion, async (req, res) => {
 
     const result = await pool.query(query, valores);
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Orden no encontrada" });
-    }
+    if (result.rows.length === 0)
+      return res.status(404).json({ error: "Orden no encontrada después del update" });
 
-    res.json({ mensaje: "✅ Campo actualizado correctamente", orden: result.rows[0] });
-
+    res.json({
+      mensaje: "✅ Campo actualizado correctamente",
+      orden: result.rows[0],
+    });
   } catch (err) {
-    console.error("Error en PUT /api/ordenes_medicas/:id:", err);
-    res.status(500).json({ error: "Error al actualizar la orden médica" });
+    console.error("Error en PUT /api/ordenes_medicas/:id:", err.message);
+    res.status(500).json({
+      error: err.message || "Error al actualizar la orden médica",
+    });
   }
 });
+
 
 
 
