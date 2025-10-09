@@ -797,19 +797,42 @@ if (o.fecha) {
 
 // ==================== Actualizar campo editable ====================
 async function actualizarCampo(id, campo, valor) {
-  if (!valor.trim()) return;
+  if (!valor.trim()) return; // No enviar si está vacío
+
   try {
     const res = await fetch(`/api/ordenes_medicas/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ [campo]: valor })
+      body: JSON.stringify({ [campo]: valor }),
     });
-    if (!res.ok) throw new Error("Error al actualizar");
+
+    // Intentar leer la respuesta JSON
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      data = {};
+    }
+
+    // Si no es OK, mostrar error detallado
+    if (!res.ok) {
+      console.warn("Error backend:", data);
+      const mensaje =
+        data.error ||
+        data.message ||
+        "No se pudo actualizar el campo. Verifica sesión o permisos.";
+      Swal.fire("Error", mensaje, "error");
+      return;
+    }
+
+    // Confirmación de éxito
+    console.log("Actualización exitosa:", data);
   } catch (err) {
-    console.error(err);
-    Swal.fire("Error", "No se pudo actualizar el campo", "error");
+    console.error("Fallo actualizando campo:", err);
+    Swal.fire("Error", err.message || "Error de red al actualizar", "error");
   }
 }
+
 
   </script>
 </body>
