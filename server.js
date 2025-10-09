@@ -1296,63 +1296,59 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 });
 
 
-// ==================== CIERRE DE CAJA (CORREGIDO) ====================
+// ==================== CIERRE DE CAJA ====================
 app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
   try {
     const { fecha, desde, hasta } = req.query;
     const depto = getDepartamento(req);
     const params = [depto];
+    let where = "r.departamento = $1";
 
-    let wherePagos = "p.departamento = $1";
-    let whereRecibos = "r.departamento = $1 AND r.id NOT IN (SELECT folio_recibo FROM ordenes_medicas WHERE folio_recibo IS NOT NULL)";
-    // 👆 evita duplicar los recibos ya usados para crear órdenes
-
-    // === Filtro de fechas ===
+    // Filtro de fechas
     if (fecha) {
       params.push(fecha);
-      wherePagos += ` AND DATE(p.fecha) = $${params.length}`;
-      whereRecibos += ` AND DATE(r.fecha) = $${params.length}`;
+      where += ` AND DATE(r.fecha) = $${params.length}`;
     } else if (desde && hasta) {
       params.push(desde, hasta);
-      wherePagos += ` AND DATE(p.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
-      whereRecibos += ` AND DATE(r.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
+      where += ` AND DATE(r.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
     } else {
-      wherePagos += " AND DATE(p.fecha) = CURRENT_DATE";
-      whereRecibos += " AND DATE(r.fecha) = CURRENT_DATE";
+      where += " AND DATE(r.fecha) = CURRENT_DATE";
     }
 
-    // === Unir pagos + recibos (sin duplicar) ===
+    // Evitar duplicados: solo sumar recibos no ligados a orden o que no sean tipo 'ordencirugia'
     const query = `
-      SELECT 
-        forma_pago AS pago,
-        procedimiento,
-        SUM(total) AS total
-      FROM (
-        -- Pagos reales de órdenes médicas
+      WITH resumen AS (
         SELECT 
-          p.forma_pago,
-          o.procedimiento,
-          SUM(p.monto) AS total
-        FROM pagos p
-        JOIN ordenes_medicas o 
-          ON o.id = p.orden_id 
-         AND o.departamento = p.departamento
-        WHERE ${wherePagos}
-        GROUP BY p.forma_pago, o.procedimiento
+          r.forma_pago AS pago,
+          r.procedimiento AS procedimiento,
+          r.monto_pagado AS total
+        FROM recibos r
+        LEFT JOIN ordenes_medicas o 
+          ON o.folio_recibo = r.id 
+         AND o.departamento = r.departamento
+        WHERE ${where}
+          AND (o.id IS NULL OR LOWER(r.tipo) <> 'ordencirugia')
 
         UNION ALL
 
-        -- Recibos directos (consultas, estudios, etc)
         SELECT 
-          r.forma_pago,
-          r.procedimiento,
-          SUM(r.monto_pagado) AS total
-        FROM recibos r
-        WHERE ${whereRecibos}
-        GROUP BY r.forma_pago, r.procedimiento
-      ) AS union_pagos
-      GROUP BY forma_pago, procedimiento
-      ORDER BY forma_pago, procedimiento;
+          p.forma_pago AS pago,
+          o.procedimiento AS procedimiento,
+          p.monto AS total
+        FROM pagos p
+        INNER JOIN ordenes_medicas o 
+          ON o.id = p.orden_id
+         AND o.departamento = p.departamento
+        WHERE o.departamento = $1
+          ${fecha ? `AND DATE(p.fecha) = $2` : desde && hasta ? `AND DATE(p.fecha) BETWEEN $2 AND $3` : `AND DATE(p.fecha) = CURRENT_DATE`}
+      )
+      SELECT 
+        pago,
+        procedimiento,
+        SUM(total) AS total
+      FROM resumen
+      GROUP BY pago, procedimiento
+      ORDER BY pago, procedimiento;
     `;
 
     const result = await pool.query(query, params);
