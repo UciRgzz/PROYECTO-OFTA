@@ -1302,7 +1302,7 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
     const depto = getDepartamento(req);
     const params = [depto];
 
-    // Filtros
+    // ===== Filtros de fechas =====
     let whereRecibos = "r.departamento = $1";
     let wherePagos = "p.departamento = $1";
 
@@ -1319,6 +1319,7 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
       wherePagos += " AND DATE(p.fecha) = CURRENT_DATE";
     }
 
+    // ===== Consulta principal =====
     const query = `
       WITH resumen AS (
         -- Recibos directos (sin orden)
@@ -1327,7 +1328,11 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
           r.procedimiento AS procedimiento,
           SUM(r.monto_pagado) AS total
         FROM recibos r
+        LEFT JOIN ordenes_medicas o
+          ON o.folio_recibo = r.id
+         AND o.departamento = r.departamento
         WHERE ${whereRecibos}
+          AND o.id IS NULL -- evita duplicar los que ya están ligados a una orden
         GROUP BY r.forma_pago, r.procedimiento
 
         UNION ALL
@@ -1380,40 +1385,59 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
       wherePagos += " AND DATE(p.fecha) = CURRENT_DATE";
     }
 
+    // ===== Consulta principal =====
     const query = `
-      WITH union_pagos AS (
-        -- Recibos
+      WITH pacientes_union AS (
+        -- Recibos directos (sin orden)
         SELECT 
-          r.paciente_id AS paciente_id,
-          MAX(r.fecha)::date AS fecha,
-          SUM(r.monto_pagado) AS total_pagado
+          r.fecha::date AS fecha,
+          r.id AS folio,
+          r.paciente_id AS expediente_id,
+          r.procedimiento,
+          'Pagado' AS status,
+          r.forma_pago AS pago,
+          r.monto_pagado AS total,
+          r.pendiente AS saldo
         FROM recibos r
+        LEFT JOIN ordenes_medicas o
+          ON o.folio_recibo = r.id
+         AND o.departamento = r.departamento
         WHERE ${whereRecibos}
-        GROUP BY r.paciente_id
+          AND o.id IS NULL
 
         UNION ALL
 
-        -- Pagos de órdenes
+        -- Pagos ligados a órdenes médicas
         SELECT 
-          o.expediente_id AS paciente_id,
-          MAX(p.fecha)::date AS fecha,
-          SUM(p.monto) AS total_pagado
+          p.fecha::date AS fecha,
+          o.id AS folio,
+          o.expediente_id AS expediente_id,
+          o.procedimiento,
+          CASE 
+            WHEN o.pendiente > 0 THEN 'Pendiente'
+            ELSE 'Pagado'
+          END AS status,
+          p.forma_pago AS pago,
+          p.monto AS total,
+          o.pendiente AS saldo
         FROM pagos p
         JOIN ordenes_medicas o ON o.id = p.orden_id
         WHERE ${wherePagos}
-        GROUP BY o.expediente_id
       )
       SELECT 
+        u.fecha,
         e.numero_expediente AS folio,
         e.nombre_completo AS paciente,
-        MAX(u.fecha) AS fecha,
-        SUM(u.total_pagado) AS total_pagado
-      FROM union_pagos u
+        u.procedimiento,
+        u.status,
+        u.pago,
+        u.total,
+        u.saldo
+      FROM pacientes_union u
       JOIN expedientes e 
-        ON e.numero_expediente = u.paciente_id 
+        ON e.numero_expediente = u.expediente_id
        AND e.departamento = $1
-      GROUP BY e.numero_expediente, e.nombre_completo
-      ORDER BY e.nombre_completo;
+      ORDER BY u.fecha, e.nombre_completo;
     `;
 
     const result = await pool.query(query, params);
@@ -1423,6 +1447,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 
