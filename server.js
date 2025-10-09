@@ -1302,39 +1302,51 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
     const { fecha, desde, hasta } = req.query;
     const depto = getDepartamento(req);
     const params = [depto];
-    let where = "r.departamento = $1";
+    let wherePagos = "p.departamento = $1";
+    let whereRecibos = "r.departamento = $1";
 
     // === Filtro de fechas ===
     if (fecha) {
       params.push(fecha);
-      where += ` AND DATE(r.fecha) = $${params.length}`;
+      wherePagos += ` AND DATE(p.fecha) = $${params.length}`;
+      whereRecibos += ` AND DATE(r.fecha) = $${params.length}`;
     } else if (desde && hasta) {
       params.push(desde, hasta);
-      where += ` AND DATE(r.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
+      wherePagos += ` AND DATE(p.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
+      whereRecibos += ` AND DATE(r.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
     } else {
-      where += " AND DATE(r.fecha) = CURRENT_DATE";
+      wherePagos += " AND DATE(p.fecha) = CURRENT_DATE";
+      whereRecibos += " AND DATE(r.fecha) = CURRENT_DATE";
     }
 
-    // 🔹 Combinar pagos directos (recibos) y abonos de órdenes
+    // 🔹 SUMA pagos de órdenes + pagos directos (recibos)
     const query = `
-      SELECT 
-        COALESCE(p.forma_pago, r.forma_pago) AS pago,
-        COALESCE(o.procedimiento, r.procedimiento) AS procedimiento,
-        SUM(
-          CASE 
-            WHEN p.monto IS NOT NULL THEN p.monto 
-            ELSE r.monto_pagado 
-          END
-        ) AS total
-      FROM recibos r
-      LEFT JOIN ordenes_medicas o 
-        ON o.folio_recibo = r.id 
-       AND o.departamento = r.departamento
-      LEFT JOIN pagos p 
-        ON p.orden_id = o.id 
-       AND p.departamento = o.departamento
-      WHERE ${where}
-      GROUP BY COALESCE(p.forma_pago, r.forma_pago), COALESCE(o.procedimiento, r.procedimiento)
+      SELECT pago, procedimiento, SUM(total) AS total
+      FROM (
+        -- Pagos de órdenes médicas
+        SELECT 
+          p.forma_pago AS pago,
+          o.procedimiento,
+          SUM(p.monto) AS total
+        FROM pagos p
+        JOIN ordenes_medicas o 
+          ON o.id = p.orden_id 
+         AND o.departamento = p.departamento
+        WHERE ${wherePagos}
+        GROUP BY p.forma_pago, o.procedimiento
+
+        UNION ALL
+
+        -- Pagos directos (recibos normales)
+        SELECT 
+          r.forma_pago AS pago,
+          r.procedimiento AS procedimiento,
+          SUM(r.monto_pagado) AS total
+        FROM recibos r
+        WHERE ${whereRecibos}
+        GROUP BY r.forma_pago, r.procedimiento
+      ) AS combined
+      GROUP BY pago, procedimiento
       ORDER BY pago, procedimiento;
     `;
 
@@ -1365,6 +1377,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
       where += " AND r.fecha::date = CURRENT_DATE";
     }
 
+    // Combina pacientes con recibos y órdenes
     const query = `
       SELECT 
         r.fecha::date AS fecha,
@@ -1372,15 +1385,13 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
         e.nombre_completo AS nombre,
         COALESCE(o.procedimiento, r.procedimiento) AS procedimiento,
         CASE 
-          WHEN COALESCE(SUM(p.monto), 0) >= r.precio THEN 'Pagado'
-          WHEN COALESCE(SUM(p.monto), 0) = 0 AND r.monto_pagado >= r.precio THEN 'Pagado'
-          WHEN COALESCE(SUM(p.monto), 0) = 0 AND r.monto_pagado < r.precio THEN 'Pendiente'
+          WHEN COALESCE(SUM(p.monto), 0) + r.monto_pagado >= r.precio THEN 'Pagado'
           ELSE 'Pendiente'
         END AS status,
         COALESCE(STRING_AGG(DISTINCT p.forma_pago, ', '), r.forma_pago) AS pago,
         r.precio AS total,
-        (r.monto_pagado + COALESCE(SUM(p.monto),0)) AS pagado,
-        GREATEST(r.precio - (r.monto_pagado + COALESCE(SUM(p.monto),0)), 0) AS saldo
+        (r.monto_pagado + COALESCE(SUM(p.monto), 0)) AS pagado,
+        GREATEST(r.precio - (r.monto_pagado + COALESCE(SUM(p.monto), 0)), 0) AS saldo
       FROM recibos r
       LEFT JOIN ordenes_medicas o 
         ON o.folio_recibo = r.id 
