@@ -150,8 +150,10 @@ document.getElementById("agendaForm").addEventListener("submit", async (e) => {
       Swal.fire({
         icon: 'success',
         title: '¡Éxito!',
-        text: data.mensaje || "Insumo guardado correctamente",
-        confirmButtonColor: '#27ae60'
+        text: data.mensaje || "Insumo agregado",
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false
       });
       cargarInsumos();
       renderCalendar();
@@ -174,46 +176,48 @@ document.getElementById("agendaForm").addEventListener("submit", async (e) => {
     });
   }
 });
+
 // Subir Excel
-    document.getElementById("uploadForm").addEventListener("change", async (e) => {
-      e.preventDefault();
-      const formData = new FormData(document.getElementById("uploadForm"));
-      try {
-        const res = await fetch("/api/insumos/upload", { method: "POST", body: formData });
-        const data = await res.json();
+document.getElementById("uploadForm").addEventListener("change", async (e) => {
+  e.preventDefault();
+  const formData = new FormData(document.getElementById("uploadForm"));
+  try {
+    const res = await fetch("/api/insumos/upload", { method: "POST", body: formData });
+    const data = await res.json();
 
-        if (res.ok) {
-          Swal.fire({
-            icon: 'success',
-            title: '¡Éxito!',
-            text: data.mensaje || "Archivo subido correctamente",
-            confirmButtonColor: '#27ae60'
-          });
-        } else {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: data.error || "No se pudo subir el archivo",
-            confirmButtonColor: '#e74c3c'
-          });
-        }
+    if (res.ok) {
+      Swal.fire({
+        icon: 'success',
+        title: '¡Éxito!',
+        text: data.mensaje || "Archivo subido correctamente",
+        timer: 2500,
+        timerProgressBar: true,
+        showConfirmButton: false
+      });
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: data.error || "No se pudo subir el archivo",
+        confirmButtonColor: '#e74c3c'
+      });
+    }
 
-        cargarInsumos();
-        renderCalendar();
-      } catch (err) {
-        console.error(err);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error inesperado',
-          text: 'Ocurrió un problema al subir el archivo',
-          confirmButtonColor: '#e74c3c'
-        });
-      }
+    cargarInsumos();
+    renderCalendar();
+  } catch (err) {
+    console.error(err);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error inesperado',
+      text: 'Ocurrió un problema al subir el archivo',
+      confirmButtonColor: '#e74c3c'
     });
+  }
+});
 
 
     // Listar insumos del mes actual
-// Listar insumos del mes actual (corregido)
 async function cargarInsumos() {
   const tabla = document.getElementById("tablaInsumos");
   try {
@@ -223,7 +227,6 @@ async function cargarInsumos() {
     const year = fechaActual.getFullYear();
     const month = fechaActual.getMonth();
 
-    // 🔹 Normalizar la fecha para evitar errores de zona horaria
     const filtrados = insumos.filter(i => {
       let f = i.fecha;
       if (typeof f === "string" && f.includes("T")) f = f.split("T")[0];
@@ -275,7 +278,9 @@ async function eliminarInsumo(id) {
             icon: 'success',
             title: 'Eliminado',
             text: data.mensaje || "Insumo eliminado correctamente",
-            confirmButtonColor: '#27ae60'
+            timer: 2000,
+            timerProgressBar: true,
+            showConfirmButton: false
           });
           cargarInsumos();
           renderCalendar();
@@ -301,7 +306,6 @@ async function eliminarInsumo(id) {
 }
 
     // Calendario dinámico
-// Calendario dinámico (corregido)
 async function renderCalendar() {
   const calendario = document.getElementById("calendario");
   const mesActual = document.getElementById("mesActual");
@@ -323,7 +327,6 @@ async function renderCalendar() {
     console.error(err);
   }
 
-  // 🔹 Filtrar los insumos del mes actual (sin alterar fechas)
   const filtrados = insumos.filter(i => {
     let f = i.fecha;
     if (typeof f === "string" && f.includes("T")) f = f.split("T")[0];
