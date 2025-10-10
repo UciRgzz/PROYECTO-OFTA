@@ -1420,7 +1420,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
           r.paciente_id AS numero_expediente,
           r.fecha,
           r.procedimiento,
-          'Normal' AS status,
+          'Pagado' AS status,
           r.forma_pago AS pago,
           COALESCE(r.monto_pagado, 0)::numeric AS total_pagado
         FROM recibos r
@@ -1451,12 +1451,12 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
 
       SELECT 
         e.numero_expediente AS folio,
-        e.nombre_completo AS paciente,
-        MIN(u.fecha) AS fecha,
+        e.nombre_completo AS nombre,
+        TO_CHAR(MIN(u.fecha), 'YYYY-MM-DD') AS fecha,
         u.procedimiento,
         u.status,
         u.pago,
-        COALESCE(SUM(u.total_pagado), 0)::numeric AS total_folio,
+        COALESCE(SUM(u.total_pagado), 0)::numeric AS total,
         0::numeric AS saldo
       FROM union_pagos u
       JOIN expedientes e 
@@ -1476,7 +1476,6 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 
 // ==================== ADMIN: Selección de sucursal ====================
