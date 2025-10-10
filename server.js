@@ -1321,13 +1321,26 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
 
     const query = `
       WITH resumen AS (
-        -- Recibos que NO tienen orden médica asociada (consultas normales)
+        -- Recibos tipo "Normal" (consulta inicial, se suma completo)
         SELECT 
           r.forma_pago AS pago,
           r.procedimiento AS procedimiento,
           SUM(r.monto_pagado) AS total
         FROM recibos r
         WHERE ${whereRecibos}
+          AND (r.tipo = 'Normal' OR r.tipo IS NULL OR r.tipo = '')
+        GROUP BY r.forma_pago, r.procedimiento
+
+        UNION ALL
+
+        -- Recibos tipo "OrdenCirugia" que NO tienen orden médica aún (evitar duplicados)
+        SELECT 
+          r.forma_pago AS pago,
+          r.procedimiento AS procedimiento,
+          SUM(r.monto_pagado) AS total
+        FROM recibos r
+        WHERE ${whereRecibos}
+          AND r.tipo = 'OrdenCirugia'
           AND NOT EXISTS (
             SELECT 1 FROM ordenes_medicas o 
             WHERE o.folio_recibo = r.id AND o.departamento = r.departamento
@@ -1336,7 +1349,7 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
 
         UNION ALL
 
-        -- Pagos de órdenes médicas (cirugías y otros con orden)
+        -- Pagos de órdenes médicas (cirugías programadas desde módulo médico)
         SELECT 
           p.forma_pago AS pago,
           o.procedimiento AS procedimiento,
@@ -1386,16 +1399,31 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
 
     const query = `
       WITH union_pagos AS (
-        -- Recibos sin orden médica (consultas normales)
+        -- Recibos tipo "Normal" (consulta que luego va a módulo médico)
         SELECT 
           r.paciente_id,
           r.fecha,
           r.procedimiento,
           'Normal' AS status,
           r.forma_pago AS pago,
-          r.precio AS total_pagado
+          r.monto_pagado AS total_pagado
         FROM recibos r
         WHERE ${whereRecibos}
+          AND (r.tipo = 'Normal' OR r.tipo IS NULL OR r.tipo = '')
+
+        UNION ALL
+
+        -- Recibos tipo "OrdenCirugia" sin orden médica creada aún
+        SELECT 
+          r.paciente_id,
+          r.fecha,
+          r.procedimiento,
+          'Normal' AS status,
+          r.forma_pago AS pago,
+          r.monto_pagado AS total_pagado
+        FROM recibos r
+        WHERE ${whereRecibos}
+          AND r.tipo = 'OrdenCirugia'
           AND NOT EXISTS (
             SELECT 1 FROM ordenes_medicas o 
             WHERE o.folio_recibo = r.id AND o.departamento = r.departamento
@@ -1403,7 +1431,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
 
         UNION ALL
 
-        -- Pagos de órdenes médicas
+        -- Pagos de órdenes médicas (desde módulo médico)
         SELECT 
           o.expediente_id AS paciente_id,
           p.fecha,
@@ -1418,7 +1446,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
       SELECT 
         e.numero_expediente AS folio,
         e.nombre_completo AS paciente,
-        MAX(u.fecha) AS fecha,
+        u.fecha,
         u.procedimiento,
         u.status,
         u.pago,
@@ -1428,7 +1456,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
       JOIN expedientes e 
         ON e.numero_expediente = u.paciente_id 
        AND e.departamento = $1
-      GROUP BY e.numero_expediente, e.nombre_completo, u.procedimiento, u.status, u.pago
+      GROUP BY e.numero_expediente, e.nombre_completo, u.fecha, u.procedimiento, u.status, u.pago
       ORDER BY e.nombre_completo;
     `;
 
