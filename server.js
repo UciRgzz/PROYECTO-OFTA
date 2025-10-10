@@ -1765,7 +1765,7 @@ app.get("/api/insumos", verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== 3. Subir Excel (SIN LOGS) ====================
+// ==================== 3. Subir Excel (CORREGIDO MONTOS) ====================
 app.post(
   "/api/insumos/upload",
   verificarSesion,
@@ -1781,7 +1781,9 @@ app.post(
 
       const workbook = xlsx.readFile(req.file.path);
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const data = xlsx.utils.sheet_to_json(sheet, { defval: "", raw: false });
+      
+      // 🔹 IMPORTANTE: raw: true mantiene los números como están en Excel
+      const data = xlsx.utils.sheet_to_json(sheet, { defval: "", raw: true });
 
       let insertados = 0;
       let actualizados = 0;
@@ -1845,31 +1847,27 @@ app.post(
             continue;
           }
 
-          // === MONTO ===
+          // === MONTO (CORREGIDO) ===
           let montoRaw = row.MONTO || row.Monto || row.monto || "";
-          let montoTexto = montoRaw
-            .toString()
-            .trim()
-            .replace(/\s+/g, "")
-            .replace(/[$]/g, "");
+          let monto;
 
-          if (montoTexto.includes(",") && montoTexto.includes(".")) {
-            const lastComma = montoTexto.lastIndexOf(",");
-            const lastDot = montoTexto.lastIndexOf(".");
-            
-            if (lastDot > lastComma) {
-              montoTexto = montoTexto.replace(/,/g, "");
-            } else {
-              montoTexto = montoTexto.replace(/\./g, "").replace(",", ".");
-            }
-          } else if (montoTexto.includes(",")) {
-            montoTexto = montoTexto.replace(",", ".");
+          // Si ya es un número (Excel lo leyó como número)
+          if (typeof montoRaw === "number") {
+            monto = montoRaw;
+          } else {
+            // Si es string, limpiar y convertir
+            let montoTexto = montoRaw
+              .toString()
+              .trim()
+              .replace(/\s+/g, "")       // Quitar espacios
+              .replace(/[$]/g, "")        // Quitar símbolo $
+              .replace(/,/g, "");         // 🔹 QUITAR TODAS LAS COMAS (separadores de miles)
+
+            monto = parseFloat(montoTexto);
           }
-
-          const monto = parseFloat(montoTexto);
           
           if (isNaN(monto) || monto <= 0) {
-            errores.push(`Fila ${numFila}: Monto inválido`);
+            errores.push(`Fila ${numFila}: Monto inválido (${montoRaw})`);
             omitidos++;
             continue;
           }
