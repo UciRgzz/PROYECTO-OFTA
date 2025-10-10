@@ -1321,18 +1321,22 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
 
     const query = `
       WITH resumen AS (
-        -- Recibos directos (monto_pagado real)
+        -- Recibos que NO tienen orden médica asociada (consultas normales)
         SELECT 
           r.forma_pago AS pago,
           r.procedimiento AS procedimiento,
           SUM(r.monto_pagado) AS total
         FROM recibos r
         WHERE ${whereRecibos}
+          AND NOT EXISTS (
+            SELECT 1 FROM ordenes_medicas o 
+            WHERE o.folio_recibo = r.id AND o.departamento = r.departamento
+          )
         GROUP BY r.forma_pago, r.procedimiento
 
         UNION ALL
 
-        -- Pagos de órdenes médicas (solo abonos reales)
+        -- Pagos de órdenes médicas (cirugías y otros con orden)
         SELECT 
           p.forma_pago AS pago,
           o.procedimiento AS procedimiento,
@@ -1356,6 +1360,7 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
   }
 });
 
+
 // ==================== LISTADO DE PACIENTES ====================
 app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
   try {
@@ -1364,67 +1369,66 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
     const params = [depto];
 
     let whereRecibos = "r.departamento = $1";
-    let wherePagos = "p.departamento = $1";
+    let whereOrdenes = "o.departamento = $1";
 
     if (fecha) {
       params.push(fecha);
       whereRecibos += ` AND DATE(r.fecha) = $${params.length}`;
-      wherePagos += ` AND DATE(p.fecha) = $${params.length}`;
+      whereOrdenes += ` AND DATE(p.fecha) = $${params.length}`;
     } else if (desde && hasta) {
       params.push(desde, hasta);
       whereRecibos += ` AND DATE(r.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
-      wherePagos += ` AND DATE(p.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
+      whereOrdenes += ` AND DATE(p.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
     } else {
       whereRecibos += " AND DATE(r.fecha) = CURRENT_DATE";
-      wherePagos += " AND DATE(p.fecha) = CURRENT_DATE";
+      whereOrdenes += " AND DATE(p.fecha) = CURRENT_DATE";
     }
 
     const query = `
-      WITH datos_pacientes AS (
-        -- Recibos con monto pagado real
+      WITH union_pagos AS (
+        -- Recibos sin orden médica (consultas normales)
         SELECT 
           r.paciente_id,
           r.fecha,
           r.procedimiento,
           'Normal' AS status,
           r.forma_pago AS pago,
-          r.precio AS total,
-          r.monto_pagado AS pagado,
-          (r.precio - r.monto_pagado) AS saldo
+          r.precio AS total_pagado
         FROM recibos r
         WHERE ${whereRecibos}
+          AND NOT EXISTS (
+            SELECT 1 FROM ordenes_medicas o 
+            WHERE o.folio_recibo = r.id AND o.departamento = r.departamento
+          )
 
         UNION ALL
 
-        -- Órdenes médicas con pagos reales
+        -- Pagos de órdenes médicas
         SELECT 
           o.expediente_id AS paciente_id,
           p.fecha,
           o.procedimiento,
           o.estatus AS status,
           p.forma_pago AS pago,
-          o.precio AS total,
-          SUM(p.monto) AS pagado,
-          (o.precio - SUM(p.monto)) AS saldo
+          p.monto AS total_pagado
         FROM pagos p
         JOIN ordenes_medicas o ON o.id = p.orden_id AND o.departamento = p.departamento
-        WHERE ${wherePagos}
-        GROUP BY o.expediente_id, p.fecha, o.procedimiento, o.estatus, p.forma_pago, o.precio
+        WHERE ${whereOrdenes}
       )
       SELECT 
         e.numero_expediente AS folio,
-        e.nombre_completo AS nombre,
-        d.fecha,
-        d.procedimiento,
-        d.status,
-        d.pago,
-        SUM(d.total) AS total,
-        SUM(d.saldo) AS saldo
-      FROM datos_pacientes d
+        e.nombre_completo AS paciente,
+        MAX(u.fecha) AS fecha,
+        u.procedimiento,
+        u.status,
+        u.pago,
+        SUM(u.total_pagado) AS total_pagado,
+        0 AS saldo
+      FROM union_pagos u
       JOIN expedientes e 
-        ON e.numero_expediente = d.paciente_id 
+        ON e.numero_expediente = u.paciente_id 
        AND e.departamento = $1
-      GROUP BY e.numero_expediente, e.nombre_completo, d.fecha, d.procedimiento, d.status, d.pago
+      GROUP BY e.numero_expediente, e.nombre_completo, u.procedimiento, u.status, u.pago
       ORDER BY e.nombre_completo;
     `;
 
@@ -1435,7 +1439,6 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // ==================== ADMIN: Selección de sucursal ====================
 app.post("/api/seleccionar-sucursal", verificarSesion, (req, res) => {
