@@ -782,6 +782,14 @@ async function verOptometria(expedienteId, nombre) {
 
     let contenido = "";
     data.forEach((opto, idx) => {
+        // Formatear fecha sin problema de timezone
+        let fechaFormateada = 'No registrada';
+        if (opto.fecha) {
+            const fecha = opto.fecha.split('T')[0];
+            const [año, mes, dia] = fecha.split('-');
+            fechaFormateada = `${dia}/${mes}/${año}`;
+        }
+        
         contenido += `
         <h4 class="mt-3">Evaluación #${opto.id} ${idx === 0 ? '(Más reciente)' : ''}</h4>
         <table class="table table-bordered">
@@ -821,7 +829,7 @@ async function verOptometria(expedienteId, nombre) {
             <tr><th>Hora T.P.</th><td>${opto.hora_tp || ''}</td></tr>
 
             <!-- Fecha -->
-            <tr><th>Fecha</th><td>${new Date(opto.fecha).toLocaleDateString('es-MX')}</td></tr>
+            <tr><th>Fecha</th><td>${fechaFormateada}</td></tr>
         </table>
         <hr/>
         `;
