@@ -1455,7 +1455,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
         TO_CHAR(MIN(u.fecha), 'YYYY-MM-DD') AS fecha,
         u.procedimiento,
         u.status,
-        u.pago,
+        STRING_AGG(DISTINCT u.pago, ', ' ORDER BY u.pago) AS pago,
         COALESCE(SUM(u.total_pagado), 0)::numeric AS total,
         0::numeric AS saldo
       FROM union_pagos u
@@ -1464,8 +1464,8 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
        AND e.departamento = $1
       GROUP BY 
         e.numero_expediente, e.nombre_completo, 
-        u.procedimiento, u.status, u.pago
-      ORDER BY e.nombre_completo;
+        u.procedimiento, u.status
+      ORDER BY MIN(u.fecha) DESC, e.nombre_completo;
     `;
 
     const result = await pool.query(query, params);
