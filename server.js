@@ -1401,28 +1401,32 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
     // --- Consulta SQL combinada ---
     const query = `
       WITH union_pagos AS (
-        -- 1️⃣ Recibos tipo NORMAL
+        -- 1️⃣ Recibos tipo NORMAL (ya pagados completos)
         SELECT 
           r.paciente_id AS numero_expediente,
           r.fecha,
           r.procedimiento,
           'Pagado' AS status,
           r.forma_pago AS pago,
-          COALESCE(r.monto_pagado, 0)::numeric AS total_pagado
+          COALESCE(r.monto_pagado, 0)::numeric AS total_pagado,
+          COALESCE(r.precio, 0)::numeric AS precio_original,
+          NULL::integer AS orden_id
         FROM recibos r
         WHERE ${whereRecibos}
           AND (r.tipo = 'Normal' OR r.tipo IS NULL OR r.tipo = '')
 
         UNION ALL
 
-        -- 2️⃣ Recibos tipo "OrdenCirugia" sin orden médica aún
+        -- 2️⃣ Recibos tipo "OrdenCirugia" sin orden médica aún (pagados completos)
         SELECT 
           r.paciente_id AS numero_expediente,
           r.fecha,
           r.procedimiento,
           'Pagado' AS status,
           r.forma_pago AS pago,
-          COALESCE(r.monto_pagado, 0)::numeric AS total_pagado
+          COALESCE(r.monto_pagado, 0)::numeric AS total_pagado,
+          COALESCE(r.precio, 0)::numeric AS precio_original,
+          NULL::integer AS orden_id
         FROM recibos r
         WHERE ${whereRecibos}
           AND r.tipo = 'OrdenCirugia'
@@ -1434,19 +1438,36 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
 
         UNION ALL
 
-        -- 3️⃣ Pagos de órdenes médicas (registrados en tabla pagos)
+        -- 3️⃣ Pagos de órdenes médicas (con abonos parciales)
         SELECT 
           o.expediente_id AS numero_expediente,
           p.fecha,
           o.procedimiento,
           o.estatus AS status,
           p.forma_pago AS pago,
-          COALESCE(p.monto, 0)::numeric AS total_pagado
+          COALESCE(p.monto, 0)::numeric AS total_pagado,
+          0::numeric AS precio_original,
+          o.id AS orden_id
         FROM pagos p
         JOIN ordenes_medicas o 
           ON o.id = p.orden_id 
          AND o.departamento = p.departamento
         WHERE ${wherePagos}
+      ),
+      
+      -- Obtener precio original de órdenes médicas
+      precios_ordenes AS (
+        SELECT 
+          o.id AS orden_id,
+          COALESCE(
+            (SELECT SUM(COALESCE(r.precio, 0)) 
+             FROM recibos r 
+             WHERE r.id = o.folio_recibo 
+               AND r.departamento = o.departamento),
+            0
+          )::numeric AS precio_total
+        FROM ordenes_medicas o
+        WHERE o.departamento = $1
       )
 
       SELECT 
@@ -1457,7 +1478,19 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
         u.status,
         STRING_AGG(DISTINCT u.pago, ', ' ORDER BY u.pago) AS pago,
         COALESCE(SUM(u.total_pagado), 0)::numeric AS total,
-        0::numeric AS saldo
+        CASE 
+          WHEN MAX(u.orden_id) IS NOT NULL THEN
+            -- Para órdenes médicas: precio del recibo original - total pagado
+            COALESCE(
+              (SELECT po.precio_total 
+               FROM precios_ordenes po 
+               WHERE po.orden_id = MAX(u.orden_id)), 
+              0
+            ) - COALESCE(SUM(u.total_pagado), 0)
+          ELSE
+            -- Para recibos normales: pendiente ya está en 0 (pagado completo)
+            MAX(u.precio_original) - COALESCE(SUM(u.total_pagado), 0)
+        END::numeric AS saldo
       FROM union_pagos u
       JOIN expedientes e 
         ON e.numero_expediente = u.numero_expediente 
