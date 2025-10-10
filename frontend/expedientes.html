@@ -739,6 +739,10 @@ async function verMedico(expedienteId, nombre) {
 
     let contenido = "";
     data.forEach((orden, idx) => {
+        // Intentar varios campos posibles de fecha de la orden
+        const fechaOrden = orden.fecha_orden || orden.fecha_cirugia || orden.fecha_agendada || orden.fecha;
+        const fechaFormateada = fechaOrden ? new Date(fechaOrden).toLocaleDateString('es-MX') : 'No asignada';
+        
         contenido += `
         <h4 class="mt-3">Orden #${orden.numero_orden} ${idx === 0 ? '(Más reciente)' : ''}</h4>
         <table class="table table-bordered">
@@ -746,9 +750,9 @@ async function verMedico(expedienteId, nombre) {
             <tr><th>Diagnóstico</th><td>${orden.diagnostico}</td></tr>
             <tr><th>Lado</th><td>${orden.lado}</td></tr>
             <tr><th>Procedimiento</th><td>${orden.procedimiento}</td></tr>
-            <tr><th>Precio</th><td>$${orden.precio || ''}</td></tr>
+            <tr><th>Precio</th><td>${orden.precio || ''}</td></tr>
             <tr><th>Estatus</th><td>${orden.estatus}</td></tr>
-            <tr><th>Fecha</th><td>${new Date(orden.fecha).toLocaleDateString('es-MX')}</td></tr>
+            <tr><th>Fecha</th><td>${fechaFormateada}</td></tr>
         </table>
         <hr/>
         `;
