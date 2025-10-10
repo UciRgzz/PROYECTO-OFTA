@@ -498,18 +498,23 @@ async function cargarOrdenes() {
     return `${dia}/${mes}/${anio}`;
   })()}
 </td>
-
-
-
         <td class="text-center">
-          ${o.estatus === "Pagado"
-            ? `<button class="btn btn-secondary btn-sm" disabled>
-                <i class="fas fa-check"></i> Pagado
-              </button>`
-            : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
-                <i class="fas fa-dollar-sign"></i> Pagar
-              </button>`}
-        </td>
+  ${o.estatus === "Pagado"
+    ? `
+      <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+        <span class="badge bg-success">Pagado</span>
+        <button class="btn btn-info btn-sm mt-1" onclick="imprimirReciboOrden(${o.orden_id})">
+          <i class="fas fa-receipt"></i> Imprimir
+        </button>
+      </div>
+    `
+    : `
+      <button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
+        <i class="fas fa-dollar-sign"></i> Pagar
+      </button>
+    `}
+</td>
+
       </tr>
     `).join("");
 
@@ -546,14 +551,22 @@ async function cargarOrdenes() {
 
 
         <td class="text-center">
-          ${o.estatus === "Pagado"
-            ? `<button class="btn btn-secondary btn-sm" disabled>
-                <i class="fas fa-check"></i> Pagado
-              </button>`
-            : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
-                <i class="fas fa-dollar-sign"></i> Pagar
-              </button>`}
-        </td>
+  ${o.estatus === "Pagado"
+    ? `
+      <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+        <span class="badge bg-success">Pagado</span>
+        <button class="btn btn-info btn-sm mt-1" onclick="imprimirReciboOrden(${o.orden_id})">
+          <i class="fas fa-receipt"></i> Imprimir
+        </button>
+      </div>
+    `
+    : `
+      <button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
+        <i class="fas fa-dollar-sign"></i> Pagar
+      </button>
+    `}
+</td>
+
       </tr>
     `).join("");
   }
@@ -738,8 +751,6 @@ if (o.fecha) {
     fechaFormateada = o.fecha; // fallback si viene diferente
   }
 }
-
-
       return `
       <tr>
         <td>${o.numero || o.expediente_numero || ''}</td>
@@ -830,6 +841,82 @@ async function actualizarCampo(id, campo, valor) {
   } catch (err) {
     console.error("Fallo actualizando campo:", err);
     Swal.fire("Error", err.message || "Error de red al actualizar", "error");
+  }
+}
+
+// ==================== Imprimir Recibo de Órdenes ====================
+async function imprimirReciboOrden(ordenId) {
+  try {
+    const res = await fetch(`/api/ordenes_medicas/${ordenId}`);
+    if (!res.ok) {
+      Swal.fire("Error", "No se encontró la orden", "error");
+      return;
+    }
+
+    const orden = await res.json();
+
+    const contenido = `
+      <div class="recibo-preview" style="font-family: Arial; padding:20px; max-width:700px; margin:auto; border:1px solid #ddd;">
+        <div class="recibo-header" style="text-align:center; margin-bottom:20px;">
+          <img src="/uploads/logo-oftavision.png" style="width:120px; margin-bottom:10px;">
+          <h2 style="margin:0;">CLÍNICA OFTAVISIÓN</h2>
+          <h4 style="margin:0; color:#444;">RECIBO DE ORDEN MÉDICA</h4>
+          <hr style="margin:10px 0;">
+        </div>
+
+        <table style="width:100%; font-size:14px; margin-bottom:15px;">
+          <tr><td><b>Fecha:</b> ${orden.fecha ? orden.fecha.split("T")[0] : "—"}</td><td style="text-align:right;"><b>Orden N°:</b> ${orden.id}</td></tr>
+          <tr><td><b>Paciente:</b> ${orden.paciente || "—"}</td><td style="text-align:right;"><b>Médico:</b> ${orden.medico || "—"}</td></tr>
+          <tr><td colspan="2"><b>Procedimiento:</b> ${orden.procedimiento || "—"}</td></tr>
+        </table>
+
+        <table style="width:100%; border-collapse:collapse; margin-bottom:20px; font-size:14px;">
+          <thead>
+            <tr style="background:#f0f0f0;">
+              <th style="border:1px solid #ddd; padding:8px;">Concepto</th>
+              <th style="border:1px solid #ddd; padding:8px;">Precio</th>
+              <th style="border:1px solid #ddd; padding:8px;">Pagado</th>
+              <th style="border:1px solid #ddd; padding:8px;">Pendiente</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border:1px solid #ddd; padding:8px;">${orden.procedimiento}</td>
+              <td style="border:1px solid #ddd; padding:8px; text-align:right;">$${parseFloat(orden.precio).toLocaleString("es-MX", {minimumFractionDigits:2})}</td>
+              <td style="border:1px solid #ddd; padding:8px; text-align:right;">$${parseFloat(orden.pagado).toLocaleString("es-MX", {minimumFractionDigits:2})}</td>
+              <td style="border:1px solid #ddd; padding:8px; text-align:right;">$${parseFloat(orden.pendiente).toLocaleString("es-MX", {minimumFractionDigits:2})}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="recibo-footer" style="text-align:center; font-size:12px; color:#555;">
+          <p><b>CLÍNICA OFTAVISIÓN</b> - Este recibo no es un comprobante fiscal.</p>
+        </div>
+      </div>
+    `;
+
+    Swal.fire({
+      title: "Vista previa del recibo",
+      html: contenido,
+      width: 800,
+      showCancelButton: true,
+      confirmButtonText: "Descargar PDF",
+      cancelButtonText: "Cerrar",
+      customClass: { popup: "swal-wide" },
+      preConfirm: () => {
+        const opt = {
+          margin: 10,
+          filename: `orden_${orden.id}.pdf`,
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        };
+        html2pdf().from(contenido).set(opt).save();
+      },
+    });
+  } catch (err) {
+    console.error("❌ Error imprimiendo orden:", err);
+    Swal.fire("Error", "No se pudo generar el PDF", "error");
   }
 }
 
