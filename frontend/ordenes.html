@@ -518,14 +518,15 @@
           <td>${o.numero || o.expediente_numero || ''}</td>
           <td class="text-truncate-cell" title="${o.paciente}">${o.paciente}</td>
           
-          <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'medico', this.innerText)">
-            ${o.medico || 'Null'}
+          <td ${o.tipo === 'OrdenCirugia' ? 'contenteditable="true"' : ''} onblur="actualizarCampo(${o.orden_id}, 'medico', this.innerText)">
+            ${o.medico || 'Pendiente'}
           </td>
-          <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'diagnostico', this.innerText)">
-            ${o.diagnostico || 'Null'}
+          <td ${o.tipo === 'OrdenCirugia' ? 'contenteditable="true"' : ''} onblur="actualizarCampo(${o.orden_id}, 'diagnostico', this.innerText)">
+            ${o.diagnostico || 'Pendiente'}
           </td>
-          <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'lado', this.innerText)">
-            ${o.lado || 'Null'}
+          <td ${o.tipo === 'OrdenCirugia' ? 'contenteditable="true"' : ''} onblur="actualizarCampoLado(${o.orden_id}, this.innerText)" 
+              title="${o.tipo === 'OrdenCirugia' ? 'Valores permitidos: OD, OI, AO' : 'No editable para tipo Normal'}">
+            ${o.lado || (o.tipo === 'OrdenCirugia' ? 'Pendiente' : 'N/A')}
           </td>
 
           <td class="text-truncate-cell" title="${o.procedimiento}">${o.procedimiento}</td>
