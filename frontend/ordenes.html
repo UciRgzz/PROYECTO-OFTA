@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Órdenes Médicas</title>
-  <!-- Favicon (logo empresa)-->
   <link rel="icon" type="image/png" href="/uploads/logo-oftavision2.png">
-  <!-- FontAwesome y Bootstrap -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+  
   <style>
     :root {
       --primary-color: #2c3e50;
@@ -80,12 +80,12 @@
     
     .card-body {
       padding: 25px;
-      overflow: visible; /* Elimina cualquier scroll */
+      overflow: visible;
     }
     
     .table-container {
       width: 100%;
-      overflow: visible; /* Asegura que no haya scroll */
+      overflow: visible;
     }
     
     .table {
@@ -96,7 +96,7 @@
       border-radius: 8px;
       overflow: hidden;
       box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-      table-layout: auto; /* Permite que las columnas se ajusten al contenido */
+      table-layout: auto;
     }
     
     .table th {
@@ -129,21 +129,19 @@
       background-color: #eef6ff;
     }
     
-    /* Ajustes de columnas para pantallas grandes */
-   .table th:nth-child(1), .table td:nth-child(1) { width: 5%; }  /* Número */
-.table th:nth-child(2), .table td:nth-child(2) { width: 20%; } /* Paciente */
-.table th:nth-child(3), .table td:nth-child(3) { width: 15%; } /* Médico */
-.table th:nth-child(4), .table td:nth-child(4) { width: 15%; } /* Diagnóstico */
-.table th:nth-child(5), .table td:nth-child(5) { width: 5%; }  /* Lado */
-.table th:nth-child(6), .table td:nth-child(6) { width: 15%; } /* Procedimiento */
-.table th:nth-child(7), .table td:nth-child(7) { width: 8%; }  /* Tipo */
-.table th:nth-child(8), .table td:nth-child(8) { width: 8%; }  /* Precio */
-.table th:nth-child(9), .table td:nth-child(9) { width: 8%; }  /* Pagado */
-.table th:nth-child(10), .table td:nth-child(10) { width: 8%; } /* Pendiente */
-.table th:nth-child(11), .table td:nth-child(11) { width: 8%; } /* Estatus */
-.table th:nth-child(12), .table td:nth-child(12) { width: 8%; } /* Fecha */
-.table th:nth-child(13), .table td:nth-child(13) { width: 8%; } /* Acción */
-
+    .table th:nth-child(1), .table td:nth-child(1) { width: 5%; }
+    .table th:nth-child(2), .table td:nth-child(2) { width: 20%; }
+    .table th:nth-child(3), .table td:nth-child(3) { width: 15%; }
+    .table th:nth-child(4), .table td:nth-child(4) { width: 15%; }
+    .table th:nth-child(5), .table td:nth-child(5) { width: 5%; }
+    .table th:nth-child(6), .table td:nth-child(6) { width: 15%; }
+    .table th:nth-child(7), .table td:nth-child(7) { width: 8%; }
+    .table th:nth-child(8), .table td:nth-child(8) { width: 8%; }
+    .table th:nth-child(9), .table td:nth-child(9) { width: 8%; }
+    .table th:nth-child(10), .table td:nth-child(10) { width: 8%; }
+    .table th:nth-child(11), .table td:nth-child(11) { width: 8%; }
+    .table th:nth-child(12), .table td:nth-child(12) { width: 8%; }
+    .table th:nth-child(13), .table td:nth-child(13) { width: 8%; }
     
     .success-alert {
       display: none;
@@ -186,7 +184,6 @@
       background: linear-gradient(135deg, var(--accent-color) 0%, #c0392b 100%) !important;
     }
     
-    /* Modal */
     .modal-content {
       border-radius: 12px;
       box-shadow: 0 6px 20px rgba(0,0,0,0.15);
@@ -215,15 +212,77 @@
       filter: invert(1);
     }
     
-    /* Para textos largos que necesitan truncarse */
     .text-truncate-cell {
-  white-space: normal;
-  word-wrap: break-word;
-  max-width: none;
-}
+      white-space: normal;
+      word-wrap: break-word;
+      max-width: none;
+    }
 
+    /* Estilos para el recibo */
+    .recibo-preview {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      width: 100%;
+      max-width: 700px;
+      margin: auto;
+      border: 1px solid #ddd;
+      background: white;
+    }
     
-    /* Responsive para pantallas medianas */
+    .recibo-header {
+      text-align: center;
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--primary-color);
+      padding-bottom: 15px;
+    }
+    
+    .recibo-logo {
+      width: 120px;
+      height: auto;
+      margin-bottom: 10px;
+    }
+    
+    .recibo-details {
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    
+    .recibo-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    
+    .recibo-table th, .recibo-table td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    
+    .recibo-table th {
+      background: #f0f0f0;
+    }
+    
+    .recibo-footer {
+      font-size: 12px;
+      text-align: center;
+      color: #555;
+      margin-top: 30px;
+    }
+
+    .swal-wide {
+      width: 800px !important;
+      max-width: 90vw;
+    }
+
+    /* Botón de imprimir pequeño */
+    .btn-print-small {
+      padding: 4px 8px;
+      font-size: 0.75rem;
+      margin-top: 5px;
+    }
+    
     @media (max-width: 1200px) {
       .table th, .table td {
         font-size: 0.85rem;
@@ -236,7 +295,6 @@
       }
     }
     
-    /* Para tablets */
     @media (max-width: 992px) {
       .container {
         padding: 0 10px;
@@ -246,14 +304,12 @@
         padding: 15px;
       }
       
-      /* En tablets, ocultamos algunas columnas menos críticas */
-      .table th:nth-child(4), .table td:nth-child(4), /* Diagnóstico */
-      .table th:nth-child(7), .table td:nth-child(7) { /* Tipo */
+      .table th:nth-child(4), .table td:nth-child(4),
+      .table th:nth-child(7), .table td:nth-child(7) {
         display: none;
       }
     }
     
-    /* Para móviles grandes */
     @media (max-width: 768px) {
       h1 {
         font-size: 2rem;
@@ -264,11 +320,10 @@
         padding: 15px;
       }
       
-      /* En móviles, ocultamos más columnas para mantener la legibilidad */
-      .table th:nth-child(3), .table td:nth-child(3), /* Médico */
-      .table th:nth-child(4), .table td:nth-child(4), /* Diagnóstico */
-      .table th:nth-child(7), .table td:nth-child(7), /* Tipo */
-      .table th:nth-child(12), .table td:nth-child(12) { /* Fecha */
+      .table th:nth-child(3), .table td:nth-child(3),
+      .table th:nth-child(4), .table td:nth-child(4),
+      .table th:nth-child(7), .table td:nth-child(7),
+      .table th:nth-child(12), .table td:nth-child(12) {
         display: none;
       }
       
@@ -278,7 +333,6 @@
       }
     }
     
-    /* Para móviles pequeños */
     @media (max-width: 576px) {
       body {
         padding: 10px;
@@ -292,10 +346,9 @@
         font-size: 1.8rem;
       }
       
-      /* En móviles pequeños, simplificamos aún más */
-      .table th:nth-child(1), .table td:nth-child(1), /* Número */
-      .table th:nth-child(9), .table td:nth-child(9), /* Pagado */
-      .table th:nth-child(10), .table td:nth-child(10) { /* Pendiente */
+      .table th:nth-child(1), .table td:nth-child(1),
+      .table th:nth-child(9), .table td:nth-child(9),
+      .table th:nth-child(10), .table td:nth-child(10) {
         display: none;
       }
     }
@@ -315,11 +368,10 @@
     <div class="card">
       <div class="card-header"><i class="fas fa-clipboard-list"></i> Lista de Órdenes</div>
       <div class="card-body">
-        <!-- 🔎 Filtro de fecha -->
-      <div class="mb-3">
-        <label for="filtroRango" class="form-label">Filtrar por fecha:</label>
-        <input type="text" id="filtroRango" class="form-control" style="max-width:300px;" placeholder="Selecciona un rango de fechas" readonly>
-      </div>
+        <div class="mb-3">
+          <label for="filtroRango" class="form-label">Filtrar por fecha:</label>
+          <input type="text" id="filtroRango" class="form-control" style="max-width:300px;" placeholder="Selecciona un rango de fechas" readonly>
+        </div>
 
         <div class="table-container d-flex justify-content-center">
           <table class="table text-center align-middle" style="width: auto; min-width: 95%;">
@@ -340,9 +392,7 @@
                 <th>Acción</th>
               </tr>
             </thead>
-            <tbody id="tablaOrdenes">
-              <!-- Los datos se cargarán aquí con JavaScript -->
-            </tbody>
+            <tbody id="tablaOrdenes"></tbody>
           </table>
         </div>
       </div>
@@ -353,7 +403,7 @@
     </div>
   </div>
 
-  <!-- Modal -->
+  <!-- Modal Pago -->
   <div class="modal fade" id="modalPago" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -417,23 +467,16 @@
     </div>
   </div>
 
-  <!-- Daterangepicker CSS -->
-<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
-
-<!-- jQuery (requerido por daterangepicker) -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<!-- Moment.js + Daterangepicker JS -->
-<script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
   
   <script>
     let ordenesData = [];
 
-    // Datos de ejemplo basados en tu imagen
     const datosEjemplo = [
       {
         numero: 3,
@@ -451,128 +494,80 @@
         orden_id: 3
       }
     ];
-// Cargar órdenes desde la API o usar datos de ejemplo
-async function cargarOrdenes() {
-  try {
-    // Intenta cargar datos desde la API
-    const res = await fetch("/api/ordenes_medicas");
-    if (res.ok) {
-      ordenesData = await res.json();
-    } else {
-      // Si falla la API, usa datos de ejemplo
-      ordenesData = datosEjemplo;
-    }
-    
-    document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
-      <tr>
-        <td>${o.numero || o.expediente_numero || ''}</td>
-        <td class="text-truncate-cell" title="${o.paciente}">${o.paciente}</td>
+
+    async function cargarOrdenes() {
+      try {
+        const res = await fetch("/api/ordenes_medicas");
+        if (res.ok) {
+          ordenesData = await res.json();
+        } else {
+          ordenesData = datosEjemplo;
+        }
         
-        <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'medico', this.innerText)">
-          ${o.medico || 'Null'}
-        </td>
-        <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'diagnostico', this.innerText)">
-          ${o.diagnostico || 'Null'}
-        </td>
-        <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'lado', this.innerText)">
-          ${o.lado || 'Null'}
-        </td>
+        renderizarTabla();
+      } catch (err) { 
+        console.error("Error cargando órdenes:", err);
+        ordenesData = datosEjemplo;
+        renderizarTabla();
+      }
+    }
 
-        <td class="text-truncate-cell" title="${o.procedimiento}">${o.procedimiento}</td>
-        <td><span class="badge bg-info">${o.tipo}</span></td>
-        <td>$${parseFloat(o.precio).toFixed(2)}</td>
-        <td>$${parseFloat(o.pagado).toFixed(2)}</td>
-        <td>$${parseFloat(o.pendiente).toFixed(2)}</td>
+    function renderizarTabla() {
+      document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
+        <tr>
+          <td>${o.numero || o.expediente_numero || ''}</td>
+          <td class="text-truncate-cell" title="${o.paciente}">${o.paciente}</td>
+          
+          <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'medico', this.innerText)">
+            ${o.medico || 'Null'}
+          </td>
+          <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'diagnostico', this.innerText)">
+            ${o.diagnostico || 'Null'}
+          </td>
+          <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'lado', this.innerText)">
+            ${o.lado || 'Null'}
+          </td>
 
-        <td>
-          ${o.estatus === "Pagado"
-            ? `<span class="badge bg-success">Pagado</span>`
-            : `<span class="badge bg-warning">${o.estatus}</span>`}
-        </td>
+          <td class="text-truncate-cell" title="${o.procedimiento}">${o.procedimiento}</td>
+          <td><span class="badge bg-info">${o.tipo}</span></td>
+          <td>$${parseFloat(o.precio).toFixed(2)}</td>
+          <td>$${parseFloat(o.pagado).toFixed(2)}</td>
+          <td>$${parseFloat(o.pendiente).toFixed(2)}</td>
 
-        <td style="white-space: nowrap; vertical-align: middle;">
-  ${(() => {
-    if (!o.fecha) return "";
-    const soloFecha = o.fecha.split("T")[0];
-    const [anio, mes, dia] = soloFecha.split("-");
-    return `${dia}/${mes}/${anio}`;
-  })()}
-</td>
-        <td class="text-center">
-  ${o.estatus === "Pagado"
-    ? `
-      <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
-        <span class="badge bg-success">Pagado</span>
-        <button class="btn btn-info btn-sm mt-1" onclick="imprimirReciboOrden(${o.orden_id})">
-          <i class="fas fa-receipt"></i> Imprimir
-        </button>
-      </div>
-    `
-    : `
-      <button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
-        <i class="fas fa-dollar-sign"></i> Pagar
-      </button>
-    `}
-</td>
+          <td>
+            ${o.estatus === "Pagado"
+              ? `<div>
+                  <span class="badge bg-success">Pagado</span>
+                  <br>
+                  <button class="btn btn-primary btn-print-small" onclick="imprimirReciboOrden(${i})">
+                    <i class="fas fa-print"></i> Recibo
+                  </button>
+                </div>`
+              : `<span class="badge bg-warning">${o.estatus}</span>`}
+          </td>
 
-      </tr>
-    `).join("");
+          <td style="white-space: nowrap; vertical-align: middle;">
+            ${(() => {
+              if (!o.fecha) return "";
+              const soloFecha = o.fecha.split("T")[0];
+              const [anio, mes, dia] = soloFecha.split("-");
+              return `${dia}/${mes}/${anio}`;
+            })()}
+          </td>
 
-  } catch (err) { 
-    console.error("Error cargando órdenes:", err);
-    // En caso de error, usa datos de ejemplo
-    ordenesData = datosEjemplo;
-    document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
-      <tr>
-        <td>${o.numero || o.expediente_numero || ''}</td>
-        <td class="text-truncate-cell" title="${o.paciente}">${o.paciente}</td>
-        <td>${o.medico || 'Pendiente'}</td>
-        <td>${o.diagnostico || 'Pendiente'}</td>
-        <td>${o.lado || 'Pendiente'}</td>
-        <td class="text-truncate-cell" title="${o.procedimiento}">${o.procedimiento}</td>
-        <td><span class="badge bg-info">${o.tipo}</span></td>
-        <td>$${parseFloat(o.precio).toFixed(2)}</td>
-        <td>$${parseFloat(o.pagado).toFixed(2)}</td>
-        <td>$${parseFloat(o.pendiente).toFixed(2)}</td>
-        <td>
-          ${o.estatus === "Pagado"
-            ? `<span class="badge bg-success">Pagado</span>`
-            : `<span class="badge bg-warning">${o.estatus}</span>`}
-        <td style="white-space: nowrap; vertical-align: middle;">
-  ${(() => {
-    if (!o.fecha) return "";
-    const soloFecha = o.fecha.split("T")[0];
-    const [anio, mes, dia] = soloFecha.split("-");
-    return `${dia}/${mes}/${anio}`;
-  })()}
-</td>
+          <td class="text-center">
+            ${o.estatus === "Pagado"
+              ? `<button class="btn btn-secondary btn-sm" disabled>
+                  <i class="fas fa-check"></i> Pagado
+                </button>`
+              : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
+                  <i class="fas fa-dollar-sign"></i> Pagar
+                </button>`}
+          </td>
+        </tr>
+      `).join("");
+    }
 
-
-
-
-        <td class="text-center">
-  ${o.estatus === "Pagado"
-    ? `
-      <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
-        <span class="badge bg-success">Pagado</span>
-        <button class="btn btn-info btn-sm mt-1" onclick="imprimirReciboOrden(${o.orden_id})">
-          <i class="fas fa-receipt"></i> Imprimir
-        </button>
-      </div>
-    `
-    : `
-      <button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
-        <i class="fas fa-dollar-sign"></i> Pagar
-      </button>
-    `}
-</td>
-
-      </tr>
-    `).join("");
-  }
-}
-
-// Abrir modal de pago
     function abrirPago(index) {
       const o = ordenesData[index];
       document.getElementById("formPago").reset();
@@ -586,6 +581,95 @@ async function cargarOrdenes() {
       document.getElementById("montoLiquidar").value = "";
       
       new bootstrap.Modal(document.getElementById("modalPago")).show();
+    }
+
+    // Función para imprimir recibo de orden
+    async function imprimirReciboOrden(index) {
+      const orden = ordenesData[index];
+      
+      const contenido = `
+        <div class="recibo-preview">
+          <div class="recibo-header">
+            <img src="/uploads/logo-oftavision.png" alt="Logo" class="recibo-logo">
+            <h2 style="margin:5px 0;">CLÍNICA OFTAVISION</h2>
+            <h4 style="margin:0; color:#444;">RECIBO DE ORDEN MÉDICA</h4>
+            <hr>
+          </div>
+
+          <div class="recibo-details">
+            <table style="width:100%; margin-bottom:15px; font-size:14px;">
+              <tr>
+                <td><b>Fecha:</b> ${(() => {
+                  if (!orden.fecha) return "";
+                  const soloFecha = orden.fecha.split("T")[0];
+                  const [anio, mes, dia] = soloFecha.split("-");
+                  return `${dia}/${mes}/${anio}`;
+                })()}</td>
+                <td style="text-align:right;"><b>Orden N°:</b> ${orden.orden_id}</td>
+              </tr>
+              <tr>
+                <td><b>Expediente:</b> ${orden.numero || orden.expediente_numero || 'N/A'}</td>
+                <td style="text-align:right;"><b>Tipo:</b> ${orden.tipo}</td>
+              </tr>
+              <tr>
+                <td colspan="2"><b>Paciente:</b> ${orden.paciente}</td>
+              </tr>
+              <tr>
+                <td><b>Médico:</b> ${orden.medico || 'N/A'}</td>
+                <td style="text-align:right;"><b>Diagnóstico:</b> ${orden.diagnostico || 'N/A'}</td>
+              </tr>
+              <tr>
+                <td colspan="2"><b>Lado:</b> ${orden.lado || 'N/A'}</td>
+              </tr>
+            </table>
+          </div>
+
+          <table class="recibo-table">
+            <thead>
+              <tr>
+                <th>Procedimiento</th>
+                <th>Precio</th>
+                <th>Pagado</th>
+                <th>Pendiente</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>${orden.procedimiento}</td>
+                <td style="text-align:right;">$${parseFloat(orden.precio).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+                <td style="text-align:right;">$${parseFloat(orden.pagado).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+                <td style="text-align:right;">$${parseFloat(orden.pendiente).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="recibo-footer">
+            <p><b>CLÍNICA OFTAVISION</b> - Este recibo es un comprobante de orden médica pagada.</p>
+          </div>
+        </div>
+      `;
+
+      Swal.fire({
+        title: 'Vista previa del recibo',
+        html: contenido,
+        width: 800,
+        showCancelButton: true,
+        confirmButtonText: 'Descargar PDF',
+        cancelButtonText: 'Cancelar',
+        customClass: {
+          popup: 'swal-wide'
+        },
+        preConfirm: () => {
+          const opt = {
+            margin: 10,
+            filename: `recibo_orden_${orden.orden_id}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+          };
+          html2pdf().from(contenido).set(opt).save();
+        }
+      });
     }
 
     document.getElementById("formPago").addEventListener("submit", async (e) => {
@@ -643,7 +727,6 @@ async function cargarOrdenes() {
       }
     });
 
-    // Mostrar mensaje de éxito
     function mostrarExito(titulo, mensaje) {
       document.getElementById('successMessage').textContent = mensaje;
       document.getElementById('successAlert').style.display = 'block';
@@ -661,7 +744,6 @@ async function cargarOrdenes() {
       });
     }
 
-    // Mostrar error
     function mostrarError(titulo, mensaje) {
       Swal.fire({
         icon: 'error',
@@ -670,257 +752,167 @@ async function cargarOrdenes() {
       });
     }
 
-    // Cargar órdenes al inicio
     document.addEventListener("DOMContentLoaded", function() {
       cargarOrdenes();
     });
 
-// ==================== Inicializar filtro de rango de fechas ====================
-$(document).ready(function () {
-  const hoy = moment();
+    $(document).ready(function () {
+      const hoy = moment();
 
-  // Configuración inicial del daterangepicker
-  $('#filtroRango').daterangepicker({
-    autoUpdateInput: true,
-    startDate: hoy,
-    endDate: hoy,
-    locale: {
-      format: 'DD/MM/YYYY',
-      separator: ' - ',
-      applyLabel: 'Aplicar',
-      cancelLabel: 'Cancelar',
-      fromLabel: 'Desde',
-      toLabel: 'Hasta',
-      daysOfWeek: ['Do','Lu','Ma','Mi','Ju','Vi','Sa'],
-      monthNames: [
-        'Enero','Febrero','Marzo','Abril','Mayo','Junio',
-        'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'
-      ],
-      firstDay: 1
-    },
-    ranges: {
-      'Hoy': [moment(), moment()],
-      'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-      'Últimos 7 días': [moment().subtract(6, 'days'), moment()],
-      'Últimos 30 días': [moment().subtract(29, 'days'), moment()],
-      'Este mes': [moment().startOf('month'), moment().endOf('month')],
-      'Mes pasado': [
-        moment().subtract(1, 'month').startOf('month'),
-        moment().subtract(1, 'month').endOf('month')
-      ]
-    }
-  });
+      $('#filtroRango').daterangepicker({
+        autoUpdateInput: true,
+        startDate: hoy,
+        endDate: hoy,
+        locale: {
+          format: 'DD/MM/YYYY',
+          separator: ' - ',
+          applyLabel: 'Aplicar',
+          cancelLabel: 'Cancelar',
+          fromLabel: 'Desde',
+          toLabel: 'Hasta',
+          daysOfWeek: ['Do','Lu','Ma','Mi','Ju','Vi','Sa'],
+          monthNames: [
+            'Enero','Febrero','Marzo','Abril','Mayo','Junio',
+            'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'
+          ],
+          firstDay: 1
+        },
+        ranges: {
+          'Hoy': [moment(), moment()],
+          'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+          'Últimos 7 días': [moment().subtract(6, 'days'), moment()],
+          'Últimos 30 días': [moment().subtract(29, 'days'), moment()],
+          'Este mes': [moment().startOf('month'), moment().endOf('month')],
+          'Mes pasado': [
+            moment().subtract(1, 'month').startOf('month'),
+            moment().subtract(1, 'month').endOf('month')
+          ]
+        }
+      });
 
-  // Mostrar la fecha actual en el input
-  $('#filtroRango').val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
+      $('#filtroRango').val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
+      cargarOrdenesRango(hoy.format('YYYY-MM-DD'), hoy.format('YYYY-MM-DD'));
 
-  // Cargar automáticamente las órdenes de hoy al abrir la página
-  cargarOrdenesRango(hoy.format('YYYY-MM-DD'), hoy.format('YYYY-MM-DD'));
+      $('#filtroRango').on('apply.daterangepicker', function (ev, picker) {
+        $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+        cargarOrdenesRango(picker.startDate.format('YYYY-MM-DD'), picker.endDate.format('YYYY-MM-DD'));
+      });
 
-  // Cuando el usuario aplica un nuevo rango de fechas
-  $('#filtroRango').on('apply.daterangepicker', function (ev, picker) {
-    $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
-    cargarOrdenesRango(picker.startDate.format('YYYY-MM-DD'), picker.endDate.format('YYYY-MM-DD'));
-  });
-
-  // Si cancela el filtro, volver a mostrar "Hoy"
-  $('#filtroRango').on('cancel.daterangepicker', function () {
-    $(this).val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
-    cargarOrdenesRango(hoy.format('YYYY-MM-DD'), hoy.format('YYYY-MM-DD'));
-  });
-});
-
-
-// ==================== Cargar órdenes por rango ====================
-async function cargarOrdenesRango(desde, hasta) {
-  try {
-    const res = await fetch(`/api/ordenes_medicas?desde=${desde}&hasta=${hasta}`);
-    const data = await res.json();
-    ordenesData = data;
-
-    document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => {
-      // 🕓 Formateo seguro de fecha sin desfase (sin convertir a UTC)
-let fechaFormateada = "";
-if (o.fecha) {
-  // Si viene como "2025-10-07" o "2025-10-07T00:00:00.000Z"
-  const partes = o.fecha.split("T")[0].split("-"); // separar solo la parte de la fecha
-  if (partes.length === 3) {
-    const [anio, mes, dia] = partes;
-    fechaFormateada = `${dia}/${mes}/${anio}`;
-  } else {
-    fechaFormateada = o.fecha; // fallback si viene diferente
-  }
-}
-      return `
-      <tr>
-        <td>${o.numero || o.expediente_numero || ''}</td>
-        <td>${o.paciente}</td>
-
-        <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'medico', this.innerText)">
-          ${o.medico || 'Pendiente'}
-        </td>
-        <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'diagnostico', this.innerText)">
-          ${o.diagnostico || 'NULL'}
-        </td>
-        <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'lado', this.innerText)">
-          ${o.lado || 'NULL'}
-        </td>
-
-        <td>${o.procedimiento}</td>
-        <td><span class="badge bg-info">${o.tipo}</span></td>
-        <td>$${parseFloat(o.precio).toFixed(2)}</td>
-        <td>$${parseFloat(o.pagado).toFixed(2)}</td>
-        <td>$${parseFloat(o.pendiente).toFixed(2)}</td>
-        <td>
-          ${o.estatus === "Pagado"
-            ? `<span class="badge bg-success">Pagado</span>`
-            : `<span class="badge bg-warning">${o.estatus}</span>`}
-        </td>
-
-        <td style="white-space: nowrap; vertical-align: middle;">
-  ${(() => {
-    if (!o.fecha) return "";
-    const soloFecha = o.fecha.split("T")[0]; // toma solo la parte antes de la T
-    const [anio, mes, dia] = soloFecha.split("-");
-    return `${dia}/${mes}/${anio}`; // muestra solo DD/MM/YYYY
-  })()}
-</td>
-
-
-        <td class="text-center">
-          ${o.estatus === "Pagado"
-            ? `<button class="btn btn-secondary btn-sm" disabled>
-                <i class="fas fa-check"></i> Pagado
-              </button>`
-            : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
-                <i class="fas fa-dollar-sign"></i> Pagar
-              </button>`}
-        </td>
-      </tr>
-    `;
-    }).join('');
-  } catch (err) {
-    console.error("❌ Error cargando órdenes por rango:", err);
-  }
-}
-
-
-
-// ==================== Actualizar campo editable ====================
-async function actualizarCampo(id, campo, valor) {
-  if (!valor.trim()) return; // No enviar si está vacío
-
-  try {
-    const res = await fetch(`/api/ordenes_medicas/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ [campo]: valor }),
+      $('#filtroRango').on('cancel.daterangepicker', function () {
+        $(this).val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
+        cargarOrdenesRango(hoy.format('YYYY-MM-DD'), hoy.format('YYYY-MM-DD'));
+      });
     });
 
-    // Intentar leer la respuesta JSON
-    let data;
-    try {
-      data = await res.json();
-    } catch {
-      data = {};
+    async function cargarOrdenesRango(desde, hasta) {
+      try {
+        const res = await fetch(`/api/ordenes_medicas?desde=${desde}&hasta=${hasta}`);
+        const data = await res.json();
+        ordenesData = data;
+
+        document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => {
+          let fechaFormateada = "";
+          if (o.fecha) {
+            const partes = o.fecha.split("T")[0].split("-");
+            if (partes.length === 3) {
+              const [anio, mes, dia] = partes;
+              fechaFormateada = `${dia}/${mes}/${anio}`;
+            } else {
+              fechaFormateada = o.fecha;
+            }
+          }
+
+          return `
+          <tr>
+            <td>${o.numero || o.expediente_numero || ''}</td>
+            <td>${o.paciente}</td>
+
+            <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'medico', this.innerText)">
+              ${o.medico || 'Pendiente'}
+            </td>
+            <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'diagnostico', this.innerText)">
+              ${o.diagnostico || 'NULL'}
+            </td>
+            <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'lado', this.innerText)">
+              ${o.lado || 'NULL'}
+            </td>
+
+            <td>${o.procedimiento}</td>
+            <td><span class="badge bg-info">${o.tipo}</span></td>
+            <td>${parseFloat(o.precio).toFixed(2)}</td>
+            <td>${parseFloat(o.pagado).toFixed(2)}</td>
+            <td>${parseFloat(o.pendiente).toFixed(2)}</td>
+            <td>
+              ${o.estatus === "Pagado"
+                ? `<div>
+                    <span class="badge bg-success">Pagado</span>
+                    <br>
+                    <button class="btn btn-primary btn-print-small" onclick="imprimirReciboOrden(${i})">
+                      <i class="fas fa-print"></i> Recibo
+                    </button>
+                  </div>`
+                : `<span class="badge bg-warning">${o.estatus}</span>`}
+            </td>
+
+            <td style="white-space: nowrap; vertical-align: middle;">
+              ${(() => {
+                if (!o.fecha) return "";
+                const soloFecha = o.fecha.split("T")[0];
+                const [anio, mes, dia] = soloFecha.split("-");
+                return `${dia}/${mes}/${anio}`;
+              })()}
+            </td>
+
+            <td class="text-center">
+              ${o.estatus === "Pagado"
+                ? `<button class="btn btn-secondary btn-sm" disabled>
+                    <i class="fas fa-check"></i> Pagado
+                  </button>`
+                : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
+                    <i class="fas fa-dollar-sign"></i> Pagar
+                  </button>`}
+            </td>
+          </tr>
+        `;
+        }).join('');
+      } catch (err) {
+        console.error("❌ Error cargando órdenes por rango:", err);
+      }
     }
 
-    // Si no es OK, mostrar error detallado
-    if (!res.ok) {
-      console.warn("Error backend:", data);
-      const mensaje =
-        data.error ||
-        data.message ||
-        "No se pudo actualizar el campo. Verifica sesión o permisos.";
-      Swal.fire("Error", mensaje, "error");
-      return;
+    async function actualizarCampo(id, campo, valor) {
+      if (!valor.trim()) return;
+
+      try {
+        const res = await fetch(`/api/ordenes_medicas/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ [campo]: valor }),
+        });
+
+        let data;
+        try {
+          data = await res.json();
+        } catch {
+          data = {};
+        }
+
+        if (!res.ok) {
+          console.warn("Error backend:", data);
+          const mensaje =
+            data.error ||
+            data.message ||
+            "No se pudo actualizar el campo. Verifica sesión o permisos.";
+          Swal.fire("Error", mensaje, "error");
+          return;
+        }
+
+        console.log("Actualización exitosa:", data);
+      } catch (err) {
+        console.error("Fallo actualizando campo:", err);
+        Swal.fire("Error", err.message || "Error de red al actualizar", "error");
+      }
     }
-
-    // Confirmación de éxito
-    console.log("Actualización exitosa:", data);
-  } catch (err) {
-    console.error("Fallo actualizando campo:", err);
-    Swal.fire("Error", err.message || "Error de red al actualizar", "error");
-  }
-}
-
-// ==================== Imprimir Recibo de Órdenes ====================
-async function imprimirReciboOrden(ordenId) {
-  try {
-    const res = await fetch(`/api/ordenes_medicas/${ordenId}`);
-    if (!res.ok) {
-      Swal.fire("Error", "No se encontró la orden", "error");
-      return;
-    }
-
-    const orden = await res.json();
-
-    const contenido = `
-      <div class="recibo-preview" style="font-family: Arial; padding:20px; max-width:700px; margin:auto; border:1px solid #ddd;">
-        <div class="recibo-header" style="text-align:center; margin-bottom:20px;">
-          <img src="/uploads/logo-oftavision.png" style="width:120px; margin-bottom:10px;">
-          <h2 style="margin:0;">CLÍNICA OFTAVISIÓN</h2>
-          <h4 style="margin:0; color:#444;">RECIBO DE ORDEN MÉDICA</h4>
-          <hr style="margin:10px 0;">
-        </div>
-
-        <table style="width:100%; font-size:14px; margin-bottom:15px;">
-          <tr><td><b>Fecha:</b> ${orden.fecha ? orden.fecha.split("T")[0] : "—"}</td><td style="text-align:right;"><b>Orden N°:</b> ${orden.id}</td></tr>
-          <tr><td><b>Paciente:</b> ${orden.paciente || "—"}</td><td style="text-align:right;"><b>Médico:</b> ${orden.medico || "—"}</td></tr>
-          <tr><td colspan="2"><b>Procedimiento:</b> ${orden.procedimiento || "—"}</td></tr>
-        </table>
-
-        <table style="width:100%; border-collapse:collapse; margin-bottom:20px; font-size:14px;">
-          <thead>
-            <tr style="background:#f0f0f0;">
-              <th style="border:1px solid #ddd; padding:8px;">Concepto</th>
-              <th style="border:1px solid #ddd; padding:8px;">Precio</th>
-              <th style="border:1px solid #ddd; padding:8px;">Pagado</th>
-              <th style="border:1px solid #ddd; padding:8px;">Pendiente</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style="border:1px solid #ddd; padding:8px;">${orden.procedimiento}</td>
-              <td style="border:1px solid #ddd; padding:8px; text-align:right;">$${parseFloat(orden.precio).toLocaleString("es-MX", {minimumFractionDigits:2})}</td>
-              <td style="border:1px solid #ddd; padding:8px; text-align:right;">$${parseFloat(orden.pagado).toLocaleString("es-MX", {minimumFractionDigits:2})}</td>
-              <td style="border:1px solid #ddd; padding:8px; text-align:right;">$${parseFloat(orden.pendiente).toLocaleString("es-MX", {minimumFractionDigits:2})}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div class="recibo-footer" style="text-align:center; font-size:12px; color:#555;">
-          <p><b>CLÍNICA OFTAVISIÓN</b> - Este recibo no es un comprobante fiscal.</p>
-        </div>
-      </div>
-    `;
-
-    Swal.fire({
-      title: "Vista previa del recibo",
-      html: contenido,
-      width: 800,
-      showCancelButton: true,
-      confirmButtonText: "Descargar PDF",
-      cancelButtonText: "Cerrar",
-      customClass: { popup: "swal-wide" },
-      preConfirm: () => {
-        const opt = {
-          margin: 10,
-          filename: `orden_${orden.id}.pdf`,
-          image: { type: "jpeg", quality: 0.98 },
-          html2canvas: { scale: 2 },
-          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-        };
-        html2pdf().from(contenido).set(opt).save();
-      },
-    });
-  } catch (err) {
-    console.error("❌ Error imprimiendo orden:", err);
-    Swal.fire("Error", "No se pudo generar el PDF", "error");
-  }
-}
-
-
   </script>
 </body>
 </html>
