@@ -362,7 +362,7 @@ input:focus, select:focus {
   width: 100%;
   border-collapse: collapse;
   margin-top: 15px;
-  background: #fdfdfd; /* Fondo más claro y suave */
+  background: #fdfdfd;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
@@ -652,14 +652,11 @@ async function guardarExpediente(e) {
     cancelarFormulario();
 }
 
-
-// =============== EDITAR EXPEDIENTE ==========================================
 // === EDITAR EXPEDIENTE ===
 async function editarExpediente(id) {
     const res = await fetch(`/api/expedientes/${id}`);
     const data = await res.json();
 
-    // Rellenar los campos del formulario
     document.getElementById('numero_expediente').value = data.numero_expediente;
     document.getElementById('nombre').value = data.nombre_completo;
     document.getElementById('fecha_nacimiento').value = data.fecha_nacimiento.split('T')[0];
@@ -670,12 +667,10 @@ async function editarExpediente(id) {
     document.getElementById('telefono1').value = data.telefono1;
     document.getElementById('telefono2').value = data.telefono2;
 
-    // Mostrar solo el formulario y ocultar la tabla
-document.getElementById('expedienteForm').style.display = 'block';
+    document.getElementById('expedienteForm').style.display = 'block';
 
-// Oculta completamente la tarjeta de "Lista de Expedientes"
-const cardTabla = document.querySelector('.card .fa-list')?.closest('.card');
-if (cardTabla) cardTabla.style.display = 'none';
+    const cardTabla = document.querySelector('.card .fa-list')?.closest('.card');
+    if (cardTabla) cardTabla.style.display = 'none';
 }
 
 // === BUSCAR EXPEDIENTE ===
@@ -686,7 +681,7 @@ async function buscarExpediente() {
     const res = await fetch(`/api/expedientes/${folio}`);
     if (res.ok) {
         const data = await res.json();
-        const usuario = { rol: window.usuarioRol || "usuario" }; // 🔑 usar rol global del index
+        const usuario = { rol: window.usuarioRol || "usuario" };
 
         document.getElementById('listaExpedientes').innerHTML = `
             <tr>
@@ -728,8 +723,6 @@ async function buscarExpediente() {
     }
 }
 
-
-
 // === VER ORDENES MÉDICAS ===
 async function verMedico(expedienteId, nombre) {
     const res = await fetch(`/api/expedientes/${expedienteId}/ordenes`);
@@ -755,7 +748,7 @@ async function verMedico(expedienteId, nombre) {
             <tr><th>Procedimiento</th><td>${orden.procedimiento}</td></tr>
             <tr><th>Precio</th><td>$${orden.precio || ''}</td></tr>
             <tr><th>Estatus</th><td>${orden.estatus}</td></tr>
-            <tr><th>Fecha</th><td>${new Date(orden.fecha).toLocaleString()}</td></tr>
+            <tr><th>Fecha</th><td>${new Date(orden.fecha).toLocaleDateString('es-MX')}</td></tr>
         </table>
         <hr/>
         `;
@@ -824,7 +817,7 @@ async function verOptometria(expedienteId, nombre) {
             <tr><th>Hora T.P.</th><td>${opto.hora_tp || ''}</td></tr>
 
             <!-- Fecha -->
-            <tr><th>Fecha</th><td>${new Date(opto.fecha).toLocaleString()}</td></tr>
+            <tr><th>Fecha</th><td>${new Date(opto.fecha).toLocaleDateString('es-MX')}</td></tr>
         </table>
         <hr/>
         `;
@@ -838,9 +831,7 @@ async function verOptometria(expedienteId, nombre) {
     });
 }
 
-
-
-// === ELIMINAR EXPEDIENTE ===//
+// === ELIMINAR EXPEDIENTE ===
 async function eliminarExpediente(id) {
     const confirmacion = await Swal.fire({
         title: '¿Estás seguro?',
