@@ -1765,7 +1765,7 @@ app.get("/api/insumos", verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== 3. Subir Excel (CORREGIDO) ====================
+// ==================== 3. Subir Excel (VERSIÓN COMPLETA) ====================
 app.post(
   "/api/insumos/upload",
   verificarSesion,
@@ -1782,28 +1782,38 @@ app.post(
 
       const workbook = xlsx.readFile(req.file.path);
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const data = xlsx.utils.sheet_to_json(sheet, { defval: "" });
+      const data = xlsx.utils.sheet_to_json(sheet, { defval: "", raw: false });
 
-      console.log("📊 Total de filas leídas:", data.length);
-      console.log("📋 Primera fila de ejemplo:", data[0]);
+      console.log("\n=== INICIO DE PROCESAMIENTO DE EXCEL ===");
+      console.log("📊 Total de filas en Excel:", data.length);
+      console.log("📋 Nombres de columnas detectadas:", Object.keys(data[0] || {}));
+      console.log("📋 Primera fila completa:", JSON.stringify(data[0], null, 2));
 
       let insertados = 0;
+      let actualizados = 0;
+      let omitidos = 0;
       let errores = [];
 
       for (let index = 0; index < data.length; index++) {
         const row = data[index];
+        const numFila = index + 2; // +2 porque Excel empieza en 1 y hay header
         
+        console.log(`\n--- Procesando fila ${numFila} ---`);
+        console.log("Datos crudos:", JSON.stringify(row, null, 2));
+
         try {
           // === FECHA ===
-          let fecha = row.FECHA || row.Fecha || row.fecha;
+          let fecha = row.FECHA || row.Fecha || row.fecha || "";
           
-          if (!fecha) {
-            errores.push(`Fila ${index + 2}: Fecha vacía`);
+          if (!fecha || fecha.toString().trim() === "") {
+            console.error(`❌ Fila ${numFila}: Fecha vacía o indefinida`);
+            errores.push(`Fila ${numFila}: Fecha vacía`);
+            omitidos++;
             continue;
           }
 
+          // Convertir fecha de Excel (número serial) a formato YYYY-MM-DD
           if (typeof fecha === "number") {
-            // Excel almacena fechas como números
             const epoch = new Date(1899, 11, 30);
             const excelDate = new Date(epoch.getTime() + fecha * 86400000);
             const yyyy = excelDate.getFullYear();
@@ -1811,103 +1821,127 @@ app.post(
             const dd = String(excelDate.getDate()).padStart(2, "0");
             fecha = `${yyyy}-${mm}-${dd}`;
           } else if (typeof fecha === "string") {
-            fecha = fecha.trim().replace(/\./g, "/").replace(/-/g, "/");
-            const partes = fecha.split("/");
+            // Normalizar diferentes formatos de fecha
+            fecha = fecha.trim();
             
-            if (partes.length === 3) {
-              // Detectar si es DD/MM/YYYY o MM/DD/YYYY
-              const [p1, p2, p3] = partes.map(p => parseInt(p));
-              
-              if (p1 > 31) {
-                // Es YYYY/MM/DD o YYYY/DD/MM
-                fecha = `${p1}-${String(p2).padStart(2, "0")}-${String(p3).padStart(2, "0")}`;
-              } else if (p1 > 12) {
-                // Es DD/MM/YYYY
-                fecha = `${p3}-${String(p2).padStart(2, "0")}-${String(p1).padStart(2, "0")}`;
-              } else {
-                // Asumir MM/DD/YYYY (formato americano) si el año está al final
-                fecha = `${p3}-${String(p1).padStart(2, "0")}-${String(p2).padStart(2, "0")}`;
-              }
+            // Si ya viene en formato YYYY-MM-DD, mantenerlo
+            if (/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+              // Ya está en formato correcto
+            }
+            // Si viene como DD/MM/YYYY o DD-MM-YYYY
+            else if (/^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}$/.test(fecha)) {
+              fecha = fecha.replace(/\./g, "/").replace(/-/g, "/");
+              const partes = fecha.split("/");
+              const [dd, mm, yyyy] = partes;
+              fecha = `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
+            }
+            // Si viene como YYYY/MM/DD
+            else if (/^\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}$/.test(fecha)) {
+              fecha = fecha.replace(/\//g, "-");
+              const partes = fecha.split("-");
+              const [yyyy, mm, dd] = partes;
+              fecha = `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
             }
           }
 
-          console.log(`✅ Fecha procesada (fila ${index + 2}):`, fecha);
+          console.log(`✅ Fecha procesada: ${fecha}`);
 
           // === FOLIO ===
-          let folio = String(row.FOLIO || row.Folio || row.folio || "")
-            .replace(/[^\w\s-]/g, "")
-            .trim();
+          let folio = (row.FOLIO || row.Folio || row.folio || "").toString().trim();
           
           if (!folio) {
-            errores.push(`Fila ${index + 2}: Folio vacío`);
+            console.error(`❌ Fila ${numFila}: Folio vacío`);
+            errores.push(`Fila ${numFila}: Folio vacío`);
+            omitidos++;
             continue;
           }
 
-          console.log(`✅ Folio procesado (fila ${index + 2}):`, folio);
+          console.log(`✅ Folio: ${folio}`);
 
           // === CONCEPTO ===
-          const concepto = String(row.CONCEPTO || row.Concepto || row.concepto || "").trim();
+          const concepto = (row.CONCEPTO || row.Concepto || row.concepto || "").toString().trim();
           
           if (!concepto) {
-            errores.push(`Fila ${index + 2}: Concepto vacío`);
+            console.error(`❌ Fila ${numFila}: Concepto vacío`);
+            errores.push(`Fila ${numFila}: Concepto vacío`);
+            omitidos++;
             continue;
           }
 
-          console.log(`✅ Concepto procesado (fila ${index + 2}):`, concepto);
+          console.log(`✅ Concepto: ${concepto}`);
 
           // === MONTO ===
           let montoRaw = row.MONTO || row.Monto || row.monto || "";
           let montoTexto = montoRaw
             .toString()
+            .trim()
             .replace(/\s+/g, "")
-            .replace(/[^\d.,-]/g, "");
+            .replace(/[$]/g, "");
 
-          // Manejar separadores decimales
+          // Normalizar separadores decimales
+          // Si tiene tanto coma como punto, determinar cuál es el decimal
           if (montoTexto.includes(",") && montoTexto.includes(".")) {
             const lastComma = montoTexto.lastIndexOf(",");
             const lastDot = montoTexto.lastIndexOf(".");
-            montoTexto =
-              lastDot > lastComma
-                ? montoTexto.replace(/,/g, "")
-                : montoTexto.replace(/\./g, "").replace(",", ".");
-          } else {
+            
+            if (lastDot > lastComma) {
+              // El punto es decimal: 1,234.56 -> 1234.56
+              montoTexto = montoTexto.replace(/,/g, "");
+            } else {
+              // La coma es decimal: 1.234,56 -> 1234.56
+              montoTexto = montoTexto.replace(/\./g, "").replace(",", ".");
+            }
+          } else if (montoTexto.includes(",")) {
+            // Solo tiene coma, convertirla a punto
             montoTexto = montoTexto.replace(",", ".");
           }
 
           const monto = parseFloat(montoTexto);
           
           if (isNaN(monto) || monto <= 0) {
-            errores.push(`Fila ${index + 2}: Monto inválido (${montoRaw})`);
+            console.error(`❌ Fila ${numFila}: Monto inválido (${montoRaw})`);
+            errores.push(`Fila ${numFila}: Monto inválido (${montoRaw})`);
+            omitidos++;
             continue;
           }
 
-          console.log(`✅ Monto procesado (fila ${index + 2}):`, monto);
+          console.log(`✅ Monto: ${monto}`);
 
-          // === VERIFICAR DUPLICADO POR FOLIO ===
+          // === VERIFICAR SI EXISTE ===
           const existe = await pool.query(
             "SELECT id FROM insumos WHERE folio = $1 AND departamento = $2",
             [folio, depto]
           );
           
           if (existe.rowCount > 0) {
-            console.log(`⚠️ Folio duplicado omitido: ${folio}`);
-            errores.push(`Fila ${index + 2}: Folio ${folio} ya existe`);
-            continue;
+            // ACTUALIZAR en lugar de omitir
+            console.log(`🔄 Folio ${folio} ya existe, ACTUALIZANDO...`);
+            
+            await pool.query(
+              `UPDATE insumos 
+               SET fecha = $1, concepto = $2, monto = $3, archivo = $4
+               WHERE folio = $5 AND departamento = $6`,
+              [fecha, concepto, monto, req.file.filename, folio, depto]
+            );
+            
+            actualizados++;
+            console.log(`✅ Registro actualizado: Folio ${folio}`);
+          } else {
+            // INSERTAR nuevo registro
+            await pool.query(
+              `INSERT INTO insumos (fecha, folio, concepto, monto, archivo, departamento)
+               VALUES ($1, $2, $3, $4, $5, $6)`,
+              [fecha, folio, concepto, monto, req.file.filename, depto]
+            );
+            
+            insertados++;
+            console.log(`✅ Registro insertado: Folio ${folio}`);
           }
 
-          // === INSERTAR ===
-          await pool.query(
-            `INSERT INTO insumos (fecha, folio, concepto, monto, archivo, departamento)
-             VALUES ($1, $2, $3, $4, $5, $6)`,
-            [fecha, folio, concepto, monto, req.file.filename, depto]
-          );
-          
-          insertados++;
-          console.log(`✅ Registro ${index + 2} insertado correctamente`);
-
         } catch (rowError) {
-          console.error(`❌ Error en fila ${index + 2}:`, rowError);
-          errores.push(`Fila ${index + 2}: ${rowError.message}`);
+          console.error(`❌ Error en fila ${numFila}:`, rowError.message);
+          errores.push(`Fila ${numFila}: ${rowError.message}`);
+          omitidos++;
         }
       }
 
@@ -1916,21 +1950,30 @@ app.post(
         `SELECT setval('insumos_id_seq', (SELECT COALESCE(MAX(id),0) FROM insumos) + 1)`
       );
 
-      console.log(`📊 Resumen: ${insertados} insertados, ${errores.length} errores`);
-      
-      if (errores.length > 0) {
-        console.log("⚠️ Errores encontrados:", errores);
-      }
+      console.log("\n=== RESUMEN FINAL ===");
+      console.log(`✅ Insertados: ${insertados}`);
+      console.log(`🔄 Actualizados: ${actualizados}`);
+      console.log(`⚠️ Omitidos: ${omitidos}`);
+      console.log(`❌ Errores:`, errores);
+
+      let mensaje = `Excel procesado: ${insertados} nuevos`;
+      if (actualizados > 0) mensaje += `, ${actualizados} actualizados`;
+      if (omitidos > 0) mensaje += `, ${omitidos} omitidos`;
 
       res.json({
-        mensaje: `✅ Excel procesado: ${insertados} registros guardados${errores.length > 0 ? `, ${errores.length} omitidos` : ""}`,
+        mensaje,
         insertados,
-        errores: errores.slice(0, 5) // Mostrar solo los primeros 5 errores
+        actualizados,
+        omitidos,
+        errores: errores.slice(0, 10) // Mostrar máximo 10 errores
       });
 
     } catch (err) {
-      console.error("❌ Error procesando Excel:", err);
-      res.status(500).json({ error: "Error procesando Excel: " + err.message });
+      console.error("❌ Error general procesando Excel:", err);
+      res.status(500).json({ 
+        error: "Error procesando Excel: " + err.message,
+        stack: err.stack
+      });
     }
   }
 );
