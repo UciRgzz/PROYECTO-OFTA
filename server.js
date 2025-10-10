@@ -1446,7 +1446,10 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
           o.estatus AS status,
           p.forma_pago AS pago,
           COALESCE(p.monto, 0)::numeric AS total_pagado,
-          0::numeric AS precio_original,
+          (SELECT COALESCE(SUM(r.precio), 0) 
+           FROM recibos r 
+           WHERE r.id = o.folio_recibo 
+             AND r.departamento = o.departamento)::numeric AS precio_original,
           o.id AS orden_id
         FROM pagos p
         JOIN ordenes_medicas o 
