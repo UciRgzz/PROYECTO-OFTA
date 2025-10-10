@@ -1409,7 +1409,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
           'Pagado' AS status,
           r.forma_pago AS pago,
           COALESCE(r.monto_pagado, 0)::numeric AS total_pagado,
-          COALESCE(r.precio, 0)::numeric AS precio_original,
+          COALESCE(r.pendiente, 0)::numeric AS pendiente_actual,
           r.id AS recibo_id,
           NULL::integer AS orden_id
         FROM recibos r
@@ -1426,7 +1426,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
           'Pagado' AS status,
           r.forma_pago AS pago,
           COALESCE(r.monto_pagado, 0)::numeric AS total_pagado,
-          COALESCE(r.precio, 0)::numeric AS precio_original,
+          COALESCE(r.pendiente, 0)::numeric AS pendiente_actual,
           r.id AS recibo_id,
           NULL::integer AS orden_id
         FROM recibos r
@@ -1440,7 +1440,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
 
         UNION ALL
 
-        -- 3️⃣ Pagos de órdenes médicas (con abonos parciales)
+        -- 3️⃣ Pagos de órdenes médicas (el pendiente está en el recibo original)
         SELECT 
           o.expediente_id AS numero_expediente,
           p.fecha,
@@ -1448,11 +1448,11 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
           o.estatus AS status,
           p.forma_pago AS pago,
           COALESCE(p.monto, 0)::numeric AS total_pagado,
-          (SELECT COALESCE(SUM(r.precio), 0) 
+          (SELECT COALESCE(r.pendiente, 0) 
            FROM recibos r 
            WHERE r.id = o.folio_recibo 
              AND r.departamento = o.departamento
-             AND r.procedimiento = o.procedimiento)::numeric AS precio_original,
+           LIMIT 1)::numeric AS pendiente_actual,
           o.folio_recibo AS recibo_id,
           o.id AS orden_id
         FROM pagos p
@@ -1470,10 +1470,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
         u.status,
         STRING_AGG(DISTINCT u.pago, ', ' ORDER BY u.pago) AS pago,
         COALESCE(SUM(u.total_pagado), 0)::numeric AS total,
-        GREATEST(
-          MAX(u.precio_original) - COALESCE(SUM(u.total_pagado), 0),
-          0
-        )::numeric AS saldo
+        MAX(u.pendiente_actual)::numeric AS saldo
       FROM union_pagos u
       JOIN expedientes e 
         ON e.numero_expediente = u.numero_expediente 
