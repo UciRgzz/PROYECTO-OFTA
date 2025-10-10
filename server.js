@@ -1302,8 +1302,7 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
     const depto = getDepartamento(req);
     const params = [depto];
     
-
-    // Filtros
+    // Filtros de fecha
     let whereRecibos = "r.departamento = $1";
     let wherePagos = "p.departamento = $1";
 
@@ -1322,7 +1321,7 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
 
     const query = `
       WITH resumen AS (
-        -- Recibos directos (sin orden)
+        -- Recibos directos (monto_pagado real)
         SELECT 
           r.forma_pago AS pago,
           r.procedimiento AS procedimiento,
@@ -1333,13 +1332,13 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
 
         UNION ALL
 
-        -- Pagos de órdenes médicas
+        -- Pagos de órdenes médicas (solo abonos reales)
         SELECT 
           p.forma_pago AS pago,
           o.procedimiento AS procedimiento,
           SUM(p.monto) AS total
         FROM pagos p
-        JOIN ordenes_medicas o ON o.id = p.orden_id
+        JOIN ordenes_medicas o ON o.id = p.orden_id AND o.departamento = p.departamento
         WHERE ${wherePagos}
         GROUP BY p.forma_pago, o.procedimiento
       )
@@ -1356,7 +1355,6 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // ==================== LISTADO DE PACIENTES ====================
 app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
@@ -1382,38 +1380,51 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
     }
 
     const query = `
-      WITH union_pagos AS (
-        -- Recibos
+      WITH datos_pacientes AS (
+        -- Recibos con monto pagado real
         SELECT 
-          r.paciente_id AS paciente_id,
-          MAX(r.fecha)::date AS fecha,
-          SUM(r.monto_pagado) AS total_pagado
+          r.paciente_id,
+          r.fecha,
+          r.procedimiento,
+          'Normal' AS status,
+          r.forma_pago AS pago,
+          r.precio AS total,
+          r.monto_pagado AS pagado,
+          (r.precio - r.monto_pagado) AS saldo
         FROM recibos r
         WHERE ${whereRecibos}
-        GROUP BY r.paciente_id
 
         UNION ALL
 
-        -- Pagos de órdenes
+        -- Órdenes médicas con pagos reales
         SELECT 
           o.expediente_id AS paciente_id,
-          MAX(p.fecha)::date AS fecha,
-          SUM(p.monto) AS total_pagado
+          p.fecha,
+          o.procedimiento,
+          o.estatus AS status,
+          p.forma_pago AS pago,
+          o.precio AS total,
+          SUM(p.monto) AS pagado,
+          (o.precio - SUM(p.monto)) AS saldo
         FROM pagos p
-        JOIN ordenes_medicas o ON o.id = p.orden_id
+        JOIN ordenes_medicas o ON o.id = p.orden_id AND o.departamento = p.departamento
         WHERE ${wherePagos}
-        GROUP BY o.expediente_id
+        GROUP BY o.expediente_id, p.fecha, o.procedimiento, o.estatus, p.forma_pago, o.precio
       )
       SELECT 
         e.numero_expediente AS folio,
-        e.nombre_completo AS paciente,
-        MAX(u.fecha) AS fecha,
-        SUM(u.total_pagado) AS total_pagado
-      FROM union_pagos u
+        e.nombre_completo AS nombre,
+        d.fecha,
+        d.procedimiento,
+        d.status,
+        d.pago,
+        SUM(d.total) AS total,
+        SUM(d.saldo) AS saldo
+      FROM datos_pacientes d
       JOIN expedientes e 
-        ON e.numero_expediente = u.paciente_id 
+        ON e.numero_expediente = d.paciente_id 
        AND e.departamento = $1
-      GROUP BY e.numero_expediente, e.nombre_completo
+      GROUP BY e.numero_expediente, e.nombre_completo, d.fecha, d.procedimiento, d.status, d.pago
       ORDER BY e.nombre_completo;
     `;
 
@@ -1424,7 +1435,6 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 
 // ==================== ADMIN: Selección de sucursal ====================
