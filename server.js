@@ -1765,7 +1765,7 @@ app.get("/api/insumos", verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== 3. Subir Excel (VERSIÓN LIMPIA) ====================
+// ==================== 3. Subir Excel (SIN LOGS) ====================
 app.post(
   "/api/insumos/upload",
   verificarSesion,
@@ -1910,7 +1910,7 @@ app.post(
         `SELECT setval('insumos_id_seq', (SELECT COALESCE(MAX(id),0) FROM insumos) + 1)`
       );
 
-      let mensaje = `✅ Excel procesado: ${insertados} nuevos`;
+      let mensaje = `Excel procesado: ${insertados} nuevos`;
       if (actualizados > 0) mensaje += `, ${actualizados} actualizados`;
       if (omitidos > 0) mensaje += `, ${omitidos} omitidos`;
 
@@ -1923,9 +1923,8 @@ app.post(
       });
 
     } catch (err) {
-      console.error("❌ Error procesando Excel:", err);
       res.status(500).json({ 
-        error: "Error procesando Excel: " + err.message
+        error: "Error procesando Excel"
       });
     }
   }
