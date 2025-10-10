@@ -1765,7 +1765,7 @@ app.get("/api/insumos", verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== 3. Subir Excel ====================
+// ==================== 3. Subir Excel (CORREGIDO) ====================
 app.post(
   "/api/insumos/upload",
   verificarSesion,
@@ -1784,97 +1784,156 @@ app.post(
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const data = xlsx.utils.sheet_to_json(sheet, { defval: "" });
 
+      console.log("📊 Total de filas leídas:", data.length);
+      console.log("📋 Primera fila de ejemplo:", data[0]);
+
       let insertados = 0;
+      let errores = [];
 
-      for (const row of data) {
-        // === FECHA ===
-        let fecha = row.Fecha;
-        if (typeof fecha === "number") {
-          const epoch = new Date(1899, 11, 30);
-          const excelDate = new Date(epoch.getTime() + fecha * 86400000);
-          const yyyy = excelDate.getFullYear();
-          const mm = String(excelDate.getMonth() + 1).padStart(2, "0");
-          const dd = String(excelDate.getDate()).padStart(2, "0");
-          fecha = `${yyyy}-${mm}-${dd}`;
-        } else if (typeof fecha === "string") {
-          fecha = fecha.trim().replace(/\./g, "/").replace(/-/g, "/");
-          const partes = fecha.split("/");
-          if (partes.length === 3) {
-            fecha =
-              parseInt(partes[0]) > 12
-                ? `${partes[2]}-${partes[1].padStart(2, "0")}-${partes[0].padStart(2, "0")}`
-                : `${partes[2]}-${partes[0].padStart(2, "0")}-${partes[1].padStart(2, "0")}`;
-          } else {
-            const parsed = new Date(fecha);
-            if (isNaN(parsed)) continue;
-            const yyyy = parsed.getFullYear();
-            const mm = String(parsed.getMonth() + 1).padStart(2, "0");
-            const dd = String(parsed.getDate()).padStart(2, "0");
-            fecha = `${yyyy}-${mm}-${dd}`;
+      for (let index = 0; index < data.length; index++) {
+        const row = data[index];
+        
+        try {
+          // === FECHA ===
+          let fecha = row.FECHA || row.Fecha || row.fecha;
+          
+          if (!fecha) {
+            errores.push(`Fila ${index + 2}: Fecha vacía`);
+            continue;
           }
+
+          if (typeof fecha === "number") {
+            // Excel almacena fechas como números
+            const epoch = new Date(1899, 11, 30);
+            const excelDate = new Date(epoch.getTime() + fecha * 86400000);
+            const yyyy = excelDate.getFullYear();
+            const mm = String(excelDate.getMonth() + 1).padStart(2, "0");
+            const dd = String(excelDate.getDate()).padStart(2, "0");
+            fecha = `${yyyy}-${mm}-${dd}`;
+          } else if (typeof fecha === "string") {
+            fecha = fecha.trim().replace(/\./g, "/").replace(/-/g, "/");
+            const partes = fecha.split("/");
+            
+            if (partes.length === 3) {
+              // Detectar si es DD/MM/YYYY o MM/DD/YYYY
+              const [p1, p2, p3] = partes.map(p => parseInt(p));
+              
+              if (p1 > 31) {
+                // Es YYYY/MM/DD o YYYY/DD/MM
+                fecha = `${p1}-${String(p2).padStart(2, "0")}-${String(p3).padStart(2, "0")}`;
+              } else if (p1 > 12) {
+                // Es DD/MM/YYYY
+                fecha = `${p3}-${String(p2).padStart(2, "0")}-${String(p1).padStart(2, "0")}`;
+              } else {
+                // Asumir MM/DD/YYYY (formato americano) si el año está al final
+                fecha = `${p3}-${String(p1).padStart(2, "0")}-${String(p2).padStart(2, "0")}`;
+              }
+            }
+          }
+
+          console.log(`✅ Fecha procesada (fila ${index + 2}):`, fecha);
+
+          // === FOLIO ===
+          let folio = String(row.FOLIO || row.Folio || row.folio || "")
+            .replace(/[^\w\s-]/g, "")
+            .trim();
+          
+          if (!folio) {
+            errores.push(`Fila ${index + 2}: Folio vacío`);
+            continue;
+          }
+
+          console.log(`✅ Folio procesado (fila ${index + 2}):`, folio);
+
+          // === CONCEPTO ===
+          const concepto = String(row.CONCEPTO || row.Concepto || row.concepto || "").trim();
+          
+          if (!concepto) {
+            errores.push(`Fila ${index + 2}: Concepto vacío`);
+            continue;
+          }
+
+          console.log(`✅ Concepto procesado (fila ${index + 2}):`, concepto);
+
+          // === MONTO ===
+          let montoRaw = row.MONTO || row.Monto || row.monto || "";
+          let montoTexto = montoRaw
+            .toString()
+            .replace(/\s+/g, "")
+            .replace(/[^\d.,-]/g, "");
+
+          // Manejar separadores decimales
+          if (montoTexto.includes(",") && montoTexto.includes(".")) {
+            const lastComma = montoTexto.lastIndexOf(",");
+            const lastDot = montoTexto.lastIndexOf(".");
+            montoTexto =
+              lastDot > lastComma
+                ? montoTexto.replace(/,/g, "")
+                : montoTexto.replace(/\./g, "").replace(",", ".");
+          } else {
+            montoTexto = montoTexto.replace(",", ".");
+          }
+
+          const monto = parseFloat(montoTexto);
+          
+          if (isNaN(monto) || monto <= 0) {
+            errores.push(`Fila ${index + 2}: Monto inválido (${montoRaw})`);
+            continue;
+          }
+
+          console.log(`✅ Monto procesado (fila ${index + 2}):`, monto);
+
+          // === VERIFICAR DUPLICADO POR FOLIO ===
+          const existe = await pool.query(
+            "SELECT id FROM insumos WHERE folio = $1 AND departamento = $2",
+            [folio, depto]
+          );
+          
+          if (existe.rowCount > 0) {
+            console.log(`⚠️ Folio duplicado omitido: ${folio}`);
+            errores.push(`Fila ${index + 2}: Folio ${folio} ya existe`);
+            continue;
+          }
+
+          // === INSERTAR ===
+          await pool.query(
+            `INSERT INTO insumos (fecha, folio, concepto, monto, archivo, departamento)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [fecha, folio, concepto, monto, req.file.filename, depto]
+          );
+          
+          insertados++;
+          console.log(`✅ Registro ${index + 2} insertado correctamente`);
+
+        } catch (rowError) {
+          console.error(`❌ Error en fila ${index + 2}:`, rowError);
+          errores.push(`Fila ${index + 2}: ${rowError.message}`);
         }
-
-        // === FOLIO ===
-        let folio = String(row.Folio || "").replace(/[^\w\s-]/g, "").trim();
-        if (!folio) continue;
-
-        // === CONCEPTO ===
-        const concepto = String(row.Concepto || "").trim();
-        if (!concepto) continue;
-
-        // === MONTO ===
-        let montoTexto = (row.Monto || "")
-          .toString()
-          .replace(/\s+/g, "")
-          .replace(/[^\d.,-]/g, "")
-          .replace(/(\.\d{3,})/, "");
-        if (montoTexto.includes(",") && montoTexto.includes(".")) {
-          const lastComma = montoTexto.lastIndexOf(",");
-          const lastDot = montoTexto.lastIndexOf(".");
-          montoTexto =
-            lastDot > lastComma
-              ? montoTexto.replace(/,/g, "")
-              : montoTexto.replace(/\./g, "").replace(",", ".");
-        } else {
-          montoTexto = montoTexto.replace(",", ".");
-        }
-        const monto = parseFloat(montoTexto);
-        if (isNaN(monto) || monto <= 0) continue;
-
-        // === VERIFICAR DUPLICADO POR FOLIO ===
-        const existe = await pool.query(
-          "SELECT id FROM insumos WHERE folio = $1 AND departamento = $2",
-          [folio, depto]
-        );
-        if (existe.rowCount > 0) {
-          console.log(`⚠️ Folio duplicado omitido: ${folio}`);
-          continue;
-        }
-
-        // === INSERTAR SIN ID (usa secuencia automática) ===
-        await pool.query(
-          `INSERT INTO insumos (fecha, folio, concepto, monto, archivo, departamento)
-           VALUES ($1, $2, $3, $4, $5, $6)`,
-          [fecha, folio, concepto, monto, req.file.filename, depto]
-        );
-        insertados++;
       }
 
-      // === Sincronizar secuencia una sola vez ===
+      // === Sincronizar secuencia ===
       await pool.query(
         `SELECT setval('insumos_id_seq', (SELECT COALESCE(MAX(id),0) FROM insumos) + 1)`
       );
 
+      console.log(`📊 Resumen: ${insertados} insertados, ${errores.length} errores`);
+      
+      if (errores.length > 0) {
+        console.log("⚠️ Errores encontrados:", errores);
+      }
+
       res.json({
-        mensaje: `✅ Excel procesado correctamente (${insertados} registros guardados)`,
+        mensaje: `✅ Excel procesado: ${insertados} registros guardados${errores.length > 0 ? `, ${errores.length} omitidos` : ""}`,
+        insertados,
+        errores: errores.slice(0, 5) // Mostrar solo los primeros 5 errores
       });
+
     } catch (err) {
-      console.error("Error procesando Excel:", err);
-      res.status(500).json({ error: "Error procesando Excel" });
+      console.error("❌ Error procesando Excel:", err);
+      res.status(500).json({ error: "Error procesando Excel: " + err.message });
     }
   }
 );
-
 
 // ==================== 4. Eliminar insumo ====================
 app.delete("/api/insumos/:id", isAdmin, async (req, res) => {
