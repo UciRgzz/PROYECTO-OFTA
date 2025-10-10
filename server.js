@@ -1381,30 +1381,32 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
     const depto = getDepartamento(req);
     const params = [depto];
 
+    // --- Filtros dinámicos ---
     let whereRecibos = "r.departamento = $1";
-    let whereOrdenes = "o.departamento = $1";
+    let wherePagos = "p.departamento = $1";
 
     if (fecha) {
       params.push(fecha);
       whereRecibos += ` AND DATE(r.fecha) = $${params.length}`;
-      whereOrdenes += ` AND DATE(p.fecha) = $${params.length}`;
+      wherePagos += ` AND DATE(p.fecha) = $${params.length}`;
     } else if (desde && hasta) {
       params.push(desde, hasta);
       whereRecibos += ` AND DATE(r.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
-      whereOrdenes += ` AND DATE(p.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
+      wherePagos += ` AND DATE(p.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
     } else {
       whereRecibos += " AND DATE(r.fecha) = CURRENT_DATE";
-      whereOrdenes += " AND DATE(p.fecha) = CURRENT_DATE";
+      wherePagos += " AND DATE(p.fecha) = CURRENT_DATE";
     }
 
+    // --- Consulta SQL combinada ---
     const query = `
       WITH union_pagos AS (
-        -- Recibos tipo "Normal"
+        -- 1️⃣ Recibos tipo NORMAL
         SELECT 
           r.paciente_id AS numero_expediente,
           r.fecha,
           r.procedimiento,
-          'Normal' AS status,
+          'Pagado' AS status,
           r.forma_pago AS pago,
           COALESCE(r.monto_pagado, 0)::numeric AS total_pagado
         FROM recibos r
@@ -1413,7 +1415,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
 
         UNION ALL
 
-        -- Recibos tipo "OrdenCirugia" sin orden médica
+        -- 2️⃣ Recibos tipo "OrdenCirugia" sin orden médica aún
         SELECT 
           r.paciente_id AS numero_expediente,
           r.fecha,
@@ -1426,12 +1428,13 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
           AND r.tipo = 'OrdenCirugia'
           AND NOT EXISTS (
             SELECT 1 FROM ordenes_medicas o 
-            WHERE o.folio_recibo = r.id AND o.departamento = r.departamento
+            WHERE o.folio_recibo = r.id 
+              AND o.departamento = r.departamento
           )
 
         UNION ALL
 
-        -- Pagos de órdenes médicas
+        -- 3️⃣ Pagos de órdenes médicas (registrados en tabla pagos)
         SELECT 
           o.expediente_id AS numero_expediente,
           p.fecha,
@@ -1443,8 +1446,9 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
         JOIN ordenes_medicas o 
           ON o.id = p.orden_id 
          AND o.departamento = p.departamento
-        WHERE ${whereOrdenes}
+        WHERE ${wherePagos}
       )
+
       SELECT 
         e.numero_expediente AS folio,
         e.nombre_completo AS paciente,
@@ -1452,20 +1456,23 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
         u.procedimiento,
         u.status,
         u.pago,
-        COALESCE(SUM(u.total_pagado), 0)::numeric AS total_pagado,
+        COALESCE(SUM(u.total_pagado), 0)::numeric AS total_folio,
         0::numeric AS saldo
       FROM union_pagos u
       JOIN expedientes e 
         ON e.numero_expediente = u.numero_expediente 
        AND e.departamento = $1
-      GROUP BY e.numero_expediente, e.nombre_completo, u.procedimiento, u.status, u.pago
+      GROUP BY 
+        e.numero_expediente, e.nombre_completo, 
+        u.procedimiento, u.status, u.pago
       ORDER BY e.nombre_completo;
     `;
 
     const result = await pool.query(query, params);
     res.json(result.rows);
+
   } catch (err) {
-    console.error("Error en /api/listado-pacientes:", err);
+    console.error("❌ Error en /api/listado-pacientes:", err);
     res.status(500).json({ error: err.message });
   }
 });
