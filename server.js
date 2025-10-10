@@ -1401,7 +1401,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
       WITH union_pagos AS (
         -- Recibos tipo "Normal"
         SELECT 
-          r.paciente_id,
+          r.paciente_id AS numero_expediente,
           r.fecha,
           r.procedimiento,
           'Normal' AS status,
@@ -1415,7 +1415,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
 
         -- Recibos tipo "OrdenCirugia" sin orden médica
         SELECT 
-          r.paciente_id,
+          r.paciente_id AS numero_expediente,
           r.fecha,
           r.procedimiento,
           'Normal' AS status,
@@ -1433,18 +1433,20 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
 
         -- Pagos de órdenes médicas
         SELECT 
-          o.expediente_id AS paciente_id,
+          o.expediente_id AS numero_expediente,
           p.fecha,
           o.procedimiento,
           o.estatus AS status,
           p.forma_pago AS pago,
           COALESCE(p.monto, 0)::numeric AS total_pagado
         FROM pagos p
-        JOIN ordenes_medicas o ON o.id = p.orden_id AND o.departamento = p.departamento
+        JOIN ordenes_medicas o 
+          ON o.id = p.orden_id 
+         AND o.departamento = p.departamento
         WHERE ${whereOrdenes}
       )
       SELECT 
-        e.id AS folio,
+        e.numero_expediente AS folio,
         e.nombre_completo AS paciente,
         MIN(u.fecha) AS fecha,
         u.procedimiento,
@@ -1454,9 +1456,9 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
         0::numeric AS saldo
       FROM union_pagos u
       JOIN expedientes e 
-        ON e.id = u.paciente_id 
+        ON e.numero_expediente = u.numero_expediente 
        AND e.departamento = $1
-      GROUP BY e.id, e.nombre_completo, u.procedimiento, u.status, u.pago
+      GROUP BY e.numero_expediente, e.nombre_completo, u.procedimiento, u.status, u.pago
       ORDER BY e.nombre_completo;
     `;
 
@@ -1467,6 +1469,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 // ==================== ADMIN: Selección de sucursal ====================
