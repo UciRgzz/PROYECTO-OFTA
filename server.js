@@ -1373,7 +1373,6 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== LISTADO DE PACIENTES (CORREGIDO) ====================
 app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
   try {
     const { fecha, desde, hasta } = req.query;
@@ -1397,10 +1396,10 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
       wherePagos += " AND DATE(p.fecha) = CURRENT_DATE";
     }
 
-    // --- Consulta SQL CORREGIDA ---
+    // --- Consulta SQL combinada ---
     const query = `
       WITH union_pagos AS (
-        -- 1️⃣ Recibos tipo NORMAL (ya pagados completos)
+        -- 1️⃣ Recibos tipo "Normal"
         SELECT 
           r.paciente_id AS numero_expediente,
           r.fecha,
@@ -1408,29 +1407,22 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
           'Pagado' AS status,
           r.forma_pago AS pago,
           COALESCE(r.monto_pagado, 0)::numeric AS total_pagado,
-          0::numeric AS pendiente_actual,  -- ✅ Ya está pagado
-          r.id AS recibo_id,
-          NULL::integer AS orden_id
+          (r.precio - r.monto_pagado)::numeric AS saldo
         FROM recibos r
         WHERE ${whereRecibos}
           AND (r.tipo = 'Normal' OR r.tipo IS NULL OR r.tipo = '')
 
         UNION ALL
 
-        -- 2️⃣ Recibos tipo "OrdenCirugia" sin orden médica aún
+        -- 2️⃣ Recibos tipo "OrdenCirugia" sin orden médica
         SELECT 
           r.paciente_id AS numero_expediente,
           r.fecha,
           r.procedimiento,
-          CASE 
-            WHEN (r.precio - r.monto_pagado) > 0 THEN 'Pendiente'
-            ELSE 'Pagado'
-          END AS status,
+          'Pendiente' AS status,
           r.forma_pago AS pago,
           COALESCE(r.monto_pagado, 0)::numeric AS total_pagado,
-          (r.precio - r.monto_pagado)::numeric AS pendiente_actual,  -- ✅ Calcula el saldo real
-          r.id AS recibo_id,
-          NULL::integer AS orden_id
+          (r.precio - r.monto_pagado)::numeric AS saldo
         FROM recibos r
         WHERE ${whereRecibos}
           AND r.tipo = 'OrdenCirugia'
@@ -1442,7 +1434,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
 
         UNION ALL
 
-        -- 3️⃣ Pagos de órdenes médicas (usa el pendiente de la orden)
+        -- 3️⃣ Pagos de órdenes médicas
         SELECT 
           o.expediente_id AS numero_expediente,
           p.fecha,
@@ -1450,9 +1442,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
           o.estatus AS status,
           p.forma_pago AS pago,
           COALESCE(p.monto, 0)::numeric AS total_pagado,
-          o.pendiente::numeric AS pendiente_actual,  -- ✅ Saldo de la orden médica
-          o.folio_recibo AS recibo_id,
-          o.id AS orden_id
+          o.pendiente::numeric AS saldo
         FROM pagos p
         JOIN ordenes_medicas o 
           ON o.id = p.orden_id 
@@ -1467,8 +1457,8 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
         u.procedimiento,
         u.status,
         STRING_AGG(DISTINCT u.pago, ', ' ORDER BY u.pago) AS pago,
-        COALESCE(SUM(u.total_pagado), 0)::numeric AS total,
-        MAX(u.pendiente_actual)::numeric AS saldo  -- ✅ Muestra el saldo real
+        ROUND(SUM(u.total_pagado)::numeric, 2) AS total,
+        ROUND(SUM(-1 * u.saldo)::numeric, 2) AS saldo
       FROM union_pagos u
       JOIN expedientes e 
         ON e.numero_expediente = u.numero_expediente 
@@ -1487,6 +1477,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 // ==================== ADMIN: Selección de sucursal ====================
