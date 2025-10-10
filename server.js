@@ -1398,67 +1398,67 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
     }
 
     const query = `
-  WITH union_pagos AS (
-    -- Recibos tipo "Normal"
-    SELECT 
-      r.paciente_id,
-      r.fecha,
-      r.procedimiento,
-      'Normal' AS status,
-      r.forma_pago AS pago,
-      COALESCE(r.monto_pagado, 0)::numeric AS total_pagado
-    FROM recibos r
-    WHERE ${whereRecibos}
-      AND (r.tipo = 'Normal' OR r.tipo IS NULL OR r.tipo = '')
+      WITH union_pagos AS (
+        -- Recibos tipo "Normal"
+        SELECT 
+          r.paciente_id,
+          r.fecha,
+          r.procedimiento,
+          'Normal' AS status,
+          r.forma_pago AS pago,
+          COALESCE(r.monto_pagado, 0)::numeric AS total_pagado
+        FROM recibos r
+        WHERE ${whereRecibos}
+          AND (r.tipo = 'Normal' OR r.tipo IS NULL OR r.tipo = '')
 
-    UNION ALL
+        UNION ALL
 
-    -- Recibos tipo "OrdenCirugia" sin orden médica
-    SELECT 
-      r.paciente_id,
-      r.fecha,
-      r.procedimiento,
-      'Normal' AS status,
-      r.forma_pago AS pago,
-      COALESCE(r.monto_pagado, 0)::numeric AS total_pagado
-    FROM recibos r
-    WHERE ${whereRecibos}
-      AND r.tipo = 'OrdenCirugia'
-      AND NOT EXISTS (
-        SELECT 1 FROM ordenes_medicas o 
-        WHERE o.folio_recibo = r.id AND o.departamento = r.departamento
+        -- Recibos tipo "OrdenCirugia" sin orden médica
+        SELECT 
+          r.paciente_id,
+          r.fecha,
+          r.procedimiento,
+          'Normal' AS status,
+          r.forma_pago AS pago,
+          COALESCE(r.monto_pagado, 0)::numeric AS total_pagado
+        FROM recibos r
+        WHERE ${whereRecibos}
+          AND r.tipo = 'OrdenCirugia'
+          AND NOT EXISTS (
+            SELECT 1 FROM ordenes_medicas o 
+            WHERE o.folio_recibo = r.id AND o.departamento = r.departamento
+          )
+
+        UNION ALL
+
+        -- Pagos de órdenes médicas
+        SELECT 
+          o.expediente_id AS paciente_id,
+          p.fecha,
+          o.procedimiento,
+          o.estatus AS status,
+          p.forma_pago AS pago,
+          COALESCE(p.monto, 0)::numeric AS total_pagado
+        FROM pagos p
+        JOIN ordenes_medicas o ON o.id = p.orden_id AND o.departamento = p.departamento
+        WHERE ${whereOrdenes}
       )
-
-    UNION ALL
-
-    -- Pagos de órdenes médicas
-    SELECT 
-      o.expediente_id AS paciente_id,
-      p.fecha,
-      o.procedimiento,
-      o.estatus AS status,
-      p.forma_pago AS pago,
-      COALESCE(p.monto, 0)::numeric AS total_pagado
-    FROM pagos p
-    JOIN ordenes_medicas o ON o.id = p.orden_id AND o.departamento = p.departamento
-    WHERE ${whereOrdenes}
-  )
-  SELECT 
-    e.numero_expediente AS folio,
-    e.nombre_completo AS paciente,
-    MIN(u.fecha) AS fecha,
-    u.procedimiento,
-    u.status,
-    u.pago,
-    COALESCE(SUM(u.total_pagado), 0)::numeric AS total_pagado,
-    0::numeric AS saldo
-  FROM union_pagos u
-  JOIN expedientes e 
-    ON e.numero_expediente = u.paciente_id 
-   AND e.departamento = $1
-  GROUP BY e.numero_expediente, e.nombre_completo, u.procedimiento, u.status, u.pago
-  ORDER BY e.nombre_completo;
-`;
+      SELECT 
+        e.id AS folio,
+        e.nombre_completo AS paciente,
+        MIN(u.fecha) AS fecha,
+        u.procedimiento,
+        u.status,
+        u.pago,
+        COALESCE(SUM(u.total_pagado), 0)::numeric AS total_pagado,
+        0::numeric AS saldo
+      FROM union_pagos u
+      JOIN expedientes e 
+        ON e.id = u.paciente_id 
+       AND e.departamento = $1
+      GROUP BY e.id, e.nombre_completo, u.procedimiento, u.status, u.pago
+      ORDER BY e.nombre_completo;
+    `;
 
     const result = await pool.query(query, params);
     res.json(result.rows);
@@ -1467,6 +1467,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // ==================== ADMIN: Selección de sucursal ====================
 app.post("/api/seleccionar-sucursal", verificarSesion, (req, res) => {
