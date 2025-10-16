@@ -1592,7 +1592,6 @@ app.post("/api/seleccionar-sucursal", verificarSesion, (req, res) => {
 
 // ==================== MODULO DE OPTOMETRÍA ====================
 // ==================== MODULO DE OPTOMETRÍA ====================
-
 // Guardar nueva evaluación de optometría
 app.post("/api/optometria", verificarSesion, async (req, res) => {
   try {
@@ -1611,6 +1610,9 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
     } = req.body;
 
     let depto = getDepartamento(req);
+
+    // ✅ Usa la función fechaLocalMX() que ya tienes definida al inicio
+    const fechaMX = fechaLocalMX();
 
     const result = await pool.query(
       `INSERT INTO optometria (
@@ -1637,7 +1639,7 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
         $29,$30,$31,
         $32,$33,
         $34,$35,
-        NOW(),$36
+        $36,$37
       )
       RETURNING *`,
       [
@@ -1652,6 +1654,7 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
         av_lejos_oi1, av_lejos_oi2, av_lejos_oi3,
         av_cerca_oi1, av_cerca_oi2,
         av_lentes_oi1, av_lentes_oi2,
+        fechaMX,  // 👈 Fecha real de México
         depto
       ]
     );
