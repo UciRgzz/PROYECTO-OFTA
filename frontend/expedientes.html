@@ -483,7 +483,6 @@ async function cargarExpedientes() {
         tbody.innerHTML = '';
 
         data.forEach(exp => {
-            // Escapar comillas en el nombre para evitar errores
             const nombreEscapado = exp.nombre_completo.replace(/'/g, "\\'");
             
             tbody.innerHTML += `
@@ -527,15 +526,32 @@ async function cargarExpedientes() {
 }
 
 // Función para nuevo expediente
-// Función para nuevo expediente
 async function nuevoExpediente() {
     const form = document.querySelector('#expedienteForm form');
     if (form) form.reset();
     
-    // ✅ DEJAR VACÍO para que sea CREACIÓN
     const inputNumero = document.getElementById('numero_expediente');
     inputNumero.value = ''; // ← VACÍO = CREACIÓN
     delete inputNumero.dataset.departamento;
+    
+    // Obtener el siguiente número para mostrarlo en el placeholder
+    try {
+        const res = await fetch('/api/expedientes', { credentials: 'include' });
+        const data = await res.json();
+        
+        let maxId = 0;
+        data.forEach(exp => {
+            if (exp.numero_expediente > maxId) {
+                maxId = exp.numero_expediente;
+            }
+        });
+        
+        const siguienteNumero = maxId + 1;
+        inputNumero.placeholder = `Se generará el número ${siguienteNumero}`;
+    } catch (err) {
+        console.error("Error obteniendo siguiente ID:", err);
+        inputNumero.placeholder = 'Se generará automáticamente';
+    }
     
     document.getElementById('expedienteForm').style.display = 'block';
     document.getElementById('tablaExpedientes').style.display = 'none';
@@ -545,12 +561,30 @@ async function nuevoExpediente() {
     }, 100);
 }
 
+// Función para cancelar el formulario
+function cancelarFormulario() {
+    document.getElementById('expedienteForm').style.display = 'none';
+    document.getElementById('tablaExpedientes').style.display = 'block';
+}
+
+// Función para calcular edad automáticamente
+function calcularEdad() {
+    const fecha = document.getElementById('fecha_nacimiento').value;
+    if (fecha) {
+        const nacimiento = new Date(fecha);
+        const hoy = new Date();
+        let edad = hoy.getFullYear() - nacimiento.getFullYear();
+        const mes = hoy.getMonth() - nacimiento.getMonth();
+        if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
+        document.getElementById('edad').value = edad;
+    }
+}
+
 // Función para editar expediente
 async function editarExpediente(numero, departamento) {
     try {
         console.log("🔍 Editando expediente:", numero, "Departamento:", departamento);
         
-        // Pasar departamento como query parameter
         const res = await fetch(`/api/expedientes/${numero}?departamento=${encodeURIComponent(departamento)}`, {
             method: 'GET',
             credentials: 'include',
@@ -572,10 +606,10 @@ async function editarExpediente(numero, departamento) {
         const data = await res.json();
         console.log("✅ Datos recibidos:", data);
 
-        // Guardar el departamento en el dataset del input
         const inputNumero = document.getElementById('numero_expediente');
         inputNumero.value = data.numero_expediente || '';
-        inputNumero.dataset.departamento = data.departamento; // ← Guardamos el departamento
+        inputNumero.placeholder = ''; // ← Limpiar placeholder al editar
+        inputNumero.dataset.departamento = data.departamento;
         
         document.getElementById('nombre').value = data.nombre_completo || '';
         
@@ -591,7 +625,6 @@ async function editarExpediente(numero, departamento) {
         document.getElementById('telefono1').value = data.telefono1 || '';
         document.getElementById('telefono2').value = data.telefono2 || '';
 
-        // Mostrar formulario
         document.getElementById('expedienteForm').style.display = 'block';
         document.getElementById('tablaExpedientes').style.display = 'none';
 
@@ -617,8 +650,8 @@ async function guardarExpediente(e) {
     e.preventDefault();
     
     const inputNumero = document.getElementById('numero_expediente');
-    const numero = inputNumero.value;
-    const departamento = inputNumero.dataset.departamento; // ← Recuperamos el departamento
+    const numero = inputNumero.value.trim();
+    const departamento = inputNumero.dataset.departamento;
     
     const expediente = {
         nombre_completo: document.getElementById('nombre').value,
@@ -631,7 +664,7 @@ async function guardarExpediente(e) {
         telefono2: document.getElementById('telefono2').value
     };
     
-    // Solo incluir departamento si estamos editando (no al crear)
+    // Solo incluir departamento si estamos editando
     if (numero && departamento) {
         expediente.departamento = departamento;
     }
@@ -793,7 +826,8 @@ async function verMedico(expedienteId, nombre) {
     let contenido = "";
     data.forEach((orden, idx) => {
         const fechaOrden = orden.fecha_orden || orden.fecha_cirugia || orden.fecha_agendada || orden.fecha;
-        const fechaFormateada = fechaOrden ? new Date(fechaOrden).toLocaleDateString('es-MX') : 'No asignada';
+        const fechaFormateada = fechaOr
+        den ? new Date(fechaOrden).toLocaleDateString('es-MX') : 'No asignada';
         
         contenido += `
         <h4 class="mt-3">Orden #${orden.numero_orden} ${idx === 0 ? '(Más reciente)' : ''}</h4>
@@ -813,7 +847,7 @@ async function verMedico(expedienteId, nombre) {
             ${orden.retina ? `<tr><th>Retina</th><td>${orden.retina}</td></tr>` : ''}
             ${orden.macula ? `<tr><th>Mácula</th><td>${orden.macula}</td></tr>` : ''}
             ${orden.nervio_optico ? `<tr><th>Nervio Óptico</th><td>${orden.nervio_optico}</td></tr>` : ''}
-            ${orden.ciclopejia ? `<tr><th>Ciclopejia</th><td>${orden.ciclopejia}</td></tr>` : ''}
+            ${orden.ciclopejia ? `<tr><th>Cicloplejia</th><td>${orden.ciclopejia}</td></tr>` : ''}
             ${orden.hora_tp ? `<tr><th>Hora T.P.</th><td>${orden.hora_tp}</td></tr>` : ''}
             ${orden.problemas ? `<tr><th>Problemas</th><td>${orden.problemas}</td></tr>` : ''}
             ${orden.plan ? `<tr><th>Plan</th><td>${orden.plan}</td></tr>` : ''}
