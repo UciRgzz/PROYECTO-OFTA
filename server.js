@@ -636,7 +636,7 @@ app.put('/api/expedientes/:numero', verificarSesion, async (req, res) => {
   }
 });
 
-// 7. ELIMINAR EXPEDIENTE (SOLO ADMIN)
+// 7. ELIMINAR EXPEDIENTE (SOLO ADMIN) - CON ELIMINACIÓN EN CASCADA
 app.delete('/api/expedientes/:numero', verificarSesion, isAdmin, async (req, res) => {
   console.log("📍 DELETE /api/expedientes/:numero");
   
@@ -649,25 +649,98 @@ app.delete('/api/expedientes/:numero', verificarSesion, isAdmin, async (req, res
   const depto = getDepartamento(req);
   console.log("🏢 Eliminando expediente", numero, "en departamento:", depto);
 
+  const client = await pool.connect();
+  
   try {
-    const result = await pool.query(
-      "DELETE FROM expedientes WHERE numero_expediente = $1 AND departamento = $2 RETURNING *",
+    await client.query('BEGIN');
+
+    // 1. Verificar que el expediente existe
+    const expResult = await client.query(
+      "SELECT * FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
       [numero, depto]
     );
 
-    if (result.rows.length === 0) {
+    if (expResult.rows.length === 0) {
+      await client.query('ROLLBACK');
       console.log("❌ No se encontró expediente para eliminar");
       return res.status(404).json({ error: "Expediente no encontrado o no pertenece a tu sucursal" });
     }
 
-    console.log("✅ Expediente eliminado:", result.rows[0].nombre_completo);
-    res.json({ mensaje: "🗑️ Expediente eliminado correctamente" });
+    const expediente = expResult.rows[0];
+    console.log("📋 Expediente encontrado:", expediente.nombre_completo);
+
+    // 2. Eliminar pagos de órdenes médicas asociadas
+    await client.query(
+      `DELETE FROM pagos 
+       WHERE orden_id IN (
+         SELECT id FROM ordenes_medicas 
+         WHERE expediente_id = $1 AND departamento = $2
+       )`,
+      [numero, depto]
+    );
+    console.log("✅ Pagos eliminados");
+
+    // 3. Eliminar órdenes médicas
+    await client.query(
+      "DELETE FROM ordenes_medicas WHERE expediente_id = $1 AND departamento = $2",
+      [numero, depto]
+    );
+    console.log("✅ Órdenes médicas eliminadas");
+
+    // 4. Eliminar abonos de recibos
+    await client.query(
+      `DELETE FROM abonos_recibos 
+       WHERE recibo_id IN (
+         SELECT id FROM recibos 
+         WHERE paciente_id = $1 AND departamento = $2
+       )`,
+      [numero, depto]
+    );
+    console.log("✅ Abonos eliminados");
+
+    // 5. Eliminar recibos
+    await client.query(
+      "DELETE FROM recibos WHERE paciente_id = $1 AND departamento = $2",
+      [numero, depto]
+    );
+    console.log("✅ Recibos eliminados");
+
+    // 6. Eliminar registros de optometría
+    await client.query(
+      "DELETE FROM optometria WHERE expediente_id = $1 AND departamento = $2",
+      [numero, depto]
+    );
+    console.log("✅ Registros de optometría eliminados");
+
+    // 7. Eliminar agenda quirúrgica
+    await client.query(
+      "DELETE FROM agenda_quirurgica WHERE paciente_id = $1 AND departamento = $2",
+      [numero, depto]
+    );
+    console.log("✅ Agenda quirúrgica eliminada");
+
+    // 8. Finalmente eliminar el expediente
+    await client.query(
+      "DELETE FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
+      [numero, depto]
+    );
+    console.log("✅ Expediente eliminado:", expediente.nombre_completo);
+
+    await client.query('COMMIT');
+    
+    res.json({ mensaje: `🗑️ Expediente ${numero} y todos sus registros asociados eliminados correctamente` });
+
   } catch (err) {
+    await client.query('ROLLBACK');
     console.error("❌ Error al eliminar expediente:", err);
-    res.status(500).json({ error: "Error al eliminar expediente" });
+    res.status(500).json({ 
+      error: "Error al eliminar expediente", 
+      detalle: err.message 
+    });
+  } finally {
+    client.release();
   }
 });
-
 
 // ==================== MODULO DE RECIBOS ====================
 // ==================== Guardar recibo ====================
