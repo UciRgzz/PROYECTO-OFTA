@@ -811,6 +811,7 @@ async function buscarExpediente() {
 
 
 // Función para ver órdenes médicas
+// Función para ver órdenes médicas
 async function verMedico(expedienteId, nombre) {
   try {
     const res = await fetch(`/api/expedientes/${expedienteId}/ordenes`, { credentials: 'include' });
@@ -827,8 +828,13 @@ async function verMedico(expedienteId, nombre) {
 
     let contenido = "";
     data.forEach((orden, idx) => {
+      // Formatear fecha correctamente (sin desfase UTC)
       const fechaOrden = orden.fecha_orden || orden.fecha_cirugia || orden.fecha_agendada || orden.fecha;
-      const fechaFormateada = fechaOrden ? new Date(fechaOrden).toLocaleDateString('es-MX') : 'No asignada';
+      let fechaFormateada = 'No asignada';
+      if (fechaOrden) {
+        const [year, month, day] = fechaOrden.split('T')[0].split('-');
+        fechaFormateada = `${day}/${month}/${year}`;
+      }
 
       // Formatear hora correctamente
       let horaFormateada = 'N/A';
@@ -882,6 +888,7 @@ async function verMedico(expedienteId, nombre) {
     });
   }
 }
+
 // Función para ver evaluaciones de optometría
 async function verOptometria(expedienteId, nombre) {
     const res = await fetch(`/api/expedientes/${expedienteId}/optometria`, { credentials: 'include' });
