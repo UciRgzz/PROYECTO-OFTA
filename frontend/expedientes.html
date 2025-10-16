@@ -914,8 +914,30 @@ async function eliminarExpediente(id) {
 }
 
 // Cargar expedientes al iniciar
+// Cargar expedientes al iniciar y configurar eventos
 document.addEventListener('DOMContentLoaded', function() {
     cargarExpedientes();
+    
+    const inputBuscar = document.getElementById('buscarInput');
+    
+    if (inputBuscar) {
+        // Buscar al presionar Enter
+        inputBuscar.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                buscarExpediente();
+            }
+        });
+        
+        // 🔥 NUEVO: Recargar todos cuando el campo esté vacío
+        inputBuscar.addEventListener('input', function(e) {
+            const valor = e.target.value.trim();
+            
+            // Si el campo está vacío, mostrar todos los expedientes
+            if (valor === '') {
+                cargarExpedientes();
+            }
+        });
+    }
 });
 </script>
 </body>
