@@ -547,29 +547,45 @@ app.delete('/api/expedientes/:id', verificarSesion, isAdmin, async (req, res) =>
 });
 
 
-// ==================== OBTENER EXPEDIENTE POR ID ====================
-app.get('/api/expedientes/:id', verificarSesion, async (req, res) => {
-  const id = parseInt(req.params.id, 10);
-  if (isNaN(id)) {
-    return res.status(400).json({ error: "ID inválido" });
-  }
-
-  const depto = getDepartamento(req);
-
+// ==================== BUSCAR EXPEDIENTES POR ID O NOMBRE ====================
+app.get('/api/expedientes/buscar', verificarSesion, async (req, res) => {
   try {
-    const result = await pool.query(
-      "SELECT * FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
-      [id, depto]
-    );
+    const { q } = req.query;
+    const depto = getDepartamento(req);
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Expediente no encontrado" });
+    if (!q || q.trim() === '') {
+      return res.status(400).json({ error: "Parámetro de búsqueda vacío" });
     }
 
-    res.json(result.rows[0]);
+    const busqueda = q.trim();
+    const esNumero = !isNaN(busqueda);
+
+    let query, params;
+
+    if (esNumero) {
+      // Búsqueda exacta por número de expediente
+      query = `
+        SELECT * FROM expedientes 
+        WHERE numero_expediente = $1 AND departamento = $2
+        ORDER BY numero_expediente ASC
+      `;
+      params = [parseInt(busqueda), depto];
+    } else {
+      // Búsqueda por nombre (insensible a mayúsculas y parcial)
+      query = `
+        SELECT * FROM expedientes 
+        WHERE LOWER(nombre_completo) LIKE LOWER($1) AND departamento = $2
+        ORDER BY nombre_completo ASC
+      `;
+      params = [`%${busqueda}%`, depto];
+    }
+
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+
   } catch (err) {
-    console.error("Error al obtener expediente:", err);
-    res.status(500).json({ error: "Error al obtener expediente" });
+    console.error("Error en búsqueda de expedientes:", err);
+    res.status(500).json({ error: "Error al buscar expedientes" });
   }
 });
 

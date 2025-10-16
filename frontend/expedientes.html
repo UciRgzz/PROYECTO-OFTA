@@ -673,55 +673,100 @@ async function editarExpediente(id) {
     if (cardTabla) cardTabla.style.display = 'none';
 }
 
-// === BUSCAR EXPEDIENTE ===
+// === BUSCAR EXPEDIENTE (MEJORADO - POR ID O NOMBRE) ===
 async function buscarExpediente() {
-    const folio = document.getElementById('buscarInput').value.trim();
-    if (!folio) return cargarExpedientes();
+    const busqueda = document.getElementById('buscarInput').value.trim();
+    
+    if (!busqueda) {
+        return cargarExpedientes(); // Si está vacío, mostrar todos
+    }
 
-    const res = await fetch(`/api/expedientes/${folio}`);
-    if (res.ok) {
+    try {
+        // Llamar al nuevo endpoint de búsqueda
+        const res = await fetch(`/api/expedientes/buscar?q=${encodeURIComponent(busqueda)}`);
+        
+        if (!res.ok) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'No encontrado',
+                text: 'No se encontraron expedientes con ese criterio'
+            });
+            document.getElementById('listaExpedientes').innerHTML = 
+                `<tr><td colspan="9">No se encontraron resultados</td></tr>`;
+            return;
+        }
+
         const data = await res.json();
         const usuario = { rol: window.usuarioRol || "usuario" };
+        const tbody = document.getElementById('listaExpedientes');
+        tbody.innerHTML = '';
 
-        document.getElementById('listaExpedientes').innerHTML = `
-            <tr>
-                <td>${data.numero_expediente}</td>
-                <td>${data.nombre_completo}</td>
-                <td>${data.edad}</td>
-                <td><span class="badge bg-info">${data.padecimientos}</span></td>
-                <td>${data.colonia}</td>
-                <td>${data.ciudad}</td>
-                <td>${data.telefono1}</td>
-                <td>${data.telefono2 || ''}</td>
-                <td>
-                    <div class="d-flex gap-1 justify-content-center">
-                        <button class="btn btn-primary btn-sm" title="Editar" onclick="editarExpediente(${data.numero_expediente})">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-warning btn-sm" title="Médico" onclick="verMedico(${data.numero_expediente}, '${data.nombre_completo}')">
-                            <i class="fas fa-stethoscope"></i>
-                        </button>
-                        <button class="btn btn-info btn-sm" title="Optometría" onclick="verOptometria(${data.numero_expediente}, '${data.nombre_completo}')">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        ${usuario.rol === "admin" 
-                            ? `<button class="btn btn-danger btn-sm" title="Eliminar" onclick="eliminarExpediente(${data.numero_expediente})">
-                                <i class="fas fa-trash"></i>
-                               </button>` 
-                            : "" }
-                    </div>
-                </td>
-            </tr>
-        `;
-    } else {
-        Swal.fire({
-            icon: 'warning',
-            title: 'No encontrado',
-            text: 'No existe un expediente con ese folio'
+        // Si no hay resultados
+        if (data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="9">No se encontraron expedientes</td></tr>`;
+            Swal.fire({
+                icon: 'info',
+                title: 'Sin resultados',
+                text: 'No se encontraron expedientes que coincidan con la búsqueda'
+            });
+            return;
+        }
+
+        // Renderizar resultados (puede ser uno o varios)
+        data.forEach(exp => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${exp.numero_expediente}</td>
+                    <td>${exp.nombre_completo}</td>
+                    <td>${exp.edad}</td>
+                    <td><span class="badge bg-info">${exp.padecimientos}</span></td>
+                    <td>${exp.colonia}</td>
+                    <td>${exp.ciudad}</td>
+                    <td>${exp.telefono1}</td>
+                    <td>${exp.telefono2 || ''}</td>
+                    <td>
+                        <div class="d-flex gap-1 justify-content-center">
+                            <button class="btn btn-primary btn-sm" title="Editar" onclick="editarExpediente(${exp.numero_expediente})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-warning btn-sm" title="Médico" onclick="verMedico(${exp.numero_expediente}, '${exp.nombre_completo}')">
+                                <i class="fas fa-stethoscope"></i>
+                            </button>
+                            <button class="btn btn-info btn-sm" title="Optometría" onclick="verOptometria(${exp.numero_expediente}, '${exp.nombre_completo}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            ${usuario.rol === "admin" 
+                                ? `<button class="btn btn-danger btn-sm" title="Eliminar" onclick="eliminarExpediente(${exp.numero_expediente})">
+                                    <i class="fas fa-trash"></i>
+                                   </button>` 
+                                : ""}
+                        </div>
+                    </td>
+                </tr>
+            `;
         });
-        document.getElementById('listaExpedientes').innerHTML = `<tr><td colspan="9">No encontrado</td></tr>`;
+
+        // Mostrar mensaje con cantidad de resultados
+        if (data.length > 1) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Búsqueda completada',
+                text: `Se encontraron ${data.length} expedientes`,
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+
+    } catch (err) {
+        console.error("Error en búsqueda:", err);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Error al realizar la búsqueda'
+        });
     }
 }
+
 
 // === VER ORDENES MÉDICAS ===
 async function verMedico(expedienteId, nombre) {
