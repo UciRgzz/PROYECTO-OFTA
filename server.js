@@ -531,37 +531,56 @@ app.get('/api/pacientes', verificarSesion, async (req, res) => {
   }
 });
 
-// 5. OBTENER UN EXPEDIENTE POR ID (DESPUÉS DE RUTAS ESPECÍFICAS)
-app.get('/api/expedientes/:id', verificarSesion, async (req, res) => {
-  const id = parseInt(req.params.id, 10);
-  if (isNaN(id)) {
-    return res.status(400).json({ error: "ID inválido" });
+// 5. OBTENER UN EXPEDIENTE POR NÚMERO (DESPUÉS DE RUTAS ESPECÍFICAS)
+app.get('/api/expedientes/:numero', verificarSesion, async (req, res) => {
+  console.log("📍 GET /api/expedientes/:numero");
+  
+  const numero = parseInt(req.params.numero, 10);
+  const departamentoQuery = req.query.departamento; // ← Recibir depto desde query params
+  
+  if (isNaN(numero)) {
+    console.log("❌ Número inválido:", req.params.numero);
+    return res.status(400).json({ error: "Número de expediente inválido" });
   }
 
-  const depto = getDepartamento(req);
+  let depto = getDepartamento(req); // Sucursal del usuario actual
+  
+  // Si viene departamento en la query y el usuario es admin, usarlo
+  if (departamentoQuery && req.session.usuario.rol === "admin") {
+    depto = departamentoQuery;
+  }
+
+  console.log("🏢 Buscando expediente", numero, "en departamento:", depto);
 
   try {
     const result = await pool.query(
       "SELECT * FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
-      [id, depto]
+      [numero, depto]
     );
 
+    console.log("📊 Resultados encontrados:", result.rows.length);
+
     if (result.rows.length === 0) {
+      console.log("❌ No se encontró expediente:", numero, "en departamento:", depto);
       return res.status(404).json({ error: "Expediente no encontrado" });
     }
 
+    console.log("✅ Expediente encontrado:", result.rows[0].nombre_completo);
     res.json(result.rows[0]);
   } catch (err) {
-    console.error("Error al obtener expediente:", err);
+    console.error("❌ Error al obtener expediente:", err);
     res.status(500).json({ error: "Error al obtener expediente" });
   }
 });
 
 // 6. ACTUALIZAR EXPEDIENTE
-app.put('/api/expedientes/:id', verificarSesion, async (req, res) => {
-  const id = parseInt(req.params.id, 10);
-  if (isNaN(id)) {
-    return res.status(400).json({ error: "ID inválido" });
+app.put('/api/expedientes/:numero', verificarSesion, async (req, res) => {
+  console.log("📍 PUT /api/expedientes/:numero");
+  
+  const numero = parseInt(req.params.numero, 10);
+  
+  if (isNaN(numero)) {
+    return res.status(400).json({ error: "Número de expediente inválido" });
   }
 
   const {
@@ -572,10 +591,19 @@ app.put('/api/expedientes/:id', verificarSesion, async (req, res) => {
     colonia,
     ciudad,
     telefono1,
-    telefono2
+    telefono2,
+    departamento // ← Recibir departamento desde el body
   } = req.body;
 
-  const depto = getDepartamento(req);
+  let depto = getDepartamento(req); // Sucursal del usuario actual
+  
+  // Si viene departamento en el body y el usuario es admin, usarlo
+  if (departamento && req.session.usuario.rol === "admin") {
+    depto = departamento;
+  }
+
+  console.log("🏢 Actualizando expediente", numero, "en departamento:", depto);
+  console.log("📦 Datos:", { nombre_completo, edad, padecimientos });
 
   try {
     const result = await pool.query(
@@ -590,45 +618,56 @@ app.put('/api/expedientes/:id', verificarSesion, async (req, res) => {
            telefono2 = $8
        WHERE numero_expediente = $9 AND departamento = $10
        RETURNING *`,
-      [nombre_completo, fecha_nacimiento, edad, padecimientos, colonia, ciudad, telefono1, telefono2, id, depto]
+      [nombre_completo, fecha_nacimiento, edad, padecimientos, colonia, ciudad, telefono1, telefono2, numero, depto]
     );
 
+    console.log("📊 Filas actualizadas:", result.rows.length);
+
     if (result.rows.length === 0) {
+      console.log("❌ No se encontró expediente para actualizar");
       return res.status(404).json({ error: "Expediente no encontrado" });
     }
 
+    console.log("✅ Expediente actualizado correctamente:", result.rows[0].nombre_completo);
     res.json({ mensaje: "Expediente actualizado correctamente", expediente: result.rows[0] });
   } catch (err) {
-    console.error("Error al actualizar expediente:", err);
+    console.error("❌ Error al actualizar expediente:", err);
     res.status(500).json({ error: "Error al actualizar expediente" });
   }
 });
 
 // 7. ELIMINAR EXPEDIENTE (SOLO ADMIN)
-app.delete('/api/expedientes/:id', verificarSesion, isAdmin, async (req, res) => {
-  const id = parseInt(req.params.id, 10);
-  if (isNaN(id)) {
-    return res.status(400).json({ error: "ID inválido" });
+app.delete('/api/expedientes/:numero', verificarSesion, isAdmin, async (req, res) => {
+  console.log("📍 DELETE /api/expedientes/:numero");
+  
+  const numero = parseInt(req.params.numero, 10);
+  
+  if (isNaN(numero)) {
+    return res.status(400).json({ error: "Número de expediente inválido" });
   }
 
   const depto = getDepartamento(req);
+  console.log("🏢 Eliminando expediente", numero, "en departamento:", depto);
 
   try {
     const result = await pool.query(
       "DELETE FROM expedientes WHERE numero_expediente = $1 AND departamento = $2 RETURNING *",
-      [id, depto]
+      [numero, depto]
     );
 
     if (result.rows.length === 0) {
+      console.log("❌ No se encontró expediente para eliminar");
       return res.status(404).json({ error: "Expediente no encontrado o no pertenece a tu sucursal" });
     }
 
+    console.log("✅ Expediente eliminado:", result.rows[0].nombre_completo);
     res.json({ mensaje: "🗑️ Expediente eliminado correctamente" });
   } catch (err) {
-    console.error("Error al eliminar expediente:", err);
+    console.error("❌ Error al eliminar expediente:", err);
     res.status(500).json({ error: "Error al eliminar expediente" });
   }
 });
+
 
 // ==================== MODULO DE RECIBOS ====================
 // ==================== Guardar recibo ====================
