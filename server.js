@@ -418,7 +418,8 @@ function getDepartamento(req) {
 
 
 // ==================== MODULO DE EXPEDIENTES ====================
-// ==================== CREAR NUEVO EXPEDIENTE ====================
+
+// 1. CREAR NUEVO EXPEDIENTE
 app.post('/api/expedientes', verificarSesion, async (req, res) => {
   const {
     nombre_completo,
@@ -456,7 +457,7 @@ app.post('/api/expedientes', verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== OBTENER TODOS ====================
+// 2. OBTENER TODOS LOS EXPEDIENTES
 app.get('/api/expedientes', verificarSesion, async (req, res) => {
   try {
     const depto = getDepartamento(req);
@@ -473,7 +474,90 @@ app.get('/api/expedientes', verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== ACTUALIZAR EXPEDIENTE ====================
+// 3. BUSCAR EXPEDIENTES (DEBE ESTAR ANTES DE /:id)
+app.get('/api/expedientes/buscar', verificarSesion, async (req, res) => {
+  try {
+    const { q } = req.query;
+    const depto = getDepartamento(req);
+
+    if (!q || q.trim() === '') {
+      return res.status(400).json({ error: "Parámetro de búsqueda vacío" });
+    }
+
+    const busqueda = q.trim();
+    const esNumero = !isNaN(busqueda);
+
+    let query, params;
+
+    if (esNumero) {
+      query = `
+        SELECT * FROM expedientes 
+        WHERE numero_expediente = $1 AND departamento = $2
+        ORDER BY numero_expediente ASC
+      `;
+      params = [parseInt(busqueda), depto];
+    } else {
+      query = `
+        SELECT * FROM expedientes 
+        WHERE LOWER(nombre_completo) LIKE LOWER($1) AND departamento = $2
+        ORDER BY nombre_completo ASC
+      `;
+      params = [`%${busqueda}%`, depto];
+    }
+
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error("Error en búsqueda de expedientes:", err);
+    res.status(500).json({ error: "Error al buscar expedientes" });
+  }
+});
+
+// 4. LISTA DE PACIENTES (TAMBIÉN ANTES DE /:id)
+app.get('/api/pacientes', verificarSesion, async (req, res) => {
+  try {
+    const depto = getDepartamento(req);
+
+    const result = await pool.query(
+      "SELECT numero_expediente, nombre_completo FROM expedientes WHERE departamento = $1 ORDER BY nombre_completo ASC",
+      [depto]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error al obtener pacientes:", err);
+    res.status(500).json({ error: "Error al obtener pacientes" });
+  }
+});
+
+// 5. OBTENER UN EXPEDIENTE POR ID (DESPUÉS DE RUTAS ESPECÍFICAS)
+app.get('/api/expedientes/:id', verificarSesion, async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) {
+    return res.status(400).json({ error: "ID inválido" });
+  }
+
+  const depto = getDepartamento(req);
+
+  try {
+    const result = await pool.query(
+      "SELECT * FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
+      [id, depto]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Expediente no encontrado" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Error al obtener expediente:", err);
+    res.status(500).json({ error: "Error al obtener expediente" });
+  }
+});
+
+// 6. ACTUALIZAR EXPEDIENTE
 app.put('/api/expedientes/:id', verificarSesion, async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (isNaN(id)) {
@@ -520,7 +604,7 @@ app.put('/api/expedientes/:id', verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== ELIMINAR EXPEDIENTE (SOLO ADMIN) ====================
+// 7. ELIMINAR EXPEDIENTE (SOLO ADMIN)
 app.delete('/api/expedientes/:id', verificarSesion, isAdmin, async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (isNaN(id)) {
@@ -545,92 +629,6 @@ app.delete('/api/expedientes/:id', verificarSesion, isAdmin, async (req, res) =>
     res.status(500).json({ error: "Error al eliminar expediente" });
   }
 });
-
-
-// ==================== BUSCAR EXPEDIENTES POR ID O NOMBRE ====================
-app.get('/api/expedientes/buscar', verificarSesion, async (req, res) => {
-  try {
-    const { q } = req.query;
-    const depto = getDepartamento(req);
-
-    if (!q || q.trim() === '') {
-      return res.status(400).json({ error: "Parámetro de búsqueda vacío" });
-    }
-
-    const busqueda = q.trim();
-    const esNumero = !isNaN(busqueda);
-
-    let query, params;
-
-    if (esNumero) {
-      // Búsqueda exacta por número de expediente
-      query = `
-        SELECT * FROM expedientes 
-        WHERE numero_expediente = $1 AND departamento = $2
-        ORDER BY numero_expediente ASC
-      `;
-      params = [parseInt(busqueda), depto];
-    } else {
-      // Búsqueda por nombre (insensible a mayúsculas y parcial)
-      query = `
-        SELECT * FROM expedientes 
-        WHERE LOWER(nombre_completo) LIKE LOWER($1) AND departamento = $2
-        ORDER BY nombre_completo ASC
-      `;
-      params = [`%${busqueda}%`, depto];
-    }
-
-    const result = await pool.query(query, params);
-    res.json(result.rows);
-
-  } catch (err) {
-    console.error("Error en búsqueda de expedientes:", err);
-    res.status(500).json({ error: "Error al buscar expedientes" });
-  }
-});
-
-// ==================== LISTA DE PACIENTES ====================
-app.get('/api/pacientes', verificarSesion, async (req, res) => {
-  try {
-    const depto = getDepartamento(req);
-
-    const result = await pool.query(
-      "SELECT numero_expediente, nombre_completo FROM expedientes WHERE departamento = $1 ORDER BY nombre_completo ASC",
-      [depto]
-    );
-
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Error al obtener pacientes:", err);
-    res.status(500).json({ error: "Error al obtener pacientes" });
-  }
-});
-// ==================== OBTENER UN EXPEDIENTE POR ID ====================
-app.get('/api/expedientes/:id', verificarSesion, async (req, res) => {
-  const id = parseInt(req.params.id, 10);
-  if (isNaN(id)) {
-    return res.status(400).json({ error: "ID inválido" });
-  }
-
-  const depto = getDepartamento(req);
-
-  try {
-    const result = await pool.query(
-      "SELECT * FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
-      [id, depto]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Expediente no encontrado" });
-    }
-
-    res.json(result.rows[0]);
-  } catch (err) {
-    console.error("Error al obtener expediente:", err);
-    res.status(500).json({ error: "Error al obtener expediente" });
-  }
-});
-
 
 // ==================== MODULO DE RECIBOS ====================
 // ==================== Guardar recibo ====================
