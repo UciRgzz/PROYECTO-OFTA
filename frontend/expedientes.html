@@ -514,11 +514,29 @@ async function cargarExpedientes() {
     });
 }
 
-function nuevoExpediente() {
+async function nuevoExpediente() {
     const form = document.querySelector('#expedienteForm form');
     if (form) form.reset();
     
-    document.getElementById('numero_expediente').value = '';
+    // Obtener el siguiente ID disponible
+    try {
+        const res = await fetch('/api/expedientes');
+        const data = await res.json();
+        
+        // Calcular el siguiente número
+        let maxId = 0;
+        data.forEach(exp => {
+            if (exp.numero_expediente > maxId) {
+                maxId = exp.numero_expediente;
+            }
+        });
+        
+        document.getElementById('numero_expediente').value = maxId + 1;
+    } catch (err) {
+        console.error("Error obteniendo siguiente ID:", err);
+        document.getElementById('numero_expediente').value = '';
+    }
+    
     document.getElementById('expedienteForm').style.display = 'block';
     document.getElementById('tablaExpedientes').style.display = 'none';
     
