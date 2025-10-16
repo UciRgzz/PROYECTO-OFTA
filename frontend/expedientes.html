@@ -474,6 +474,7 @@ input:focus, select:focus {
 window.usuarioRol = sessionStorage.getItem("usuarioRol") || localStorage.getItem("usuarioRol") || "admin";
 console.log("ROL DETECTADO:", window.usuarioRol);
 
+// Función para cargar expedientes
 async function cargarExpedientes() {
     const res = await fetch('/api/expedientes');
     const data = await res.json();
@@ -514,6 +515,7 @@ async function cargarExpedientes() {
     });
 }
 
+// Cargar expedientes al iniciar
 async function nuevoExpediente() {
     const form = document.querySelector('#expedienteForm form');
     if (form) form.reset();
@@ -545,11 +547,13 @@ async function nuevoExpediente() {
     }, 100);
 }
 
+// Función para cancelar el formulario
 function cancelarFormulario() {
     document.getElementById('expedienteForm').style.display = 'none';
     document.getElementById('tablaExpedientes').style.display = 'block';
 }
 
+// Función para calcular edad automáticamente
 function calcularEdad() {
     const fecha = document.getElementById('fecha_nacimiento').value;
     if (fecha) {
@@ -561,14 +565,15 @@ function calcularEdad() {
         document.getElementById('edad').value = edad;
     }
 }
-
+// Función para guardar expediente (crear o actualizar)
 async function guardarExpediente(e) {
     e.preventDefault();
+    
     const id = document.getElementById('numero_expediente').value;
     const expediente = {
         nombre_completo: document.getElementById('nombre').value,
         fecha_nacimiento: document.getElementById('fecha_nacimiento').value,
-        edad: document.getElementById('edad').value,
+        edad: parseInt(document.getElementById('edad').value),
         padecimientos: document.getElementById('padecimientos').value,
         colonia: document.getElementById('colonia').value,
         ciudad: document.getElementById('ciudad').value,
@@ -579,26 +584,45 @@ async function guardarExpediente(e) {
     const url = id ? `/api/expedientes/${id}` : '/api/expedientes';
     const method = id ? 'PUT' : 'POST';
 
-    const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(expediente)
-    });
+    console.log(`📤 Guardando con ${method} a ${url}`);
 
-    const data = await res.json();
-
-    if (res.ok) {
-        Swal.fire({
-            icon: 'success',
-            title: id ? 'Expediente actualizado' : 'Expediente creado',
-            text: id ? `Número: ${id}` : `Número: ${data.expediente.numero_expediente}`,
-            confirmButtonColor: '#3085d6'
+    try {
+        const res = await fetch(url, {
+            method: method,
+            credentials: 'include', // ✅ AGREGAR ESTO
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(expediente)
         });
-    } else {
+
+        const data = await res.json();
+
+        if (res.ok) {
+            await Swal.fire({
+                icon: 'success',
+                title: id ? '✅ Expediente actualizado' : '✅ Expediente creado',
+                text: id ? `Número: ${id}` : `Número: ${data.expediente?.numero_expediente}`,
+                confirmButtonColor: '#3085d6',
+                timer: 2000
+            });
+            
+            await cargarExpedientes();
+            cancelarFormulario();
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.error || 'No se pudo guardar el expediente',
+                confirmButtonColor: '#d33'
+            });
+        }
+    } catch (err) {
+        console.error("❌ Error guardando:", err);
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: data.error || 'No se pudo guardar el expediente',
+            text: 'Error de conexión',
             confirmButtonColor: '#d33'
         });
     }
@@ -607,38 +631,73 @@ async function guardarExpediente(e) {
     cancelarFormulario();
 }
 
+
+// Función para editar expediente
 async function editarExpediente(id) {
     try {
-        const res = await fetch(`/api/expedientes/${id}`);
+        console.log("🔍 Intentando editar expediente:", id);
+        
+        const res = await fetch(`/api/expedientes/${id}`, {
+            method: 'GET',
+            credentials: 'include', // ✅ ESTO ES LO QUE FALTA
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.log("📡 Respuesta del servidor:", res.status);
+
         if (!res.ok) {
-            Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo cargar el expediente' });
+            const errorData = await res.json().catch(() => ({}));
+            Swal.fire({ 
+                icon: 'error', 
+                title: 'Error', 
+                text: errorData.error || 'No se pudo cargar el expediente' 
+            });
             return;
         }
 
         const data = await res.json();
+        console.log("✅ Datos del expediente:", data);
 
-        document.getElementById('numero_expediente').value = data.numero_expediente;
-        document.getElementById('nombre').value = data.nombre_completo;
-        document.getElementById('fecha_nacimiento').value = data.fecha_nacimiento.split('T')[0];
-        document.getElementById('edad').value = data.edad;
-        document.getElementById('padecimientos').value = data.padecimientos;
+        // Llenar formulario
+        document.getElementById('numero_expediente').value = data.numero_expediente || '';
+        document.getElementById('nombre').value = data.nombre_completo || '';
+        
+        if (data.fecha_nacimiento) {
+            const fecha = data.fecha_nacimiento.split('T')[0];
+            document.getElementById('fecha_nacimiento').value = fecha;
+        }
+        
+        document.getElementById('edad').value = data.edad || '';
+        document.getElementById('padecimientos').value = data.padecimientos || '';
         document.getElementById('colonia').value = data.colonia || '';
         document.getElementById('ciudad').value = data.ciudad || '';
         document.getElementById('telefono1').value = data.telefono1 || '';
         document.getElementById('telefono2').value = data.telefono2 || '';
 
+        // Mostrar formulario
         document.getElementById('expedienteForm').style.display = 'block';
         document.getElementById('tablaExpedientes').style.display = 'none';
 
         setTimeout(() => {
-            document.getElementById('expedienteForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            document.getElementById('expedienteForm').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+            });
         }, 100);
+
     } catch (err) {
-        console.error("Error al cargar expediente:", err);
-        Swal.fire({ icon: 'error', title: 'Error', text: 'Error al cargar los datos del expediente' });
+        console.error("❌ Error al cargar expediente:", err);
+        Swal.fire({ 
+            icon: 'error', 
+            title: 'Error', 
+            text: 'Error de conexión al cargar el expediente' 
+        });
     }
 }
 
+// Función para eliminar expediente
 async function buscarExpediente() {
     const busqueda = document.getElementById('buscarInput').value.trim();
     
@@ -727,7 +786,7 @@ async function buscarExpediente() {
         });
     }
 }
-
+// Cargar expedientes al iniciar
 async function verMedico(expedienteId, nombre) {
     const res = await fetch(`/api/expedientes/${expedienteId}/ordenes`);
     const data = await res.json();
@@ -781,6 +840,7 @@ async function verMedico(expedienteId, nombre) {
     });
 }
 
+// Función para ver evaluaciones de optometría
 async function verOptometria(expedienteId, nombre) {
     const res = await fetch(`/api/expedientes/${expedienteId}/optometria`);
     const data = await res.json();
@@ -855,7 +915,7 @@ async function verOptometria(expedienteId, nombre) {
         confirmButtonText: 'Cerrar'
     });
 }
-
+// Función para eliminar expediente
 async function eliminarExpediente(id) {
     const confirmacion = await Swal.fire({
         title: '¿Estás seguro?',
