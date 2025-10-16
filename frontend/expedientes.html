@@ -527,32 +527,15 @@ async function cargarExpedientes() {
 }
 
 // Función para nuevo expediente
+// Función para nuevo expediente
 async function nuevoExpediente() {
     const form = document.querySelector('#expedienteForm form');
     if (form) form.reset();
     
-    // Limpiar el dataset
+    // ✅ DEJAR VACÍO para que sea CREACIÓN
     const inputNumero = document.getElementById('numero_expediente');
+    inputNumero.value = ''; // ← VACÍO = CREACIÓN
     delete inputNumero.dataset.departamento;
-    
-    // Obtener el siguiente ID disponible
-    try {
-        const res = await fetch('/api/expedientes', { credentials: 'include' });
-        const data = await res.json();
-        
-        // Calcular el siguiente número
-        let maxId = 0;
-        data.forEach(exp => {
-            if (exp.numero_expediente > maxId) {
-                maxId = exp.numero_expediente;
-            }
-        });
-        
-        inputNumero.value = maxId + 1;
-    } catch (err) {
-        console.error("Error obteniendo siguiente ID:", err);
-        inputNumero.value = '';
-    }
     
     document.getElementById('expedienteForm').style.display = 'block';
     document.getElementById('tablaExpedientes').style.display = 'none';
@@ -560,25 +543,6 @@ async function nuevoExpediente() {
     setTimeout(() => {
         document.getElementById('expedienteForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
-}
-
-// Función para cancelar el formulario
-function cancelarFormulario() {
-    document.getElementById('expedienteForm').style.display = 'none';
-    document.getElementById('tablaExpedientes').style.display = 'block';
-}
-
-// Función para calcular edad automáticamente
-function calcularEdad() {
-    const fecha = document.getElementById('fecha_nacimiento').value;
-    if (fecha) {
-        const nacimiento = new Date(fecha);
-        const hoy = new Date();
-        let edad = hoy.getFullYear() - nacimiento.getFullYear();
-        const mes = hoy.getMonth() - nacimiento.getMonth();
-        if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
-        document.getElementById('edad').value = edad;
-    }
 }
 
 // Función para editar expediente
