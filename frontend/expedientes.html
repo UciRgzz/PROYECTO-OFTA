@@ -575,144 +575,75 @@ async function cargarExpedientes() {
     });
 }
 
-// === NUEVO EXPEDIENTE (CORREGIDO) ===
+// === NUEVO EXPEDIENTE (VERSIÓN MEJORADA) ===
 function nuevoExpediente() {
-    // Limpiar el formulario
-    const form = document.getElementById('expedienteForm');
-    form.reset();
-    document.getElementById('numero_expediente').value = '';
+    console.log('🔥 Función nuevoExpediente() ejecutada');
     
-    // Mostrar el formulario
-    form.style.display = 'block';
-
-    // Ocultar la tabla de expedientes
-    const cardTabla = document.querySelector('.card .fa-list')?.closest('.card');
-    if (cardTabla) {
-        cardTabla.style.display = 'none';
-    }
-}
-
-// === CANCELAR FORMULARIO (CORREGIDO) ===
-function cancelarFormulario() {
-    // Ocultar el formulario
-    document.getElementById('expedienteForm').style.display = 'none';
-    
-    // Mostrar la tabla de expedientes
-    const cardTabla = document.querySelector('.card .fa-list')?.closest('.card');
-    if (cardTabla) {
-        cardTabla.style.display = 'block';
-    }
-}
-
-// === CALCULAR EDAD ===
-function calcularEdad() {
-    const fecha = document.getElementById('fecha_nacimiento').value;
-    if (fecha) {
-        const nacimiento = new Date(fecha);
-        const hoy = new Date();
-        let edad = hoy.getFullYear() - nacimiento.getFullYear();
-        const mes = hoy.getMonth() - nacimiento.getMonth();
-        if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
-        document.getElementById('edad').value = edad;
-    }
-}
-
-// === GUARDAR EXPEDIENTE ===
-async function guardarExpediente(e) {
-    e.preventDefault();
-    const id = document.getElementById('numero_expediente').value;
-    const expediente = {
-        nombre_completo: document.getElementById('nombre').value,
-        fecha_nacimiento: document.getElementById('fecha_nacimiento').value,
-        edad: document.getElementById('edad').value,
-        padecimientos: document.getElementById('padecimientos').value,
-        colonia: document.getElementById('colonia').value,
-        ciudad: document.getElementById('ciudad').value,
-        telefono1: document.getElementById('telefono1').value,
-        telefono2: document.getElementById('telefono2').value
-    };
-
-    const url = id ? `/api/expedientes/${id}` : '/api/expedientes';
-    const method = id ? 'PUT' : 'POST';
-
-    const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(expediente)
-    });
-
-    const data = await res.json();
-
-    if (res.ok) {
-        Swal.fire({
-            icon: 'success',
-            title: id ? 'Expediente actualizado' : 'Expediente creado',
-            text: id ? `Número: ${id}` : `Número: ${data.expediente.numero_expediente}`,
-            confirmButtonColor: '#3085d6'
-        });
-    } else {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: data.error || 'No se pudo guardar el expediente',
-            confirmButtonColor: '#d33'
-        });
-    }
-
-    cargarExpedientes();
-    cancelarFormulario();
-}
-
-// === EDITAR EXPEDIENTE (CORREGIDO) ===
-async function editarExpediente(id) {
     try {
-        const res = await fetch(`/api/expedientes/${id}`);
-        
-        if (!res.ok) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'No se pudo cargar el expediente'
-            });
+        // Verificar que el formulario existe
+        const form = document.getElementById('expedienteForm');
+        if (!form) {
+            console.error('❌ Formulario no encontrado');
             return;
         }
-
-        const data = await res.json();
-
-        // Llenar el formulario con los datos
-        document.getElementById('numero_expediente').value = data.numero_expediente;
-        document.getElementById('nombre').value = data.nombre_completo;
-        document.getElementById('fecha_nacimiento').value = data.fecha_nacimiento.split('T')[0];
-        document.getElementById('edad').value = data.edad;
-        document.getElementById('padecimientos').value = data.padecimientos;
-        document.getElementById('colonia').value = data.colonia || '';
-        document.getElementById('ciudad').value = data.ciudad || '';
-        document.getElementById('telefono1').value = data.telefono1 || '';
-        document.getElementById('telefono2').value = data.telefono2 || '';
-
+        
+        // Limpiar todos los campos del formulario
+        form.reset();
+        
+        // Asegurar que el número de expediente esté vacío
+        const numeroExpediente = document.getElementById('numero_expediente');
+        if (numeroExpediente) {
+            numeroExpediente.value = '';
+        }
+        
         // Mostrar el formulario
-        document.getElementById('expedienteForm').style.display = 'block';
+        form.style.display = 'block';
+        console.log('✅ Formulario mostrado');
 
-        // Ocultar la tabla de expedientes
+        // Ocultar la tabla
         const cardTabla = document.querySelector('.card .fa-list')?.closest('.card');
         if (cardTabla) {
             cardTabla.style.display = 'none';
+            console.log('✅ Tabla ocultada');
         }
-
-        // Scroll suave hacia el formulario
-        document.getElementById('expedienteForm').scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'start' 
-        });
-
-    } catch (err) {
-        console.error("Error al cargar expediente:", err);
+        
+        // Scroll hacia el formulario
+        setTimeout(() => {
+            form.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+            });
+        }, 100);
+        
+    } catch (error) {
+        console.error('❌ Error en nuevoExpediente():', error);
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'Error al cargar los datos del expediente'
+            text: 'No se pudo abrir el formulario: ' + error.message
         });
     }
+}
+
+// === EDITAR EXPEDIENTE ===
+async function editarExpediente(id) {
+    const res = await fetch(`/api/expedientes/${id}`);
+    const data = await res.json();
+
+    document.getElementById('numero_expediente').value = data.numero_expediente;
+    document.getElementById('nombre').value = data.nombre_completo;
+    document.getElementById('fecha_nacimiento').value = data.fecha_nacimiento.split('T')[0];
+    document.getElementById('edad').value = data.edad;
+    document.getElementById('padecimientos').value = data.padecimientos;
+    document.getElementById('colonia').value = data.colonia;
+    document.getElementById('ciudad').value = data.ciudad;
+    document.getElementById('telefono1').value = data.telefono1;
+    document.getElementById('telefono2').value = data.telefono2;
+
+    document.getElementById('expedienteForm').style.display = 'block';
+
+    const cardTabla = document.querySelector('.card .fa-list')?.closest('.card');
+    if (cardTabla) cardTabla.style.display = 'none';
 }
 
 // === BUSCAR EXPEDIENTE (MEJORADO - POR ID O NOMBRE) ===
@@ -808,6 +739,7 @@ async function buscarExpediente() {
         });
     }
 }
+
 
 // === VER ORDENES MÉDICAS ===
 async function verMedico(expedienteId, nombre) {
@@ -954,7 +886,8 @@ async function eliminarExpediente(id) {
     }
 }
 
-// === CARGAR EXPEDIENTES AL INICIAR Y CONFIGURAR EVENTOS ===
+// Cargar expedientes al iniciar
+// Cargar expedientes al iniciar y configurar eventos
 document.addEventListener('DOMContentLoaded', function() {
     cargarExpedientes();
     
@@ -968,7 +901,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Recargar todos cuando el campo esté vacío
+        // 🔥 NUEVO: Recargar todos cuando el campo esté vacío
         inputBuscar.addEventListener('input', function(e) {
             const valor = e.target.value.trim();
             
