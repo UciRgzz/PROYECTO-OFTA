@@ -328,14 +328,14 @@ async function cargarOptometrias(desde, hasta) {
   `;
 
   if (data.length === 0) {
-    html += `<tr><td colspan="31">No hay registros en este rango de fechas</td></tr>`;
+    html += `<tr><td colspan="31">Sin registros</td></tr>`;
   } else {
     data.forEach(o => {
       html += `
         <tr>
           <td>${o.id}</td>
           <td>${o.expediente_id}</td>
-          <td>${o.nombre}</td>
+          <td>${o.nombre || ""}</td>
           <td>${o.esfera_od || ""}</td>
           <td>${o.cilindro_od || ""}</td>
           <td>${o.eje_od || ""}</td>
@@ -385,10 +385,9 @@ async function cargarOptometrias(desde, hasta) {
   document.getElementById("tablaOpto").innerHTML = html;
 }
 
-// ==================== Inicializar filtro de fechas y cargar HOY al inicio ====================
+// ==================== Inicializar filtro de fechas y cargar HOY ====================
 document.addEventListener("DOMContentLoaded", function() {
   const hoy = moment().format("YYYY-MM-DD");
-
   $('#filtroRangoOpto').daterangepicker({
     autoUpdateInput: false,
     locale: {
@@ -398,55 +397,37 @@ document.addEventListener("DOMContentLoaded", function() {
       cancelLabel: "Cancelar",
       fromLabel: "Desde",
       toLabel: "Hasta",
-      customRangeLabel: "Rango personalizado",
-      weekLabel: "S",
+      customRangeLabel: "Rango",
       daysOfWeek: ["Do","Lu","Ma","Mi","Ju","Vi","Sa"],
-      monthNames: [
-        "Enero","Febrero","Marzo","Abril","Mayo","Junio",
-        "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
-      ],
+      monthNames: ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"],
       firstDay: 1
     },
     startDate: moment(),
-    endDate: moment(),
-    ranges: {
-      'Hoy': [moment(), moment()],
-      'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-      'Últimos 7 Días': [moment().subtract(6, 'days'), moment()],
-      'Últimos 30 Días': [moment().subtract(29, 'days'), moment()],
-      'Este Mes': [moment().startOf('month'), moment().endOf('month')],
-      'Mes Pasado': [
-        moment().subtract(1, 'month').startOf('month'),
-        moment().subtract(1, 'month').endOf('month')
-      ]
-    }
+    endDate: moment()
   });
 
-  // Cuando el usuario aplica un rango
   $('#filtroRangoOpto').on('apply.daterangepicker', function(ev, picker) {
-    $(this).val(
-      picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY')
-    );
+    $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
     const desde = picker.startDate.format("YYYY-MM-DD");
     const hasta = picker.endDate.format("YYYY-MM-DD");
     cargarOptometrias(desde, hasta);
   });
 
-  // Cuando cancela → mostrar solo HOY
   $('#filtroRangoOpto').on('cancel.daterangepicker', function() {
     $(this).val('');
     cargarOptometrias(hoy, hoy);
   });
 
-
-  // Al cargar la página → solo preparar la fecha, no mostrar tabla
   $('#filtroRangoOpto').val(moment().format('DD/MM/YYYY'));
-  document.getElementById("tablaOpto").innerHTML = "";
+  cargarOptometrias(hoy, hoy); // muestra la tabla siempre
 });
-
 
 // ==================== Botón Nueva Evaluación ====================
 document.getElementById("btnNuevo").addEventListener("click", async function() {
+  const filtro = document.querySelector(".mb-3");
+  filtro.style.display = "none";
+  document.getElementById("tablaOpto").style.display = "none";
+
   const html = `
     <div class="card">
       <div class="card-header"><i class="fas fa-plus-circle"></i> Nueva Evaluación de Optometría</div>
@@ -458,170 +439,99 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
               <input type="number" name="expediente_id" class="form-control" required>
             </div>
           </div>
-          
+
           <h5 class="mt-4 mb-3">Ojo Derecho (OD)</h5>
           <div class="row">
-            <div class="col-md-2 form-group">
-              <label>Esfera</label>
-              <input type="text" name="esfera_od" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>Cilindro</label>
-              <input type="text" name="cilindro_od" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>Eje</label>
-              <input type="text" name="eje_od" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>AVcC</label>
-              <input type="text" name="avcc_od" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>Adición</label>
-              <input type="text" name="adicion_od" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>AVcC2</label>
-              <input type="text" name="avcc2_od" class="form-control">
-            </div>
+            <div class="col-md-2 form-group"><label>Esfera</label><input type="text" name="esfera_od" class="form-control"></div>
+            <div class="col-md-2 form-group"><label>Cilindro</label><input type="text" name="cilindro_od" class="form-control"></div>
+            <div class="col-md-2 form-group"><label>Eje</label><input type="text" name="eje_od" class="form-control"></div>
+            <div class="col-md-2 form-group"><label>AVcC</label><input type="text" name="avcc_od" class="form-control"></div>
+            <div class="col-md-2 form-group"><label>Adición</label><input type="text" name="adicion_od" class="form-control"></div>
+            <div class="col-md-2 form-group"><label>AVcC2</label><input type="text" name="avcc2_od" class="form-control"></div>
           </div>
 
           <h5 class="mt-4 mb-3">Ojo Izquierdo (OI)</h5>
           <div class="row">
-            <div class="col-md-2 form-group">
-              <label>Esfera</label>
-              <input type="text" name="esfera_oi" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>Cilindro</label>
-              <input type="text" name="cilindro_oi" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>Eje</label>
-              <input type="text" name="eje_oi" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>AVcC</label>
-              <input type="text" name="avcc_oi" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>Adición</label>
-              <input type="text" name="adicion_oi" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>AVcC2</label>
-              <input type="text" name="avcc2_oi" class="form-control">
-            </div>
+            <div class="col-md-2 form-group"><label>Esfera</label><input type="text" name="esfera_oi" class="form-control"></div>
+            <div class="col-md-2 form-group"><label>Cilindro</label><input type="text" name="cilindro_oi" class="form-control"></div>
+            <div class="col-md-2 form-group"><label>Eje</label><input type="text" name="eje_oi" class="form-control"></div>
+            <div class="col-md-2 form-group"><label>AVcC</label><input type="text" name="avcc_oi" class="form-control"></div>
+            <div class="col-md-2 form-group"><label>Adición</label><input type="text" name="adicion_oi" class="form-control"></div>
+            <div class="col-md-2 form-group"><label>AVcC2</label><input type="text" name="avcc2_oi" class="form-control"></div>
           </div>
+
+          <h5 class="mt-4 mb-3">Agudeza Visual (OD)</h5>
+          <div class="row">
+            <div class="col-md-2 form-group"><label>AV Lejos 1</label><input type="text" name="av_lejos_od1" class="form-control"></div>
+            <div class="col-md-2 form-group"><label>AV Lejos 2</label><input type="text" name="av_lejos_od2" class="form-control"></div>
+            <div class="col-md-2 form-group"><label>AV Lejos 3</label><input type="text" name="av_lejos_od3" class="form-control"></div>
+            <div class="col-md-2 form-group"><label>AV Cerca 1</label><input type="text" name="av_cerca_od1" class="form-control"></div>
+            <div class="col-md-2 form-group"><label>AV Cerca 2</label><input type="text" name="av_cerca_od2" class="form-control"></div>
+            <div class="col-md-2 form-group"><label>Con Lentes 1</label><input type="text" name="av_lentes_od1" class="form-control"></div>
+          </div>
+          <div class="row"><div class="col-md-2 form-group"><label>Con Lentes 2</label><input type="text" name="av_lentes_od2" class="form-control"></div></div>
+
+          <h5 class="mt-4 mb-3">Agudeza Visual (OI)</h5>
+          <div class="row">
+            <div class="col-md-2 form-group"><label>AV Lejos 1</label><input type="text" name="av_lejos_oi1" class="form-control"></div>
+            <div class="col-md-2 form-group"><label>AV Lejos 2</label><input type="text" name="av_lejos_oi2" class="form-control"></div>
+            <div class="col-md-2 form-group"><label>AV Lejos 3</label><input type="text" name="av_lejos_oi3" class="form-control"></div>
+            <div class="col-md-2 form-group"><label>AV Cerca 1</label><input type="text" name="av_cerca_oi1" class="form-control"></div>
+            <div class="col-md-2 form-group"><label>AV Cerca 2</label><input type="text" name="av_cerca_oi2" class="form-control"></div>
+            <div class="col-md-2 form-group"><label>Con Lentes 1</label><input type="text" name="av_lentes_oi1" class="form-control"></div>
+          </div>
+          <div class="row"><div class="col-md-2 form-group"><label>Con Lentes 2</label><input type="text" name="av_lentes_oi2" class="form-control"></div></div>
 
           <h5 class="mt-4 mb-3">Otros Datos</h5>
           <div class="row">
-            <div class="col-md-4 form-group">
-              <label>BMP</label>
-              <input type="text" name="bmp" class="form-control">
-            </div>
-            <div class="col-md-4 form-group">
-              <label>BMP OD</label>
-              <input type="text" name="bmp_od" class="form-control">
-            </div>
-            <div class="col-md-4 form-group">
-              <label>BMP OI</label>
-              <input type="text" name="bmp_oi" class="form-control">
-            </div>
+            <div class="col-md-4 form-group"><label>BMP</label><input type="text" name="bmp" class="form-control"></div>
+            <div class="col-md-4 form-group"><label>BMP OD</label><input type="text" name="bmp_od" class="form-control"></div>
+            <div class="col-md-4 form-group"><label>BMP OI</label><input type="text" name="bmp_oi" class="form-control"></div>
           </div>
-
           <div class="row">
-            <div class="col-md-4 form-group">
-              <label>F.O</label>
-              <input type="text" name="fo" class="form-control">
-            </div>
-            <div class="col-md-4 form-group">
-              <label>F.O OD</label>
-              <input type="text" name="fo_od" class="form-control">
-            </div>
-            <div class="col-md-4 form-group">
-              <label>F.O OI</label>
-              <input type="text" name="fo_oi" class="form-control">
-            </div>
+            <div class="col-md-4 form-group"><label>F.O</label><input type="text" name="fo" class="form-control"></div>
+            <div class="col-md-4 form-group"><label>F.O OD</label><input type="text" name="fo_od" class="form-control"></div>
+            <div class="col-md-4 form-group"><label>F.O OI</label><input type="text" name="fo_oi" class="form-control"></div>
           </div>
-
-          <h5 class="mt-4 mb-3">Agudeza Visual</h5>
           <div class="row">
-            <div class="col-md-4 form-group">
-              <label>OD AV Lejos</label>
-              <input type="text" name="av_lejos_od1" class="form-control">
-            </div>
-            <div class="col-md-4 form-group">
-              <label>OD AV Cerca</label>
-              <input type="text" name="av_cerca_od1" class="form-control">
-            </div>
-            <div class="col-md-4 form-group">
-              <label>OD Con Lentes</label>
-              <input type="text" name="av_lentes_od1" class="form-control">
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col-md-4 form-group">
-              <label>OI AV Lejos</label>
-              <input type="text" name="av_lejos_oi1" class="form-control">
-            </div>
-            <div class="col-md-4 form-group">
-              <label>OI AV Cerca</label>
-              <input type="text" name="av_cerca_oi1" class="form-control">
-            </div>
-            <div class="col-md-4 form-group">
-              <label>OI Con Lentes</label>
-              <input type="text" name="av_lentes_oi1" class="form-control">
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col-md-6 form-group">
-              <label>Cicloplejia</label>
-              <input type="text" name="cicloplejia" class="form-control">
-            </div>
-            <div class="col-md-6 form-group">
-              <label>Hora T.P.</label>
-              <input type="time" name="hora_tp" class="form-control">
-            </div>
+            <div class="col-md-6 form-group"><label>Cicloplejia</label><input type="text" name="cicloplejia" class="form-control"></div>
+            <div class="col-md-6 form-group"><label>Hora T.P.</label><input type="time" name="hora_tp" class="form-control"></div>
           </div>
 
           <div class="d-flex justify-content-between mt-4">
-            <button type="button" class="btn btn-secondary" onclick="document.getElementById('formularioOpto').style.display='none'">
-              <i class="fas fa-times"></i> Cancelar
-            </button>
-            <button type="submit" class="btn btn-primary">
-              <i class="fas fa-save"></i> Guardar Evaluación
-            </button>
+            <button type="button" class="btn btn-secondary" id="cancelarOpto"><i class="fas fa-times"></i> Cancelar</button>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Evaluación</button>
           </div>
         </form>
       </div>
     </div>
   `;
   
-  document.getElementById("formularioOpto").innerHTML = html;
-  document.getElementById("formularioOpto").style.display = "block";
-  document.getElementById("tablaOpto").innerHTML = ""; // Oculta la tabla al abrir el formulario
-  
-  // Manejar el envío del formulario
-  document.getElementById("formOptometria").addEventListener("submit", async function(e) {
+  const formDiv = document.getElementById("formularioOpto");
+  formDiv.innerHTML = html;
+  formDiv.style.display = "block";
+
+  document.getElementById("cancelarOpto").onclick = () => {
+    formDiv.style.display = "none";
+    filtro.style.display = "block";
+    document.getElementById("tablaOpto").style.display = "block";
+  };
+
+  document.getElementById("formOptometria").addEventListener("submit", async e => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData);
-    
     const res = await fetch("/api/optometria", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {"Content-Type": "application/json"},
       body: JSON.stringify(data)
     });
-    
     const result = await res.json();
-    
     if (res.ok) {
-      Swal.fire("¡Éxito!", result.mensaje, "success");
-      document.getElementById("formularioOpto").style.display = "none";
+      Swal.fire("Éxito", result.mensaje, "success");
+      formDiv.style.display = "none";
+      filtro.style.display = "block";
+      document.getElementById("tablaOpto").style.display = "block";
       const hoy = moment().format("YYYY-MM-DD");
       cargarOptometrias(hoy, hoy);
     } else {
@@ -630,23 +540,21 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
   });
 });
 
-// ==================== Función para borrar evaluación ====================
+// ==================== Eliminar evaluación ====================
 async function borrarOpto(id) {
   const result = await Swal.fire({
-    title: '¿Estás seguro?',
-    text: "Esta acción no se puede deshacer",
-    icon: 'warning',
+    title: "¿Eliminar registro?",
+    text: "No podrás revertirlo",
+    icon: "warning",
     showCancelButton: true,
-    confirmButtonColor: '#e74c3c',
-    cancelButtonColor: '#6c757d',
-    confirmButtonText: 'Sí, eliminar',
-    cancelButtonText: 'Cancelar'
+    confirmButtonColor: "#e74c3c",
+    cancelButtonColor: "#6c757d",
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar"
   });
-  
   if (result.isConfirmed) {
-    const res = await fetch(`/api/optometria/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/optometria/${id}`, {method: "DELETE"});
     const data = await res.json();
-    
     if (res.ok) {
       Swal.fire("Eliminado", data.mensaje, "success");
       const hoy = moment().format("YYYY-MM-DD");
@@ -656,8 +564,6 @@ async function borrarOpto(id) {
     }
   }
 }
-
-
 </script>
 
 </body>
