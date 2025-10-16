@@ -438,10 +438,12 @@ document.addEventListener("DOMContentLoaded", function() {
     cargarOptometrias(hoy, hoy);
   });
 
-  // Al cargar la página → mostrar solo HOY
+
+  // Al cargar la página → solo preparar la fecha, no mostrar tabla
   $('#filtroRangoOpto').val(moment().format('DD/MM/YYYY'));
-  cargarOptometrias(hoy, hoy);
+  document.getElementById("tablaOpto").innerHTML = "";
 });
+
 
 // ==================== Botón Nueva Evaluación ====================
 document.getElementById("btnNuevo").addEventListener("click", async function() {
@@ -544,6 +546,37 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
             </div>
           </div>
 
+          <h5 class="mt-4 mb-3">Agudeza Visual</h5>
+          <div class="row">
+            <div class="col-md-4 form-group">
+              <label>OD AV Lejos</label>
+              <input type="text" name="av_lejos_od1" class="form-control">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>OD AV Cerca</label>
+              <input type="text" name="av_cerca_od1" class="form-control">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>OD Con Lentes</label>
+              <input type="text" name="av_lentes_od1" class="form-control">
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-4 form-group">
+              <label>OI AV Lejos</label>
+              <input type="text" name="av_lejos_oi1" class="form-control">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>OI AV Cerca</label>
+              <input type="text" name="av_cerca_oi1" class="form-control">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>OI Con Lentes</label>
+              <input type="text" name="av_lentes_oi1" class="form-control">
+            </div>
+          </div>
+
           <div class="row">
             <div class="col-md-6 form-group">
               <label>Cicloplejia</label>
@@ -570,6 +603,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
   
   document.getElementById("formularioOpto").innerHTML = html;
   document.getElementById("formularioOpto").style.display = "block";
+  document.getElementById("tablaOpto").innerHTML = ""; // Oculta la tabla al abrir el formulario
   
   // Manejar el envío del formulario
   document.getElementById("formOptometria").addEventListener("submit", async function(e) {
