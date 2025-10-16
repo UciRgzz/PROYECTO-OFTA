@@ -1591,6 +1591,8 @@ app.post("/api/seleccionar-sucursal", verificarSesion, (req, res) => {
 
 
 // ==================== MODULO DE OPTOMETRÍA ====================
+// ==================== MODULO DE OPTOMETRÍA ====================
+
 // Guardar nueva evaluación de optometría
 app.post("/api/optometria", verificarSesion, async (req, res) => {
   try {
@@ -1635,8 +1637,7 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
         $29,$30,$31,
         $32,$33,
         $34,$35,
-        NOW(),$36, $37
-
+        NOW(),$36
       )
       RETURNING *`,
       [
