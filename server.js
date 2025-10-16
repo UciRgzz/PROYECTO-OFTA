@@ -605,6 +605,32 @@ app.get('/api/pacientes', verificarSesion, async (req, res) => {
     res.status(500).json({ error: "Error al obtener pacientes" });
   }
 });
+// ==================== OBTENER UN EXPEDIENTE POR ID ====================
+app.get('/api/expedientes/:id', verificarSesion, async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) {
+    return res.status(400).json({ error: "ID inválido" });
+  }
+
+  const depto = getDepartamento(req);
+
+  try {
+    const result = await pool.query(
+      "SELECT * FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
+      [id, depto]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Expediente no encontrado" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Error al obtener expediente:", err);
+    res.status(500).json({ error: "Error al obtener expediente" });
+  }
+});
+
 
 // ==================== MODULO DE RECIBOS ====================
 // ==================== Guardar recibo ====================
