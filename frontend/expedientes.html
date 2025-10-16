@@ -811,57 +811,65 @@ async function buscarExpediente() {
 
 // Función para ver órdenes médicas
 async function verMedico(expedienteId, nombre) {
+  try {
     const res = await fetch(`/api/expedientes/${expedienteId}/ordenes`, { credentials: 'include' });
     const data = await res.json();
 
     if (!data.length) {
-        Swal.fire({
-            icon: 'info',
-            title: 'Sin órdenes',
-            text: 'No hay órdenes médicas registradas para este expediente.'
-        });
-        return;
+      Swal.fire({
+        icon: 'info',
+        title: 'Sin órdenes',
+        text: 'No hay órdenes médicas registradas para este expediente.'
+      });
+      return;
     }
 
     let contenido = "";
     data.forEach((orden, idx) => {
-        const fechaOrden = orden.fecha_orden || orden.fecha_cirugia || orden.fecha_agendada || orden.fecha;
-        const fechaFormateada = fechaOr
-        den ? new Date(fechaOrden).toLocaleDateString('es-MX') : 'No asignada';
-        
-        contenido += `
-        <h4 class="mt-3">Orden #${orden.numero_orden} ${idx === 0 ? '(Más reciente)' : ''}</h4>
+      const fechaOrden = orden.fecha_orden || orden.fecha_cirugia || orden.fecha_agendada || orden.fecha;
+      const fechaFormateada = fechaOrden ? new Date(fechaOrden).toLocaleDateString('es-MX') : 'No asignada';
+
+      contenido += `
+        <h4 class="mt-3">Orden #${orden.numero_orden || idx + 1} ${idx === 0 ? '(Más reciente)' : ''}</h4>
         <table class="table table-bordered">
-            <tr><th>Médico</th><td>${orden.medico || 'N/A'}</td></tr>
-            <tr><th>Diagnóstico</th><td>${orden.diagnostico || 'N/A'}</td></tr>
-            <tr><th>Lado</th><td>${orden.lado || 'N/A'}</td></tr>
-            <tr><th>Procedimiento</th><td>${orden.procedimiento || 'N/A'}</td></tr>
-            <tr><th>Precio</th><td>$${orden.precio || '0.00'}</td></tr>
-            <tr><th>Estatus</th><td>${orden.estatus || 'Pendiente'}</td></tr>
-            <tr><th>Fecha</th><td>${fechaFormateada}</td></tr>
-            ${orden.anexos ? `<tr><th>Anexos</th><td>${orden.anexos}</td></tr>` : ''}
-            ${orden.conjuntiva ? `<tr><th>Conjuntiva</th><td>${orden.conjuntiva}</td></tr>` : ''}
-            ${orden.cornea ? `<tr><th>Córnea</th><td>${orden.cornea}</td></tr>` : ''}
-            ${orden.camara_anterior ? `<tr><th>Cámara Anterior</th><td>${orden.camara_anterior}</td></tr>` : ''}
-            ${orden.cristalino ? `<tr><th>Cristalino</th><td>${orden.cristalino}</td></tr>` : ''}
-            ${orden.retina ? `<tr><th>Retina</th><td>${orden.retina}</td></tr>` : ''}
-            ${orden.macula ? `<tr><th>Mácula</th><td>${orden.macula}</td></tr>` : ''}
-            ${orden.nervio_optico ? `<tr><th>Nervio Óptico</th><td>${orden.nervio_optico}</td></tr>` : ''}
-            ${orden.ciclopejia ? `<tr><th>Cicloplejia</th><td>${orden.ciclopejia}</td></tr>` : ''}
-            ${orden.hora_tp ? `<tr><th>Hora T.P.</th><td>${orden.hora_tp}</td></tr>` : ''}
-            ${orden.problemas ? `<tr><th>Problemas</th><td>${orden.problemas}</td></tr>` : ''}
-            ${orden.plan ? `<tr><th>Plan</th><td>${orden.plan}</td></tr>` : ''}
+          <tr><th>Médico</th><td>${orden.medico || 'N/A'}</td></tr>
+          <tr><th>Diagnóstico</th><td>${orden.diagnostico || 'N/A'}</td></tr>
+          <tr><th>Lado</th><td>${orden.lado || 'N/A'}</td></tr>
+          <tr><th>Procedimiento</th><td>${orden.procedimiento || 'N/A'}</td></tr>
+          <tr><th>Precio</th><td>$${orden.precio || '0.00'}</td></tr>
+          <tr><th>Estatus</th><td>${orden.estatus || 'Pendiente'}</td></tr>
+          <tr><th>Fecha</th><td>${fechaFormateada}</td></tr>
+          ${orden.anexos ? `<tr><th>Anexos</th><td>${orden.anexos}</td></tr>` : ''}
+          ${orden.conjuntiva ? `<tr><th>Conjuntiva</th><td>${orden.conjuntiva}</td></tr>` : ''}
+          ${orden.cornea ? `<tr><th>Córnea</th><td>${orden.cornea}</td></tr>` : ''}
+          ${orden.camara_anterior ? `<tr><th>Cámara Anterior</th><td>${orden.camara_anterior}</td></tr>` : ''}
+          ${orden.cristalino ? `<tr><th>Cristalino</th><td>${orden.cristalino}</td></tr>` : ''}
+          ${orden.retina ? `<tr><th>Retina</th><td>${orden.retina}</td></tr>` : ''}
+          ${orden.macula ? `<tr><th>Mácula</th><td>${orden.macula}</td></tr>` : ''}
+          ${orden.nervio_optico ? `<tr><th>Nervio Óptico</th><td>${orden.nervio_optico}</td></tr>` : ''}
+          ${orden.ciclopejia ? `<tr><th>Cicloplejia</th><td>${orden.ciclopejia}</td></tr>` : ''}
+          ${orden.hora_tp ? `<tr><th>Hora T.P.</th><td>${orden.hora_tp}</td></tr>` : ''}
+          ${orden.problemas ? `<tr><th>Problemas</th><td>${orden.problemas}</td></tr>` : ''}
+          ${orden.plan ? `<tr><th>Plan</th><td>${orden.plan}</td></tr>` : ''}
         </table>
         <hr/>
-        `;
+      `;
     });
 
     Swal.fire({
-        title: `Órdenes de ${nombre} (Expediente ${expedienteId})`,
-        html: contenido,
-        width: '70%',
-        confirmButtonText: 'Cerrar'
+      title: `Órdenes de ${nombre} (Expediente ${expedienteId})`,
+      html: contenido,
+      width: '70%',
+      confirmButtonText: 'Cerrar'
     });
+  } catch (error) {
+    console.error("Error al cargar órdenes médicas:", error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'No se pudieron cargar las órdenes médicas.'
+    });
+  }
 }
 
 // Función para ver evaluaciones de optometría
