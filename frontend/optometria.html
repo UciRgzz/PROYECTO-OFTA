@@ -441,6 +441,188 @@ document.addEventListener("DOMContentLoaded", function() {
   $('#filtroRangoOpto').val(moment().format('DD/MM/YYYY'));
   cargarOptometrias(hoy, hoy);
 });
+
+// ==================== Botón Nueva Evaluación ====================
+document.getElementById("btnNuevo").addEventListener("click", async function() {
+  const html = `
+    <div class="card">
+      <div class="card-header"><i class="fas fa-plus-circle"></i> Nueva Evaluación de Optometría</div>
+      <div class="card-body">
+        <form id="formOptometria">
+          <div class="row">
+            <div class="col-md-6 form-group">
+              <label>Número de Expediente *</label>
+              <input type="number" name="expediente_id" class="form-control" required>
+            </div>
+          </div>
+          
+          <h5 class="mt-4 mb-3">Ojo Derecho (OD)</h5>
+          <div class="row">
+            <div class="col-md-2 form-group">
+              <label>Esfera</label>
+              <input type="text" name="esfera_od" class="form-control">
+            </div>
+            <div class="col-md-2 form-group">
+              <label>Cilindro</label>
+              <input type="text" name="cilindro_od" class="form-control">
+            </div>
+            <div class="col-md-2 form-group">
+              <label>Eje</label>
+              <input type="text" name="eje_od" class="form-control">
+            </div>
+            <div class="col-md-2 form-group">
+              <label>AVcC</label>
+              <input type="text" name="avcc_od" class="form-control">
+            </div>
+            <div class="col-md-2 form-group">
+              <label>Adición</label>
+              <input type="text" name="adicion_od" class="form-control">
+            </div>
+            <div class="col-md-2 form-group">
+              <label>AVcC2</label>
+              <input type="text" name="avcc2_od" class="form-control">
+            </div>
+          </div>
+
+          <h5 class="mt-4 mb-3">Ojo Izquierdo (OI)</h5>
+          <div class="row">
+            <div class="col-md-2 form-group">
+              <label>Esfera</label>
+              <input type="text" name="esfera_oi" class="form-control">
+            </div>
+            <div class="col-md-2 form-group">
+              <label>Cilindro</label>
+              <input type="text" name="cilindro_oi" class="form-control">
+            </div>
+            <div class="col-md-2 form-group">
+              <label>Eje</label>
+              <input type="text" name="eje_oi" class="form-control">
+            </div>
+            <div class="col-md-2 form-group">
+              <label>AVcC</label>
+              <input type="text" name="avcc_oi" class="form-control">
+            </div>
+            <div class="col-md-2 form-group">
+              <label>Adición</label>
+              <input type="text" name="adicion_oi" class="form-control">
+            </div>
+            <div class="col-md-2 form-group">
+              <label>AVcC2</label>
+              <input type="text" name="avcc2_oi" class="form-control">
+            </div>
+          </div>
+
+          <h5 class="mt-4 mb-3">Otros Datos</h5>
+          <div class="row">
+            <div class="col-md-4 form-group">
+              <label>BMP</label>
+              <input type="text" name="bmp" class="form-control">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>BMP OD</label>
+              <input type="text" name="bmp_od" class="form-control">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>BMP OI</label>
+              <input type="text" name="bmp_oi" class="form-control">
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-4 form-group">
+              <label>F.O</label>
+              <input type="text" name="fo" class="form-control">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>F.O OD</label>
+              <input type="text" name="fo_od" class="form-control">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>F.O OI</label>
+              <input type="text" name="fo_oi" class="form-control">
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 form-group">
+              <label>Cicloplejia</label>
+              <input type="text" name="cicloplejia" class="form-control">
+            </div>
+            <div class="col-md-6 form-group">
+              <label>Hora T.P.</label>
+              <input type="time" name="hora_tp" class="form-control">
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between mt-4">
+            <button type="button" class="btn btn-secondary" onclick="document.getElementById('formularioOpto').style.display='none'">
+              <i class="fas fa-times"></i> Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i> Guardar Evaluación
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+  
+  document.getElementById("formularioOpto").innerHTML = html;
+  document.getElementById("formularioOpto").style.display = "block";
+  
+  // Manejar el envío del formulario
+  document.getElementById("formOptometria").addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    
+    const res = await fetch("/api/optometria", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+    
+    const result = await res.json();
+    
+    if (res.ok) {
+      Swal.fire("¡Éxito!", result.mensaje, "success");
+      document.getElementById("formularioOpto").style.display = "none";
+      const hoy = moment().format("YYYY-MM-DD");
+      cargarOptometrias(hoy, hoy);
+    } else {
+      Swal.fire("Error", result.error, "error");
+    }
+  });
+});
+
+// ==================== Función para borrar evaluación ====================
+async function borrarOpto(id) {
+  const result = await Swal.fire({
+    title: '¿Estás seguro?',
+    text: "Esta acción no se puede deshacer",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#e74c3c',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  });
+  
+  if (result.isConfirmed) {
+    const res = await fetch(`/api/optometria/${id}`, { method: "DELETE" });
+    const data = await res.json();
+    
+    if (res.ok) {
+      Swal.fire("Eliminado", data.mensaje, "success");
+      const hoy = moment().format("YYYY-MM-DD");
+      cargarOptometrias(hoy, hoy);
+    } else {
+      Swal.fire("Error", data.error, "error");
+    }
+  }
+}
+
+
 </script>
 
 </body>
