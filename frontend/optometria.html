@@ -331,6 +331,16 @@ async function cargarOptometrias(desde, hasta) {
     html += `<tr><td colspan="31">Sin registros</td></tr>`;
   } else {
     data.forEach(o => {
+      // Formatear hora correctamente
+      let horaFormateada = "";
+      if (o.hora_tp) {
+        const [hora, minuto] = o.hora_tp.split(':');
+        const horaNum = parseInt(hora);
+        const periodo = horaNum >= 12 ? 'p.m.' : 'a.m.';
+        const hora12 = horaNum % 12 || 12;
+        horaFormateada = `${hora12.toString().padStart(2, '0')}:${minuto} ${periodo}`;
+      }
+
       html += `
         <tr>
           <td>${o.id}</td>
@@ -361,16 +371,8 @@ async function cargarOptometrias(desde, hasta) {
           <td>${(o.av_cerca_oi1 || "")}<br>${(o.av_cerca_oi2 || "")}</td>
           <td>${(o.av_lentes_oi1 || "")}<br>${(o.av_lentes_oi2 || "")}</td>
           <td>${o.cicloplejia || ""}</td>
-          <td>${
-            o.hora_tp
-              ? new Date(`1970-01-01T${o.hora_tp}`).toLocaleTimeString("es-MX", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: true
-                })
-              : ""
-          }</td>
-          <td>${new Date(o.fecha).toLocaleDateString("es-MX")}</td>
+          <td>${horaFormateada}</td>
+          <td>${o.fecha.split('T')[0].split('-').reverse().join('/')}</td>
           <td>
             <button class="btn btn-danger btn-sm" onclick="borrarOpto(${o.id})">
               <i class="fas fa-trash"></i>

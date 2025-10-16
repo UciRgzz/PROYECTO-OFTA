@@ -1589,8 +1589,6 @@ app.post("/api/seleccionar-sucursal", verificarSesion, (req, res) => {
   res.json({ ok: true, sucursal });
 });
 
-
-// ==================== MODULO DE OPTOMETRÍA ====================
 // ==================== MODULO DE OPTOMETRÍA ====================
 // Guardar nueva evaluación de optometría
 app.post("/api/optometria", verificarSesion, async (req, res) => {
@@ -1639,7 +1637,7 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
         $29,$30,$31,
         $32,$33,
         $34,$35,
-        $36,$37
+        $36::date,$37
       )
       RETURNING *`,
       [
@@ -1685,12 +1683,12 @@ app.get("/api/optometria", verificarSesion, async (req, res) => {
     let params = [depto];
 
     if (desde && hasta) {
-      query += " AND DATE(o.fecha) BETWEEN $2::date AND $3::date";
+      query += " AND o.fecha BETWEEN $2::date AND $3::date";
       params.push(desde, hasta);
     } else if (filtro === "hoy") {
-      query += " AND DATE(o.fecha) = CURRENT_DATE";
+      query += " AND o.fecha = CURRENT_DATE";
     } else if (filtro === "ayer") {
-      query += " AND DATE(o.fecha) = CURRENT_DATE - INTERVAL '1 day'";
+      query += " AND o.fecha = CURRENT_DATE - INTERVAL '1 day'";
     } else if (filtro === "mes") {
       query += " AND DATE_TRUNC('month', o.fecha) = DATE_TRUNC('month', CURRENT_DATE)";
     }
@@ -1776,7 +1774,6 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
     res.status(500).json({ error: "Error al obtener nombre del paciente" });
   }
 });
-
 
 
 
