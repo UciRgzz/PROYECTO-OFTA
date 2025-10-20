@@ -2481,7 +2481,6 @@ app.get('/api/mis-permisos', verificarSesion, async (req, res) => {
 //===========MODULO DE FOTO EN EL USUARIO==================//
 // ==================== SUBIR FOTO DE PERFIL ====================
 const multerPerfil = require('multer');
-const fs = require('fs');
 
 const storagePerfil = multerPerfil.diskStorage({
   destination: function (req, file, cb) {
