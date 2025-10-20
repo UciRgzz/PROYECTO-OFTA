@@ -687,7 +687,7 @@ async function guardarExpediente(e) {
         if (res.ok) {
             await Swal.fire({
                 icon: 'success',
-                title: numero ? '✅ Expediente actualizado' : '✅ Expediente creado',
+                title: numero ? ' Expediente actualizado' : ' Expediente creado',
                 text: numero ? `Número: ${numero}` : `Número: ${data.expediente?.numero_expediente}`,
                 timer: 2000,
                 showConfirmButton: false
