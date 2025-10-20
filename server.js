@@ -816,7 +816,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
       );
     }
 
-    res.json({ mensaje: "✅ Recibo guardado correctamente", recibo });
+    res.json({ mensaje: " Recibo guardado correctamente", recibo });
   } catch (err) {
     console.error("Error al guardar recibo:", err);
     res.status(500).json({ error: "Error al guardar recibo", detalle: err.message });
@@ -1762,7 +1762,7 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
       ]
     );
 
-    res.json({ mensaje: "✅ Optometría guardada con éxito", data: result.rows[0] });
+    res.json({ mensaje: "Optometría guardada con éxito", data: result.rows[0] });
   } catch (err) {
     console.error("Error al guardar optometría:", err);
     res.status(500).json({ error: err.message });
@@ -1919,7 +1919,7 @@ app.post("/api/insumos", verificarSesion, async (req, res) => {
       [fecha, folio, concepto, monto, depto]
     );
 
-    res.json({ mensaje: "✅ Insumo agregado", insumo: result.rows[0] });
+    res.json({ mensaje: "Insumo agregado", insumo: result.rows[0] });
   } catch (err) {
     console.error("Error al guardar insumo:", err);
     res.status(500).json({ error: "Error al guardar insumo" });
@@ -2424,7 +2424,7 @@ app.post('/api/permisos/:nomina', isAdmin, async (req, res) => {
       );
     }
 
-    res.json({ mensaje: "✅ Permisos actualizados" });
+    res.json({ mensaje: "Permisos actualizados" });
   } catch (err) {
     console.error("Error al guardar permisos:", err);
     res.status(500).json({ error: "Error al guardar permisos" });
