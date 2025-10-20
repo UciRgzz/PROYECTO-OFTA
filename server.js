@@ -761,14 +761,21 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 
     const folio = expediente.rows[0].numero_expediente;
 
-    // Insertar recibo
+    // 🔹 Obtener el siguiente número de recibo consecutivo para este departamento
+    const ultimoNumero = await pool.query(
+      "SELECT COALESCE(MAX(numero_recibo), 0) + 1 AS siguiente FROM recibos WHERE departamento = $1",
+      [depto]
+    );
+    const siguienteNumero = ultimoNumero.rows[0].siguiente;
+
+    // Insertar recibo con numero_recibo calculado
     const result = await pool.query(
       `INSERT INTO recibos 
-         (fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, departamento)
+         (numero_recibo, fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, departamento)
        VALUES 
-         ($1::date, $2, $3, $4, $5::numeric, $6, $7::numeric, $8, $9)
+         ($1, $2::date, $3, $4, $5, $6::numeric, $7, $8::numeric, $9, $10)
        RETURNING *`,
-      [fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, depto]
+      [siguienteNumero, fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, depto]
     );
 
     const recibo = result.rows[0];
@@ -816,10 +823,6 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
   }
 });
 
-
-
-
-
 // ==================== Listar recibos ====================
 app.get('/api/recibos', verificarSesion, async (req, res) => {
   try {
@@ -829,6 +832,7 @@ app.get('/api/recibos', verificarSesion, async (req, res) => {
     let query = `
       SELECT 
         r.id,
+        r.numero_recibo,
         r.fecha,
         r.folio,
         e.nombre_completo AS paciente,
@@ -856,7 +860,7 @@ app.get('/api/recibos', verificarSesion, async (req, res) => {
       query += " AND r.fecha = CURRENT_DATE"; // 👈 por defecto carga solo los de hoy
     }
 
-    query += " ORDER BY r.fecha DESC";
+    query += " ORDER BY r.numero_recibo DESC";
 
     const result = await pool.query(query, params);
     res.json(result.rows);
@@ -865,9 +869,6 @@ app.get('/api/recibos', verificarSesion, async (req, res) => {
     res.status(500).json({ error: "Error al obtener recibos" });
   }
 });
-
-
-
 
 // Eliminar recibo (con pagos y órdenes asociadas)
 app.delete('/api/recibos/:id', isAdmin, async (req, res) => {
@@ -892,7 +893,7 @@ app.delete('/api/recibos/:id', isAdmin, async (req, res) => {
       [id, depto]
     );
 
-    // 3. Eliminar el recibo
+    // 3. Eliminar el recibo (el trigger automáticamente renumerará)
     const result = await pool.query(
       'DELETE FROM recibos WHERE id = $1 AND departamento = $2 RETURNING *',
       [id, depto]
@@ -916,9 +917,18 @@ app.get('/api/recibos/:id', verificarSesion, async (req, res) => {
     let depto = getDepartamento(req);
 
     const result = await pool.query(`
-      SELECT r.id, r.fecha, r.folio, e.nombre_completo AS paciente,
-             r.procedimiento, r.tipo, r.forma_pago, r.monto_pagado, r.precio,
-             (r.precio - r.monto_pagado) AS pendiente
+      SELECT 
+        r.id, 
+        r.numero_recibo,
+        r.fecha, 
+        r.folio, 
+        e.nombre_completo AS paciente,
+        r.procedimiento, 
+        r.tipo, 
+        r.forma_pago, 
+        r.monto_pagado, 
+        r.precio,
+        (r.precio - r.monto_pagado) AS pendiente
       FROM recibos r
       JOIN expedientes e 
         ON r.paciente_id = e.numero_expediente 
@@ -951,9 +961,8 @@ app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
     // 1️⃣ Insertar el abono en abonos_recibos
     await client.query(
       `INSERT INTO abonos_recibos (recibo_id, monto, forma_pago, fecha, departamento)
- VALUES ($1, $2, $3, $4, $5)`,
-[id, monto, forma_pago, fechaLocalMX(), depto]
-
+       VALUES ($1, $2, $3, $4, $5)`,
+      [id, monto, forma_pago, fechaLocalMX(), depto]
     );
 
     // 2️⃣ Actualizar monto_pagado en el recibo
@@ -999,9 +1008,8 @@ app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
         // Registrar el pago también en la tabla pagos (para el historial y cierre de caja)
         await client.query(
           `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
- VALUES ($1, $2, $3, $4, $5, $6)`,
-[orden.id, orden.expediente_id, monto, forma_pago, fechaLocalMX(), depto]
-
+           VALUES ($1, $2, $3, $4, $5, $6)`,
+          [orden.id, orden.expediente_id, monto, forma_pago, fechaLocalMX(), depto]
         );
       }
     }
