@@ -587,39 +587,16 @@
           </div>
         </div>
 
-        <!-- Usuario con menú -->
-<div class="user-profile">
-  <div class="user-avatar" id="userAvatar">
-    <span id="avatarLetter">U</span>
-  </div>
-
-  <div class="dropdown-menu" id="dropdownMenu">
-    <div class="dropdown-header">
-      <div class="avatar-placeholder" id="headerAvatar">
-        <span id="headerAvatarLetter">U</span>
+        <!-- Usuario -->
+        <div class="user-info" id="userInfo">
+          <div class="user-avatar" id="userAvatar"></div>
+          <div class="user-details">
+            <span class="user-name" id="nombreUsuario"></span>
+            <span class="user-role" id="userRole"></span>
+          </div>
+        </div>
       </div>
-      <div class="user-info">
-        <h3 id="userName">Usuario</h3>
-        <p id="userEmail">usuario@ejemplo.com</p>
-      </div>
-    </div>
-
-    <div class="dropdown-item" id="changePhotoBtn">
-      <i>📷</i>
-      <span>Cambiar foto de perfil</span>
-    </div>
-
-    <div class="dropdown-item" id="changeBackgroundBtn">
-      <i>🎨</i>
-      <span>Cambiar fondo</span>
-    </div>
-
-    </div>
-  </div>
-</div>
-</div>
-</header>
-
+    </header>
 
     <!-- MAIN CONTENT -->
     <main class="main-body" id="main-content">
@@ -925,94 +902,6 @@
 
   // === 🔄 Carga inicial al entrar al sistema ===
   cargarNotificaciones();
-
-
-
-// nuevo modulo; 
-// ==================== Menú de usuario (avatar y foto) ====================
-const userAvatar = document.getElementById('userAvatar');
-const dropdownMenu = document.getElementById('dropdownMenu');
-const changePhotoBtn = document.getElementById('changePhotoBtn');
-const fileInput = document.getElementById('fileInput');
-const photoModal = document.getElementById('photoModal');
-const previewImage = document.getElementById('previewImage');
-const cancelBtn = document.getElementById('cancelBtn');
-const saveBtn = document.getElementById('saveBtn');
-const notification = document.getElementById('notification');
-const avatarLetter = document.getElementById('avatarLetter');
-const headerAvatar = document.getElementById('headerAvatar');
-const headerAvatarLetter = document.getElementById('headerAvatarLetter');
-const userName = document.getElementById('userName');
-const userEmail = document.getElementById('userEmail');
-
-let selectedImage = null;
-
-// Abrir/cerrar menú
-userAvatar.addEventListener('click', (e) => {
-  e.stopPropagation();
-  dropdownMenu.classList.toggle('active');
-});
-document.addEventListener('click', (e) => {
-  if (!userAvatar.contains(e.target) && !dropdownMenu.contains(e.target)) {
-    dropdownMenu.classList.remove('active');
-  }
-});
-
-// Abrir selector de archivo
-changePhotoBtn.addEventListener('click', () => {
-  fileInput.click();
-  dropdownMenu.classList.remove('active');
-});
-
-// Vista previa de imagen
-fileInput.addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      selectedImage = e.target.result;
-      previewImage.src = selectedImage;
-      photoModal.classList.add('active');
-    };
-    reader.readAsDataURL(file);
-  }
-});
-
-// Cancelar
-cancelBtn.addEventListener('click', () => {
-  photoModal.classList.remove('active');
-  selectedImage = null;
-  fileInput.value = '';
-});
-
-// Guardar foto y subir al servidor
-saveBtn.addEventListener('click', async () => {
-  if (!selectedImage) return;
-  const blob = await (await fetch(selectedImage)).blob();
-  const formData = new FormData();
-  formData.append('foto', blob, 'perfil.png');
-
-  const res = await fetch('/api/subir-foto', { method: 'POST', body: formData });
-  if (res.ok) {
-    updateAvatar(selectedImage);
-    showNotification();
-  }
-  photoModal.classList.remove('active');
-});
-
-// Actualizar avatar visualmente
-function updateAvatar(imageSrc) {
-  userAvatar.innerHTML = `<img src="${imageSrc}" alt="Avatar">`;
-  headerAvatar.innerHTML = `<img src="${imageSrc}" alt="Avatar">`;
-}
-
-// Notificación temporal
-function showNotification() {
-  notification.classList.add('show');
-  setTimeout(() => notification.classList.remove('show'), 3000);
-}
-
-
 
 </script>
 
