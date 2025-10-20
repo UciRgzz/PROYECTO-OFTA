@@ -587,13 +587,25 @@
           </div>
         </div>
 
-        <!-- Usuario -->
-        <div class="user-info" id="userInfo">
-          <div class="user-avatar" id="userAvatar"></div>
-          <div class="user-details">
-            <span class="user-name" id="nombreUsuario"></span>
-            <span class="user-role" id="userRole"></span>
-          </div>
+   <!-- USUARIO CON MENÚ DESPLEGABLE -->
+<div class="user-info" id="userInfo" onclick="abrirOpcionesUsuario(event)">
+  <div class="user-avatar" id="userAvatar"></div>
+  <div class="user-details">
+    <span class="user-name" id="nombreUsuario"></span>
+    <span class="user-role" id="userRole"></span>
+  </div>
+</div>
+
+<!-- MENÚ EMERGENTE -->
+<div id="menuUsuario" style="
+  display:none; position:absolute; top:70px; right:30px;
+  background:#fff; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.15);
+  padding:10px; z-index:999;">
+  <button class="btn btn-sm btn-primary w-100 mb-2" onclick="cambiarFoto()">Cambiar foto de perfil</button>
+  <input type="file" id="inputFoto" accept="image/*" style="display:none" onchange="previsualizarFoto(event)">
+  <button class="btn btn-sm btn-light w-100" onclick="cerrarMenuUsuario()">Cancelar</button>
+</div>
+
         </div>
       </div>
     </header>
@@ -902,6 +914,46 @@
 
   // === 🔄 Carga inicial al entrar al sistema ===
   cargarNotificaciones();
+
+
+
+// ==================== Personalización de usuario ====================
+function abrirOpcionesUsuario(event) {
+  event.stopPropagation();
+  const menu = document.getElementById('menuUsuario');
+  menu.style.display = (menu.style.display === 'none' || !menu.style.display) ? 'block' : 'none';
+}
+
+function cerrarMenuUsuario() {
+  document.getElementById('menuUsuario').style.display = 'none';
+}
+
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('menuUsuario');
+  if (!menu.contains(e.target) && !document.getElementById('userInfo').contains(e.target)) {
+    menu.style.display = 'none';
+  }
+});
+
+function cambiarFoto() {
+  document.getElementById('inputFoto').click();
+}
+
+function previsualizarFoto(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const avatar = document.getElementById('userAvatar');
+    avatar.style.backgroundImage = `url('${e.target.result}')`;
+    avatar.style.backgroundSize = 'cover';
+    avatar.style.backgroundPosition = 'center';
+    avatar.textContent = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+
 
 </script>
 
