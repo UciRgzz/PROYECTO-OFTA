@@ -2477,6 +2477,40 @@ app.get('/api/mis-permisos', verificarSesion, async (req, res) => {
   }
 });
 
+//============MODULO DE FOTO============
+const storagePerfil = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const dir = path.join(__dirname, 'uploads', 'usuarios');
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: function (req, file, cb) {
+    const username = req.session?.usuario?.username || 'user';
+    const ext = path.extname(file.originalname);
+    cb(null, `${username}_${Date.now()}${ext}`);
+  }
+});
+
+const uploadPerfil = multer({ storage: storagePerfil });
+
+app.post('/api/subir-foto', uploadPerfil.single('foto'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No se recibió archivo' });
+
+    const ruta = `/uploads/usuarios/${req.file.filename}`;
+
+    // Guarda la ruta en la base de datos
+    await pool.query(
+      'UPDATE usuarios SET foto = $1 WHERE username = $2',
+      [ruta, req.session.usuario.username]
+    );
+
+    res.json({ ok: true, ruta });
+  } catch (err) {
+    console.error('Error al subir foto:', err);
+    res.status(500).json({ error: 'Error al guardar la foto' });
+  }
+});
 
 
 
