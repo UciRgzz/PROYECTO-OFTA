@@ -587,25 +587,13 @@
           </div>
         </div>
 
-   <!-- USUARIO CON MENÚ DESPLEGABLE -->
-<div class="user-info" id="userInfo" onclick="abrirOpcionesUsuario(event)">
-  <div class="user-avatar" id="userAvatar"></div>
-  <div class="user-details">
-    <span class="user-name" id="nombreUsuario"></span>
-    <span class="user-role" id="userRole"></span>
-  </div>
-</div>
-
-<!-- MENÚ EMERGENTE -->
-<div id="menuUsuario" style="
-  display:none; position:absolute; top:70px; right:30px;
-  background:#fff; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.15);
-  padding:10px; z-index:999;">
-  <button class="btn btn-sm btn-primary w-100 mb-2" onclick="cambiarFoto()">Cambiar foto de perfil</button>
-  <input type="file" id="inputFoto" accept="image/*" style="display:none" onchange="previsualizarFoto(event)">
-  <button class="btn btn-sm btn-light w-100" onclick="cerrarMenuUsuario()">Cancelar</button>
-</div>
-
+        <!-- Usuario -->
+        <div class="user-info" id="userInfo">
+          <div class="user-avatar" id="userAvatar"></div>
+          <div class="user-details">
+            <span class="user-name" id="nombreUsuario"></span>
+            <span class="user-role" id="userRole"></span>
+          </div>
         </div>
       </div>
     </header>
@@ -621,7 +609,7 @@
              class="welcome-logo">
       </div>
     </main> 
-  </div>
+
 
   <!-- MODAL ÓRDENES Y OPTOMETRÍA -->
   <div class="modal fade" id="modalOrdenes" tabindex="-1" aria-hidden="true">
@@ -658,15 +646,19 @@
     .then(data => {
       if (data.usuario) {
         window.usuarioRol = data.usuario.rol;
-if (data.usuario.foto) {
-  const avatar = document.getElementById("userAvatar");
-  avatar.style.backgroundImage = `url('${data.usuario.foto}')`;
-  avatar.style.backgroundSize = 'cover';
-  avatar.style.backgroundPosition = 'center';
-  avatar.textContent = '';
-} else {
-  document.getElementById("userAvatar").textContent = data.usuario.username.charAt(0).toUpperCase();
-}
+
+        if (data.usuario.rol === "admin") {
+          document.getElementById("sucursal-selector").style.display = "block";
+        }
+
+        let sucursalActual = data.usuario.rol === "admin"
+          ? data.usuario.sucursalSeleccionada || "Admin"
+          : data.usuario.departamento;
+
+        document.getElementById("sucursalTexto").textContent = sucursalActual;
+        document.getElementById("nombreUsuario").textContent = data.usuario.username;
+        document.getElementById("userRole").textContent = data.usuario.rol;
+        document.getElementById("userAvatar").textContent = data.usuario.username.charAt(0).toUpperCase();
 
       }
     })
@@ -910,61 +902,6 @@ if (data.usuario.foto) {
 
   // === 🔄 Carga inicial al entrar al sistema ===
   cargarNotificaciones();
-
-
-
-// ==================== Personalización de usuario ====================
-function abrirOpcionesUsuario(event) {
-  event.stopPropagation();
-  const menu = document.getElementById('menuUsuario');
-  menu.style.display = (menu.style.display === 'none' || !menu.style.display) ? 'block' : 'none';
-}
-
-function cerrarMenuUsuario() {
-  document.getElementById('menuUsuario').style.display = 'none';
-}
-
-document.addEventListener('click', (e) => {
-  const menu = document.getElementById('menuUsuario');
-  if (!menu.contains(e.target) && !document.getElementById('userInfo').contains(e.target)) {
-    menu.style.display = 'none';
-  }
-});
-
-function cambiarFoto() {
-  document.getElementById('inputFoto').click();
-}
-
-
-
-async function previsualizarFoto(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const formData = new FormData();
-  formData.append('foto', file);
-
-  try {
-    const res = await fetch('/api/subir-foto', { method: 'POST', body: formData });
-    const data = await res.json();
-
-    if (data.ok && data.ruta) {
-      const avatar = document.getElementById('userAvatar');
-      avatar.style.backgroundImage = `url('${data.ruta}')`;
-      avatar.style.backgroundSize = 'cover';
-      avatar.style.backgroundPosition = 'center';
-      avatar.textContent = '';
-      Swal.fire({ icon: 'success', title: 'Foto actualizada', timer: 1500, showConfirmButton: false });
-    } else {
-      Swal.fire({ icon: 'error', title: 'Error al subir foto', text: data.error || 'Intenta de nuevo' });
-    }
-  } catch (err) {
-    console.error(err);
-    Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'No se pudo contactar al servidor' });
-  }
-}
-
-
 
 </script>
 

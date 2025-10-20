@@ -816,7 +816,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
       );
     }
 
-    res.json({ mensaje: " Recibo guardado correctamente", recibo });
+    res.json({ mensaje: "Recibo guardado correctamente", recibo });
   } catch (err) {
     console.error("Error al guardar recibo:", err);
     res.status(500).json({ error: "Error al guardar recibo", detalle: err.message });
@@ -2477,41 +2477,6 @@ app.get('/api/mis-permisos', verificarSesion, async (req, res) => {
   }
 });
 
-
-//===========MODULO DE FOTO EN EL USUARIO==================//
-// ==================== SUBIR FOTO DE PERFIL ====================
-const multerPerfil = require('multer');
-
-const storagePerfil = multerPerfil.diskStorage({
-  destination: function (req, file, cb) {
-    const dir = path.join(__dirname, 'uploads', 'usuarios');
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: function (req, file, cb) {
-    const username = req.session?.usuario?.username || 'user';
-    cb(null, `${username}_${Date.now()}${path.extname(file.originalname)}`);
-  }
-});
-
-const uploadPerfil = multerPerfil({ storage: storagePerfil });
-
-app.post('/api/subir-foto', uploadPerfil.single('foto'), async (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ error: 'No se recibió archivo' });
-
-    const ruta = `/uploads/usuarios/${req.file.filename}`;
-    await pool.query(
-      'UPDATE usuarios SET foto = $1 WHERE username = $2',
-      [ruta, req.session.usuario.username]
-    );
-
-    res.json({ ok: true, ruta });
-  } catch (err) {
-    console.error('Error al subir foto:', err);
-    res.status(500).json({ error: 'Error al guardar la foto' });
-  }
-});
 
 
 
