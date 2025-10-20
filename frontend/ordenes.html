@@ -584,227 +584,243 @@
       new bootstrap.Modal(document.getElementById("modalPago")).show();
     }
 
-    // Función para imprimir recibo de orden
-    async function imprimirReciboOrden(index) {
-      const orden = ordenesData[index];
-      
-      const contenido = `
-        <div class="recibo-preview">
-          <div class="recibo-header">
-            <img src="/uploads/logo-oftavision.png" alt="Logo" class="recibo-logo">
-            <h2 style="margin:5px 0;">CLÍNICA OFTAVISION</h2>
-            <h4 style="margin:0; color:#444;">RECIBO DE ORDEN MÉDICA</h4>
-            <hr>
-          </div>
-
-          <div class="recibo-details">
-            <table style="width:100%; margin-bottom:15px; font-size:14px;">
-              <tr>
-                <td><b>Fecha:</b> ${(() => {
-                  if (!orden.fecha) return "";
-                  const soloFecha = orden.fecha.split("T")[0];
-                  const [anio, mes, dia] = soloFecha.split("-");
-                  return `${dia}/${mes}/${anio}`;
-                })()}</td>
-                <td style="text-align:right;"><b>Orden N°:</b> ${orden.orden_id}</td>
-              </tr>
-              <tr>
-                <td><b>Expediente:</b> ${orden.numero || orden.expediente_numero || 'N/A'}</td>
-                <td style="text-align:right;"><b>Tipo:</b> ${orden.tipo}</td>
-              </tr>
-              <tr>
-                <td colspan="2"><b>Paciente:</b> ${orden.paciente}</td>
-              </tr>
-              <tr>
-                <td><b>Médico:</b> ${orden.medico || 'N/A'}</td>
-                <td style="text-align:right;"><b>Diagnóstico:</b> ${orden.diagnostico || 'N/A'}</td>
-              </tr>
-              <tr>
-                <td colspan="2"><b>Lado:</b> ${orden.lado || 'N/A'}</td>
-              </tr>
-            </table>
-          </div>
-
-          <table class="recibo-table">
-            <thead>
-              <tr>
-                <th>Procedimiento</th>
-                <th>Precio</th>
-                <th>Pagado</th>
-                <th>Pendiente</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>${orden.procedimiento}</td>
-                <td style="text-align:right;">$${parseFloat(orden.precio).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-                <td style="text-align:right;">$${parseFloat(orden.pagado).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-                <td style="text-align:right;">$${parseFloat(orden.pendiente).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div class="recibo-footer">
-            <p><b>CLÍNICA OFTAVISION</b> - Este recibo es un comprobante de orden médica pagada.</p>
-          </div>
-        </div>
-      `;
-
-      Swal.fire({
-        title: 'Vista previa del recibo',
-        html: contenido,
-        width: 800,
-        showCancelButton: true,
-        confirmButtonText: 'Descargar PDF',
-        cancelButtonText: 'Cancelar',
-        customClass: {
-          popup: 'swal-wide'
-        },
-        preConfirm: () => {
-          const opt = {
-            margin: 10,
-            filename: `recibo_orden_${orden.orden_id}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-          };
-          html2pdf().from(contenido).set(opt).save();
-        }
-      });
+    // Función para imprimir recibo de orden (CORREGIDA)
+async function imprimirReciboOrden(index) {
+  const orden = ordenesData[index];
+  
+  // 🔹 Obtener el numero_recibo desde el backend
+  let numeroRecibo = orden.orden_id; // valor por defecto
+  
+  try {
+    // Buscar el recibo asociado a esta orden para obtener el numero_recibo correcto
+    const resRecibo = await fetch(`/api/ordenes/${orden.orden_id}/recibo`);
+    if (resRecibo.ok) {
+      const reciboData = await resRecibo.json();
+      numeroRecibo = reciboData.numero_recibo || orden.orden_id;
     }
+  } catch (err) {
+    console.warn("No se pudo obtener numero_recibo, usando orden_id");
+  }
+  
+  const contenido = `
+    <div class="recibo-preview">
+      <div class="recibo-header">
+        <img src="/uploads/logo-oftavision.png" alt="Logo" class="recibo-logo">
+        <h2 style="margin:5px 0;">CLÍNICA OFTAVISION</h2>
+        <h4 style="margin:0; color:#444;">RECIBO DE ORDEN MÉDICA</h4>
+        <hr>
+      </div>
 
-    document.getElementById("formPago").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      
-      const ordenId = document.getElementById("orden_id").value;
-      const monto = parseFloat(document.getElementById("montoLiquidar").value);
-      const pendiente = parseFloat(document.getElementById("pendientePago").textContent);
-      
-      if (monto > pendiente) {
-        mostrarError("Error", "El monto no puede ser mayor al pendiente");
-        return;
-      }
-      
-      if (monto <= 0) {
-        mostrarError("Error", "El monto debe ser mayor a cero");
-        return;
-      }
+      <div class="recibo-details">
+        <table style="width:100%; margin-bottom:15px; font-size:14px;">
+          <tr>
+            <td><b>Fecha:</b> ${(() => {
+              if (!orden.fecha) return "";
+              const soloFecha = orden.fecha.split("T")[0];
+              const [anio, mes, dia] = soloFecha.split("-");
+              return `${dia}/${mes}/${anio}`;
+            })()}</td>
+            <td style="text-align:right;"><b>Recibo N°:</b> ${numeroRecibo}</td>
+          </tr>
+          <tr>
+            <td><b>Expediente:</b> ${orden.numero || orden.expediente_numero || 'N/A'}</td>
+            <td style="text-align:right;"><b>Tipo:</b> ${orden.tipo}</td>
+          </tr>
+          <tr>
+            <td colspan="2"><b>Paciente:</b> ${orden.paciente}</td>
+          </tr>
+          <tr>
+            <td><b>Médico:</b> ${orden.medico || 'N/A'}</td>
+            <td style="text-align:right;"><b>Diagnóstico:</b> ${orden.diagnostico || 'N/A'}</td>
+          </tr>
+          <tr>
+            <td colspan="2"><b>Lado:</b> ${orden.lado || 'N/A'}</td>
+          </tr>
+        </table>
+      </div>
 
-      const data = {
-        orden_id: ordenId,
-        monto: monto,
-        forma_pago: document.getElementById("formaPago").value
+      <table class="recibo-table">
+        <thead>
+          <tr>
+            <th>Procedimiento</th>
+            <th>Precio</th>
+            <th>Pagado</th>
+            <th>Pendiente</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>${orden.procedimiento}</td>
+            <td style="text-align:right;">$${parseFloat(orden.precio).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+            <td style="text-align:right;">$${parseFloat(orden.pagado).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+            <td style="text-align:right;">$${parseFloat(orden.pendiente).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="recibo-footer">
+        <p><b>CLÍNICA OFTAVISION</b> - Este recibo es un comprobante de orden médica pagada.</p>
+      </div>
+    </div>
+  `;
+
+  Swal.fire({
+    title: 'Vista previa del recibo',
+    html: contenido,
+    width: 800,
+    showCancelButton: true,
+    confirmButtonText: 'Descargar PDF',
+    cancelButtonText: 'Cancelar',
+    customClass: {
+      popup: 'swal-wide'
+    },
+    preConfirm: () => {
+      const opt = {
+        margin: 10,
+        filename: `recibo_${numeroRecibo}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
+      html2pdf().from(contenido).set(opt).save();
+    }
+  });
+}
 
-      Swal.fire({
-        title: 'Procesando...',
-        text: 'Registrando el pago, por favor espera',
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        }
-      });
+document.getElementById("formPago").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  
+  const ordenId = document.getElementById("orden_id").value;
+  const monto = parseFloat(document.getElementById("montoLiquidar").value);
+  const pendiente = parseFloat(document.getElementById("pendientePago").textContent);
+  
+  if (monto > pendiente) {
+    mostrarError("Error", "El monto no puede ser mayor al pendiente");
+    return;
+  }
+  
+  if (monto <= 0) {
+    mostrarError("Error", "El monto debe ser mayor a cero");
+    return;
+  }
 
-      try {
-        const res = await fetch("/api/pagos", {
-          method: "POST", 
-          headers: { "Content-Type": "application/json" }, 
-          body: JSON.stringify(data)
-        });
-        
-        if (res.ok) {
-          mostrarExito("¡Éxito!", "Pago registrado con éxito");
-          
-          document.getElementById("formPago").reset();
-          bootstrap.Modal.getInstance(document.getElementById("modalPago")).hide();
-          cargarOrdenes();
-        } else {
-          const errorData = await res.json();
-          mostrarError("Error", errorData.error || 'No se pudo registrar el pago');
-        }
-      } catch (err) {
-        console.error("Error al registrar pago:", err);
-        mostrarError("Error", "Error de conexión al registrar el pago");
-      }
+  const data = {
+    orden_id: ordenId,
+    monto: monto,
+    forma_pago: document.getElementById("formaPago").value
+  };
+
+  Swal.fire({
+    title: 'Procesando...',
+    text: 'Registrando el pago, por favor espera',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+
+  try {
+    const res = await fetch("/api/pagos", {
+      method: "POST", 
+      headers: { "Content-Type": "application/json" }, 
+      body: JSON.stringify(data)
     });
-
-    function mostrarExito(titulo, mensaje) {
-      document.getElementById('successMessage').textContent = mensaje;
-      document.getElementById('successAlert').style.display = 'block';
+    
+    if (res.ok) {
+      mostrarExito("¡Éxito!", "Pago registrado con éxito");
       
-      setTimeout(() => {
-        document.getElementById('successAlert').style.display = 'none';
-      }, 5000);
-      
-      Swal.fire({
-        icon: 'success',
-        title: titulo,
-        text: mensaje,
-        timer: 3000,
-        showConfirmButton: false
-      });
-    }
-
-    function mostrarError(titulo, mensaje) {
-      Swal.fire({
-        icon: 'error',
-        title: titulo,
-        text: mensaje
-      });
-    }
-
-    document.addEventListener("DOMContentLoaded", function() {
+      document.getElementById("formPago").reset();
+      bootstrap.Modal.getInstance(document.getElementById("modalPago")).hide();
       cargarOrdenes();
-    });
+    } else {
+      const errorData = await res.json();
+      mostrarError("Error", errorData.error || 'No se pudo registrar el pago');
+    }
+  } catch (err) {
+    console.error("Error al registrar pago:", err);
+    mostrarError("Error", "Error de conexión al registrar el pago");
+  }
+});
 
-    $(document).ready(function () {
-      const hoy = moment();
+function mostrarExito(titulo, mensaje) {
+  document.getElementById('successMessage').textContent = mensaje;
+  document.getElementById('successAlert').style.display = 'block';
+  
+  setTimeout(() => {
+    document.getElementById('successAlert').style.display = 'none';
+  }, 5000);
+  
+  Swal.fire({
+    icon: 'success',
+    title: titulo,
+    text: mensaje,
+    timer: 3000,
+    showConfirmButton: false
+  });
+}
 
-      $('#filtroRango').daterangepicker({
-        autoUpdateInput: true,
-        startDate: hoy,
-        endDate: hoy,
-        locale: {
-          format: 'DD/MM/YYYY',
-          separator: ' - ',
-          applyLabel: 'Aplicar',
-          cancelLabel: 'Cancelar',
-          fromLabel: 'Desde',
-          toLabel: 'Hasta',
-          daysOfWeek: ['Do','Lu','Ma','Mi','Ju','Vi','Sa'],
-          monthNames: [
-            'Enero','Febrero','Marzo','Abril','Mayo','Junio',
-            'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'
-          ],
-          firstDay: 1
-        },
-        ranges: {
-          'Hoy': [moment(), moment()],
-          'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-          'Últimos 7 días': [moment().subtract(6, 'days'), moment()],
-          'Últimos 30 días': [moment().subtract(29, 'days'), moment()],
-          'Este mes': [moment().startOf('month'), moment().endOf('month')],
-          'Mes pasado': [
-            moment().subtract(1, 'month').startOf('month'),
-            moment().subtract(1, 'month').endOf('month')
-          ]
-        }
-      });
+function mostrarError(titulo, mensaje) {
+  Swal.fire({
+    icon: 'error',
+    title: titulo,
+    text: mensaje
+  });
+}
 
-      $('#filtroRango').val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
-      cargarOrdenesRango(hoy.format('YYYY-MM-DD'), hoy.format('YYYY-MM-DD'));
+document.addEventListener("DOMContentLoaded", function() {
+  cargarOrdenes();
+});
 
-      $('#filtroRango').on('apply.daterangepicker', function (ev, picker) {
-        $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
-        cargarOrdenesRango(picker.startDate.format('YYYY-MM-DD'), picker.endDate.format('YYYY-MM-DD'));
-      });
+$(document).ready(function () {
+  const hoy = moment();
 
-      $('#filtroRango').on('cancel.daterangepicker', function () {
-        $(this).val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
-        cargarOrdenesRango(hoy.format('YYYY-MM-DD'), hoy.format('YYYY-MM-DD'));
-      });
-    });
+  $('#filtroRango').daterangepicker({
+    autoUpdateInput: true,
+    startDate: hoy,
+    endDate: hoy,
+    locale: {
+      format: 'DD/MM/YYYY',
+      separator: ' - ',
+      applyLabel: 'Aplicar',
+      cancelLabel: 'Cancelar',
+      fromLabel: 'Desde',
+      toLabel: 'Hasta',
+      daysOfWeek: ['Do','Lu','Ma','Mi','Ju','Vi','Sa'],
+      monthNames: [
+        'Enero','Febrero','Marzo','Abril','Mayo','Junio',
+        'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'
+      ],
+      firstDay: 1
+    },
+    ranges: {
+      'Hoy': [moment(), moment()],
+      'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+      'Últimos 7 días': [moment().subtract(6, 'days'), moment()],
+      'Últimos 30 días': [moment().subtract(29, 'days'), moment()],
+      'Este mes': [moment().startOf('month'), moment().endOf('month')],
+      'Mes pasado': [
+        moment().subtract(1, 'month').startOf('month'),
+        moment().subtract(1, 'month').endOf('month')
+      ]
+    }
+  });
 
+  $('#filtroRango').val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
+  cargarOrdenesRango(hoy.format('YYYY-MM-DD'), hoy.format('YYYY-MM-DD'));
+
+  $('#filtroRango').on('apply.daterangepicker', function (ev, picker) {
+    $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+    cargarOrdenesRango(picker.startDate.format('YYYY-MM-DD'), picker.endDate.format('YYYY-MM-DD'));
+  });
+
+  $('#filtroRango').on('cancel.daterangepicker', function () {
+    $(this).val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
+    cargarOrdenesRango(hoy.format('YYYY-MM-DD'), hoy.format('YYYY-MM-DD'));
+  });
+});
+
+
+// Resto del código JavaScript...
     async function cargarOrdenesRango(desde, hasta) {
       try {
         const res = await fetch(`/api/ordenes_medicas?desde=${desde}&hasta=${hasta}`);

@@ -1254,7 +1254,6 @@ app.get("/api/expedientes/:id/ordenes", verificarSesion, async (req, res) => {
 });
 
 // ==================== LISTAR TODAS LAS ÓRDENES ====================
-// ==================== LISTAR TODAS LAS ÓRDENES (con filtro por rango opcional) ====================
 app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
   try {
     let depto = getDepartamento(req);
@@ -1302,6 +1301,31 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
   } catch (err) {
     console.error("Error en /api/ordenes_medicas:", err);
     res.status(500).json({ error: err.message });
+  }
+});
+
+// ==================== OBTENER NUMERO_RECIBO DE UNA ORDEN MÉDICA ====================
+app.get("/api/ordenes/:id/recibo", verificarSesion, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const depto = getDepartamento(req);
+
+    const result = await pool.query(`
+      SELECT r.numero_recibo
+      FROM ordenes_medicas o
+      JOIN recibos r ON r.id = o.folio_recibo AND r.departamento = o.departamento
+      WHERE o.id = $1 AND o.departamento = $2
+      LIMIT 1
+    `, [id, depto]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "No se encontró el recibo asociado" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Error al obtener numero_recibo:", err);
+    res.status(500).json({ error: "Error al obtener numero_recibo" });
   }
 });
 
