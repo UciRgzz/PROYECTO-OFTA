@@ -670,6 +670,18 @@
       .catch(err => console.error("Error al cerrar sesión:", err));
   }
 
+  // ==================== Cargar estadísticas ====================
+  async function cargarEstadisticas() {
+    try {
+      document.getElementById('expedientes-count').textContent = '1,247';
+      document.getElementById('citas-count').textContent = '23';
+      document.getElementById('recibos-count').textContent = '18';
+      document.getElementById('optometria-count').textContent = '56';
+    } catch (error) {
+      console.error('Error cargando estadísticas:', error);
+    }
+  }
+
   // ==================== Router simple ====================
   async function mostrarSeccion(seccion) {
     const paginas = {
