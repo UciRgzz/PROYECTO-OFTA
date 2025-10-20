@@ -687,7 +687,7 @@ async function eliminarRecibo(id) {
               <table style="width:100%; margin-bottom:15px; font-size:14px;">
                 <tr>
                   <td><b>Fecha:</b> ${new Date(recibo.fecha).toISOString().split("T")[0].split("-").reverse().join("/")}</td>
-                  <td style="text-align:right;"><b>Recibo N°:</b> ${recibo.id}</td>
+                  <td style="text-align:right;"><b>Recibo N°:</b> ${recibo.numero_recibo}</td>
                 </tr>
                 <tr>
                   <td><b>Folio Expediente:</b> ${recibo.folio}</td>
