@@ -20,7 +20,7 @@
   <meta name="twitter:description" content="Sistema del Instituto Oftavisión para gestionar citas, expedientes y reportes médicos.">
   <meta name="twitter:image" content="https://oftavision.shop/uploads/logo-oftavision.png">
 
-  <!-- 👇 Favicon (logo empresa) -->
+  <!--  Favicon (logo empresa) -->
   <link rel="icon" type="image/png" href="/uploads/logo-oftavision2.png"> 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -668,18 +668,6 @@
     fetch('/api/logout')
       .then(() => window.location.href = '/login/login.html')
       .catch(err => console.error("Error al cerrar sesión:", err));
-  }
-
-  // ==================== Cargar estadísticas ====================
-  async function cargarEstadisticas() {
-    try {
-      document.getElementById('expedientes-count').textContent = '1,247';
-      document.getElementById('citas-count').textContent = '23';
-      document.getElementById('recibos-count').textContent = '18';
-      document.getElementById('optometria-count').textContent = '56';
-    } catch (error) {
-      console.error('Error cargando estadísticas:', error);
-    }
   }
 
   // ==================== Router simple ====================
