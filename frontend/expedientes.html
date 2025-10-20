@@ -471,7 +471,45 @@ input:focus, select:focus {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-window.usuarioRol = sessionStorage.getItem("usuarioRol") || localStorage.getItem("usuarioRol") || "admin";
+// Obtener rol del usuario desde el servidor
+window.usuarioRol = "usuario"; // valor por defecto (sin let)
+
+async function obtenerRolUsuario() {
+  try {
+    const res = await fetch('/api/check-session', { credentials: 'include' });
+    if (res.ok) {
+      const data = await res.json();
+      window.usuarioRol = data.usuario?.rol || "usuario";
+      console.log("✅ ROL DETECTADO:", window.usuarioRol);
+    }
+  } catch (err) {
+    console.error("Error obteniendo rol:", err);
+    window.usuarioRol = "usuario";
+  }
+}
+
+// Llamar esta función antes de cargar expedientes
+document.addEventListener('DOMContentLoaded', async function() {
+    await obtenerRolUsuario(); // 👈 Obtener rol primero
+    cargarExpedientes();
+    
+    const inputBuscar = document.getElementById('buscarInput');
+    
+    if (inputBuscar) {
+        inputBuscar.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                buscarExpediente();
+            }
+        });
+        
+        inputBuscar.addEventListener('input', function(e) {
+            const valor = e.target.value.trim();
+            if (valor === '') {
+                cargarExpedientes();
+            }
+        });
+    }
+});
 console.log("ROL DETECTADO:", window.usuarioRol);
 
 // Función para cargar expedientes
