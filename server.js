@@ -12,7 +12,6 @@ const { deprecate } = require('util');
 const fs = require('fs');
 
 
-
 const app = express();
 
 // ==================== CONFIGURACIONES ====================
@@ -130,22 +129,24 @@ function fechaLocalMX() {
 app.get('/api/check-session', async (req, res) => {
     if (req.session && req.session.usuario) {
         try {
-            // Obtener foto de perfil y color actual
             const result = await pool.query(
                 'SELECT foto_perfil, color_avatar FROM usuarios WHERE nomina = $1',
                 [req.session.usuario.nomina]
             );
 
-            const userData = {
-                ...req.session.usuario,
-                foto_perfil: result.rows[0]?.foto_perfil || null,
-                color_avatar: result.rows[0]?.color_avatar || '#3498db'
-            };
-
-            res.json({ usuario: userData });
+            if (result.rows.length > 0) {
+                const userData = {
+                    ...req.session.usuario,
+                    foto_perfil: result.rows[0].foto_perfil || null,
+                    color_avatar: result.rows[0].color_avatar || '#3498db'
+                };
+                return res.json({ usuario: userData });
+            } else {
+                return res.json({ usuario: req.session.usuario });
+            }
         } catch (err) {
             console.error('Error al obtener datos de perfil:', err);
-            res.json({ usuario: req.session.usuario });
+            return res.json({ usuario: req.session.usuario });
         }
     } else {
         res.status(401).json({ error: 'No autorizado' });
@@ -2495,13 +2496,13 @@ app.get('/api/mis-permisos', verificarSesion, async (req, res) => {
     res.status(500).json([]);
   }
 });
-//======================= MODULO DE FOTO===================
+//==============MODULO DE FOTOS=====================
+// ==================== MÓDULO DE FOTOS DE PERFIL ====================
 
-// ==================== CONFIGURACIÓN DE MULTER PARA FOTOS DE PERFIL ====================
+// Configuración de multer para fotos de perfil
 const storagePerfil = multer.diskStorage({
   destination: function (req, file, cb) {
     const dir = path.join(__dirname, 'uploads/perfil');
-    // Crear directorio si no existe
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
@@ -2517,12 +2518,11 @@ const storagePerfil = multer.diskStorage({
 
 const uploadPerfil = multer({
   storage: storagePerfil,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB máximo
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: function (req, file, cb) {
     const allowedTypes = /jpeg|jpg|png|gif|webp/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
-
     if (mimetype && extname) {
       return cb(null, true);
     } else {
@@ -2531,10 +2531,10 @@ const uploadPerfil = multer({
   }
 });
 
-// Servir archivos estáticos de uploads (fotos de perfil)
+// Servir archivos estáticos de uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ==================== SUBIR FOTO DE PERFIL ====================
+// SUBIR FOTO DE PERFIL
 app.post('/api/subir-foto-perfil', verificarSesion, uploadPerfil.single('foto_perfil'), async (req, res) => {
   try {
     if (!req.file) {
@@ -2548,19 +2548,15 @@ app.post('/api/subir-foto-perfil', verificarSesion, uploadPerfil.single('foto_pe
       return res.status(400).json({ error: 'Usuario no identificado en sesión' });
     }
 
-    // URL de la imagen guardada
     const fotoUrl = `/uploads/perfil/${req.file.filename}`;
 
-    // Actualizar en la base de datos
     await pool.query(
       'UPDATE usuarios SET foto_perfil = $1 WHERE nomina = $2',
       [fotoUrl, nomina]
     );
 
-    // Actualizar la sesión
     req.session.usuario.foto_perfil = fotoUrl;
 
-    // Registrar notificación
     await pool.query(
       "INSERT INTO notificaciones (mensaje, usuario, fecha) VALUES ($1, $2, $3)",
       [`📸 ${username} actualizó su foto de perfil`, username, fechaHoraLocalMX()]
@@ -2577,7 +2573,7 @@ app.post('/api/subir-foto-perfil', verificarSesion, uploadPerfil.single('foto_pe
   }
 });
 
-// ==================== CAMBIAR COLOR DE AVATAR ====================
+// CAMBIAR COLOR DE AVATAR
 app.post('/api/cambiar-color-avatar', verificarSesion, async (req, res) => {
   try {
     const { color } = req.body;
@@ -2592,16 +2588,13 @@ app.post('/api/cambiar-color-avatar', verificarSesion, async (req, res) => {
       return res.status(400).json({ error: 'Color inválido' });
     }
 
-    // Actualizar en la base de datos
     await pool.query(
       'UPDATE usuarios SET color_avatar = $1 WHERE nomina = $2',
       [color, nomina]
     );
 
-    // Actualizar la sesión
     req.session.usuario.color_avatar = color;
 
-    // Registrar notificación
     await pool.query(
       "INSERT INTO notificaciones (mensaje, usuario, fecha) VALUES ($1, $2, $3)",
       [`🎨 ${username} cambió el color de su avatar`, username, fechaHoraLocalMX()]
@@ -2618,7 +2611,7 @@ app.post('/api/cambiar-color-avatar', verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== OBTENER FOTO Y COLOR DE PERFIL ====================
+// OBTENER FOTO Y COLOR DE PERFIL
 app.get('/api/perfil-usuario', verificarSesion, async (req, res) => {
   try {
     const nomina = req.session.usuario?.nomina;
@@ -2647,8 +2640,8 @@ app.get('/api/perfil-usuario', verificarSesion, async (req, res) => {
   }
 });
 
-
 // ==================== SITEMAP DINÁMICO ====================
+const fs = require('fs');
 const { SitemapStream, streamToPromise } = require('sitemap');
 
 app.get('/sitemap.xml', async (req, res) => {
