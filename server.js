@@ -9,6 +9,7 @@ const crypto = require('crypto');
 const multer = require('multer');
 const xlsx = require('xlsx');
 const { deprecate } = require('util');
+const fs = require('fs');
 
 
 const app = express();
@@ -21,8 +22,8 @@ app.use(cors({
     credentials: true
 }));
 
-app.use(bodyParser.json());
-
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
 
 
@@ -141,14 +142,15 @@ const profileStorage = multer.diskStorage({
 const uploadProfile = multer({ 
   storage: profileStorage,
   limits: {
-    fileSize: 2 * 1024 * 1024 // 2MB máximo
+    fileSize: 5 * 1024 * 1024 // 5MB máximo (aumentado para permitir compresión)
   },
   fileFilter: function (req, file, cb) {
     // Validar tipos de archivo
-    if (file.mimetype.startsWith('image/')) {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Solo se permiten archivos de imagen (JPG, PNG, GIF)'), false);
+      cb(new Error('Solo se permiten archivos de imagen (JPG, PNG, GIF, WEBP)'), false);
     }
   }
 });
@@ -196,6 +198,12 @@ app.post('/api/upload-profile-photo', verificarSesion, uploadProfile.single('fot
     // Construir la URL de la imagen
     const fotoUrl = `/uploads/profile-photos/${req.file.filename}`;
     
+    // Obtener foto anterior para eliminarla
+    const fotoAnterior = await pool.query(
+      'SELECT foto_perfil FROM usuarios WHERE username = $1',
+      [usuario.username]
+    );
+    
     // Actualizar en la base de datos
     const result = await pool.query(
       'UPDATE usuarios SET foto_perfil = $1 WHERE username = $2 RETURNING foto_perfil',
@@ -203,7 +211,23 @@ app.post('/api/upload-profile-photo', verificarSesion, uploadProfile.single('fot
     );
 
     if (result.rows.length === 0) {
+      // Si falla, eliminar el archivo subido
+      if (fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
       return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    // Eliminar foto anterior si existe
+    if (fotoAnterior.rows[0]?.foto_perfil) {
+      const pathAnterior = path.join(__dirname, fotoAnterior.rows[0].foto_perfil);
+      if (fs.existsSync(pathAnterior)) {
+        try {
+          fs.unlinkSync(pathAnterior);
+        } catch (err) {
+          console.warn('No se pudo eliminar foto anterior:', err);
+        }
+      }
     }
 
     // Actualizar la sesión con la nueva foto
@@ -218,8 +242,12 @@ app.post('/api/upload-profile-photo', verificarSesion, uploadProfile.single('fot
     console.error('Error al subir foto de perfil:', err);
     
     // Eliminar archivo si hubo error
-    if (req.file) {
-      fs.unlinkSync(req.file.path);
+    if (req.file && fs.existsSync(req.file.path)) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (unlinkErr) {
+        console.error('Error al eliminar archivo:', unlinkErr);
+      }
     }
     
     res.status(500).json({ 
@@ -230,52 +258,7 @@ app.post('/api/upload-profile-photo', verificarSesion, uploadProfile.single('fot
 });
 
 
-// Servir los archivos subidos para poder descargarlos
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
-
-
-// ==================== ELIMINAR FOTO DE PERFIL ====================
-app.delete('/api/profile-photo', verificarSesion, async (req, res) => {
-  try {
-    const usuario = req.session.usuario;
-    
-    // Obtener la foto actual para eliminarla del sistema de archivos
-    const currentPhoto = await pool.query(
-      'SELECT foto_perfil FROM usuarios WHERE username = $1',
-      [usuario.username]
-    );
-
-    if (currentPhoto.rows.length > 0 && currentPhoto.rows[0].foto_perfil) {
-      const photoPath = path.join(__dirname, currentPhoto.rows[0].foto_perfil);
-      
-      // Eliminar archivo físico si existe
-      if (fs.existsSync(photoPath)) {
-        fs.unlinkSync(photoPath);
-      }
-    }
-
-    // Actualizar en la base de datos
-    await pool.query(
-      'UPDATE usuarios SET foto_perfil = NULL WHERE username = $1',
-      [usuario.username]
-    );
-
-    // Actualizar sesión
-    delete req.session.usuario.foto_perfil;
-
-    res.json({ 
-      mensaje: 'Foto de perfil eliminada correctamente'
-    });
-
-  } catch (err) {
-    console.error('Error al eliminar foto de perfil:', err);
-    res.status(500).json({ error: 'Error al eliminar foto de perfil' });
-  }
-});
-
 // ==================== NOTIFICACIONES ====================
-
 // Obtener notificaciones
 app.get("/api/notificaciones", verificarSesion, async (req, res) => {
   try {
