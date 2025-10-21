@@ -2495,8 +2495,70 @@ app.get('/api/expedientes/:numero', verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== MODULO DE AGENDA DE CONSULTAS ====================
+// ==================== BÚSQUEDA DE EXPEDIENTES (para agenda de consultas) ====================
+app.get('/api/expedientes/buscar', verificarSesion, async (req, res) => {
+  try {
+    const { q } = req.query;
+    let depto = getDepartamento(req);
 
+    if (!q || q.trim() === '') {
+      return res.status(400).json({ error: 'Debe proporcionar un término de búsqueda' });
+    }
+
+    const query = `
+      SELECT 
+        numero_expediente,
+        nombre_completo,
+        telefono1,
+        telefono2,
+        edad,
+        ciudad,
+        fecha_nacimiento,
+        padecimientos,
+        colonia
+      FROM expedientes
+      WHERE departamento = $1
+        AND (
+          numero_expediente::text ILIKE $2 
+          OR nombre_completo ILIKE $2
+        )
+      ORDER BY nombre_completo ASC
+      LIMIT 20
+    `;
+
+    const result = await pool.query(query, [depto, `%${q}%`]);
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error('Error en /api/expedientes/buscar:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ==================== OBTENER UN EXPEDIENTE POR NUMERO_EXPEDIENTE (para agendar) ====================
+app.get('/api/expedientes/detalle/:numero', verificarSesion, async (req, res) => {
+  try {
+    const { numero } = req.params;
+    let depto = getDepartamento(req);
+
+    const result = await pool.query(
+      `SELECT * FROM expedientes WHERE numero_expediente = $1 AND departamento = $2`,
+      [numero, depto]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Expediente no encontrado' });
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error('Error en /api/expedientes/detalle/:numero:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ==================== MODULO DE AGENDA DE CONSULTAS ====================
 // Obtener todas las consultas
 app.get('/api/consultas', verificarSesion, async (req, res) => {
   try {
