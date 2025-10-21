@@ -132,6 +132,55 @@
       margin-bottom: 20px;
       border: 1px solid #c3e6cb;
     }
+
+    /* ===== ESTILOS PARA BÚSQUEDA DE EXPEDIENTE ===== */
+    .busqueda-expediente {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border: 2px solid #dee2e6;
+    }
+
+    .resultado-busqueda {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 15px;
+    }
+
+    .expediente-item {
+      background: white;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      border: 1px solid #dee2e6;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .expediente-item:hover {
+      background: #e3f2fd;
+      border-color: var(--secondary-color);
+      transform: translateX(5px);
+    }
+
+    .expediente-info {
+      flex: 1;
+    }
+
+    .expediente-info strong {
+      color: var(--primary-color);
+      font-size: 1.1rem;
+    }
+
+    .expediente-info small {
+      color: #6c757d;
+      display: block;
+      margin-top: 5px;
+    }
     
     .footer { text-align: center; margin-top: 40px; color: #6c757d; font-size: 0.9rem; }
     
@@ -153,24 +202,50 @@
       <i class="fas fa-check-circle"></i> <span id="successMessage">Operación realizada correctamente.</span>
     </div>
 
+    <!-- ===== SECCIÓN DE BÚSQUEDA DE EXPEDIENTE ===== -->
+    <div class="card">
+      <div class="card-header"><i class="fas fa-search"></i> Buscar Paciente para Agendar</div>
+      <div class="card-body">
+        <div class="busqueda-expediente">
+          <div class="row">
+            <div class="col-md-8">
+              <input 
+                type="text" 
+                class="form-control form-control-lg" 
+                id="buscarExpediente" 
+                placeholder="Buscar por número de expediente o nombre del paciente..."
+              >
+            </div>
+            <div class="col-md-4">
+              <button class="btn btn-primary w-100" onclick="buscarExpediente()">
+                <i class="fas fa-search"></i> Buscar
+              </button>
+            </div>
+          </div>
+          
+          <!-- Resultados de búsqueda -->
+          <div id="resultadosBusqueda" class="resultado-busqueda"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TABLA DE CONSULTAS PROGRAMADAS ===== -->
     <div class="card">
       <div class="card-header"><i class="fas fa-list"></i> Consultas Programadas</div>
       <div class="card-body">
         <div class="table-responsive">
           <table class="table table-bordered align-middle">
-            
-           <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Paciente</th>
-                    <th>Fecha</th>
-                    <th>Hora</th>
-                    <th>Médico</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-                </thead>
-
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Paciente</th>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Médico</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
             <tbody id="tabla-consultas">
               <!-- JS rellena -->
             </tbody>
@@ -215,71 +290,222 @@
       });
     }
 
-    // ====================== CARGAR CONSULTAS ======================
-    async function cargarConsultas() {
-  try {
-    const resp = await fetch("/api/consultas");
-    const consultas = await resp.json();
-    const tbody = document.getElementById("tabla-consultas");
-    tbody.innerHTML = "";
+    // ====================== BUSCAR EXPEDIENTE ======================
+    async function buscarExpediente() {
+      const query = document.getElementById('buscarExpediente').value.trim();
+      
+      if (!query) {
+        mostrarError('Error', 'Por favor ingresa un número de expediente o nombre');
+        return;
+      }
 
-    if (consultas.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" class="text-muted">No hay consultas programadas</td></tr>`;
-      return;
+      try {
+        const resp = await fetch(`/api/expedientes/buscar?q=${encodeURIComponent(query)}`);
+        const expedientes = await resp.json();
+        
+        const contenedor = document.getElementById('resultadosBusqueda');
+        
+        if (expedientes.length === 0) {
+          contenedor.innerHTML = `
+            <div class="alert alert-warning mt-3">
+              <i class="fas fa-exclamation-triangle"></i> No se encontraron expedientes con ese criterio
+            </div>
+          `;
+          return;
+        }
+
+        // Mostrar resultados
+        contenedor.innerHTML = expedientes.map(exp => `
+          <div class="expediente-item" onclick="seleccionarExpediente(${exp.id})">
+            <div class="expediente-info">
+              <strong>${exp.nombre_completo}</strong>
+              <small>
+                <i class="fas fa-id-card"></i> Expediente: ${exp.numero_expediente} | 
+                <i class="fas fa-phone"></i> ${exp.telefono1 || 'Sin teléfono'} | 
+                <i class="fas fa-birthday-cake"></i> ${exp.edad || 'Sin edad'} años
+              </small>
+            </div>
+            <button class="btn btn-primary btn-sm">
+              <i class="fas fa-calendar-plus"></i> Agendar
+            </button>
+          </div>
+        `).join('');
+
+      } catch (err) {
+        console.error('Error buscando expediente:', err);
+        mostrarError('Error', 'No se pudo realizar la búsqueda');
+      }
     }
 
-    consultas.forEach(c => {
-  const fila = document.createElement("tr");
-  fila.innerHTML = `
-    <td>${c.id}</td>
-    <td>${c.paciente}</td>
-    <td>${formatearFecha(c.fecha)}</td>
-    <td>${c.hora || '-'}</td>
-    <td>${c.medico}</td>
-    <td>${c.estado}</td>
-    <td>
-      <span class="badge bg-${c.estado === 'Pendiente' ? 'warning' : 'success'}">
-        ${c.estado}
-      </span>
-    </td>
-  `;
-  tbody.appendChild(fila);
-});
+    // Buscar al presionar Enter
+    document.getElementById('buscarExpediente')?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        buscarExpediente();
+      }
+    });
 
-  } catch (err) {
-    console.error("Error cargando consultas:", err);
-    mostrarError("Error", "No se pudieron cargar las consultas");
-  }
-}
+    // ====================== SELECCIONAR EXPEDIENTE Y AGENDAR ======================
+    async function seleccionarExpediente(expedienteId) {
+      try {
+        // Obtener datos completos del expediente
+        const resp = await fetch(`/api/expedientes/${expedienteId}`);
+        const expediente = await resp.json();
 
+        // Mostrar formulario para agendar con datos pre-cargados
+        const { value: formValues } = await Swal.fire({
+          title: 'Agendar Consulta',
+          html: `
+            <div class="text-start">
+              <div class="mb-3">
+                <label class="form-label"><strong>Paciente:</strong></label>
+                <input type="text" class="form-control" value="${expediente.nombre_completo}" disabled>
+              </div>
+              <div class="mb-3">
+                <label class="form-label"><strong>Expediente:</strong></label>
+                <input type="text" class="form-control" value="${expediente.numero_expediente}" disabled>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Fecha de Consulta:</label>
+                <input type="date" id="fecha" class="form-control swal2-input" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Hora:</label>
+                <input type="time" id="hora" class="form-control swal2-input" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Médico:</label>
+                <input type="text" id="medico" class="form-control swal2-input" placeholder="Nombre del médico" required>
+              </div>
+            </div>
+          `,
+          focusConfirm: false,
+          showCancelButton: true,
+          confirmButtonText: '<i class="fas fa-check"></i> Agendar',
+          cancelButtonText: 'Cancelar',
+          preConfirm: () => {
+            const fecha = document.getElementById('fecha').value;
+            const hora = document.getElementById('hora').value;
+            const medico = document.getElementById('medico').value;
+
+            if (!fecha || !hora || !medico) {
+              Swal.showValidationMessage('Por favor completa todos los campos');
+              return false;
+            }
+
+            return { fecha, hora, medico };
+          }
+        });
+
+        if (formValues) {
+          // Crear la consulta
+          const nuevaConsulta = {
+            expediente_id: expediente.id,
+            paciente: expediente.nombre_completo,
+            numero_expediente: expediente.numero_expediente,
+            telefono1: expediente.telefono1,
+            telefono2: expediente.telefono2,
+            edad: expediente.edad,
+            ciudad: expediente.ciudad,
+            fecha: formValues.fecha,
+            hora: formValues.hora,
+            medico: formValues.medico,
+            estado: 'Pendiente'
+          };
+
+          const resp = await fetch('/api/consultas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(nuevaConsulta)
+          });
+
+          if (resp.ok) {
+            mostrarExito('¡Éxito!', 'Consulta agendada correctamente');
+            cargarConsultas();
+            
+            // Limpiar búsqueda
+            document.getElementById('buscarExpediente').value = '';
+            document.getElementById('resultadosBusqueda').innerHTML = '';
+          } else {
+            mostrarError('Error', 'No se pudo agendar la consulta');
+          }
+        }
+
+      } catch (err) {
+        console.error('Error agendando consulta:', err);
+        mostrarError('Error', 'Ocurrió un error al agendar la consulta');
+      }
+    }
+
+    // ====================== CARGAR CONSULTAS ======================
+    async function cargarConsultas() {
+      try {
+        const resp = await fetch("/api/consultas");
+        const consultas = await resp.json();
+        const tbody = document.getElementById("tabla-consultas");
+        tbody.innerHTML = "";
+
+        if (consultas.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" class="text-muted">No hay consultas programadas</td></tr>`;
+          return;
+        }
+
+        consultas.forEach(c => {
+          const fila = document.createElement("tr");
+          fila.innerHTML = `
+            <td>${c.id}</td>
+            <td>${c.paciente}</td>
+            <td>${formatearFecha(c.fecha)}</td>
+            <td>${c.hora || '-'}</td>
+            <td>${c.medico}</td>
+            <td>
+              <span class="badge bg-${c.estado === 'Pendiente' ? 'warning' : 'success'}">
+                ${c.estado}
+              </span>
+            </td>
+            <td>
+              ${c.estado === 'Pendiente' ? 
+                `<button class="btn btn-info btn-sm" onclick="crearOrden(${c.id})">
+                  <i class="fas fa-file-medical"></i> Generar Orden
+                </button>` : 
+                `<span class="text-success"><i class="fas fa-check-circle"></i> Atendida</span>`
+              }
+            </td>
+          `;
+          tbody.appendChild(fila);
+        });
+
+      } catch (err) {
+        console.error("Error cargando consultas:", err);
+        mostrarError("Error", "No se pudieron cargar las consultas");
+      }
+    }
 
     // ====================== CREAR ORDEN ======================
     async function crearOrden(consultaId) {
-  try {
-    const resp = await fetch("/api/ordenes_medicas", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ consultaId })
-    });
-    
-    if (resp.ok) {
-      mostrarExito("Orden generada", "La orden se ha generado correctamente");
+      try {
+        const resp = await fetch("/api/ordenes_medicas", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ consultaId })
+        });
+        
+        if (resp.ok) {
+          mostrarExito("Orden generada", "La orden se ha generado correctamente");
 
-      // ✅ Marcar consulta como atendida
-      await fetch(`/api/consultas/${consultaId}/atender`, {
-        method: "PUT"
-      });
+          // Marcar consulta como atendida
+          await fetch(`/api/consultas/${consultaId}/atender`, {
+            method: "PUT"
+          });
 
-      cargarConsultas(); // refresca la lista
-    } else {
-      mostrarError("Error", "No se pudo generar la orden");
+          cargarConsultas();
+        } else {
+          mostrarError("Error", "No se pudo generar la orden");
+        }
+      } catch (err) {
+        console.error("Error generando orden:", err);
+        mostrarError("Error", "Ocurrió un error al generar la orden");
+      }
     }
-  } catch (err) {
-    console.error("Error generando orden:", err);
-    mostrarError("Error", "Ocurrió un error al generar la orden");
-  }
-}
-
 
     // ====================== FORMATEAR FECHA ======================
     function formatearFecha(fecha) {
