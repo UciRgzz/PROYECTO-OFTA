@@ -73,7 +73,6 @@ function verificarSesion(req, res, next) {
     return res.redirect('/login/login.html');
 }
 
-
 // Restringir solo a admins
 function isAdmin(req, res, next) {
     if (req.session.usuario?.rol === 'admin') {
@@ -121,16 +120,158 @@ function fechaLocalMX() {
   return fechaFormateada; // Ejemplo: 2025-10-08
 }
 
+// ==================== CONFIGURACIÓN MULTER PARA FOTOS DE PERFIL ====================
+const profileStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadPath = path.join(__dirname, "uploads", "profile-photos");
+    // Crear directorio si no existe
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    // Nombre único: timestamp + usuario + extensión original
+    const user = req.session.usuario?.username || 'unknown';
+    const uniqueName = Date.now() + '-' + user + path.extname(file.originalname);
+    cb(null, uniqueName);
+  },
+});
 
+const uploadProfile = multer({ 
+  storage: profileStorage,
+  limits: {
+    fileSize: 2 * 1024 * 1024 // 2MB máximo
+  },
+  fileFilter: function (req, file, cb) {
+    // Validar tipos de archivo
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Solo se permiten archivos de imagen (JPG, PNG, GIF)'), false);
+    }
+  }
+});
 
 
 // ==================== CHECK SESSION ====================
-app.get('/api/check-session', (req, res) => {
-    if (req.session && req.session.usuario) {
+app.get('/api/check-session', async (req, res) => {
+  if (req.session && req.session.usuario) {
+    try {
+      // Obtener datos actualizados del usuario, incluyendo foto_perfil
+      const result = await pool.query(
+        'SELECT username, rol, departamento, foto_perfil FROM usuarios WHERE username = $1',
+        [req.session.usuario.username]
+      );
+
+      if (result.rows.length > 0) {
+        const userData = result.rows[0];
+        req.session.usuario = {
+          ...req.session.usuario,
+          foto_perfil: userData.foto_perfil
+        };
+        
         res.json({ usuario: req.session.usuario });
-    } else {
-        res.status(401).json({ error: 'No autorizado' });
+      } else {
+        res.status(401).json({ error: 'Usuario no encontrado' });
+      }
+    } catch (err) {
+      console.error('Error al verificar sesión:', err);
+      res.status(500).json({ error: 'Error interno del servidor' });
     }
+  } else {
+    res.status(401).json({ error: 'No autorizado' });
+  }
+});
+
+// ==================== SUBIR FOTO DE PERFIL ====================
+app.post('/api/upload-profile-photo', verificarSesion, uploadProfile.single('foto'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No se seleccionó ninguna imagen' });
+    }
+
+    const usuario = req.session.usuario;
+    
+    // Construir la URL de la imagen
+    const fotoUrl = `/uploads/profile-photos/${req.file.filename}`;
+    
+    // Actualizar en la base de datos
+    const result = await pool.query(
+      'UPDATE usuarios SET foto_perfil = $1 WHERE username = $2 RETURNING foto_perfil',
+      [fotoUrl, usuario.username]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    // Actualizar la sesión con la nueva foto
+    req.session.usuario.foto_perfil = fotoUrl;
+
+    res.json({ 
+      mensaje: 'Foto de perfil actualizada correctamente',
+      foto_perfil: fotoUrl
+    });
+
+  } catch (err) {
+    console.error('Error al subir foto de perfil:', err);
+    
+    // Eliminar archivo si hubo error
+    if (req.file) {
+      fs.unlinkSync(req.file.path);
+    }
+    
+    res.status(500).json({ 
+      error: 'Error al subir la foto de perfil',
+      detalle: err.message 
+    });
+  }
+});
+
+
+// Servir los archivos subidos para poder descargarlos
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+
+
+// ==================== ELIMINAR FOTO DE PERFIL ====================
+app.delete('/api/profile-photo', verificarSesion, async (req, res) => {
+  try {
+    const usuario = req.session.usuario;
+    
+    // Obtener la foto actual para eliminarla del sistema de archivos
+    const currentPhoto = await pool.query(
+      'SELECT foto_perfil FROM usuarios WHERE username = $1',
+      [usuario.username]
+    );
+
+    if (currentPhoto.rows.length > 0 && currentPhoto.rows[0].foto_perfil) {
+      const photoPath = path.join(__dirname, currentPhoto.rows[0].foto_perfil);
+      
+      // Eliminar archivo físico si existe
+      if (fs.existsSync(photoPath)) {
+        fs.unlinkSync(photoPath);
+      }
+    }
+
+    // Actualizar en la base de datos
+    await pool.query(
+      'UPDATE usuarios SET foto_perfil = NULL WHERE username = $1',
+      [usuario.username]
+    );
+
+    // Actualizar sesión
+    delete req.session.usuario.foto_perfil;
+
+    res.json({ 
+      mensaje: 'Foto de perfil eliminada correctamente'
+    });
+
+  } catch (err) {
+    console.error('Error al eliminar foto de perfil:', err);
+    res.status(500).json({ error: 'Error al eliminar foto de perfil' });
+  }
 });
 
 // ==================== NOTIFICACIONES ====================
