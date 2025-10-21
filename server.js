@@ -2716,6 +2716,79 @@ app.delete('/api/consultas/:id', verificarSesion, async (req, res) => {
   }
 });
 
+// ==================== ATENCIÓN DE CONSULTAS (MÓDULO MÉDICO) ====================
+
+// Guardar atención médica de una consulta
+app.post('/api/atencion_consultas', verificarSesion, async (req, res) => {
+  try {
+    const {
+      consulta_id,
+      motivo,
+      diagnostico,
+      observaciones,
+      tratamiento,
+      requiere_cirugia,
+      procedimiento
+    } = req.body;
+
+    let depto = getDepartamento(req);
+
+    console.log('📥 Guardando atención médica para consulta:', consulta_id);
+
+    const result = await pool.query(`
+      INSERT INTO atencion_consultas (
+        consulta_id,
+        motivo,
+        diagnostico,
+        observaciones,
+        tratamiento,
+        requiere_cirugia,
+        procedimiento,
+        departamento
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *
+    `, [
+      consulta_id,
+      motivo,
+      diagnostico,
+      observaciones,
+      tratamiento,
+      requiere_cirugia,
+      procedimiento,
+      depto
+    ]);
+
+    console.log('✅ Atención médica guardada:', result.rows[0]);
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error('❌ Error en POST /api/atencion_consultas:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Obtener atención médica de una consulta
+app.get('/api/atencion_consultas/:consulta_id', verificarSesion, async (req, res) => {
+  try {
+    const { consulta_id } = req.params;
+    let depto = getDepartamento(req);
+
+    const result = await pool.query(
+      `SELECT * FROM atencion_consultas WHERE consulta_id = $1 AND departamento = $2`,
+      [consulta_id, depto]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Atención médica no encontrada' });
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error('Error en GET /api/atencion_consultas/:consulta_id:', err);
+    res.status(500).json({ error: err.message });
+  }
+}); 
 
 
 // ==================== MODULO DE GESTIÓN DE PERMISOS ====================
