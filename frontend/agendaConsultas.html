@@ -234,8 +234,8 @@
       <div class="card-header"><i class="fas fa-list"></i> Consultas Programadas</div>
       <div class="card-body">
         <div class="table-responsive">
-          <table class="table table-bordered align-middle">
-            <thead>
+          <table class="table">
+            <thead style="background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%); color: white;">
               <tr>
                 <th>ID</th>
                 <th>Paciente</th>
@@ -247,7 +247,9 @@
               </tr>
             </thead>
             <tbody id="tabla-consultas">
-              <!-- JS rellena -->
+              <tr>
+                <td colspan="7" class="text-muted">No hay consultas programadas</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -255,7 +257,7 @@
     </div>
 
     <div class="footer">
-      <p>Sistema de Gestión Oftavisión &copy; 2025</p>
+      <p>Sistema de Gestión Oftavisión © 2025</p>
     </div>
   </div>
 
@@ -314,7 +316,7 @@
           return;
         }
 
-        // ✅ CORRECCIÓN: Usar numero_expediente en lugar de id
+        // ✅ Usar numero_expediente en lugar de id
         contenedor.innerHTML = expedientes.map(exp => `
           <div class="expediente-item" onclick="seleccionarExpediente(${exp.numero_expediente})">
             <div class="expediente-info">
@@ -337,12 +339,19 @@
       }
     }
 
+    // Buscar al presionar Enter
+    document.getElementById('buscarExpediente')?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        buscarExpediente();
+      }
+    });
+
     // ====================== SELECCIONAR EXPEDIENTE Y AGENDAR ======================
     async function seleccionarExpediente(numeroExpediente) {
       try {
         console.log('📞 Solicitando expediente:', numeroExpediente);
         
-        // ✅ CORRECCIÓN: Usar /detalle/ en la ruta
+        // ✅ Usar /detalle/ en la ruta
         const resp = await fetch(`/api/expedientes/detalle/${numeroExpediente}`);
         
         if (!resp.ok) {
@@ -399,7 +408,7 @@
         });
 
         if (formValues) {
-          // ✅ CORRECCIÓN: Usar numero_expediente con parseInt()
+          // ✅ Usar numero_expediente con parseInt()
           const nuevaConsulta = {
             expediente_id: parseInt(expediente.numero_expediente),
             paciente: expediente.nombre_completo || 'Sin nombre',
@@ -469,11 +478,11 @@
               </span>
             </td>
             <td>
-              ${c.estado === 'Pendiente' ? 
-                `<button class="btn btn-info btn-sm" onclick="crearOrden(${c.id})">
+              ${c.estado === 'Atendida' ? 
+                `<button class="btn btn-info btn-sm" onclick="generarOrden(${c.id})">
                   <i class="fas fa-file-medical"></i> Generar Orden
                 </button>` : 
-                `<span class="text-success"><i class="fas fa-check-circle"></i> Atendida</span>`
+                `<span class="text-warning"><i class="fas fa-clock"></i> Pendiente</span>`
               }
             </td>
           `;
@@ -486,9 +495,20 @@
       }
     }
 
-    // ====================== CREAR ORDEN ======================
-    async function crearOrden(consultaId) {
+    // ====================== GENERAR ORDEN MÉDICA ======================
+    async function generarOrden(consultaId) {
       try {
+        // Verificar que la consulta fue atendida
+        const respConsulta = await fetch("/api/consultas");
+        const consultas = await respConsulta.json();
+        const consulta = consultas.find(c => c.id === consultaId);
+
+        if (!consulta || consulta.estado !== 'Atendida') {
+          mostrarError("Error", "La consulta debe ser atendida antes de generar una orden médica");
+          return;
+        }
+
+        // Crear la orden médica
         const resp = await fetch("/api/ordenes_medicas", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -496,15 +516,12 @@
         });
         
         if (resp.ok) {
-          mostrarExito("Orden generada", "La orden se ha generado correctamente");
-
-          await fetch(`/api/consultas/${consultaId}/atender`, {
-            method: "PUT"
-          });
-
+          const orden = await resp.json();
+          mostrarExito("Orden generada", `Orden médica #${orden.id} generada correctamente`);
           cargarConsultas();
         } else {
-          mostrarError("Error", "No se pudo generar la orden");
+          const errorData = await resp.json();
+          mostrarError("Error", errorData.error || "No se pudo generar la orden");
         }
       } catch (err) {
         console.error("Error generando orden:", err);

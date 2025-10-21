@@ -241,7 +241,7 @@
               <span class="badge bg-warning">${c.estado}</span>
             </td>
             <td>
-              <button class="btn btn-success btn-sm" onclick="atenderConsulta(${c.id})">
+              <button class="btn btn-success btn-sm" onclick="atenderConsulta(${c.id}, '${c.paciente}', ${c.numero_expediente}, '${c.fecha}', '${c.hora}')">
                 <i class="fas fa-notes-medical"></i> Atender
               </button>
             </td>
@@ -256,14 +256,8 @@
     }
 
     // ====================== ATENDER CONSULTA ======================
-    async function atenderConsulta(consultaId) {
+    async function atenderConsulta(consultaId, paciente, numero_expediente, fecha, hora) {
       try {
-        // Obtener datos de la consulta
-        const resp = await fetch(`/api/consultas/${consultaId}`);
-        if (!resp.ok) throw new Error('No se pudo obtener la consulta');
-        
-        const consulta = await resp.json();
-
         // Mostrar formulario de atención médica
         const { value: formValues } = await Swal.fire({
           title: 'Atender Consulta',
@@ -272,9 +266,9 @@
             <div class="text-start">
               <!-- Información del Paciente -->
               <div class="patient-info">
-                <strong>Paciente:</strong> ${consulta.paciente}
-                <strong>Expediente:</strong> ${consulta.numero_expediente}
-                <strong>Fecha de Consulta:</strong> ${formatearFecha(consulta.fecha)} - ${consulta.hora}
+                <strong>Paciente:</strong> ${paciente || 'Sin nombre'}
+                <strong>Expediente:</strong> ${numero_expediente || 'Sin número'}
+                <strong>Fecha de Consulta:</strong> ${formatearFecha(fecha)} - ${hora || 'Sin hora'}
               </div>
 
               <!-- Motivo de Consulta -->
@@ -390,13 +384,6 @@
         console.error('❌ Error atendiendo consulta:', err);
         Swal.fire('Error', 'Ocurrió un error al atender la consulta: ' + err.message, 'error');
       }
-    }
-
-    // ====================== OBTENER UNA CONSULTA ======================
-    async function obtenerConsulta(consultaId) {
-      const resp = await fetch(`/api/consultas`);
-      const consultas = await resp.json();
-      return consultas.find(c => c.id === consultaId);
     }
 
     // ====================== FORMATEAR FECHA ======================
