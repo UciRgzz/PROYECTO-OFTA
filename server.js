@@ -2790,6 +2790,25 @@ app.get('/api/atencion_consultas/:consulta_id', verificarSesion, async (req, res
   }
 }); 
 
+// Eliminar atención de consulta
+app.delete('/api/atencion_consultas/:consulta_id', verificarSesion, async (req, res) => {
+  try {
+    const { consulta_id } = req.params;
+    let depto = getDepartamento(req);
+
+    const result = await pool.query(
+      'DELETE FROM atencion_consultas WHERE consulta_id = $1 AND departamento = $2 RETURNING *',
+      [consulta_id, depto]
+    );
+
+    res.json({ mensaje: 'Atención eliminada correctamente' });
+  } catch (err) {
+    console.error('Error eliminando atención:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 
 // ==================== MODULO DE GESTIÓN DE PERMISOS ====================
 // Listar usuarios (para asignar módulos)
