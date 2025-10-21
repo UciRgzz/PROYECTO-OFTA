@@ -2808,6 +2808,47 @@ app.delete('/api/atencion_consultas/:consulta_id', verificarSesion, async (req, 
   }
 });
 
+// ==========codigo para generar el recibo en consultas====================//
+// Obtener atención de consulta por consulta_id
+app.get('/api/atencion_consultas/:consulta_id', verificarSesion, async (req, res) => {
+  try {
+    const { consulta_id } = req.params;
+    let depto = getDepartamento(req);
+
+    const result = await pool.query(
+      'SELECT * FROM atencion_consultas WHERE consulta_id = $1 AND departamento = $2',
+      [consulta_id, depto]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'No se encontró atención para esta consulta' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error obteniendo atención:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Eliminar atención de consulta
+app.delete('/api/atencion_consultas/:consulta_id', verificarSesion, async (req, res) => {
+  try {
+    const { consulta_id } = req.params;
+    let depto = getDepartamento(req);
+
+    await pool.query(
+      'DELETE FROM atencion_consultas WHERE consulta_id = $1 AND departamento = $2',
+      [consulta_id, depto]
+    );
+
+    res.json({ mensaje: 'Atención eliminada correctamente' });
+  } catch (err) {
+    console.error('Error eliminando atención:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 
 // ==================== MODULO DE GESTIÓN DE PERMISOS ====================
