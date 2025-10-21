@@ -499,9 +499,14 @@
                 `<button class="btn btn-success btn-sm" onclick="atenderConsulta(${c.id}, '${c.paciente}', ${c.numero_expediente}, '${c.fecha}', '${c.hora}')">
                   <i class="fas fa-stethoscope"></i> Atender
                 </button>` : 
-                `<button class="btn btn-info btn-sm" onclick="generarOrden(${c.id})">
-                  <i class="fas fa-file-medical"></i> Generar Orden
-                </button>`
+                `<div class="btn-group" role="group">
+                  <button class="btn btn-info btn-sm" onclick="verAtencion(${c.id})">
+                    <i class="fas fa-eye"></i> Ver
+                  </button>
+                  <button class="btn btn-danger btn-sm" onclick="eliminarConsulta(${c.id})">
+                    <i class="fas fa-trash"></i> Eliminar
+                  </button>
+                </div>`
               }
             </td>
           `;
@@ -601,7 +606,7 @@
           // Guardar la información de la atención
           const datosAtencion = {
             consulta_id: consultaId,
-            motivo: formValues.motivo,
+            ocivv: formValues.motivo,
             diagnostico: formValues.diagnostico,
             observaciones: formValues.observaciones,
             tratamiento: formValues.tratamiento,
@@ -645,37 +650,102 @@
       }
     }
 
-    // ====================== GENERAR ORDEN MÉDICA ======================
-    async function generarOrden(consultaId) {
+    // ====================== VER ATENCIÓN DE CONSULTA ======================
+    async function verAtencion(consultaId) {
       try {
-        // Verificar que la consulta fue atendida
-        const respConsulta = await fetch("/api/consultas");
-        const consultas = await respConsulta.json();
-        const consulta = consultas.find(c => c.id === consultaId);
-
-        if (!consulta || consulta.estado !== 'Atendida') {
-          mostrarError("Error", "La consulta debe ser atendida antes de generar una orden médica");
-          return;
-        }
-
-        // Crear la orden médica
-        const resp = await fetch("/api/ordenes_medicas", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ consultaId })
-        });
+        // Obtener los datos de atención de la consulta
+        const resp = await fetch(`/api/atencion_consultas/consulta/${consultaId}`);
         
-        if (resp.ok) {
-          const orden = await resp.json();
-          mostrarExito("Orden generada", `Orden médica #${orden.id} generada correctamente`);
-          cargarConsultas();
-        } else {
-          const errorData = await resp.json();
-          mostrarError("Error", errorData.error || "No se pudo generar la orden");
+        if (!resp.ok) {
+          throw new Error('No se pudo obtener la información de atención');
+        }
+        
+        const atencion = await resp.json();
+        
+        // Mostrar los datos en un modal
+        await Swal.fire({
+          title: 'Información de Atención Médica',
+          width: '800px',
+          html: `
+            <div class="text-start">
+              <div class="mb-3">
+                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Motivo de Consulta:</label>
+                <div class="form-control" style="min-height: 60px;">${atencion.ocivv || 'No especificado'}</div>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Diagnóstico:</label>
+                <div class="form-control" style="min-height: 60px;">${atencion.diagnostico || 'No especificado'}</div>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Observaciones:</label>
+                <div class="form-control" style="min-height: 60px;">${atencion.observaciones || 'No especificado'}</div>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Tratamiento:</label>
+                <div class="form-control" style="min-height: 60px;">${atencion.tratamiento || 'No especificado'}</div>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Requiere Cirugía:</label>
+                <div class="form-control">${atencion.requiere_cirugia ? 'Sí' : 'No'}</div>
+              </div>
+              
+              ${atencion.requiere_cirugia ? `
+                <div class="mb-3">
+                  <label class="form-label" style="font-weight: 600; color: #2c3e50;">Procedimiento:</label>
+                  <div class="form-control">${atencion.procedimiento || 'No especificado'}</div>
+                </div>
+              ` : ''}
+              
+              <div class="mb-3">
+                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Departamento:</label>
+                <div class="form-control">${atencion.departamento || 'No especificado'}</div>
+              </div>
+            </div>
+          `,
+          confirmButtonText: 'Cerrar',
+          confirmButtonColor: '#3498db'
+        });
+
+      } catch (err) {
+        console.error('❌ Error obteniendo información de atención:', err);
+        mostrarError('Error', 'No se pudo obtener la información de atención: ' + err.message);
+      }
+    }
+
+    // ====================== ELIMINAR CONSULTA ======================
+    async function eliminarConsulta(consultaId) {
+      try {
+        const result = await Swal.fire({
+          title: '¿Estás seguro?',
+          text: "Esta acción eliminará la consulta y no se podrá deshacer",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#3085d6',
+          confirmButtonText: 'Sí, eliminar',
+          cancelButtonText: 'Cancelar'
+        });
+
+        if (result.isConfirmed) {
+          const resp = await fetch(`/api/consultas/${consultaId}`, {
+            method: 'DELETE'
+          });
+
+          if (resp.ok) {
+            mostrarExito('Eliminada', 'Consulta eliminada correctamente');
+            cargarConsultas();
+          } else {
+            const errorData = await resp.json();
+            mostrarError('Error', errorData.error || 'No se pudo eliminar la consulta');
+          }
         }
       } catch (err) {
-        console.error("Error generando orden:", err);
-        mostrarError("Error", "Ocurrió un error al generar la orden");
+        console.error('❌ Error eliminando consulta:', err);
+        mostrarError('Error', 'Ocurrió un error al eliminar la consulta: ' + err.message);
       }
     }
 
