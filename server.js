@@ -9,7 +9,6 @@ const crypto = require('crypto');
 const multer = require('multer');
 const xlsx = require('xlsx');
 const { deprecate } = require('util');
-const fs = require('fs');
 
 
 const app = express();
@@ -126,28 +125,9 @@ function fechaLocalMX() {
 
 
 // ==================== CHECK SESSION ====================
-app.get('/api/check-session', async (req, res) => {
+app.get('/api/check-session', (req, res) => {
     if (req.session && req.session.usuario) {
-        try {
-            const result = await pool.query(
-                'SELECT foto_perfil, color_avatar FROM usuarios WHERE nomina = $1',
-                [req.session.usuario.nomina]
-            );
-
-            if (result.rows.length > 0) {
-                const userData = {
-                    ...req.session.usuario,
-                    foto_perfil: result.rows[0].foto_perfil || null,
-                    color_avatar: result.rows[0].color_avatar || '#3498db'
-                };
-                return res.json({ usuario: userData });
-            } else {
-                return res.json({ usuario: req.session.usuario });
-            }
-        } catch (err) {
-            console.error('Error al obtener datos de perfil:', err);
-            return res.json({ usuario: req.session.usuario });
-        }
+        res.json({ usuario: req.session.usuario });
     } else {
         res.status(401).json({ error: 'No autorizado' });
     }
@@ -2496,151 +2476,12 @@ app.get('/api/mis-permisos', verificarSesion, async (req, res) => {
     res.status(500).json([]);
   }
 });
-//==============MODULO DE FOTOS=====================
-// ==================== MÓDULO DE FOTOS DE PERFIL ====================
 
-// Configuración de multer para fotos de perfil
-const storagePerfil = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const dir = path.join(__dirname, 'uploads/perfil');
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    cb(null, dir);
-  },
-  filename: function (req, file, cb) {
-    const username = req.session.usuario?.username || 'user';
-    const extension = path.extname(file.originalname);
-    const filename = `${username}_${Date.now()}${extension}`;
-    cb(null, filename);
-  }
-});
 
-const uploadPerfil = multer({
-  storage: storagePerfil,
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: function (req, file, cb) {
-    const allowedTypes = /jpeg|jpg|png|gif|webp/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
-    if (mimetype && extname) {
-      return cb(null, true);
-    } else {
-      cb(new Error('Solo se permiten imágenes (jpeg, jpg, png, gif, webp)'));
-    }
-  }
-});
 
-// Servir archivos estáticos de uploads
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// SUBIR FOTO DE PERFIL
-app.post('/api/subir-foto-perfil', verificarSesion, uploadPerfil.single('foto_perfil'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No se subió ninguna imagen' });
-    }
-
-    const nomina = req.session.usuario?.nomina;
-    const username = req.session.usuario?.username;
-    
-    if (!nomina) {
-      return res.status(400).json({ error: 'Usuario no identificado en sesión' });
-    }
-
-    const fotoUrl = `/uploads/perfil/${req.file.filename}`;
-
-    await pool.query(
-      'UPDATE usuarios SET foto_perfil = $1 WHERE nomina = $2',
-      [fotoUrl, nomina]
-    );
-
-    req.session.usuario.foto_perfil = fotoUrl;
-
-    await pool.query(
-      "INSERT INTO notificaciones (mensaje, usuario, fecha) VALUES ($1, $2, $3)",
-      [`📸 ${username} actualizó su foto de perfil`, username, fechaHoraLocalMX()]
-    );
-
-    res.json({ 
-      mensaje: 'Foto de perfil actualizada correctamente',
-      url: fotoUrl 
-    });
-
-  } catch (err) {
-    console.error('Error al subir foto de perfil:', err);
-    res.status(500).json({ error: 'Error al guardar la foto de perfil' });
-  }
-});
-
-// CAMBIAR COLOR DE AVATAR
-app.post('/api/cambiar-color-avatar', verificarSesion, async (req, res) => {
-  try {
-    const { color } = req.body;
-    const nomina = req.session.usuario?.nomina;
-    const username = req.session.usuario?.username;
-
-    if (!nomina) {
-      return res.status(400).json({ error: 'Usuario no identificado en sesión' });
-    }
-
-    if (!color || !/^#[0-9A-F]{6}$/i.test(color)) {
-      return res.status(400).json({ error: 'Color inválido' });
-    }
-
-    await pool.query(
-      'UPDATE usuarios SET color_avatar = $1 WHERE nomina = $2',
-      [color, nomina]
-    );
-
-    req.session.usuario.color_avatar = color;
-
-    await pool.query(
-      "INSERT INTO notificaciones (mensaje, usuario, fecha) VALUES ($1, $2, $3)",
-      [`🎨 ${username} cambió el color de su avatar`, username, fechaHoraLocalMX()]
-    );
-
-    res.json({ 
-      mensaje: 'Color de avatar actualizado correctamente',
-      color: color 
-    });
-
-  } catch (err) {
-    console.error('Error al cambiar color de avatar:', err);
-    res.status(500).json({ error: 'Error al cambiar el color del avatar' });
-  }
-});
-
-// OBTENER FOTO Y COLOR DE PERFIL
-app.get('/api/perfil-usuario', verificarSesion, async (req, res) => {
-  try {
-    const nomina = req.session.usuario?.nomina;
-    
-    if (!nomina) {
-      return res.status(400).json({ error: 'Usuario no identificado' });
-    }
-
-    const result = await pool.query(
-      'SELECT foto_perfil, color_avatar FROM usuarios WHERE nomina = $1',
-      [nomina]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
-    }
-
-    res.json({
-      foto_perfil: result.rows[0].foto_perfil,
-      color_avatar: result.rows[0].color_avatar || '#3498db'
-    });
-
-  } catch (err) {
-    console.error('Error al obtener perfil:', err);
-    res.status(500).json({ error: 'Error al obtener información del perfil' });
-  }
-});
 
 // ==================== SITEMAP DINÁMICO ====================
+const fs = require('fs');
 const { SitemapStream, streamToPromise } = require('sitemap');
 
 app.get('/sitemap.xml', async (req, res) => {
