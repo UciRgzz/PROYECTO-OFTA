@@ -9,6 +9,7 @@ const crypto = require('crypto');
 const multer = require('multer');
 const xlsx = require('xlsx');
 const { deprecate } = require('util');
+const fs = require('fs');
 
 
 
@@ -2648,7 +2649,6 @@ app.get('/api/perfil-usuario', verificarSesion, async (req, res) => {
 
 
 // ==================== SITEMAP DINÁMICO ====================
-const fs = require('fs');
 const { SitemapStream, streamToPromise } = require('sitemap');
 
 app.get('/sitemap.xml', async (req, res) => {
