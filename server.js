@@ -2851,44 +2851,53 @@ app.post('/api/ordenes_medicas', verificarSesion, async (req, res) => {
     );
 
     if (ordenExistente.rows.length > 0) {
-      return res.status(400).json({ 
-        error: 'Ya existe una orden médica para esta consulta',
-        orden: ordenExistente.rows[0]
+      return res.status(200).json({ 
+        mensaje: 'Ya existe una orden médica para esta consulta',
+        orden: ordenExistente.rows[0],
+        yaExiste: true
       });
     }
 
-    // Crear orden médica
+    // ✅ Crear orden médica con consulta_id y origen CONSULTA
     const result = await pool.query(`
       INSERT INTO ordenes_medicas (
         consulta_id,
-        paciente,
+        expediente_id,
         medico,
         diagnostico,
         lado,
         procedimiento,
-        tipo,
+        estatus,
         precio,
         pagado,
         pendiente,
+        origen,
+        fecha,
         departamento
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
       RETURNING *
     `, [
-      consultaId,
-      c.paciente,
+      consultaId,              // ✅ ID de la consulta
+      c.expediente_id,         // ✅ ID del expediente
       c.medico,
-      at.diagnostico,
-      'OD', // Puedes cambiar esto según tu lógica
-      at.procedimiento || 'Consulta General',
-      'Normal',
-      8000.00, // Precio base - ajusta según necesites
-      0,       // Pagado inicial
-      8000.00, // Pendiente inicial
+      at.diagnostico || 'Consulta General',
+      'N/A',                   // ✅ No aplica lado para consultas
+      at.procedimiento || 'Consulta Oftalmológica',
+      'PENDIENTE',             // ✅ Estado inicial
+      500.00,                  // ✅ Precio de consulta (ajusta según necesites)
+      0,                       // Pagado inicial
+      500.00,                  // Pendiente inicial
+      'CONSULTA',              // ✅ NUEVO: Identifica el origen
+      c.fecha,                 // Fecha de la consulta
       depto
     ]);
 
     console.log('✅ Orden médica creada:', result.rows[0]);
-    res.status(201).json(result.rows[0]);
+    res.status(201).json({
+      ...result.rows[0],
+      mensaje: 'Orden creada exitosamente',
+      yaExiste: false
+    });
 
   } catch (err) {
     console.error('❌ Error en POST /api/ordenes_medicas:', err);

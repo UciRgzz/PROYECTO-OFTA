@@ -472,59 +472,59 @@
       }
     }
 
-    // ====================== CARGAR CONSULTAS ======================
-    async function cargarConsultas() {
-      try {
-        const resp = await fetch("/api/consultas");
-        const consultas = await resp.json();
-        const tbody = document.getElementById("tabla-consultas");
-        tbody.innerHTML = "";
+ // ====================== CARGAR CONSULTAS ======================
+async function cargarConsultas() {
+  try {
+    const resp = await fetch("/api/consultas");
+    const consultas = await resp.json();
+    const tbody = document.getElementById("tabla-consultas");
+    tbody.innerHTML = "";
 
-        if (consultas.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="7" class="text-muted">No hay consultas programadas</td></tr>`;
-          return;
-        }
-
-        consultas.forEach(c => {
-          const fila = document.createElement("tr");
-          fila.innerHTML = `
-            <td>${c.id}</td>
-            <td>${c.paciente}</td>
-            <td>${formatearFecha(c.fecha)}</td>
-            <td>${c.hora || '-'}</td>
-            <td>${c.medico}</td>
-            <td>
-              <span class="badge bg-${c.estado === 'Pendiente' ? 'warning' : 'success'}">
-                ${c.estado}
-              </span>
-            </td>
-            <td>
-              <div class="btn-group-actions">
-                ${c.estado === 'Pendiente' ? 
-                  `<button class="btn btn-success btn-sm" onclick="atenderConsulta(${c.id}, '${c.paciente}', ${c.numero_expediente}, '${c.fecha}', '${c.hora}')">
-                    <i class="fas fa-stethoscope"></i> Atender
-                  </button>` : 
-                  `<button class="btn btn-info btn-sm" onclick="verDatosConsulta(${c.id})">
-                    <i class="fas fa-eye"></i> Ver Datos
-                  </button>
-                  <button class="btn btn-warning btn-sm" onclick="irAPagar(${c.id})">
-                    <i class="fas fa-dollar-sign"></i> Pagar
-                  </button>
-                  <button class="btn btn-danger btn-sm" onclick="eliminarConsulta(${c.id})">
-                    <i class="fas fa-trash"></i> Eliminar
-                  </button>`
-                }
-              </div>
-            </td>
-          `;
-          tbody.appendChild(fila);
-        });
-
-      } catch (err) {
-        console.error("Error cargando consultas:", err);
-        mostrarError("Error", "No se pudieron cargar las consultas");
-      }
+    if (consultas.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" class="text-muted">No hay consultas programadas</td></tr>`;
+      return;
     }
+
+    consultas.forEach(c => {
+      const fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td>${c.id}</td>
+        <td>${c.paciente}</td>
+        <td>${formatearFecha(c.fecha)}</td>
+        <td>${c.hora || '-'}</td>
+        <td>${c.medico}</td>
+        <td>
+          <span class="badge bg-${c.estado === 'Pendiente' ? 'warning' : 'success'}">
+            ${c.estado}
+          </span>
+        </td>
+        <td>
+          <div class="btn-group-actions">
+            ${c.estado === 'Pendiente' ?
+              `<button class="btn btn-success btn-sm" onclick="atenderConsulta(${c.id}, '${c.paciente}', ${c.numero_expediente}, '${c.fecha}', '${c.hora}')">
+                <i class="fas fa-stethoscope"></i> Atender
+              </button>` :
+              `<button class="btn btn-info btn-sm" onclick="verDatosConsulta(${c.id})">
+                <i class="fas fa-eye"></i> Ver Datos
+              </button>
+              <button class="btn btn-warning btn-sm" onclick="pagarConsulta(${c.id})">
+                <i class="fas fa-dollar-sign"></i> Pagar
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="eliminarConsulta(${c.id})">
+                <i class="fas fa-trash"></i> Eliminar
+              </button>`
+            }
+          </div>
+        </td>
+      `;
+      tbody.appendChild(fila);
+    });
+
+  } catch (err) {
+    console.error("Error cargando consultas:", err);
+    mostrarError("Error", "No se pudieron cargar las consultas");
+  }
+}
 
     // ====================== ATENDER CONSULTA ======================
     async function atenderConsulta(consultaId, paciente, numero_expediente, fecha, hora) {
@@ -797,6 +797,63 @@
       }
     }
 
+// ============================================
+// FUNCIÓN PARA PAGAR CONSULTA (CREAR ORDEN)
+// ============================================
+async function pagarConsulta(consultaId) {
+  try {
+    // Confirmar acción
+    if (!confirm('¿Deseas crear una orden de pago para esta consulta?')) {
+      return;
+    }
+
+    // Mostrar indicador de carga
+    const btnPagar = event.target;
+    const textoOriginal = btnPagar.innerHTML;
+    btnPagar.disabled = true;
+    btnPagar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+
+    // Crear la orden médica
+    const response = await fetch('/api/ordenes_medicas', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ consultaId: consultaId })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      if (data.yaExiste) {
+        // Si ya existe la orden, preguntar si quiere ir a verla
+        const irAOrdenes = confirm('⚠️ Ya existe una orden para esta consulta.\n\n¿Deseas ir al módulo de Órdenes para procesar el pago?');
+        if (irAOrdenes) {
+          window.location.href = '/ordenes';
+        } else {
+          btnPagar.disabled = false;
+          btnPagar.innerHTML = textoOriginal;
+        }
+      } else {
+        // Orden creada exitosamente
+        alert('✅ Orden médica creada exitosamente.\n\nSerás redirigido al módulo de Órdenes para procesar el pago.');
+        window.location.href = '/ordenes';
+      }
+    } else {
+      // Error
+      alert('❌ Error: ' + (data.error || 'No se pudo crear la orden'));
+      btnPagar.disabled = false;
+      btnPagar.innerHTML = textoOriginal;
+    }
+
+  } catch (err) {
+    console.error('Error al crear orden:', err);
+    alert('❌ Error de conexión. Por favor, intenta nuevamente.');
+    const btnPagar = event.target;
+    btnPagar.disabled = false;
+    btnPagar.innerHTML = '💳 Pagar';
+  }
+}
     // ====================== FORMATEAR FECHA ======================
     function formatearFecha(fecha) {
       if (!fecha) return 'Sin fecha';
