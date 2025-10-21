@@ -767,230 +767,106 @@
       .catch(err => console.error("Error al cerrar sesión:", err));
   }
 
-    // ==================== CAMBIAR FOTO DE PERFIL ====================
-  document.addEventListener('DOMContentLoaded', () => {
-    const avatarClick = document.querySelector('.user-avatar');
-    const fotoInput = document.getElementById('fotoPerfilInput');
+  // ==================== Cambiar foto de perfil ====================
+  document.addEventListener('DOMContentLoaded', function() {
+    const fotoInput = document.getElementById('fotoInput');
     const avatarPreview = document.getElementById('avatarPreview');
     const btnGuardarFoto = document.getElementById('btnGuardarFoto');
     let fotoSeleccionada = null;
 
-    // Abrir modal al hacer clic en el avatar
-    if (avatarClick) {
-      avatarClick.addEventListener('click', () => {
-        const modal = new bootstrap.Modal(document.getElementById('modalCambiarFoto'));
-        modal.show();
-      });
-    }
-
-    // Preview de la imagen seleccionada con compresión
-    if (fotoInput) {
-      fotoInput.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        
-        if (!file) {
-          btnGuardarFoto.disabled = true;
-          return;
-        }
-
+    // Mostrar vista previa de la imagen seleccionada
+    fotoInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
         // Validar tipo de archivo
-        if (!file.type.match(/^image\/(jpeg|jpg|png|gif|webp)$/i)) {
+        const tiposPermitidos = ['image/jpeg', 'image/png', 'image/gif'];
+        if (!tiposPermitidos.includes(file.type)) {
           Swal.fire({
             icon: 'error',
-            title: 'Archivo no válido',
-            text: 'Por favor selecciona una imagen (JPG, PNG, GIF o WEBP)'
+            title: 'Formato no válido',
+            text: 'Solo se permiten archivos JPG, PNG o GIF'
           });
           fotoInput.value = '';
-          btnGuardarFoto.disabled = true;
           return;
         }
 
-        // Validar tamaño máximo (5MB)
-        if (file.size > 5 * 1024 * 1024) {
-          Swal.fire({
-            icon: 'warning',
-            title: 'Imagen muy grande',
-            text: 'La imagen será comprimida automáticamente'
-          });
-        }
-
-        try {
-          // Comprimir imagen antes de subirla
-          const compressedFile = await comprimirImagen(file);
-          fotoSeleccionada = compressedFile;
-
-          // Mostrar preview
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            avatarPreview.style.backgroundImage = `url(${e.target.result})`;
-            avatarPreview.innerHTML = '';
-            btnGuardarFoto.disabled = false;
-          };
-          reader.readAsDataURL(compressedFile);
-
-        } catch (err) {
-          console.error('Error al procesar imagen:', err);
+        // Validar tamaño (2MB máximo)
+        if (file.size > 2 * 1024 * 1024) {
           Swal.fire({
             icon: 'error',
-            title: 'Error',
-            text: 'No se pudo procesar la imagen. Intenta con otra.'
+            title: 'Archivo muy grande',
+            text: 'El archivo no debe superar los 2MB'
           });
           fotoInput.value = '';
-          btnGuardarFoto.disabled = true;
+          return;
         }
-      });
-    }
 
-    // Función para comprimir imagen
-    async function comprimirImagen(file) {
-      return new Promise((resolve, reject) => {
+        fotoSeleccionada = file;
         const reader = new FileReader();
-        
-        reader.onload = (e) => {
-          const img = new Image();
-          
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            // Dimensiones máximas
-            const MAX_WIDTH = 800;
-            const MAX_HEIGHT = 800;
-            
-            let width = img.width;
-            let height = img.height;
-            
-            // Redimensionar manteniendo aspecto
-            if (width > height) {
-              if (width > MAX_WIDTH) {
-                height *= MAX_WIDTH / width;
-                width = MAX_WIDTH;
-              }
-            } else {
-              if (height > MAX_HEIGHT) {
-                width *= MAX_HEIGHT / height;
-                height = MAX_HEIGHT;
-              }
-            }
-            
-            canvas.width = width;
-            canvas.height = height;
-            
-            // Dibujar imagen redimensionada
-            ctx.drawImage(img, 0, 0, width, height);
-            
-            // Convertir a blob con compresión
-            canvas.toBlob(
-              (blob) => {
-                if (!blob) {
-                  reject(new Error('Error al comprimir imagen'));
-                  return;
-                }
-                
-                // Crear nuevo archivo con el blob comprimido
-                const compressedFile = new File([blob], file.name, {
-                  type: 'image/jpeg',
-                  lastModified: Date.now()
-                });
-                
-                console.log(`Tamaño original: ${(file.size / 1024).toFixed(2)} KB`);
-                console.log(`Tamaño comprimido: ${(compressedFile.size / 1024).toFixed(2)} KB`);
-                
-                resolve(compressedFile);
-              },
-              'image/jpeg',
-              0.8 // Calidad 80%
-            );
-          };
-          
-          img.onerror = () => reject(new Error('Error al cargar imagen'));
-          img.src = e.target.result;
-        };
-        
-        reader.onerror = () => reject(new Error('Error al leer archivo'));
-        reader.readAsDataURL(file);
-      });
-    }
-
-    // Guardar foto en servidor
-    if (btnGuardarFoto) {
-      btnGuardarFoto.addEventListener('click', async () => {
-        if (!fotoSeleccionada) {
-          Swal.fire({
-            icon: 'warning',
-            title: 'Atención',
-            text: 'Por favor selecciona una imagen primero'
-          });
-          return;
-        }
-
-        btnGuardarFoto.disabled = true;
-        btnGuardarFoto.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Subiendo...';
-
-        try {
-          const formData = new FormData();
-          formData.append('foto', fotoSeleccionada);
-
-          const response = await fetch('/api/upload-profile-photo', {
-            method: 'POST',
-            body: formData,
-            credentials: 'include'
-          });
-
-          const data = await response.json();
-
-          if (response.ok) {
-            // Actualizar avatar en el header
-            const userAvatar = document.querySelector('.user-avatar');
-            if (userAvatar && data.foto_perfil) {
-              userAvatar.style.backgroundImage = `url(${data.foto_perfil})`;
-              userAvatar.innerHTML = '';
-            }
-
-            // Cerrar modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('modalCambiarFoto'));
-            modal.hide();
-
-            Swal.fire({
-              icon: 'success',
-              title: 'Éxito',
-              text: 'Foto de perfil actualizada correctamente',
-              timer: 2000,
-              showConfirmButton: false
-            });
-
-          } else {
-            throw new Error(data.error || 'Error al subir la foto');
-          }
-
-        } catch (err) {
-          console.error('Error al guardar foto:', err);
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: err.message || 'No se pudo actualizar la foto de perfil'
-          });
-        } finally {
+        reader.onload = function(e) {
+          avatarPreview.innerHTML = '';
+          avatarPreview.style.backgroundImage = `url('${e.target.result}')`;
           btnGuardarFoto.disabled = false;
-          btnGuardarFoto.textContent = 'Guardar foto';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Guardar la foto en el servidor
+    btnGuardarFoto.addEventListener('click', async function() {
+      if (!fotoSeleccionada) return;
+
+      const formData = new FormData();
+      formData.append('foto', fotoSeleccionada);
+
+      try {
+        const response = await fetch('/api/upload-profile-photo', {
+          method: 'POST',
+          body: formData
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          // Actualizar avatar en la interfaz
+          const userAvatar = document.getElementById('userAvatar');
+          userAvatar.style.backgroundImage = `url('${result.foto_perfil}')`;
+          userAvatar.textContent = '';
+          
+          // Cerrar modal y mostrar mensaje de éxito
+          const modal = bootstrap.Modal.getInstance(document.getElementById('modalCambiarFoto'));
+          modal.hide();
+          
+          Swal.fire({
+            icon: 'success',
+            title: 'Foto actualizada',
+            text: 'Tu foto de perfil se ha actualizado correctamente',
+            timer: 2000,
+            showConfirmButton: false
+          });
+        } else {
+          throw new Error(result.error || 'Error al subir la foto');
         }
-      });
-    }
+      } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo actualizar la foto de perfil'
+        });
+      }
+    });
 
     // Resetear modal cuando se cierra
-    const modalElement = document.getElementById('modalCambiarFoto');
-    if (modalElement) {
-      modalElement.addEventListener('hidden.bs.modal', function() {
-        fotoInput.value = '';
-        avatarPreview.innerHTML = '<i class="material-icons">person</i>';
-        avatarPreview.style.backgroundImage = '';
-        btnGuardarFoto.disabled = true;
-        fotoSeleccionada = null;
-      });
-    }
+    document.getElementById('modalCambiarFoto').addEventListener('hidden.bs.modal', function() {
+      fotoInput.value = '';
+      avatarPreview.innerHTML = '<i class="material-icons">person</i>';
+      avatarPreview.style.backgroundImage = '';
+      btnGuardarFoto.disabled = true;
+      fotoSeleccionada = null;
+    });
   });
 
-  
   // ==================== Router simple ====================
   async function mostrarSeccion(seccion) {
     const paginas = {
