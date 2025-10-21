@@ -9,7 +9,6 @@ const crypto = require('crypto');
 const multer = require('multer');
 const xlsx = require('xlsx');
 const { deprecate } = require('util');
-const fs = require('fs');
 
 
 const app = express();
@@ -63,34 +62,6 @@ const pool = new Pool({
 pool.connect()
     .then(() => console.log('Conexión a PostgreSQL exitosa'))
     .catch(err => console.error('Error conectando a PostgreSQL', err));
-
-// ==================== CONFIGURACIÓN MULTER PARA FOTOS DE PERFIL ====================
-const profileStorage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadPath = path.join(__dirname, "uploads", "profile-photos");
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    cb(null, uploadPath);
-  },
-  filename: function (req, file, cb) {
-    const user = req.session.usuario?.username || 'unknown';
-    const uniqueName = Date.now() + '-' + user + path.extname(file.originalname);
-    cb(null, uniqueName);
-  },
-});
-
-const uploadProfile = multer({ 
-  storage: profileStorage,
-  limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB
-  },
-  fileFilter: function (req, file, cb) {
-    if (file.mimetype.startsWith('image/')) cb(null, true);
-    else cb(new Error('Solo se permiten archivos de imagen (JPG, PNG, GIF)'), false);
-  }
-});
-
 
 // ==================== MIDDLEWARE ====================
 // Proteger rutas con sesión
@@ -154,135 +125,12 @@ function fechaLocalMX() {
 
 
 // ==================== CHECK SESSION ====================
-app.get('/api/check-session', async (req, res) => {
-  if (req.session && req.session.usuario) {
-    try {
-      const result = await pool.query(
-        'SELECT username, rol, departamento, foto_perfil FROM usuarios WHERE username = $1',
-        [req.session.usuario.username]
-      );
-
-      if (result.rows.length > 0) {
-        const userData = result.rows[0];
-        req.session.usuario = {
-          ...req.session.usuario,
-          foto_perfil: userData.foto_perfil
-        };
-        
+app.get('/api/check-session', (req, res) => {
+    if (req.session && req.session.usuario) {
         res.json({ usuario: req.session.usuario });
-      } else {
-        res.status(401).json({ error: 'Usuario no encontrado' });
-      }
-    } catch (err) {
-      console.error('Error al verificar sesión:', err);
-      res.status(500).json({ error: 'Error interno del servidor' });
+    } else {
+        res.status(401).json({ error: 'No autorizado' });
     }
-  } else {
-    res.status(401).json({ error: 'No autorizado' });
-  }
-});
-
-// ==================== SUBIR FOTO DE PERFIL ====================
-app.post('/api/upload-profile-photo', verificarSesion, uploadProfile.single('foto'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No se seleccionó ninguna imagen' });
-    }
-
-    const usuario = req.session.usuario;
-    
-    // Construir la URL de la imagen
-    const fotoUrl = `/uploads/profile-photos/${req.file.filename}`;
-    
-    // Actualizar en la base de datos
-    const result = await pool.query(
-      'UPDATE usuarios SET foto_perfil = $1 WHERE username = $2 RETURNING foto_perfil',
-      [fotoUrl, usuario.username]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
-    }
-
-    // Actualizar la sesión con la nueva foto
-    req.session.usuario.foto_perfil = fotoUrl;
-
-    res.json({ 
-      mensaje: 'Foto de perfil actualizada correctamente',
-      foto_perfil: fotoUrl
-    });
-
-  } catch (err) {
-    console.error('Error al subir foto de perfil:', err);
-    
-    if (req.file) {
-      fs.unlinkSync(req.file.path);
-    }
-    
-    res.status(500).json({ 
-      error: 'Error al subir la foto de perfil',
-      detalle: err.message 
-    });
-  }
-});
-
-// ==================== OBTENER FOTO DE PERFIL ACTUAL ====================
-app.get('/api/profile-photo', verificarSesion, async (req, res) => {
-  try {
-    const usuario = req.session.usuario;
-    
-    const result = await pool.query(
-      'SELECT foto_perfil FROM usuarios WHERE username = $1',
-      [usuario.username]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
-    }
-
-    res.json({ 
-      foto_perfil: result.rows[0].foto_perfil 
-    });
-
-  } catch (err) {
-    console.error('Error al obtener foto de perfil:', err);
-    res.status(500).json({ error: 'Error al obtener foto de perfil' });
-  }
-});
-
-// ==================== ELIMINAR FOTO DE PERFIL ====================
-app.delete('/api/profile-photo', verificarSesion, async (req, res) => {
-  try {
-    const usuario = req.session.usuario;
-    
-    const currentPhoto = await pool.query(
-      'SELECT foto_perfil FROM usuarios WHERE username = $1',
-      [usuario.username]
-    );
-
-    if (currentPhoto.rows.length > 0 && currentPhoto.rows[0].foto_perfil) {
-      const photoPath = path.join(__dirname, currentPhoto.rows[0].foto_perfil);
-      
-      if (fs.existsSync(photoPath)) {
-        fs.unlinkSync(photoPath);
-      }
-    }
-
-    await pool.query(
-      'UPDATE usuarios SET foto_perfil = NULL WHERE username = $1',
-      [usuario.username]
-    );
-
-    delete req.session.usuario.foto_perfil;
-
-    res.json({ 
-      mensaje: 'Foto de perfil eliminada correctamente'
-    });
-
-  } catch (err) {
-    console.error('Error al eliminar foto de perfil:', err);
-    res.status(500).json({ error: 'Error al eliminar foto de perfil' });
-  }
 });
 
 // ==================== NOTIFICACIONES ====================
@@ -448,8 +296,7 @@ app.post('/api/login', async (req, res) => {
             nomina: usuario.nomina,
             username: usuario.username,
             rol: usuario.rol,
-            departamento: usuario.rol === "admin" ? "ADMIN" : usuario.departamento,
-            foto_perfil: usuario.foto_perfil
+            departamento: usuario.rol === "admin" ? "ADMIN" : usuario.departamento
         };
           
         res.json({ 
@@ -2634,6 +2481,7 @@ app.get('/api/mis-permisos', verificarSesion, async (req, res) => {
 
 
 // ==================== SITEMAP DINÁMICO ====================
+const fs = require('fs');
 const { SitemapStream, streamToPromise } = require('sitemap');
 
 app.get('/sitemap.xml', async (req, res) => {
