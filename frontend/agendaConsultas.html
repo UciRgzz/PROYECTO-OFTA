@@ -11,6 +11,7 @@
       --primary-color: #2c3e50;
       --secondary-color: #3498db;
       --accent-color: #e74c3c;
+      --success-color: #27ae60;
       --light-color: #f8f9fa;
       --dark-color: #343a40;
     }
@@ -80,6 +81,13 @@
     .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4); }
     .btn-primary i { margin-right: 8px; }
     
+    .btn-success {
+      background: linear-gradient(135deg, var(--success-color) 0%, #229954 100%);
+      color: white;
+      box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);
+    }
+    .btn-success:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(39, 174, 96, 0.4); }
+    
     .btn-danger {
       background: linear-gradient(135deg, var(--accent-color) 0%, #c0392b 100%);
       color: white;
@@ -122,6 +130,15 @@
     
     .table tr:nth-child(odd) { background: #f9f9f9; }
     .table tr:hover { background-color: #eef6ff; }
+    
+    .badge {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .badge.bg-warning { background: #f39c12 !important; color: white; }
+    .badge.bg-success { background: #27ae60 !important; color: white; }
     
     .success-alert {
       display: none;
@@ -478,11 +495,13 @@
               </span>
             </td>
             <td>
-              ${c.estado === 'Atendida' ? 
+              ${c.estado === 'Pendiente' ? 
+                `<button class="btn btn-success btn-sm" onclick="atenderConsulta(${c.id}, '${c.paciente}', ${c.numero_expediente}, '${c.fecha}', '${c.hora}')">
+                  <i class="fas fa-stethoscope"></i> Atender
+                </button>` : 
                 `<button class="btn btn-info btn-sm" onclick="generarOrden(${c.id})">
                   <i class="fas fa-file-medical"></i> Generar Orden
-                </button>` : 
-                `<span class="text-warning"><i class="fas fa-clock"></i> Pendiente</span>`
+                </button>`
               }
             </td>
           `;
@@ -492,6 +511,137 @@
       } catch (err) {
         console.error("Error cargando consultas:", err);
         mostrarError("Error", "No se pudieron cargar las consultas");
+      }
+    }
+
+    // ====================== ATENDER CONSULTA ======================
+    async function atenderConsulta(consultaId, paciente, numero_expediente, fecha, hora) {
+      try {
+        // Mostrar formulario de atención médica
+        const { value: formValues } = await Swal.fire({
+          title: 'Atender Consulta',
+          width: '800px',
+          html: `
+            <div class="text-start">
+              <!-- Información del Paciente -->
+              <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <strong style="display: block; margin-bottom: 5px; color: #2c3e50;">Paciente:</strong> ${paciente || 'Sin nombre'}<br>
+                <strong style="display: block; margin-top: 10px; margin-bottom: 5px; color: #2c3e50;">Expediente:</strong> ${numero_expediente || 'Sin número'}<br>
+                <strong style="display: block; margin-top: 10px; margin-bottom: 5px; color: #2c3e50;">Fecha de Consulta:</strong> ${formatearFecha(fecha)} - ${hora || 'Sin hora'}
+              </div>
+
+              <!-- Motivo de Consulta -->
+              <div class="mb-3">
+                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Motivo de Consulta:</label>
+                <textarea id="motivo" class="form-control" placeholder="Describe el motivo por el cual el paciente acude a consulta" style="min-height: 80px;" required></textarea>
+              </div>
+
+              <!-- Diagnóstico -->
+              <div class="mb-3">
+                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Diagnóstico:</label>
+                <textarea id="diagnostico" class="form-control" placeholder="Diagnóstico médico del paciente" style="min-height: 80px;" required></textarea>
+              </div>
+
+              <!-- Observaciones -->
+              <div class="mb-3">
+                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Observaciones Clínicas:</label>
+                <textarea id="observaciones" class="form-control" placeholder="Observaciones adicionales, hallazgos relevantes" style="min-height: 80px;"></textarea>
+              </div>
+
+              <!-- Tratamiento -->
+              <div class="mb-3">
+                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Tratamiento / Indicaciones:</label>
+                <textarea id="tratamiento" class="form-control" placeholder="Tratamiento prescrito, medicamentos, indicaciones al paciente" style="min-height: 80px;" required></textarea>
+              </div>
+
+              <!-- Procedimientos Requeridos -->
+              <div class="mb-3">
+                <label class="form-label" style="font-weight: 600; color: #2c3e50;">¿Requiere procedimiento o cirugía?</label>
+                <select id="requiere_cirugia" class="form-select">
+                  <option value="no">No</option>
+                  <option value="si">Sí</option>
+                </select>
+              </div>
+
+              <div class="mb-3" id="tipo-procedimiento" style="display: none;">
+                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Tipo de Procedimiento:</label>
+                <input type="text" id="procedimiento" class="form-control" placeholder="Ej: Facoemulsificación, Vitrectomía, etc.">
+              </div>
+            </div>
+          `,
+          focusConfirm: false,
+          showCancelButton: true,
+          confirmButtonText: '<i class="fas fa-check"></i> Guardar Atención',
+          cancelButtonText: 'Cancelar',
+          didOpen: () => {
+            // Mostrar/ocultar campo de procedimiento
+            document.getElementById('requiere_cirugia').addEventListener('change', (e) => {
+              const tipoProcDiv = document.getElementById('tipo-procedimiento');
+              tipoProcDiv.style.display = e.target.value === 'si' ? 'block' : 'none';
+            });
+          },
+          preConfirm: () => {
+            const motivo = document.getElementById('motivo').value;
+            const diagnostico = document.getElementById('diagnostico').value;
+            const observaciones = document.getElementById('observaciones').value;
+            const tratamiento = document.getElementById('tratamiento').value;
+            const requiere_cirugia = document.getElementById('requiere_cirugia').value;
+            const procedimiento = document.getElementById('procedimiento').value;
+
+            if (!motivo || !diagnostico || !tratamiento) {
+              Swal.showValidationMessage('Por favor completa todos los campos obligatorios');
+              return false;
+            }
+
+            return { motivo, diagnostico, observaciones, tratamiento, requiere_cirugia, procedimiento };
+          }
+        });
+
+        if (formValues) {
+          // Guardar la información de la atención
+          const datosAtencion = {
+            consulta_id: consultaId,
+            motivo: formValues.motivo,
+            diagnostico: formValues.diagnostico,
+            observaciones: formValues.observaciones,
+            tratamiento: formValues.tratamiento,
+            requiere_cirugia: formValues.requiere_cirugia === 'si',
+            procedimiento: formValues.requiere_cirugia === 'si' ? formValues.procedimiento : null
+          };
+
+          console.log('📤 Guardando atención médica:', datosAtencion);
+
+          const respPost = await fetch('/api/atencion_consultas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datosAtencion)
+          });
+
+          if (respPost.ok) {
+            // Marcar la consulta como atendida
+            await fetch(`/api/consultas/${consultaId}/atender`, {
+              method: 'PUT'
+            });
+
+            Swal.fire({
+              icon: 'success',
+              title: '¡Consulta Atendida!',
+              text: 'La información médica ha sido guardada correctamente',
+              timer: 2000,
+              showConfirmButton: false
+            });
+
+            cargarConsultas(); // Recargar tabla
+          } else {
+            const errorData = await respPost.json();
+            console.error('❌ Error del servidor:', errorData);
+            mostrarError('Error', errorData.error || 'No se pudo guardar la atención');
+          }
+        }
+
+      } catch (err) {
+        console.error('❌ Error atendiendo consulta:', err);
+        mostrarError('Error', 'Ocurrió un error al atender la consulta: ' + err.message);
       }
     }
 
@@ -531,9 +681,9 @@
 
     // ====================== FORMATEAR FECHA ======================
     function formatearFecha(fecha) {
-      if (!fecha) return '<span class="text-muted">No asignado</span>';
+      if (!fecha) return 'Sin fecha';
       const f = new Date(fecha);
-      if (isNaN(f)) return '<span class="text-muted">No asignado</span>';
+      if (isNaN(f)) return 'Sin fecha';
       return f.toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric" });
     }
 
