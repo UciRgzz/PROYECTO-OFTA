@@ -2541,19 +2541,23 @@ app.get('/api/expedientes/detalle/:numero', verificarSesion, async (req, res) =>
     const { numero } = req.params;
     let depto = getDepartamento(req);
 
+    console.log('🔍 Buscando expediente número:', numero, 'en departamento:', depto);
+
     const result = await pool.query(
       `SELECT * FROM expedientes WHERE numero_expediente = $1 AND departamento = $2`,
-      [numero, depto]
+      [parseInt(numero), depto]
     );
 
     if (result.rows.length === 0) {
+      console.log('❌ Expediente no encontrado');
       return res.status(404).json({ error: 'Expediente no encontrado' });
     }
 
+    console.log('✅ Expediente encontrado:', result.rows[0].nombre_completo);
     res.json(result.rows[0]);
 
   } catch (err) {
-    console.error('Error en /api/expedientes/detalle/:numero:', err);
+    console.error('❌ Error en /api/expedientes/detalle/:numero:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -2610,6 +2614,20 @@ app.post('/api/consultas', verificarSesion, async (req, res) => {
 
     let depto = getDepartamento(req);
 
+    // ✅ Log para debug
+    console.log('📥 Datos recibidos para crear consulta:', {
+      expediente_id,
+      paciente,
+      numero_expediente,
+      departamento: depto
+    });
+
+    // ✅ Validación crítica
+    if (!expediente_id) {
+      console.error('❌ Error: expediente_id es null o undefined');
+      return res.status(400).json({ error: 'El expediente_id es requerido' });
+    }
+
     const result = await pool.query(`
       INSERT INTO consultas (
         expediente_id,
@@ -2627,9 +2645,9 @@ app.post('/api/consultas', verificarSesion, async (req, res) => {
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       RETURNING *
     `, [
-      expediente_id,
+      parseInt(expediente_id),  // ✅ Asegurar que sea número
       paciente,
-      numero_expediente,
+      parseInt(numero_expediente),  // ✅ Asegurar que sea número
       telefono1,
       telefono2,
       edad,
@@ -2641,10 +2659,11 @@ app.post('/api/consultas', verificarSesion, async (req, res) => {
       depto
     ]);
 
+    console.log('✅ Consulta creada exitosamente:', result.rows[0]);
     res.json(result.rows[0]);
 
   } catch (err) {
-    console.error('Error en POST /api/consultas:', err);
+    console.error('❌ Error en POST /api/consultas:', err);
     res.status(500).json({ error: err.message });
   }
 });

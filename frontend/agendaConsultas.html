@@ -314,9 +314,9 @@
           return;
         }
 
-        // Mostrar resultados
+        // ✅ CORRECCIÓN: Usar numero_expediente en lugar de id
         contenedor.innerHTML = expedientes.map(exp => `
-          <div class="expediente-item" onclick="seleccionarExpediente(${exp.id})">
+          <div class="expediente-item" onclick="seleccionarExpediente(${exp.numero_expediente})">
             <div class="expediente-info">
               <strong>${exp.nombre_completo}</strong>
               <small>
@@ -337,44 +337,46 @@
       }
     }
 
-    // Buscar al presionar Enter
-    document.getElementById('buscarExpediente')?.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        buscarExpediente();
-      }
-    });
-
     // ====================== SELECCIONAR EXPEDIENTE Y AGENDAR ======================
-    async function seleccionarExpediente(expedienteId) {
+    async function seleccionarExpediente(numeroExpediente) {
       try {
-        // Obtener datos completos del expediente
-        const resp = await fetch(`/api/expedientes/${expedienteId}`);
+        console.log('📞 Solicitando expediente:', numeroExpediente);
+        
+        // ✅ CORRECCIÓN: Usar /detalle/ en la ruta
+        const resp = await fetch(`/api/expedientes/detalle/${numeroExpediente}`);
+        
+        if (!resp.ok) {
+          throw new Error('No se pudo obtener el expediente');
+        }
+        
         const expediente = await resp.json();
+        console.log('✅ Expediente recibido:', expediente);
 
-        // Mostrar formulario para agendar con datos pre-cargados
+        // Mostrar formulario para agendar
         const { value: formValues } = await Swal.fire({
           title: 'Agendar Consulta',
+          width: '600px',
           html: `
             <div class="text-start">
               <div class="mb-3">
                 <label class="form-label"><strong>Paciente:</strong></label>
-                <input type="text" class="form-control" value="${expediente.nombre_completo}" disabled>
+                <input type="text" class="form-control" value="${expediente.nombre_completo || 'Sin nombre'}" disabled>
               </div>
               <div class="mb-3">
                 <label class="form-label"><strong>Expediente:</strong></label>
-                <input type="text" class="form-control" value="${expediente.numero_expediente}" disabled>
+                <input type="text" class="form-control" value="${expediente.numero_expediente || 'Sin número'}" disabled>
               </div>
               <div class="mb-3">
-                <label class="form-label">Fecha de Consulta:</label>
-                <input type="date" id="fecha" class="form-control swal2-input" required>
+                <label class="form-label"><strong>Fecha de Consulta:</strong></label>
+                <input type="date" id="swal-fecha" class="form-control" required>
               </div>
               <div class="mb-3">
-                <label class="form-label">Hora:</label>
-                <input type="time" id="hora" class="form-control swal2-input" required>
+                <label class="form-label"><strong>Hora:</strong></label>
+                <input type="time" id="swal-hora" class="form-control" required>
               </div>
               <div class="mb-3">
-                <label class="form-label">Médico:</label>
-                <input type="text" id="medico" class="form-control swal2-input" placeholder="Nombre del médico" required>
+                <label class="form-label"><strong>Médico:</strong></label>
+                <input type="text" id="swal-medico" class="form-control" placeholder="Nombre del médico" required>
               </div>
             </div>
           `,
@@ -383,9 +385,9 @@
           confirmButtonText: '<i class="fas fa-check"></i> Agendar',
           cancelButtonText: 'Cancelar',
           preConfirm: () => {
-            const fecha = document.getElementById('fecha').value;
-            const hora = document.getElementById('hora').value;
-            const medico = document.getElementById('medico').value;
+            const fecha = document.getElementById('swal-fecha').value;
+            const hora = document.getElementById('swal-hora').value;
+            const medico = document.getElementById('swal-medico').value;
 
             if (!fecha || !hora || !medico) {
               Swal.showValidationMessage('Por favor completa todos los campos');
@@ -397,28 +399,30 @@
         });
 
         if (formValues) {
-          // Crear la consulta
+          // ✅ CORRECCIÓN: Usar numero_expediente con parseInt()
           const nuevaConsulta = {
-            expediente_id: expediente.id,
-            paciente: expediente.nombre_completo,
-            numero_expediente: expediente.numero_expediente,
-            telefono1: expediente.telefono1,
-            telefono2: expediente.telefono2,
-            edad: expediente.edad,
-            ciudad: expediente.ciudad,
+            expediente_id: parseInt(expediente.numero_expediente),
+            paciente: expediente.nombre_completo || 'Sin nombre',
+            numero_expediente: parseInt(expediente.numero_expediente),
+            telefono1: expediente.telefono1 || '',
+            telefono2: expediente.telefono2 || '',
+            edad: expediente.edad || null,
+            ciudad: expediente.ciudad || '',
             fecha: formValues.fecha,
             hora: formValues.hora,
             medico: formValues.medico,
             estado: 'Pendiente'
           };
 
-          const resp = await fetch('/api/consultas', {
+          console.log('📤 Enviando consulta:', nuevaConsulta);
+
+          const respPost = await fetch('/api/consultas', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(nuevaConsulta)
           });
 
-          if (resp.ok) {
+          if (respPost.ok) {
             mostrarExito('¡Éxito!', 'Consulta agendada correctamente');
             cargarConsultas();
             
@@ -426,13 +430,15 @@
             document.getElementById('buscarExpediente').value = '';
             document.getElementById('resultadosBusqueda').innerHTML = '';
           } else {
-            mostrarError('Error', 'No se pudo agendar la consulta');
+            const errorData = await respPost.json();
+            console.error('❌ Error del servidor:', errorData);
+            mostrarError('Error', errorData.error || 'No se pudo agendar la consulta');
           }
         }
 
       } catch (err) {
-        console.error('Error agendando consulta:', err);
-        mostrarError('Error', 'Ocurrió un error al agendar la consulta');
+        console.error('❌ Error agendando consulta:', err);
+        mostrarError('Error', 'Ocurrió un error al agendar la consulta: ' + err.message);
       }
     }
 
@@ -492,7 +498,6 @@
         if (resp.ok) {
           mostrarExito("Orden generada", "La orden se ha generado correctamente");
 
-          // Marcar consulta como atendida
           await fetch(`/api/consultas/${consultaId}/atender`, {
             method: "PUT"
           });
