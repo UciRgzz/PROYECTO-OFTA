@@ -126,9 +126,26 @@ function fechaLocalMX() {
 
 
 // ==================== CHECK SESSION ====================
-app.get('/api/check-session', (req, res) => {
+app.get('/api/check-session', async (req, res) => {
     if (req.session && req.session.usuario) {
-        res.json({ usuario: req.session.usuario });
+        try {
+            // Obtener foto de perfil y color actual
+            const result = await pool.query(
+                'SELECT foto_perfil, color_avatar FROM usuarios WHERE nomina = $1',
+                [req.session.usuario.nomina]
+            );
+
+            const userData = {
+                ...req.session.usuario,
+                foto_perfil: result.rows[0]?.foto_perfil || null,
+                color_avatar: result.rows[0]?.color_avatar || '#3498db'
+            };
+
+            res.json({ usuario: userData });
+        } catch (err) {
+            console.error('Error al obtener datos de perfil:', err);
+            res.json({ usuario: req.session.usuario });
+        }
     } else {
         res.status(401).json({ error: 'No autorizado' });
     }
