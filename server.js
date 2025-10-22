@@ -2892,21 +2892,21 @@ app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
       RETURNING *
     `, [
-      consultaId,                                    // ✅ ID de la consulta
-      c.expediente_id,                               // ✅ ID del expediente (número)
-      c.medico,                                       // Médico que atendió
-      at.diagnostico || 'Consulta General',          // Diagnóstico
-      'OD',                                           // ✅ Lado por defecto (OD)
-      at.procedimiento || 'Consulta Oftalmológica',  // Procedimiento
-      'Pendiente',                                    // ✅ Estado inicial (Pendiente, no PENDIENTE)
-      500.00,                                         // ✅ Precio de consulta (ajusta según necesites)
-      0,                                              // Pagado inicial
-      500.00,                                         // Pendiente inicial
-      'CONSULTA',                                     // ✅ Origen: CONSULTA (para distinguir de cirugías)
-      'Normal',                                       // ✅ Tipo: Normal (añadido)
-      c.fecha,                                        // Fecha de la consulta
-      depto                                           // Departamento
-    ]);
+  consultaId,                                    
+  c.expediente_id,                               
+  c.medico,                                       
+  at.diagnostico || 'Consulta General',          
+  'OD',                                           
+  at.procedimiento || 'Consulta Oftalmológica',  
+  'Pendiente',                                    
+  500.00,                                         
+  0,                                              
+  500.00,                                         
+  'CONSULTA',                                     
+  'Consulta',                  // ⬅️ CAMBIADO
+  c.fecha,                                        
+  depto                                           
+]);
 
     console.log('✅ Orden médica creada exitosamente:', result.rows[0].id);
 
