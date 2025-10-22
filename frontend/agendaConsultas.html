@@ -746,7 +746,7 @@ async function cargarConsultas() {
         });
 
         // Verificar si ya existe una orden para esta consulta
-        const respOrdenes = await fetch('/api/ordenes_medicas');
+        const respOrdenes = await fetch('/api/ordenes_medicas_consulta');
         if (!respOrdenes.ok) {
           throw new Error('Error al verificar órdenes existentes');
         }
@@ -774,7 +774,7 @@ async function cargarConsultas() {
 
         } else {
           // Si no existe, crear la orden
-          const resp = await fetch("/api/ordenes_medicas", {
+          const resp = await fetch("/api/ordenes_medicas_consulta", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ consultaId })

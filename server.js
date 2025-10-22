@@ -2708,7 +2708,7 @@ app.delete('/api/atencion_consultas/:consulta_id', verificarSesion, async (req, 
 
 // ==================== CREAR ORDEN MÉDICA DESDE CONSULTA ATENDIDA ====================
 // ✅ ENDPOINT CORREGIDO - Crear orden médica automáticamente desde una consulta atendida
-app.post('/api/ordenes_medicas', verificarSesion, async (req, res) => {
+app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
   try {
     const { consultaId } = req.body;
     let depto = getDepartamento(req);
