@@ -535,10 +535,10 @@ async function cargarConsultas() {
               `<button class="btn btn-success btn-sm" onclick="atenderConsulta(${c.id}, '${c.paciente}', ${c.numero_expediente}, '${c.fecha}', '${c.hora}')">
                 <i class="fas fa-stethoscope"></i> Atender
               </button>` :
-              `<button class="btn btn-info btn-sm" onclick="verDatosConsulta(${c.id})">
+              `<button class="btn btn-info btn-sm" onclick=" verDatosConsulta(${c.id})">
                 <i class="fas fa-eye"></i> Ver Datos
               </button>
-              <button class="btn btn-warning btn-sm" onclick="irAPagar(${c.id})">
+              <button class="btn btn-warning btn-sm" onclick=" irAPagar(${c.id})">
                 <i class="fas fa-dollar-sign"></i> Pagar
               </button>
               ${rolUsuario === 'admin' ? `
