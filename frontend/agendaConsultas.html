@@ -455,10 +455,9 @@
 
           if (respPost.ok) {
             mostrarExito('¡Éxito!', 'Consulta agendada correctamente');
-            cargarConsultas();
-            
             document.getElementById('buscarExpediente').value = '';
             document.getElementById('resultadosBusqueda').innerHTML = '';
+            cargarConsultas();
           } else {
             const errorData = await respPost.json();
             console.error('❌ Error del servidor:', errorData);
@@ -507,7 +506,7 @@ async function cargarConsultas() {
               `<button class="btn btn-info btn-sm" onclick="verDatosConsulta(${c.id})">
                 <i class="fas fa-eye"></i> Ver Datos
               </button>
-              <button class="btn btn-warning btn-sm" onclick="pagarConsulta(${c.id})">
+              <button class="btn btn-warning btn-sm" onclick="irAPagar(${c.id})">
                 <i class="fas fa-dollar-sign"></i> Pagar
               </button>
               <button class="btn btn-danger btn-sm" onclick="eliminarConsulta(${c.id})">
@@ -717,116 +716,117 @@ async function cargarConsultas() {
     }
 
     // ====================== IR A PAGAR (FUNCIÓN MEJORADA) ======================
-async function irAPagar(consultaId) {
-  try {
-    // Mostrar confirmación al usuario
-    const confirmacion = await Swal.fire({
-      title: '¿Deseas crear una orden de pago para esta consulta?',
-      text: "Se creará una orden médica y serás redirigido al módulo de órdenes",
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#3498db',
-      cancelButtonColor: '#95a5a6',
-      confirmButtonText: '<i class="fas fa-check"></i> Sí, crear orden',
-      cancelButtonText: '<i class="fas fa-times"></i> Cancelar'
-    });
+    async function irAPagar(consultaId) {
+      try {
+        // Mostrar confirmación al usuario
+        const confirmacion = await Swal.fire({
+          title: '¿Deseas crear una orden de pago para esta consulta?',
+          text: "Se creará una orden médica y serás redirigido al módulo de órdenes",
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonColor: '#3498db',
+          cancelButtonColor: '#95a5a6',
+          confirmButtonText: '<i class="fas fa-check"></i> Sí, crear orden',
+          cancelButtonText: '<i class="fas fa-times"></i> Cancelar'
+        });
 
-    if (!confirmacion.isConfirmed) {
-      return; // Usuario canceló
-    }
+        if (!confirmacion.isConfirmed) {
+          return; // Usuario canceló
+        }
 
-    // Mostrar indicador de carga
-    Swal.fire({
-      title: 'Procesando...',
-      html: '<i class="fas fa-spinner fa-spin fa-3x text-primary"></i><br><br>Creando orden de pago...',
-      allowOutsideClick: false,
-      showConfirmButton: false,
-      didOpen: () => {
-        Swal.showLoading();
+        // Mostrar indicador de carga
+        Swal.fire({
+          title: 'Procesando...',
+          html: '<i class="fas fa-spinner fa-spin fa-3x text-primary"></i><br><br>Creando orden de pago...',
+          allowOutsideClick: false,
+          showConfirmButton: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        // Verificar si ya existe una orden para esta consulta
+        const respOrdenes = await fetch('/api/ordenes_medicas');
+        if (!respOrdenes.ok) {
+          throw new Error('Error al verificar órdenes existentes');
+        }
+
+        const ordenes = await respOrdenes.json();
+        const ordenExistente = ordenes.find(o => o.consulta_id === consultaId);
+
+        if (ordenExistente) {
+          // Si ya existe orden, informar y redirigir
+          await Swal.fire({
+            icon: 'info',
+            title: 'Orden Existente',
+            html: `
+              <p>Ya existe una orden de pago para esta consulta.</p>
+              <p><strong>Orden #${ordenExistente.id}</strong></p>
+              <p>Serás redirigido al módulo de órdenes...</p>
+            `,
+            timer: 2500,
+            showConfirmButton: false
+          });
+
+          setTimeout(() => {
+            window.location.href = '/ordenes';
+          }, 2500);
+
+        } else {
+          // Si no existe, crear la orden
+          const resp = await fetch("/api/ordenes_medicas", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ consultaId })
+          });
+          
+          if (!resp.ok) {
+            const errorData = await resp.json();
+            throw new Error(errorData.error || "No se pudo crear la orden");
+          }
+
+          const resultado = await resp.json();
+
+          // Mostrar éxito
+          await Swal.fire({
+            icon: 'success',
+            title: '¡Orden Creada Exitosamente!',
+            html: `
+              <div class="text-start" style="padding: 20px;">
+                <p style="font-size: 1.1rem;"><i class="fas fa-check-circle text-success"></i> Orden médica #${resultado.id} creada</p>
+                <hr>
+                <p><strong>Procedimiento:</strong> ${resultado.procedimiento || 'Consulta Oftalmológica'}</p>
+                <p><strong>Precio:</strong> $${resultado.precio || 500}.00</p>
+                <p><strong>Estado:</strong> <span class="badge bg-warning">${resultado.estatus}</span></p>
+                <hr>
+                <p class="text-muted"><i class="fas fa-info-circle"></i> Redirigiendo al módulo de órdenes para procesar el pago...</p>
+              </div>
+            `,
+            timer: 3500,
+            showConfirmButton: false
+          });
+
+          setTimeout(() => {
+            window.location.href = '/ordenes';
+          }, 3500);
+        }
+
+      } catch (err) {
+        console.error("❌ Error procesando pago:", err);
+        
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al Crear Orden',
+          html: `
+            <p>${err.message || "Ocurrió un error al procesar el pago"}</p>
+            <p class="text-muted mt-3"><small>Por favor, intenta nuevamente o contacta al administrador.</small></p>
+          `,
+          confirmButtonColor: '#e74c3c',
+          confirmButtonText: '<i class="fas fa-times"></i> Cerrar'
+        });
       }
-    });
-
-    // Verificar si ya existe una orden para esta consulta
-    const respOrdenes = await fetch('/api/ordenes_medicas');
-    if (!respOrdenes.ok) {
-      throw new Error('Error al verificar órdenes existentes');
     }
 
-    const ordenes = await respOrdenes.json();
-    const ordenExistente = ordenes.find(o => o.consulta_id === consultaId);
-
-    if (ordenExistente) {
-      // Si ya existe orden, informar y redirigir
-      await Swal.fire({
-        icon: 'info',
-        title: 'Orden Existente',
-        html: `
-          <p>Ya existe una orden de pago para esta consulta.</p>
-          <p><strong>Orden #${ordenExistente.id}</strong></p>
-          <p>Serás redirigido al módulo de órdenes...</p>
-        `,
-        timer: 2500,
-        showConfirmButton: false
-      });
-
-      setTimeout(() => {
-        window.location.href = '/ordenes';
-      }, 2500);
-
-    } else {
-      // Si no existe, crear la orden
-      const resp = await fetch("/api/ordenes_medicas", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ consultaId })
-      });
-      
-      if (!resp.ok) {
-        const errorData = await resp.json();
-        throw new Error(errorData.error || "No se pudo crear la orden");
-      }
-
-      const resultado = await resp.json();
-
-      // Mostrar éxito
-      await Swal.fire({
-        icon: 'success',
-        title: '¡Orden Creada Exitosamente!',
-        html: `
-          <div class="text-start" style="padding: 20px;">
-            <p style="font-size: 1.1rem;"><i class="fas fa-check-circle text-success"></i> Orden médica #${resultado.id} creada</p>
-            <hr>
-            <p><strong>Procedimiento:</strong> ${resultado.procedimiento || 'Consulta Oftalmológica'}</p>
-            <p><strong>Precio:</strong> $${resultado.precio || 500}.00</p>
-            <p><strong>Estado:</strong> <span class="badge bg-warning">${resultado.estatus}</span></p>
-            <hr>
-            <p class="text-muted"><i class="fas fa-info-circle"></i> Redirigiendo al módulo de órdenes para procesar el pago...</p>
-          </div>
-        `,
-        timer: 3500,
-        showConfirmButton: false
-      });
-
-      setTimeout(() => {
-        window.location.href = '/ordenes';
-      }, 3500);
-    }
-
-  } catch (err) {
-    console.error("❌ Error procesando pago:", err);
-    
-    Swal.fire({
-      icon: 'error',
-      title: 'Error al Crear Orden',
-      html: `
-        <p>${err.message || "Ocurrió un error al procesar el pago"}</p>
-        <p class="text-muted mt-3"><small>Por favor, intenta nuevamente o contacta al administrador.</small></p>
-      `,
-      confirmButtonColor: '#e74c3c',
-      confirmButtonText: '<i class="fas fa-times"></i> Cerrar'
-    });
-  }
-}
     // ====================== ELIMINAR CONSULTA ======================
     async function eliminarConsulta(consultaId) {
       try {
@@ -865,63 +865,6 @@ async function irAPagar(consultaId) {
       }
     }
 
-// ============================================
-// FUNCIÓN PARA PAGAR CONSULTA (CREAR ORDEN)
-// ============================================
-async function pagarConsulta(consultaId) {
-  try {
-    // Confirmar acción
-    if (!confirm('¿Deseas crear una orden de pago para esta consulta?')) {
-      return;
-    }
-
-    // Mostrar indicador de carga
-    const btnPagar = event.target;
-    const textoOriginal = btnPagar.innerHTML;
-    btnPagar.disabled = true;
-    btnPagar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
-
-    // Crear la orden médica
-    const response = await fetch('/api/ordenes_medicas', {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ consultaId: consultaId })
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      if (data.yaExiste) {
-        // Si ya existe la orden, preguntar si quiere ir a verla
-        const irAOrdenes = confirm('⚠️ Ya existe una orden para esta consulta.\n\n¿Deseas ir al módulo de Órdenes para procesar el pago?');
-        if (irAOrdenes) {
-          window.location.href = '/ordenes';
-        } else {
-          btnPagar.disabled = false;
-          btnPagar.innerHTML = textoOriginal;
-        }
-      } else {
-        // Orden creada exitosamente
-        alert('✅ Orden médica creada exitosamente.\n\nSerás redirigido al módulo de Órdenes para procesar el pago.');
-        window.location.href = '/ordenes';
-      }
-    } else {
-      // Error
-      alert('❌ Error: ' + (data.error || 'No se pudo crear la orden'));
-      btnPagar.disabled = false;
-      btnPagar.innerHTML = textoOriginal;
-    }
-
-  } catch (err) {
-    console.error('Error al crear orden:', err);
-    alert('❌ Error de conexión. Por favor, intenta nuevamente.');
-    const btnPagar = event.target;
-    btnPagar.disabled = false;
-    btnPagar.innerHTML = '💳 Pagar';
-  }
-}
     // ====================== FORMATEAR FECHA ======================
     function formatearFecha(fecha) {
       if (!fecha) return 'Sin fecha';
