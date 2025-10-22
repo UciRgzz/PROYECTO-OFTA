@@ -2998,25 +2998,18 @@ app.get('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
 // ==================== MÉDICOS ====================
 app.get('/api/medicos', verificarSesion, async (req, res) => {
   try {
-    let depto = getDepartamento(req);
-
     const result = await pool.query(`
-      SELECT 
-        id, 
-        nombre_completo, 
-        especialidad 
-      FROM medicos 
-      WHERE departamento = $1 
+      SELECT id, nombre_completo, especialidad
+      FROM medicos
       ORDER BY nombre_completo ASC
-    `, [depto]);
-
+    `);
     res.json(result.rows);
-
   } catch (err) {
     console.error('❌ Error en GET /api/medicos:', err);
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 
