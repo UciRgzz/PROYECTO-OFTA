@@ -2691,6 +2691,29 @@ app.delete('/api/consultas/:id', verificarSesion, async (req, res) => {
     const { id } = req.params;
     let depto = getDepartamento(req);
 
+    // ✅ PASO 1: Eliminar la orden médica asociada (si existe)
+    try {
+      await pool.query(
+        'DELETE FROM ordenes_medicas WHERE consulta_id = $1 AND departamento = $2',
+        [id, depto]
+      );
+      console.log(`✅ Orden médica de consulta ${id} eliminada`);
+    } catch (ordenErr) {
+      console.log('⚠️ No había orden médica o error al eliminar:', ordenErr.message);
+    }
+
+    // ✅ PASO 2: Eliminar la atención médica (si existe)
+    try {
+      await pool.query(
+        'DELETE FROM atencion_consultas WHERE consulta_id = $1 AND departamento = $2',
+        [id, depto]
+      );
+      console.log(`✅ Atención médica de consulta ${id} eliminada`);
+    } catch (atencionErr) {
+      console.log('⚠️ No había atención médica o error al eliminar:', atencionErr.message);
+    }
+
+    // ✅ PASO 3: Eliminar la consulta
     const result = await pool.query(
       'DELETE FROM consultas WHERE id = $1 AND departamento = $2 RETURNING *',
       [id, depto]
@@ -2700,10 +2723,14 @@ app.delete('/api/consultas/:id', verificarSesion, async (req, res) => {
       return res.status(404).json({ error: 'Consulta no encontrada' });
     }
 
-    res.json({ mensaje: 'Consulta eliminada correctamente' });
+    console.log(`✅ Consulta ${id} eliminada completamente`);
+    res.json({ 
+      mensaje: 'Consulta eliminada correctamente',
+      detalles: 'Se eliminaron la consulta, atención médica y orden médica asociadas'
+    });
 
   } catch (err) {
-    console.error('Error en DELETE /api/consultas/:id:', err);
+    console.error('❌ Error en DELETE /api/consultas/:id:', err);
     res.status(500).json({ error: err.message });
   }
 });
