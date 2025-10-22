@@ -12,13 +12,8 @@
       --secondary-color: #3498db;
       --accent-color: #e74c3c;
       --success-color: #27ae60;
-      --warning-color: #f39c12;
-      --info-color: #17a2b8;
       --light-color: #f8f9fa;
       --dark-color: #343a40;
-      --border-radius: 12px;
-      --box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-      --transition: all 0.3s ease;
     }
     
     body {
@@ -29,47 +24,28 @@
       min-height: 100vh;
     }
     
-    .container { 
-      max-width: 1400px; 
-      margin: 0 auto; 
-    }
+    .container { max-width: 1400px; margin: 0 auto; }
     
-    /* ===== HEADER ===== */
     header {
       text-align: center;
       margin-bottom: 30px;
-      padding: 25px;
+      padding: 20px;
       background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
       color: white;
-      border-radius: var(--border-radius);
-      box-shadow: var(--box-shadow);
+      border-radius: 10px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
     }
     
-    h1 { 
-      font-size: 2.5rem; 
-      margin-bottom: 10px; 
-      font-weight: 700; 
-    }
+    h1 { font-size: 2.5rem; margin-bottom: 10px; font-weight: 700; }
+    .description { font-size: 1.1rem; opacity: 0.9; }
     
-    .description { 
-      font-size: 1.1rem; 
-      opacity: 0.9; 
-    }
-    
-    /* ===== CARDS ===== */
     .card {
       background: white;
-      border-radius: var(--border-radius);
-      box-shadow: var(--box-shadow);
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
       margin-bottom: 30px;
       overflow: hidden;
       border: none;
-      transition: var(--transition);
-    }
-    
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 12px 25px rgba(0,0,0,0.15);
     }
     
     .card-header {
@@ -81,21 +57,13 @@
       display: flex;
       align-items: center;
     }
+    .card-header i { margin-right: 12px; font-size: 1.5rem; }
+    .card-body { padding: 25px; }
     
-    .card-header i { 
-      margin-right: 12px; 
-      font-size: 1.5rem; 
-    }
-    
-    .card-body { 
-      padding: 25px; 
-    }
-    
-    /* ===== BUTTONS ===== */
     .btn {
       cursor: pointer;
       font-weight: 600;
-      transition: var(--transition);
+      transition: all 0.3s ease;
       border: none;
       border-radius: 8px;
       padding: 10px 18px;
@@ -111,66 +79,39 @@
       color: white;
       box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
     }
-    
-    .btn-primary:hover { 
-      transform: translateY(-2px); 
-      box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4); 
-    }
-    
-    .btn-primary i { 
-      margin-right: 8px; 
-    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4); }
+    .btn-primary i { margin-right: 8px; }
     
     .btn-success {
       background: linear-gradient(135deg, var(--success-color) 0%, #229954 100%);
       color: white;
       box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);
     }
-    
-    .btn-success:hover { 
-      transform: translateY(-2px); 
-      box-shadow: 0 6px 15px rgba(39, 174, 96, 0.4); 
-    }
+    .btn-success:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(39, 174, 96, 0.4); }
     
     .btn-danger {
       background: linear-gradient(135deg, var(--accent-color) 0%, #c0392b 100%);
       color: white;
       box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
     }
-    
-    .btn-danger:hover { 
-      transform: translateY(-2px); 
-      box-shadow: 0 6px 15px rgba(231, 76, 60, 0.4); 
-    }
+    .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(231, 76, 60, 0.4); }
     
     .btn-warning {
-      background: linear-gradient(135deg, var(--warning-color) 0%, #e67e22 100%);
+      background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
       color: white;
       box-shadow: 0 4px 10px rgba(243, 156, 18, 0.3);
     }
-    
-    .btn-warning:hover { 
-      transform: translateY(-2px); 
-      box-shadow: 0 6px 15px rgba(243, 156, 18, 0.4); 
-    }
+    .btn-warning:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(243, 156, 18, 0.4); }
     
     .btn-info {
-      background: linear-gradient(135deg, var(--info-color) 0%, #138496 100%);
+      background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
       color: white;
       box-shadow: 0 4px 10px rgba(23, 162, 184, 0.3);
     }
+    .btn-info:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(23, 162, 184, 0.4); }
     
-    .btn-info:hover { 
-      transform: translateY(-2px); 
-      box-shadow: 0 6px 15px rgba(23, 162, 184, 0.4); 
-    }
+    .btn-sm { padding: 8px 15px; font-size: 0.85rem; }
     
-    .btn-sm { 
-      padding: 8px 15px; 
-      font-size: 0.85rem; 
-    }
-    
-    /* ===== TABLES ===== */
     .table {
       width: 100%;
       border-collapse: collapse;
@@ -178,16 +119,9 @@
       background: white;
       border-radius: 8px;
       overflow: hidden;
-      box-shadow: var(--box-shadow);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
     }
-    
-    .table th, .table td { 
-      font-size: 0.85rem; 
-      padding: 12px 8px; 
-      text-align: center; 
-      vertical-align: middle;
-    }
-    
+    .table th, .table td { font-size: 0.85rem; padding: 8px; text-align: center; }
     .table th:nth-child(1), .table td:nth-child(1) { width: 5%; }
     .table th:nth-child(2), .table td:nth-child(2) { width: 15%; }
     .table th:nth-child(3), .table td:nth-child(3) { width: 10%; }
@@ -199,18 +133,15 @@
     .table tr:nth-child(odd) { background: #f9f9f9; }
     .table tr:hover { background-color: #eef6ff; }
     
-    /* ===== BADGES ===== */
     .badge {
       padding: 6px 12px;
       border-radius: 6px;
       font-size: 0.85rem;
       font-weight: 600;
     }
+    .badge.bg-warning { background: #f39c12 !important; color: white; }
+    .badge.bg-success { background: #27ae60 !important; color: white; }
     
-    .badge.bg-warning { background: var(--warning-color) !important; color: white; }
-    .badge.bg-success { background: var(--success-color) !important; color: white; }
-    
-    /* ===== ALERTS ===== */
     .success-alert {
       display: none;
       padding: 15px;
@@ -219,10 +150,9 @@
       border-radius: 8px;
       margin-bottom: 20px;
       border: 1px solid #c3e6cb;
-      animation: fadeIn 0.5s ease;
     }
-    
-    /* ===== BÚSQUEDA DE EXPEDIENTE ===== */
+
+    /* ===== ESTILOS PARA BÚSQUEDA DE EXPEDIENTE ===== */
     .busqueda-expediente {
       background: #f8f9fa;
       padding: 20px;
@@ -230,13 +160,13 @@
       margin-bottom: 20px;
       border: 2px solid #dee2e6;
     }
-    
+
     .resultado-busqueda {
       max-height: 300px;
       overflow-y: auto;
       margin-top: 15px;
     }
-    
+
     .expediente-item {
       background: white;
       padding: 15px;
@@ -244,33 +174,33 @@
       border-radius: 6px;
       border: 1px solid #dee2e6;
       cursor: pointer;
-      transition: var(--transition);
+      transition: all 0.3s ease;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    
+
     .expediente-item:hover {
       background: #e3f2fd;
       border-color: var(--secondary-color);
       transform: translateX(5px);
     }
-    
+
     .expediente-info {
       flex: 1;
     }
-    
+
     .expediente-info strong {
       color: var(--primary-color);
       font-size: 1.1rem;
     }
-    
+
     .expediente-info small {
       color: #6c757d;
       display: block;
       margin-top: 5px;
     }
-    
+
     .btn-group-actions {
       display: flex;
       gap: 5px;
@@ -278,53 +208,12 @@
       justify-content: center;
     }
     
-    /* ===== FOOTER ===== */
-    .footer { 
-      text-align: center; 
-      margin-top: 40px; 
-      color: #6c757d; 
-      font-size: 0.9rem; 
-    }
+    .footer { text-align: center; margin-top: 40px; color: #6c757d; font-size: 0.9rem; }
     
-    /* ===== ANIMATIONS ===== */
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    
-    .fade-in {
-      animation: fadeIn 0.5s ease;
-    }
-    
-    /* ===== LOADING ===== */
-    .loading {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255,255,255,.3);
-      border-radius: 50%;
-      border-top-color: #fff;
-      animation: spin 1s ease-in-out infinite;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    
-    /* ===== RESPONSIVE ===== */
     @media (max-width: 768px) {
       h1 { font-size: 2rem; }
       .table-responsive { overflow-x: auto; }
       .card-header { font-size: 1.1rem; padding: 15px; }
-      .btn-group-actions { flex-direction: column; }
-      .expediente-item { flex-direction: column; align-items: flex-start; }
-      .expediente-item button { margin-top: 10px; }
-    }
-    
-    @media (max-width: 576px) {
-      body { padding: 10px; }
-      .card-body { padding: 15px; }
-      .busqueda-expediente { padding: 15px; }
     }
   </style>
 </head>
@@ -344,7 +233,7 @@
       <div class="card-header"><i class="fas fa-search"></i> Buscar Paciente para Agendar</div>
       <div class="card-body">
         <div class="busqueda-expediente">
-          <div class="row g-2">
+          <div class="row">
             <div class="col-md-8">
               <input 
                 type="text" 
@@ -354,8 +243,8 @@
               >
             </div>
             <div class="col-md-4">
-              <button class="btn btn-primary w-100 h-100" onclick="buscarExpediente()" id="btnBuscar">
-                <i class="fas fa-search"></i> <span id="btnBuscarText">Buscar</span>
+              <button class="btn btn-primary w-100" onclick="buscarExpediente()">
+                <i class="fas fa-search"></i> Buscar
               </button>
             </div>
           </div>
@@ -370,12 +259,6 @@
     <div class="card">
       <div class="card-header"><i class="fas fa-list"></i> Consultas Programadas</div>
       <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h5 class="mb-0">Lista de consultas</h5>
-          <button class="btn btn-outline-primary btn-sm" onclick="cargarConsultas()">
-            <i class="fas fa-sync-alt"></i> Actualizar
-          </button>
-        </div>
         <div class="table-responsive">
           <table class="table">
             <thead style="background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%); color: white;">
@@ -391,10 +274,7 @@
             </thead>
             <tbody id="tabla-consultas">
               <tr>
-                <td colspan="7" class="text-muted text-center py-4">
-                  <i class="fas fa-calendar-times fa-2x mb-2 d-block"></i>
-                  No hay consultas programadas
-                </td>
+                <td colspan="7" class="text-muted">No hay consultas programadas</td>
               </tr>
             </tbody>
           </table>
@@ -412,20 +292,13 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <script>
-    // ====================== VARIABLES GLOBALES ======================
-    const API_BASE = '/api';
-    let consultasCargadas = [];
-    
-    // ====================== FUNCIONES DE NOTIFICACIÓN ======================
+    // ====================== FUNCIONES DE NOTIFICACIÓN ====================
     function mostrarExito(titulo, mensaje) {
-      const successAlert = document.getElementById('successAlert');
-      const successMessage = document.getElementById('successMessage');
-      
-      successMessage.textContent = mensaje;
-      successAlert.style.display = 'block';
+      document.getElementById('successMessage').textContent = mensaje;
+      document.getElementById('successAlert').style.display = 'block';
       
       setTimeout(() => {
-        successAlert.style.display = 'none';
+        document.getElementById('successAlert').style.display = 'none';
       }, 5000);
       
       Swal.fire({
@@ -445,22 +318,9 @@
       });
     }
 
-    function mostrarCargando(titulo = 'Procesando...') {
-      Swal.fire({
-        title: titulo,
-        allowOutsideClick: false,
-        showConfirmButton: false,
-        didOpen: () => {
-          Swal.showLoading();
-        }
-      });
-    }
-
-    // ====================== FUNCIONES DE BÚSQUEDA ======================
+    // ====================== BUSCAR EXPEDIENTE ======================
     async function buscarExpediente() {
       const query = document.getElementById('buscarExpediente').value.trim();
-      const btnBuscar = document.getElementById('btnBuscar');
-      const btnBuscarText = document.getElementById('btnBuscarText');
       
       if (!query) {
         mostrarError('Error', 'Por favor ingresa un número de expediente o nombre');
@@ -468,277 +328,251 @@
       }
 
       try {
-        // Mostrar estado de carga
-        btnBuscar.disabled = true;
-        btnBuscarText.innerHTML = '<div class="loading"></div> Buscando...';
-        
-        const resp = await fetch(`${API_BASE}/expedientes/buscar?q=${encodeURIComponent(query)}`);
-        
-        if (!resp.ok) {
-          throw new Error('Error en la respuesta del servidor');
-        }
-        
+        const resp = await fetch(`/api/expedientes/buscar?q=${encodeURIComponent(query)}`);
         const expedientes = await resp.json();
-        mostrarResultadosBusqueda(expedientes);
         
+        const contenedor = document.getElementById('resultadosBusqueda');
+        
+        if (expedientes.length === 0) {
+          contenedor.innerHTML = `
+            <div class="alert alert-warning mt-3">
+              <i class="fas fa-exclamation-triangle"></i> No se encontraron expedientes con ese criterio
+            </div>
+          `;
+          return;
+        }
+
+        contenedor.innerHTML = expedientes.map(exp => `
+          <div class="expediente-item" onclick="seleccionarExpediente(${exp.numero_expediente})">
+            <div class="expediente-info">
+              <strong>${exp.nombre_completo}</strong>
+              <small>
+                <i class="fas fa-id-card"></i> Expediente: ${exp.numero_expediente} | 
+                <i class="fas fa-phone"></i> ${exp.telefono1 || 'Sin teléfono'} | 
+                <i class="fas fa-birthday-cake"></i> ${exp.edad || 'Sin edad'} años
+              </small>
+            </div>
+            <button class="btn btn-primary btn-sm">
+              <i class="fas fa-calendar-plus"></i> Agendar
+            </button>
+          </div>
+        `).join('');
+
       } catch (err) {
         console.error('Error buscando expediente:', err);
         mostrarError('Error', 'No se pudo realizar la búsqueda');
-      } finally {
-        // Restaurar estado del botón
-        btnBuscar.disabled = false;
-        btnBuscarText.innerHTML = '<i class="fas fa-search"></i> Buscar';
       }
     }
 
-    function mostrarResultadosBusqueda(expedientes) {
-      const contenedor = document.getElementById('resultadosBusqueda');
-      
-      if (expedientes.length === 0) {
-        contenedor.innerHTML = `
-          <div class="alert alert-warning mt-3 fade-in">
-            <i class="fas fa-exclamation-triangle"></i> No se encontraron expedientes con ese criterio
-          </div>
-        `;
-        return;
+    // Buscar al presionar Enter
+    document.getElementById('buscarExpediente')?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        buscarExpediente();
       }
+    });
 
-      contenedor.innerHTML = expedientes.map(exp => `
-        <div class="expediente-item fade-in" onclick="seleccionarExpediente(${exp.numero_expediente})">
-          <div class="expediente-info">
-            <strong>${exp.nombre_completo}</strong>
-            <small>
-              <i class="fas fa-id-card"></i> Expediente: ${exp.numero_expediente} | 
-              <i class="fas fa-phone"></i> ${exp.telefono1 || 'Sin teléfono'} | 
-              <i class="fas fa-birthday-cake"></i> ${exp.edad || 'Sin edad'} años
-            </small>
-          </div>
-          <button class="btn btn-primary btn-sm">
-            <i class="fas fa-calendar-plus"></i> Agendar
-          </button>
-        </div>
-      `).join('');
-    }
-
-    // ====================== FUNCIONES DE GESTIÓN DE CONSULTAS ======================
+    // ====================== SELECCIONAR EXPEDIENTE Y AGENDAR ======================
     async function seleccionarExpediente(numeroExpediente) {
       try {
-        mostrarCargando('Cargando datos del paciente...');
+        console.log('📞 Solicitando expediente:', numeroExpediente);
         
-        const resp = await fetch(`${API_BASE}/expedientes/detalle/${numeroExpediente}`);
+        const resp = await fetch(`/api/expedientes/detalle/${numeroExpediente}`);
         
         if (!resp.ok) {
           throw new Error('No se pudo obtener el expediente');
         }
         
         const expediente = await resp.json();
-        Swal.close();
-        
-        await mostrarFormularioAgendar(expediente);
-        
-      } catch (err) {
-        console.error('Error obteniendo expediente:', err);
-        mostrarError('Error', 'No se pudo cargar la información del paciente');
-      }
-    }
+        console.log('✅ Expediente recibido:', expediente);
 
-    async function mostrarFormularioAgendar(expediente) {
-      const { value: formValues } = await Swal.fire({
-        title: 'Agendar Consulta',
-        width: '600px',
-        html: generarFormularioAgendar(expediente),
-        focusConfirm: false,
-        showCancelButton: true,
-        confirmButtonText: '<i class="fas fa-check"></i> Agendar',
-        cancelButtonText: 'Cancelar',
-        preConfirm: () => {
-          return validarFormularioAgendar();
-        }
-      });
+        const { value: formValues } = await Swal.fire({
+          title: 'Agendar Consulta',
+          width: '600px',
+          html: `
+            <div class="text-start">
+              <div class="mb-3">
+                <label class="form-label"><strong>Paciente:</strong></label>
+                <input type="text" class="form-control" value="${expediente.nombre_completo || 'Sin nombre'}" disabled>
+              </div>
+              <div class="mb-3">
+                <label class="form-label"><strong>Expediente:</strong></label>
+                <input type="text" class="form-control" value="${expediente.numero_expediente || 'Sin número'}" disabled>
+              </div>
+              <div class="mb-3">
+                <label class="form-label"><strong>Fecha de Consulta:</strong></label>
+                <input type="date" id="swal-fecha" class="form-control" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label"><strong>Hora:</strong></label>
+                <input type="time" id="swal-hora" class="form-control" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label"><strong>Médico:</strong></label>
+                <input type="text" id="swal-medico" class="form-control" placeholder="Nombre del médico" required>
+              </div>
+            </div>
+          `,
+          focusConfirm: false,
+          showCancelButton: true,
+          confirmButtonText: '<i class="fas fa-check"></i> Agendar',
+          cancelButtonText: 'Cancelar',
+          preConfirm: () => {
+            const fecha = document.getElementById('swal-fecha').value;
+            const hora = document.getElementById('swal-hora').value;
+            const medico = document.getElementById('swal-medico').value;
 
-      if (formValues) {
-        await crearConsulta(expediente, formValues);
-      }
-    }
+            if (!fecha || !hora || !medico) {
+              Swal.showValidationMessage('Por favor completa todos los campos');
+              return false;
+            }
 
-    function generarFormularioAgendar(expediente) {
-      const hoy = new Date().toISOString().split('T')[0];
-      
-      return `
-        <div class="text-start">
-          <div class="mb-3">
-            <label class="form-label"><strong>Paciente:</strong></label>
-            <input type="text" class="form-control" value="${expediente.nombre_completo || 'Sin nombre'}" disabled>
-          </div>
-          <div class="mb-3">
-            <label class="form-label"><strong>Expediente:</strong></label>
-            <input type="text" class="form-control" value="${expediente.numero_expediente || 'Sin número'}" disabled>
-          </div>
-          <div class="mb-3">
-            <label class="form-label"><strong>Fecha de Consulta:</strong></label>
-            <input type="date" id="swal-fecha" class="form-control" min="${hoy}" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label"><strong>Hora:</strong></label>
-            <input type="time" id="swal-hora" class="form-control" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label"><strong>Médico:</strong></label>
-            <input type="text" id="swal-medico" class="form-control" placeholder="Nombre del médico" required>
-          </div>
-        </div>
-      `;
-    }
-
-    function validarFormularioAgendar() {
-      const fecha = document.getElementById('swal-fecha').value;
-      const hora = document.getElementById('swal-hora').value;
-      const medico = document.getElementById('swal-medico').value;
-
-      if (!fecha || !hora || !medico) {
-        Swal.showValidationMessage('Por favor completa todos los campos');
-        return false;
-      }
-
-      // Validar que la fecha no sea anterior a hoy
-      const fechaConsulta = new Date(fecha);
-      const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0);
-      
-      if (fechaConsulta < hoy) {
-        Swal.showValidationMessage('La fecha de consulta no puede ser anterior a hoy');
-        return false;
-      }
-
-      return { fecha, hora, medico };
-    }
-
-    async function crearConsulta(expediente, formValues) {
-      try {
-        mostrarCargando('Agendando consulta...');
-        
-        const nuevaConsulta = {
-          expediente_id: parseInt(expediente.numero_expediente),
-          paciente: expediente.nombre_completo || 'Sin nombre',
-          numero_expediente: parseInt(expediente.numero_expediente),
-          telefono1: expediente.telefono1 || '',
-          telefono2: expediente.telefono2 || '',
-          edad: expediente.edad || null,
-          ciudad: expediente.ciudad || '',
-          fecha: formValues.fecha,
-          hora: formValues.hora,
-          medico: formValues.medico,
-          estado: 'Pendiente'
-        };
-
-        const respPost = await fetch(`${API_BASE}/consultas`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(nuevaConsulta)
+            return { fecha, hora, medico };
+          }
         });
 
-        if (respPost.ok) {
-          Swal.close();
-          mostrarExito('¡Éxito!', 'Consulta agendada correctamente');
-          limpiarBusqueda();
-          cargarConsultas();
-        } else {
-          const errorData = await respPost.json();
-          throw new Error(errorData.error || 'No se pudo agendar la consulta');
+        if (formValues) {
+          const nuevaConsulta = {
+            expediente_id: parseInt(expediente.numero_expediente),
+            paciente: expediente.nombre_completo || 'Sin nombre',
+            numero_expediente: parseInt(expediente.numero_expediente),
+            telefono1: expediente.telefono1 || '',
+            telefono2: expediente.telefono2 || '',
+            edad: expediente.edad || null,
+            ciudad: expediente.ciudad || '',
+            fecha: formValues.fecha,
+            hora: formValues.hora,
+            medico: formValues.medico,
+            estado: 'Pendiente'
+          };
+
+          console.log('📤 Enviando consulta:', nuevaConsulta);
+
+          const respPost = await fetch('/api/consultas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(nuevaConsulta)
+          });
+
+          if (respPost.ok) {
+            mostrarExito('¡Éxito!', 'Consulta agendada correctamente');
+            document.getElementById('buscarExpediente').value = '';
+            document.getElementById('resultadosBusqueda').innerHTML = '';
+            cargarConsultas();
+          } else {
+            const errorData = await respPost.json();
+            console.error('❌ Error del servidor:', errorData);
+            mostrarError('Error', errorData.error || 'No se pudo agendar la consulta');
+          }
         }
+
       } catch (err) {
-        console.error('Error agendando consulta:', err);
-        mostrarError('Error', err.message);
+        console.error('❌ Error agendando consulta:', err);
+        mostrarError('Error', 'Ocurrió un error al agendar la consulta: ' + err.message);
       }
     }
 
-    function limpiarBusqueda() {
-      document.getElementById('buscarExpediente').value = '';
-      document.getElementById('resultadosBusqueda').innerHTML = '';
+ // ====================== CARGAR CONSULTAS ======================
+async function cargarConsultas() {
+  try {
+    const resp = await fetch("/api/consultas");
+    const consultas = await resp.json();
+    const tbody = document.getElementById("tabla-consultas");
+    tbody.innerHTML = "";
+
+    if (consultas.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" class="text-muted">No hay consultas programadas</td></tr>`;
+      return;
     }
 
-    // ====================== FUNCIONES DE CARGA Y VISUALIZACIÓN ======================
-    async function cargarConsultas() {
-      try {
-        const resp = await fetch(`${API_BASE}/consultas`);
-        
-        if (!resp.ok) {
-          throw new Error('Error al cargar las consultas');
-        }
-        
-        const consultas = await resp.json();
-        consultasCargadas = consultas;
-        mostrarConsultas(consultas);
-        
-      } catch (err) {
-        console.error("Error cargando consultas:", err);
-        mostrarError("Error", "No se pudieron cargar las consultas");
-      }
-    }
+    consultas.forEach(c => {
+      const fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td>${c.id}</td>
+        <td>${c.paciente}</td>
+        <td>${formatearFecha(c.fecha)}</td>
+        <td>${c.hora || '-'}</td>
+        <td>${c.medico}</td>
+        <td>
+          <span class="badge bg-${c.estado === 'Pendiente' ? 'warning' : 'success'}">
+            ${c.estado}
+          </span>
+        </td>
+        <td>
+          <div class="btn-group-actions">
+            ${c.estado === 'Pendiente' ?
+              `<button class="btn btn-success btn-sm" onclick="atenderConsulta(${c.id}, '${c.paciente}', ${c.numero_expediente}, '${c.fecha}', '${c.hora}')">
+                <i class="fas fa-stethoscope"></i> Atender
+              </button>` :
+              `<button class="btn btn-info btn-sm" onclick="verDatosConsulta(${c.id})">
+                <i class="fas fa-eye"></i> Ver Datos
+              </button>
+              <button class="btn btn-warning btn-sm" onclick="irAPagar(${c.id})">
+                <i class="fas fa-dollar-sign"></i> Pagar
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="eliminarConsulta(${c.id})">
+                <i class="fas fa-trash"></i> Eliminar
+              </button>`
+            }
+          </div>
+        </td>
+      `;
+      tbody.appendChild(fila);
+    });
 
-    function mostrarConsultas(consultas) {
-      const tbody = document.getElementById("tabla-consultas");
-      
-      if (consultas.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="7" class="text-muted text-center py-4">
-              <i class="fas fa-calendar-times fa-2x mb-2 d-block"></i>
-              No hay consultas programadas
-            </td>
-          </tr>
-        `;
-        return;
-      }
+  } catch (err) {
+    console.error("Error cargando consultas:", err);
+    mostrarError("Error", "No se pudieron cargar las consultas");
+  }
+}
 
-      tbody.innerHTML = consultas.map(c => `
-        <tr class="fade-in">
-          <td>${c.id}</td>
-          <td>${c.paciente}</td>
-          <td>${formatearFecha(c.fecha)}</td>
-          <td>${c.hora || '-'}</td>
-          <td>${c.medico}</td>
-          <td>
-            <span class="badge bg-${c.estado === 'Pendiente' ? 'warning' : 'success'}">
-              ${c.estado}
-            </span>
-          </td>
-          <td>
-            <div class="btn-group-actions">
-              ${c.estado === 'Pendiente' ?
-                `<button class="btn btn-success btn-sm" onclick="atenderConsulta(${c.id})">
-                  <i class="fas fa-stethoscope"></i> Atender
-                </button>` :
-                `<button class="btn btn-info btn-sm" onclick="verDatosConsulta(${c.id})">
-                  <i class="fas fa-eye"></i> Ver
-                </button>
-                <button class="btn btn-warning btn-sm" onclick="irAPagar(${c.id})">
-                  <i class="fas fa-dollar-sign"></i> Pagar
-                </button>
-                <button class="btn btn-danger btn-sm" onclick="eliminarConsulta(${c.id})">
-                  <i class="fas fa-trash"></i> Eliminar
-                </button>`
-              }
-            </div>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    // ====================== FUNCIONES DE ATENCIÓN MÉDICA ======================
-    async function atenderConsulta(consultaId) {
-      const consulta = consultasCargadas.find(c => c.id === consultaId);
-      
-      if (!consulta) {
-        mostrarError('Error', 'No se encontró la consulta');
-        return;
-      }
-
+    // ====================== ATENDER CONSULTA ======================
+    async function atenderConsulta(consultaId, paciente, numero_expediente, fecha, hora) {
       try {
         const { value: formValues } = await Swal.fire({
           title: 'Atender Consulta',
           width: '800px',
-          html: generarFormularioAtencion(consulta),
+          html: `
+            <div class="text-start">
+              <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <strong style="display: block; margin-bottom: 5px; color: #2c3e50;">Paciente:</strong> ${paciente || 'Sin nombre'}<br>
+                <strong style="display: block; margin-top: 10px; margin-bottom: 5px; color: #2c3e50;">Expediente:</strong> ${numero_expediente || 'Sin número'}<br>
+                <strong style="display: block; margin-top: 10px; margin-bottom: 5px; color: #2c3e50;">Fecha de Consulta:</strong> ${formatearFecha(fecha)} - ${hora || 'Sin hora'}
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Motivo de Consulta:</label>
+                <textarea id="motivo" class="form-control" placeholder="Describe el motivo por el cual el paciente acude a consulta" style="min-height: 80px;" required></textarea>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Diagnóstico:</label>
+                <textarea id="diagnostico" class="form-control" placeholder="Diagnóstico médico del paciente" style="min-height: 80px;" required></textarea>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Observaciones Clínicas:</label>
+                <textarea id="observaciones" class="form-control" placeholder="Observaciones adicionales, hallazgos relevantes" style="min-height: 80px;"></textarea>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Tratamiento / Indicaciones:</label>
+                <textarea id="tratamiento" class="form-control" placeholder="Tratamiento prescrito, medicamentos, indicaciones al paciente" style="min-height: 80px;" required></textarea>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label" style="font-weight: 600; color: #2c3e50;">¿Requiere procedimiento o cirugía?</label>
+                <select id="requiere_cirugia" class="form-select">
+                  <option value="no">No</option>
+                  <option value="si">Sí</option>
+                </select>
+              </div>
+
+              <div class="mb-3" id="tipo-procedimiento" style="display: none;">
+                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Tipo de Procedimiento:</label>
+                <input type="text" id="procedimiento" class="form-control" placeholder="Ej: Facoemulsificación, Vitrectomía, etc.">
+              </div>
+            </div>
+          `,
           focusConfirm: false,
           showCancelButton: true,
           confirmButtonText: '<i class="fas fa-check"></i> Guardar Atención',
@@ -750,205 +584,141 @@
             });
           },
           preConfirm: () => {
-            return validarFormularioAtencion();
+            const motivo = document.getElementById('motivo').value;
+            const diagnostico = document.getElementById('diagnostico').value;
+            const observaciones = document.getElementById('observaciones').value;
+            const tratamiento = document.getElementById('tratamiento').value;
+            const requiere_cirugia = document.getElementById('requiere_cirugia').value;
+            const procedimiento = document.getElementById('procedimiento').value;
+
+            if (!motivo || !diagnostico || !tratamiento) {
+              Swal.showValidationMessage('Por favor completa todos los campos obligatorios');
+              return false;
+            }
+
+            return { motivo, diagnostico, observaciones, tratamiento, requiere_cirugia, procedimiento };
           }
         });
 
         if (formValues) {
-          await guardarAtencion(consultaId, formValues);
-        }
-      } catch (err) {
-        console.error('Error atendiendo consulta:', err);
-        mostrarError('Error', 'Ocurrió un error al atender la consulta');
-      }
-    }
+          const datosAtencion = {
+            consulta_id: consultaId,
+            motivo: formValues.motivo,
+            diagnostico: formValues.diagnostico,
+            observaciones: formValues.observaciones,
+            tratamiento: formValues.tratamiento,
+            requiere_cirugia: formValues.requiere_cirugia === 'si',
+            procedimiento: formValues.requiere_cirugia === 'si' ? formValues.procedimiento : null
+          };
 
-    function generarFormularioAtencion(consulta) {
-      return `
-        <div class="text-start">
-          <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-            <strong style="display: block; margin-bottom: 5px; color: #2c3e50;">Paciente:</strong> ${consulta.paciente || 'Sin nombre'}<br>
-            <strong style="display: block; margin-top: 10px; margin-bottom: 5px; color: #2c3e50;">Expediente:</strong> ${consulta.numero_expediente || 'Sin número'}<br>
-            <strong style="display: block; margin-top: 10px; margin-bottom: 5px; color: #2c3e50;">Fecha de Consulta:</strong> ${formatearFecha(consulta.fecha)} - ${consulta.hora || 'Sin hora'}
-          </div>
+          console.log('📤 Guardando atención médica:', datosAtencion);
 
-          <div class="mb-3">
-            <label class="form-label" style="font-weight: 600; color: #2c3e50;">Motivo de Consulta:</label>
-            <textarea id="motivo" class="form-control" placeholder="Describe el motivo por el cual el paciente acude a consulta" style="min-height: 80px;" required></textarea>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label" style="font-weight: 600; color: #2c3e50;">Diagnóstico:</label>
-            <textarea id="diagnostico" class="form-control" placeholder="Diagnóstico médico del paciente" style="min-height: 80px;" required></textarea>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label" style="font-weight: 600; color: #2c3e50;">Observaciones Clínicas:</label>
-            <textarea id="observaciones" class="form-control" placeholder="Observaciones adicionales, hallazgos relevantes" style="min-height: 80px;"></textarea>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label" style="font-weight: 600; color: #2c3e50;">Tratamiento / Indicaciones:</label>
-            <textarea id="tratamiento" class="form-control" placeholder="Tratamiento prescrito, medicamentos, indicaciones al paciente" style="min-height: 80px;" required></textarea>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label" style="font-weight: 600; color: #2c3e50;">¿Requiere procedimiento o cirugía?</label>
-            <select id="requiere_cirugia" class="form-select">
-              <option value="no">No</option>
-              <option value="si">Sí</option>
-            </select>
-          </div>
-
-          <div class="mb-3" id="tipo-procedimiento" style="display: none;">
-            <label class="form-label" style="font-weight: 600; color: #2c3e50;">Tipo de Procedimiento:</label>
-            <input type="text" id="procedimiento" class="form-control" placeholder="Ej: Facoemulsificación, Vitrectomía, etc.">
-          </div>
-        </div>
-      `;
-    }
-
-    function validarFormularioAtencion() {
-      const motivo = document.getElementById('motivo').value;
-      const diagnostico = document.getElementById('diagnostico').value;
-      const tratamiento = document.getElementById('tratamiento').value;
-      const requiere_cirugia = document.getElementById('requiere_cirugia').value;
-      const procedimiento = document.getElementById('procedimiento').value;
-
-      if (!motivo || !diagnostico || !tratamiento) {
-        Swal.showValidationMessage('Por favor completa todos los campos obligatorios');
-        return false;
-      }
-
-      if (requiere_cirugia === 'si' && !procedimiento) {
-        Swal.showValidationMessage('Si requiere cirugía, debes especificar el tipo de procedimiento');
-        return false;
-      }
-
-      return { motivo, diagnostico, observaciones: document.getElementById('observaciones').value, tratamiento, requiere_cirugia, procedimiento };
-    }
-
-    async function guardarAtencion(consultaId, formValues) {
-      try {
-        mostrarCargando('Guardando atención médica...');
-        
-        const datosAtencion = {
-          consulta_id: consultaId,
-          motivo: formValues.motivo,
-          diagnostico: formValues.diagnostico,
-          observaciones: formValues.observaciones,
-          tratamiento: formValues.tratamiento,
-          requiere_cirugia: formValues.requiere_cirugia === 'si',
-          procedimiento: formValues.requiere_cirugia === 'si' ? formValues.procedimiento : null
-        };
-
-        const respPost = await fetch(`${API_BASE}/atencion_consultas`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(datosAtencion)
-        });
-
-        if (respPost.ok) {
-          await fetch(`${API_BASE}/consultas/${consultaId}/atender`, {
-            method: 'PUT'
+          const respPost = await fetch('/api/atencion_consultas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datosAtencion)
           });
 
-          Swal.fire({
-            icon: 'success',
-            title: '¡Consulta Atendida!',
-            text: 'La información médica ha sido guardada correctamente',
-            timer: 2000,
-            showConfirmButton: false
-          });
+          if (respPost.ok) {
+            await fetch(`/api/consultas/${consultaId}/atender`, {
+              method: 'PUT'
+            });
 
-          cargarConsultas();
-        } else {
-          const errorData = await respPost.json();
-          throw new Error(errorData.error || 'No se pudo guardar la atención');
+            Swal.fire({
+              icon: 'success',
+              title: '¡Consulta Atendida!',
+              text: 'La información médica ha sido guardada correctamente',
+              timer: 2000,
+              showConfirmButton: false
+            });
+
+            cargarConsultas();
+          } else {
+            const errorData = await respPost.json();
+            console.error('❌ Error del servidor:', errorData);
+            mostrarError('Error', errorData.error || 'No se pudo guardar la atención');
+          }
         }
+
       } catch (err) {
-        console.error('Error guardando atención:', err);
-        mostrarError('Error', err.message);
+        console.error('❌ Error atendiendo consulta:', err);
+        mostrarError('Error', 'Ocurrió un error al atender la consulta: ' + err.message);
       }
     }
 
-    // ====================== FUNCIONES ADICIONALES ======================
+    // ====================== VER DATOS DE CONSULTA ATENDIDA ======================
     async function verDatosConsulta(consultaId) {
       try {
-        mostrarCargando('Cargando datos de consulta...');
-        
-        const resp = await fetch(`${API_BASE}/atencion_consultas/${consultaId}`);
+        const resp = await fetch(`/api/atencion_consultas/${consultaId}`);
         
         if (!resp.ok) {
-          throw new Error('No se encontraron datos de atención para esta consulta');
+          mostrarError('Error', 'No se encontraron datos de atención para esta consulta');
+          return;
         }
 
         const atencion = await resp.json();
-        Swal.close();
-        
-        mostrarDatosConsulta(atencion);
-        
+
+        Swal.fire({
+          title: 'Datos de la Consulta Atendida',
+          width: '800px',
+          html: `
+            <div class="text-start" style="max-height: 500px; overflow-y: auto;">
+              <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <h5 style="color: #2c3e50; margin-bottom: 10px;">Información de la Atención</h5>
+                <p><strong>Fecha de atención:</strong> ${new Date(atencion.created_at).toLocaleString('es-MX')}</p>
+              </div>
+
+              <div class="mb-3">
+                <strong style="color: #2c3e50;">Motivo de Consulta:</strong>
+                <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">${atencion.motivo}</p>
+              </div>
+
+              <div class="mb-3">
+                <strong style="color: #2c3e50;">Diagnóstico:</strong>
+                <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">${atencion.diagnostico}</p>
+              </div>
+
+              ${atencion.observaciones ? `
+              <div class="mb-3">
+                <strong style="color: #2c3e50;">Observaciones:</strong>
+                <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">${atencion.observaciones}</p>
+              </div>
+              ` : ''}
+
+              <div class="mb-3">
+                <strong style="color: #2c3e50;">Tratamiento:</strong>
+                <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">${atencion.tratamiento}</p>
+              </div>
+
+              <div class="mb-3">
+                <strong style="color: #2c3e50;">Requiere Procedimiento:</strong>
+                <p style="background: ${atencion.requiere_cirugia ? '#fff3cd' : '#d4edda'}; padding: 10px; border-radius: 5px;">
+                  ${atencion.requiere_cirugia ? '✅ Sí' : '❌ No'}
+                </p>
+              </div>
+
+              ${atencion.requiere_cirugia && atencion.procedimiento ? `
+              <div class="mb-3">
+                <strong style="color: #2c3e50;">Tipo de Procedimiento:</strong>
+                <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">${atencion.procedimiento}</p>
+              </div>
+              ` : ''}
+            </div>
+          `,
+          confirmButtonText: 'Cerrar',
+          confirmButtonColor: '#3498db'
+        });
+
       } catch (err) {
         console.error('Error obteniendo datos de consulta:', err);
         mostrarError('Error', 'No se pudieron cargar los datos de la consulta');
       }
     }
 
-    function mostrarDatosConsulta(atencion) {
-      Swal.fire({
-        title: 'Datos de la Consulta Atendida',
-        width: '800px',
-        html: `
-          <div class="text-start" style="max-height: 500px; overflow-y: auto;">
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-              <h5 style="color: #2c3e50; margin-bottom: 10px;">Información de la Atención</h5>
-              <p><strong>Fecha de atención:</strong> ${new Date(atencion.created_at).toLocaleString('es-MX')}</p>
-            </div>
-
-            <div class="mb-3">
-              <strong style="color: #2c3e50;">Motivo de Consulta:</strong>
-              <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">${atencion.motivo}</p>
-            </div>
-
-            <div class="mb-3">
-              <strong style="color: #2c3e50;">Diagnóstico:</strong>
-              <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">${atencion.diagnostico}</p>
-            </div>
-
-            ${atencion.observaciones ? `
-            <div class="mb-3">
-              <strong style="color: #2c3e50;">Observaciones:</strong>
-              <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">${atencion.observaciones}</p>
-            </div>
-            ` : ''}
-
-            <div class="mb-3">
-              <strong style="color: #2c3e50;">Tratamiento:</strong>
-              <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">${atencion.tratamiento}</p>
-            </div>
-
-            <div class="mb-3">
-              <strong style="color: #2c3e50;">Requiere Procedimiento:</strong>
-              <p style="background: ${atencion.requiere_cirugia ? '#fff3cd' : '#d4edda'}; padding: 10px; border-radius: 5px;">
-                ${atencion.requiere_cirugia ? '✅ Sí' : '❌ No'}
-              </p>
-            </div>
-
-            ${atencion.requiere_cirugia && atencion.procedimiento ? `
-            <div class="mb-3">
-              <strong style="color: #2c3e50;">Tipo de Procedimiento:</strong>
-              <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">${atencion.procedimiento}</p>
-            </div>
-            ` : ''}
-          </div>
-        `,
-        confirmButtonText: 'Cerrar',
-        confirmButtonColor: '#3498db'
-      });
-    }
-
+    // ====================== IR A PAGAR (FUNCIÓN MEJORADA) ======================
     async function irAPagar(consultaId) {
       try {
+        // Mostrar confirmación al usuario
         const confirmacion = await Swal.fire({
           title: '¿Deseas crear una orden de pago para esta consulta?',
           text: "Se creará una orden médica y serás redirigido al módulo de órdenes",
@@ -961,13 +731,22 @@
         });
 
         if (!confirmacion.isConfirmed) {
-          return;
+          return; // Usuario canceló
         }
 
-        mostrarCargando('Creando orden de pago...');
+        // Mostrar indicador de carga
+        Swal.fire({
+          title: 'Procesando...',
+          html: '<i class="fas fa-spinner fa-spin fa-3x text-primary"></i><br><br>Creando orden de pago...',
+          allowOutsideClick: false,
+          showConfirmButton: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
 
         // Verificar si ya existe una orden para esta consulta
-        const respOrdenes = await fetch(`${API_BASE}/ordenes_medicas_consulta`);
+        const respOrdenes = await fetch('/api/ordenes_medicas_consulta');
         if (!respOrdenes.ok) {
           throw new Error('Error al verificar órdenes existentes');
         }
@@ -995,7 +774,7 @@
 
         } else {
           // Si no existe, crear la orden
-          const resp = await fetch(`${API_BASE}/ordenes_medicas_consulta`, {
+          const resp = await fetch("/api/ordenes_medicas_consulta", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ consultaId })
@@ -1033,7 +812,7 @@
         }
 
       } catch (err) {
-        console.error("Error procesando pago:", err);
+        console.error("❌ Error procesando pago:", err);
         
         Swal.fire({
           icon: 'error',
@@ -1048,6 +827,7 @@
       }
     }
 
+    // ====================== ELIMINAR CONSULTA ======================
     async function eliminarConsulta(consultaId) {
       try {
         const confirmacion = await Swal.fire({
@@ -1062,33 +842,30 @@
         });
 
         if (confirmacion.isConfirmed) {
-          mostrarCargando('Eliminando consulta...');
-          
           // Eliminar primero la atención (si existe)
-          await fetch(`${API_BASE}/atencion_consultas/${consultaId}`, {
+          await fetch(`/api/atencion_consultas/${consultaId}`, {
             method: 'DELETE'
           }).catch(() => {}); // Ignorar error si no existe
 
           // Eliminar la consulta
-          const resp = await fetch(`${API_BASE}/consultas/${consultaId}`, {
+          const resp = await fetch(`/api/consultas/${consultaId}`, {
             method: 'DELETE'
           });
 
           if (resp.ok) {
-            Swal.close();
             mostrarExito('Eliminado', 'La consulta ha sido eliminada correctamente');
             cargarConsultas();
           } else {
-            throw new Error('No se pudo eliminar la consulta');
+            mostrarError('Error', 'No se pudo eliminar la consulta');
           }
         }
       } catch (err) {
         console.error("Error eliminando consulta:", err);
-        mostrarError("Error", err.message || "Ocurrió un error al eliminar la consulta");
+        mostrarError("Error", "Ocurrió un error al eliminar la consulta");
       }
     }
 
-    // ====================== FUNCIONES UTILITARIAS ======================
+    // ====================== FORMATEAR FECHA ======================
     function formatearFecha(fecha) {
       if (!fecha) return 'Sin fecha';
       const f = new Date(fecha);
@@ -1099,13 +876,6 @@
     // ====================== INICIALIZACIÓN ======================
     document.addEventListener("DOMContentLoaded", () => {
       cargarConsultas();
-      
-      // Buscar al presionar Enter
-      document.getElementById('buscarExpediente')?.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-          buscarExpediente();
-        }
-      });
     });
   </script>
 </body>
