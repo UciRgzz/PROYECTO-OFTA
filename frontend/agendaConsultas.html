@@ -205,23 +205,12 @@
     .search-loading {
       display: none;
       color: var(--secondary-color);
-      font-size: 0.85rem;
-      font-weight: 600;
+      font-size: 0.9rem;
+      margin-top: 10px;
     }
 
     .search-loading.active {
-      display: inline-block;
-    }
-
-    /* Estilo para el input de búsqueda */
-    #buscarExpediente {
-      border: 2px solid #dee2e6;
-      transition: all 0.3s ease;
-    }
-
-    #buscarExpediente:focus {
-      border-color: var(--secondary-color);
-      box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.15);
+      display: block;
     }
 
     .btn-group-actions {
@@ -238,6 +227,7 @@
       .table-responsive { overflow-x: auto; }
       .card-header { font-size: 1.1rem; padding: 15px; }
     }
+
   </style>
 </head>
 <body>
@@ -251,39 +241,40 @@
       <i class="fas fa-check-circle"></i> <span id="successMessage">Operación realizada correctamente.</span>
     </div>
 
-    <!-- ===== SECCIÓN DE BÚSQUEDA DE EXPEDIENTE CON BÚSQUEDA EN TIEMPO REAL ===== -->
-    <div class="card">
-      <div class="card-header"><i class="fas fa-search"></i> Buscar Paciente para Agendar</div>
-      <div class="card-body">
-        <div class="busqueda-expediente">
-          <div class="position-relative">
-            <input 
-              type="text" 
-              class="form-control form-control-lg" 
-              id="buscarExpediente" 
-              placeholder="Escribe para buscar por número de expediente o nombre del paciente..."
-              autocomplete="off"
-              style="padding-right: 40px;"
-            >
-            <!-- Ícono de búsqueda dentro del input -->
-            <i class="fas fa-search" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #95a5a6; font-size: 1.2rem;"></i>
-          </div>
-          
-          <!-- Indicador de búsqueda y texto informativo -->
-          <div class="d-flex justify-content-between align-items-center mt-2">
-            <small class="text-muted">
-              <i class="fas fa-info-circle"></i> Los resultados aparecen automáticamente mientras escribes
-            </small>
-            <div class="search-loading" id="searchLoading">
-              <i class="fas fa-spinner fa-spin"></i> Buscando...
-            </div>
-          </div>
-          
-          <!-- Resultados de búsqueda -->
-          <div id="resultadosBusqueda" class="resultado-busqueda"></div>
+<!-- ===== SECCIÓN DE BÚSQUEDA DE EXPEDIENTE CON BÚSQUEDA EN TIEMPO REAL ===== -->
+<div class="card">
+  <div class="card-header"><i class="fas fa-search"></i> Buscar Paciente para Agendar</div>
+  <div class="card-body">
+    <div class="busqueda-expediente">
+      <div class="position-relative">
+        <input 
+          type="text" 
+          class="form-control form-control-lg" 
+          id="buscarExpediente" 
+          placeholder="Escribe para buscar por número de expediente o nombre del paciente..."
+          autocomplete="off"
+          style="padding-right: 40px;"
+        >
+        <!-- Ícono de búsqueda dentro del input -->
+        <i class="fas fa-search" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #95a5a6; font-size: 1.2rem;"></i>
+      </div>
+
+      <!-- Indicador de búsqueda y texto informativo -->
+      <div class="d-flex justify-content-between align-items-center mt-2">
+        <small class="text-muted">
+          <i class="fas fa-info-circle"></i> Los resultados aparecen automáticamente mientras escribes
+        </small>
+        <div class="search-loading" id="searchLoading">
+          <i class="fas fa-spinner fa-spin"></i> Buscando...
         </div>
       </div>
+
+      <!-- Resultados de búsqueda -->
+      <div id="resultadosBusqueda" class="resultado-busqueda"></div>
     </div>
+  </div>
+</div>
+
 
     <!-- ===== TABLA DE CONSULTAS PROGRAMADAS ===== -->
     <div class="card">
@@ -459,13 +450,8 @@
         const resp = await fetch(`/api/expedientes/${numeroExpediente}`);
         const expediente = await resp.json();
 
-        // Obtener médicos disponibles
-        const respMedicos = await fetch('/api/medicos');
-        const medicos = await respMedicos.json();
-
-        const opcionesMedicos = medicos.map(m => 
-          `<option value="${m.id}">${m.nombre_completo} - ${m.especialidad}</option>`
-        ).join('');
+        // Campo manual para escribir el médico
+const opcionesMedicos = `<input type="text" id="medico-input" class="form-control" placeholder="Escribe el nombre del médico">`;
 
         const { value: formValues } = await Swal.fire({
           title: 'Agendar Consulta',
@@ -480,10 +466,9 @@
               
               <div class="mb-3">
                 <label class="form-label fw-bold">Médico:</label>
-                <select id="medico-select" class="form-select">
-                  <option value="">Selecciona un médico</option>
-                  ${opcionesMedicos}
-                </select>
+                <label class="form-label fw-bold">Médico:</label>
+${opcionesMedicos}
+
               </div>
               
               <div class="mb-3">
@@ -504,7 +489,7 @@
           confirmButtonColor: '#3498db',
           width: '600px',
           preConfirm: () => {
-            const medico = document.getElementById('medico-select').value;
+            const medico = document.getElementById('medico-input').value.trim();
             const fecha = document.getElementById('fecha-input').value;
             const hora = document.getElementById('hora-input').value;
             
