@@ -2995,20 +2995,7 @@ app.get('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-// ==================== MÉDICOS ====================
-app.get('/api/medicos', verificarSesion, async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT id, nombre_completo, especialidad
-      FROM medicos
-      ORDER BY nombre_completo ASC
-    `);
-    res.json(result.rows);
-  } catch (err) {
-    console.error('❌ Error en GET /api/medicos:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
+
 
 
 
