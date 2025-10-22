@@ -2995,6 +2995,31 @@ app.get('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// ==================== MÉDICOS ====================
+app.get('/api/medicos', verificarSesion, async (req, res) => {
+  try {
+    let depto = getDepartamento(req);
+
+    const result = await pool.query(`
+      SELECT 
+        id, 
+        nombre_completo, 
+        especialidad 
+      FROM medicos 
+      WHERE departamento = $1 
+      ORDER BY nombre_completo ASC
+    `, [depto]);
+
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error('❌ Error en GET /api/medicos:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
 
 // ==================== MODULO DE GESTIÓN DE PERMISOS ====================
 // Listar usuarios (para asignar módulos)
