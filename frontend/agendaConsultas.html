@@ -215,6 +215,17 @@
       .table-responsive { overflow-x: auto; }
       .card-header { font-size: 1.1rem; padding: 15px; }
     }
+    .search-loading {
+  display: none;
+  color: var(--secondary-color);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.search-loading.active {
+  display: inline-block;
+}
+
+
   </style>
 </head>
 <body>
@@ -228,32 +239,38 @@
       <i class="fas fa-check-circle"></i> <span id="successMessage">Operación realizada correctamente.</span>
     </div>
 
-    <!-- ===== SECCIÓN DE BÚSQUEDA DE EXPEDIENTE ===== -->
-    <div class="card">
-      <div class="card-header"><i class="fas fa-search"></i> Buscar Paciente para Agendar</div>
-      <div class="card-body">
-        <div class="busqueda-expediente">
-          <div class="row">
-            <div class="col-md-8">
-              <input 
-                type="text" 
-                class="form-control form-control-lg" 
-                id="buscarExpediente" 
-                placeholder="Buscar por número de expediente o nombre del paciente..."
-              >
-            </div>
-            <div class="col-md-4">
-              <button class="btn btn-primary w-100" onclick="buscarExpediente()">
-                <i class="fas fa-search"></i> Buscar
-              </button>
-            </div>
-          </div>
-          
-          <!-- Resultados de búsqueda -->
-          <div id="resultadosBusqueda" class="resultado-busqueda"></div>
+<!-- ===== SECCIÓN DE BÚSQUEDA DE EXPEDIENTE CON BÚSQUEDA AUTOMÁTICA ===== -->
+<div class="card">
+  <div class="card-header"><i class="fas fa-search"></i> Buscar Paciente para Agendar</div>
+  <div class="card-body">
+    <div class="busqueda-expediente">
+      <div class="position-relative">
+        <input 
+          type="text" 
+          class="form-control form-control-lg" 
+          id="buscarExpediente" 
+          placeholder="Escribe para buscar por número de expediente o nombre del paciente..."
+          autocomplete="off"
+          style="padding-right: 40px;"
+        >
+        <i class="fas fa-search" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #95a5a6; font-size: 1.2rem;"></i>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center mt-2">
+        <small class="text-muted">
+          <i class="fas fa-info-circle"></i> Los resultados aparecen automáticamente mientras escribes
+        </small>
+        <div class="search-loading" id="searchLoading">
+          <i class="fas fa-spinner fa-spin"></i> Buscando...
         </div>
       </div>
+
+      <!-- Resultados -->
+      <div id="resultadosBusqueda" class="resultado-busqueda"></div>
     </div>
+  </div>
+</div>
+
 
     <!-- ===== TABLA DE CONSULTAS PROGRAMADAS ===== -->
     <div class="card">
@@ -874,9 +891,85 @@ async function cargarConsultas() {
     }
 
     // ====================== INICIALIZACIÓN ======================
-    document.addEventListener("DOMContentLoaded", () => {
-      cargarConsultas();
-    });
+document.addEventListener("DOMContentLoaded", () => {
+  cargarConsultas();
+  inicializarBusquedaEnTiempoReal(); // activa búsqueda automática
+});
+
+
+    // ====================== BÚSQUEDA EN TIEMPO REAL CON DEBOUNCE ======================
+let searchTimeout = null;
+
+function inicializarBusquedaEnTiempoReal() {
+  const inputBusqueda = document.getElementById('buscarExpediente');
+  const loading = document.getElementById('searchLoading');
+
+  inputBusqueda.addEventListener('input', function() {
+    if (searchTimeout) clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      buscarExpediente(true);
+    }, 500);
+  });
+
+  inputBusqueda.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (searchTimeout) clearTimeout(searchTimeout);
+      buscarExpediente(false);
+    }
+  });
+}
+
+// Modificar función buscarExpediente para mostrar indicador
+async function buscarExpediente(esAutomatico = false) {
+  const query = document.getElementById('buscarExpediente').value.trim();
+  const contenedor = document.getElementById('resultadosBusqueda');
+  const loading = document.getElementById('searchLoading');
+
+  if (!query) {
+    contenedor.innerHTML = '';
+    return;
+  }
+
+  if (esAutomatico) loading.classList.add('active');
+
+  try {
+    const resp = await fetch(`/api/expedientes/buscar?q=${encodeURIComponent(query)}`);
+    const expedientes = await resp.json();
+    loading.classList.remove('active');
+
+    if (expedientes.length === 0) {
+      contenedor.innerHTML = `
+        <div class="alert alert-warning mt-3">
+          <i class="fas fa-exclamation-triangle"></i> No se encontraron expedientes con ese criterio
+        </div>
+      `;
+      return;
+    }
+
+    contenedor.innerHTML = expedientes.map(exp => `
+      <div class="expediente-item" onclick="seleccionarExpediente(${exp.numero_expediente})">
+        <div class="expediente-info">
+          <strong>${exp.nombre_completo}</strong>
+          <small>
+            <i class="fas fa-id-card"></i> Expediente: ${exp.numero_expediente} | 
+            <i class="fas fa-phone"></i> ${exp.telefono1 || 'Sin teléfono'} | 
+            <i class="fas fa-birthday-cake"></i> ${exp.edad || 'Sin edad'} años
+          </small>
+        </div>
+        <button class="btn btn-primary btn-sm">
+          <i class="fas fa-calendar-plus"></i> Agendar
+        </button>
+      </div>
+    `).join('');
+
+  } catch (err) {
+    loading.classList.remove('active');
+    console.error('Error buscando expediente:', err);
+    mostrarError('Error', 'No se pudo realizar la búsqueda');
+  }
+}
+
   </script>
 </body>
 </html>
