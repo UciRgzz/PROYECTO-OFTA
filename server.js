@@ -2461,6 +2461,99 @@ app.get('/api/expedientes/detalle/:numero', verificarSesion, async (req, res) =>
 });
 
 
+//======MODULO DE AGENDA DE CONSULTAS MÉDICAS======//
+// ==================== BÚSQUEDA DE EXPEDIENTES (para agenda de consultas) ====================
+app.get('/api/expedientes/buscar', verificarSesion, async (req, res) => {
+  try {
+    const { q } = req.query; // query de búsqueda
+    let depto = getDepartamento(req);
+
+    if (!q || q.trim() === '') {
+      return res.status(400).json({ error: 'Debe proporcionar un término de búsqueda' });
+    }
+
+    const query = `
+      SELECT 
+        id,
+        numero_expediente,
+        nombre_completo,
+        telefono1,
+        telefono2,
+        edad,
+        ciudad,
+        fecha_nacimiento,
+        padecimientos,
+        colonia
+      FROM expedientes
+      WHERE departamento = $1
+        AND (
+          numero_expediente::text ILIKE $2 
+          OR nombre_completo ILIKE $2
+        )
+      ORDER BY nombre_completo ASC
+      LIMIT 20
+    `;
+
+    const result = await pool.query(query, [depto, `%${q}%`]);
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error('Error en /api/expedientes/buscar:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ==================== OBTENER UN EXPEDIENTE POR ID ====================
+app.get('/api/expedientes/:id', verificarSesion, async (req, res) => {
+  try {
+    const { id } = req.params;
+    let depto = getDepartamento(req);
+
+    const result = await pool.query(
+      `SELECT * FROM expedientes WHERE id = $1 AND departamento = $2`,
+      [id, depto]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Expediente no encontrado' });
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error('Error en /api/expedientes/:id:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ==================== OBTENER UN EXPEDIENTE POR NUMERO_EXPEDIENTE (para agendar) ====================
+app.get('/api/expedientes/detalle/:numero', verificarSesion, async (req, res) => {
+  try {
+    const { numero } = req.params;
+    let depto = getDepartamento(req);
+
+    console.log('🔍 Buscando expediente número:', numero, 'en departamento:', depto);
+
+    const result = await pool.query(
+      `SELECT * FROM expedientes WHERE numero_expediente = $1 AND departamento = $2`,
+      [parseInt(numero), depto]
+    );
+
+    if (result.rows.length === 0) {
+      console.log('❌ Expediente no encontrado');
+      return res.status(404).json({ error: 'Expediente no encontrado' });
+    }
+
+    console.log('✅ Expediente encontrado:', result.rows[0].nombre_completo);
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error('❌ Error en /api/expedientes/detalle/:numero:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 // ==================== MODULO DE AGENDA DE CONSULTAS ====================
 // Obtener todas las consultas
 app.get('/api/consultas', verificarSesion, async (req, res) => {
@@ -2839,7 +2932,7 @@ app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
     });
 
   } catch (err) {
-    console.error('❌ Error en POST /api/ordenes_medicas:', err);
+    console.error('❌ Error en POST /api/ordenes_medicas_consulta:', err);
     
     // Manejar error específico de clave foránea
     if (err.code === '23503') {
@@ -2856,26 +2949,25 @@ app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== OBTENER TODAS LAS ÓRDENES MÉDICAS ====================
-app.get('/api/ordenes_medicas', verificarSesion, async (req, res) => {
+// ==================== OBTENER ÓRDENES MÉDICAS DE CONSULTAS ====================
+app.get('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
   try {
     let depto = getDepartamento(req);
 
     const result = await pool.query(`
       SELECT * FROM ordenes_medicas 
       WHERE departamento = $1 
+        AND origen = 'CONSULTA'
       ORDER BY id DESC
     `, [depto]);
 
     res.json(result.rows);
 
   } catch (err) {
-    console.error('Error en GET /api/ordenes_medicas:', err);
+    console.error('Error en GET /api/ordenes_medicas_consulta:', err);
     res.status(500).json({ error: err.message });
   }
 });
-
-
 
 // ==================== MODULO DE GESTIÓN DE PERMISOS ====================
 // Listar usuarios (para asignar módulos)
