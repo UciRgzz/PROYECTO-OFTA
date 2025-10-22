@@ -309,6 +309,21 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <script>
+    let rolUsuario = null;
+
+  //======================= OBTENER ROL DE USUARIO ======================
+    async function obtenerRolUsuario() {
+  try {
+    const resp = await fetch('/api/check-session');
+    const data = await resp.json();
+    rolUsuario = data.usuario?.rol || 'usuario';
+  } catch (err) {
+    console.error('Error obteniendo rol:', err);
+    rolUsuario = 'usuario';
+  }
+}
+
+
     // ====================== FUNCIONES DE NOTIFICACIÓN ====================
     function mostrarExito(titulo, mensaje) {
       document.getElementById('successMessage').textContent = mensaje;
@@ -400,7 +415,7 @@
         }
         
         const expediente = await resp.json();
-        console.log('✅ Expediente recibido:', expediente);
+        console.log(' Expediente recibido:', expediente);
 
         const { value: formValues } = await Swal.fire({
           title: 'Agendar Consulta',
@@ -477,13 +492,13 @@
             cargarConsultas();
           } else {
             const errorData = await respPost.json();
-            console.error('❌ Error del servidor:', errorData);
+            console.error(' Error del servidor:', errorData);
             mostrarError('Error', errorData.error || 'No se pudo agendar la consulta');
           }
         }
 
       } catch (err) {
-        console.error('❌ Error agendando consulta:', err);
+        console.error(' Error agendando consulta:', err);
         mostrarError('Error', 'Ocurrió un error al agendar la consulta: ' + err.message);
       }
     }
@@ -526,9 +541,12 @@ async function cargarConsultas() {
               <button class="btn btn-warning btn-sm" onclick="irAPagar(${c.id})">
                 <i class="fas fa-dollar-sign"></i> Pagar
               </button>
-              <button class="btn btn-danger btn-sm" onclick="eliminarConsulta(${c.id})">
-                <i class="fas fa-trash"></i> Eliminar
-              </button>`
+              ${rolUsuario === 'admin' ? `
+  <button class="btn btn-danger btn-sm" onclick="eliminarConsulta(${c.id})">
+    <i class="fas fa-trash"></i> Eliminar
+  </button>
+` : ''}
+`
             }
           </div>
         </td>
@@ -891,10 +909,12 @@ async function cargarConsultas() {
     }
 
     // ====================== INICIALIZACIÓN ======================
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  await obtenerRolUsuario(); // primero detecta si es admin
   cargarConsultas();
-  inicializarBusquedaEnTiempoReal(); // activa búsqueda automática
+  inicializarBusquedaEnTiempoReal();
 });
+
 
 
     // ====================== BÚSQUEDA EN TIEMPO REAL CON DEBOUNCE ======================
