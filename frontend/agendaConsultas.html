@@ -515,6 +515,8 @@ async function cargarConsultas() {
   try {
     const resp = await fetch("/api/consultas");
     const consultas = await resp.json();
+    const respOrdenes = await fetch('/api/ordenes_medicas_consulta');
+    const ordenes = respOrdenes.ok ? await respOrdenes.json() : [];
     const tbody = document.getElementById("tabla-consultas");
     tbody.innerHTML = "";
 
@@ -524,12 +526,13 @@ async function cargarConsultas() {
     }
 
     consultas.forEach(c => {
+      const tieneOrden = ordenes.some(o => o.consulta_id === c.id);
       const fila = document.createElement("tr");
       fila.innerHTML = `
         <td>${c.id}</td>
         <td>${c.paciente}</td>
         <td>${formatearFecha(c.fecha)}</td>
-        <td>${c.hora || '-'}</td>
+        <td>${formatearHora12h(c.hora)}</td>
         <td>${c.medico}</td>
         <td>
           <span class="badge bg-${c.estado === 'Pendiente' ? 'warning' : 'success'}">
@@ -538,34 +541,46 @@ async function cargarConsultas() {
         </td>
         <td>
           <div class="btn-group-actions">
-            ${c.estado === 'Pendiente' ?
-              `<button class="btn btn-success btn-sm" onclick="atenderConsulta(${c.id}, '${c.paciente}', ${c.numero_expediente}, '${c.fecha}', '${c.hora}')">
+            ${c.estado === 'Pendiente' ? `
+              <button class="btn btn-success btn-sm" onclick="atenderConsulta(${c.id}, '${c.paciente}', ${c.numero_expediente}, '${c.fecha}', '${c.hora}')">
                 <i class="fas fa-stethoscope"></i> Atender
-              </button>` :
-              `<button class="btn btn-info btn-sm" onclick=" verDatosConsulta(${c.id})">
+              </button>` 
+            : `
+              <button class="btn btn-info btn-sm" onclick="verDatosConsulta(${c.id})">
                 <i class="fas fa-eye"></i> Ver Datos
               </button>
-              <button class="btn btn-warning btn-sm" onclick=" irAPagar(${c.id})">
-                <i class="fas fa-dollar-sign"></i> Pagar
-              </button>
+              ${tieneOrden 
+                ? `<span class="badge bg-secondary p-2">Enviado</span>` 
+                : `<button class="btn btn-warning btn-sm" onclick="irAPagar(${c.id})">
+                     <i class="fas fa-dollar-sign"></i> Pagar
+                   </button>`}
               ${rolUsuario === 'admin' ? `
-  <button class="btn btn-danger btn-sm" onclick="eliminarConsulta(${c.id})">
-    <i class="fas fa-trash"></i> Eliminar
-  </button>
-` : ''}
-`
-            }
+                <button class="btn btn-danger btn-sm" onclick="eliminarConsulta(${c.id})">
+                  <i class="fas fa-trash"></i> Eliminar
+                </button>` : ''
+              }
+            `}
           </div>
         </td>
       `;
       tbody.appendChild(fila);
     });
-
   } catch (err) {
     console.error("Error cargando consultas:", err);
     mostrarError("Error", "No se pudieron cargar las consultas");
   }
 }
+
+// ====================== FORMATEAR HORA EN 12 HORAS ======================
+function formatearHora12h(hora24) {
+  if (!hora24) return "-";
+  const [hora, minutos] = hora24.split(":");
+  let h = parseInt(hora);
+  const ampm = h >= 12 ? "p.m." : "a.m.";
+  h = h % 12 || 12;
+  return `${h}:${minutos} ${ampm}`;
+}
+
 
     // ====================== ATENDER CONSULTA ======================
     async function atenderConsulta(consultaId, paciente, numero_expediente, fecha, hora) {
