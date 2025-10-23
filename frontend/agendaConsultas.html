@@ -529,7 +529,7 @@ async function cargarConsultas() {
         <td>${c.id}</td>
         <td>${c.paciente}</td>
         <td>${formatearFecha(c.fecha)}</td>
-        <td>${c.hora || '-'}</td>
+        <td>${formatearHora12h(c.hora)}</td>
         <td>${c.medico}</td>
         <td>
           <span class="badge bg-${c.estado === 'Pendiente' ? 'warning' : 'success'}">
@@ -715,7 +715,7 @@ const datosAtencion = {
             <div class="text-start" style="max-height: 500px; overflow-y: auto;">
               <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                 <h5 style="color: #2c3e50; margin-bottom: 10px;">Información de la Atención</h5>
-                <p><strong>Fecha de atención:</strong> ${new Date(atencion.created_at).toLocaleString('es-MX')}</p>
+                <p><strong>Fecha de atención:</strong> ${formatearFechaHora(atencion.fecha_atencion || atencion.created_at)}</p>
               </div>
 
               <div class="mb-3">
@@ -916,6 +916,7 @@ const datosAtencion = {
     }
 
     // ====================== FORMATEAR FECHA ======================
+    // ====================== FORMATEAR FECHA ======================
     function formatearFecha(fecha) {
       if (!fecha) return 'Sin fecha';
       
@@ -928,6 +929,90 @@ const datosAtencion = {
       
       if (isNaN(f)) return 'Sin fecha';
       return f.toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric" });
+    }
+
+    // ====================== FORMATEAR HORA A 12 HORAS ======================
+    function formatearHora12h(hora) {
+      if (!hora) return '--:--';
+      
+      // Si la hora tiene formato HH:MM:SS, extraer solo HH:MM
+      const [horas, minutos] = hora.split(':');
+      let h = parseInt(horas);
+      const m = minutos;
+      
+      // Determinar AM o PM
+      const periodo = h >= 12 ? 'PM' : 'AM';
+      
+      // Convertir a formato 12 horas
+      h = h % 12;
+      h = h ? h : 12; // Si es 0, mostrar 12
+      
+      return `${h}:${m} ${periodo}`;
+    }
+
+    // ====================== FORMATEAR FECHA Y HORA COMPLETA ======================
+    function formatearFechaHora(fechaHora) {
+      if (!fechaHora) return 'Sin fecha';
+      
+      // Extraer fecha y hora del string
+      const fechaStr = fechaHora.split(' ')[0]; // YYYY-MM-DD
+      const horaStr = fechaHora.split(' ')[1]; // HH:MM:SS
+      
+      // Formatear fecha
+      const [año, mes, dia] = fechaStr.split('-');
+      const fecha = new Date(año, mes - 1, dia);
+      const fechaFormateada = fecha.toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric" });
+      
+      // Formatear hora
+      const horaFormateada = formatearHora12h(horaStr);
+      
+      return `${fechaFormateada}, ${horaFormateada}`;
+    }
+      const [año, mes, dia] = fechaStr.split('-');
+      
+      // Crear fecha local sin conversión UTC
+      const f = new Date(año, mes - 1, dia);
+      
+      if (isNaN(f)) return 'Sin fecha';
+      return f.toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric" });
+    }
+
+    // ====================== FORMATEAR HORA A 12 HORAS ======================
+    function formatearHora12h(hora) {
+      if (!hora) return '--:--';
+      
+      // Si la hora tiene formato HH:MM:SS, extraer solo HH:MM
+      const [horas, minutos] = hora.split(':');
+      let h = parseInt(horas);
+      const m = minutos;
+      
+      // Determinar AM o PM
+      const periodo = h >= 12 ? 'PM' : 'AM';
+      
+      // Convertir a formato 12 horas
+      h = h % 12;
+      h = h ? h : 12; // Si es 0, mostrar 12
+      
+      return `${h}:${m} ${periodo}`;
+    }
+
+    // ====================== FORMATEAR FECHA Y HORA COMPLETA ======================
+    function formatearFechaHora(fechaHora) {
+      if (!fechaHora) return 'Sin fecha';
+      
+      // Extraer fecha y hora del string
+      const fechaStr = fechaHora.split(' ')[0]; // YYYY-MM-DD
+      const horaStr = fechaHora.split(' ')[1]; // HH:MM:SS
+      
+      // Formatear fecha
+      const [año, mes, dia] = fechaStr.split('-');
+      const fecha = new Date(año, mes - 1, dia);
+      const fechaFormateada = fecha.toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric" });
+      
+      // Formatear hora
+      const horaFormateada = formatearHora12h(horaStr);
+      
+      return `${fechaFormateada}, ${horaFormateada}`;
     }
 
     // ====================== INICIALIZACIÓN ======================
