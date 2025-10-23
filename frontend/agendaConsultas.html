@@ -459,31 +459,24 @@ async function seleccionarExpediente(numeroExpediente) {
       }
     });
 
-    if (formValues) {
-      // ✅ Corregido: usar fecha limpia tipo "YYYY-MM-DD" sin desfase UTC
-// ✅ Corrección definitiva para evitar que reste un día (UTC-6)
-const fechaSeleccionada = new Date(formValues.fecha + 'T00:00:00');
-const fechaLocal = new Date(
-  fechaSeleccionada.getTime() - fechaSeleccionada.getTimezoneOffset() * 60000
-)
-  .toISOString()
-  .slice(0, 10); // "YYYY-MM-DD" sin desfase
+   if (formValues) {
+  // ✅ Mantiene la fecha exacta sin desfase
+  const fechaLocal = formValues.fecha;
 
+  const nuevaConsulta = {
+    expediente_id: parseInt(expediente.id || expediente.expediente_id || expediente.numero_expediente),
+    paciente: expediente.nombre_completo || 'Sin nombre',
+    numero_expediente: parseInt(expediente.numero_expediente || expediente.id),
+    telefono1: expediente.telefono1 || '',
+    telefono2: expediente.telefono2 || '',
+    edad: expediente.edad || null,
+    ciudad: expediente.ciudad || '',
+    fecha: fechaLocal, // ✅ exacta como la eligió el usuario
+    hora: formValues.hora,
+    medico: formValues.medico,
+    estado: 'Pendiente'
+  };
 
-
-const nuevaConsulta = {
-  expediente_id: parseInt(expediente.id || expediente.expediente_id || expediente.numero_expediente),
-  paciente: expediente.nombre_completo || 'Sin nombre',
-  numero_expediente: parseInt(expediente.numero_expediente || expediente.id),
-  telefono1: expediente.telefono1 || '',
-  telefono2: expediente.telefono2 || '',
-  edad: expediente.edad || null,
-  ciudad: expediente.ciudad || '',
-  fecha: fechaLocal, // ✅ correcta, tipo date
-  hora: formValues.hora,
-  medico: formValues.medico,
-  estado: 'Pendiente'
-};
 
 
 
