@@ -462,29 +462,27 @@
           }
         });
 
-        if (formValues) {
-          // 🔹 Ajuste local de fecha para evitar desfase UTC
-// ✅ Corregir fecha local sin usar toISOString()
-const fechaSeleccionada = new Date(formValues.fecha + 'T00:00:00');
-const año = fechaSeleccionada.getFullYear();
-const mes = String(fechaSeleccionada.getMonth() + 1).padStart(2, '0');
-const dia = String(fechaSeleccionada.getDate()).padStart(2, '0');
-const fechaLocal = `${año}-${mes}-${dia}`;
+if (formValues) {
+  // ✅ Ajuste correcto de fecha local sin desfase por UTC
+  const fechaSeleccionada = new Date(formValues.fecha + 'T00:00:00');
+  const año = fechaSeleccionada.getFullYear();
+  const mes = String(fechaSeleccionada.getMonth() + 1).padStart(2, '0');
+  const dia = String(fechaSeleccionada.getDate()).padStart(2, '0');
+  const fechaLocal = `${año}-${mes}-${dia}`; // ✅ Fecha limpia YYYY-MM-DD
 
-
-const nuevaConsulta = {
-  expediente_id: parseInt(expediente.numero_expediente),
-  paciente: expediente.nombre_completo || 'Sin nombre',
-  numero_expediente: parseInt(expediente.numero_expediente),
-  telefono1: expediente.telefono1 || '',
-  telefono2: expediente.telefono2 || '',
-  edad: expediente.edad || null,
-  ciudad: expediente.ciudad || '',
-  fecha: fechaLocal,   // ✅ Fecha corregida localmente
-  hora: formValues.hora,
-  medico: formValues.medico,
-  estado: 'Pendiente'
-};
+  const nuevaConsulta = {
+    expediente_id: parseInt(expediente.numero_expediente),
+    paciente: expediente.nombre_completo || 'Sin nombre',
+    numero_expediente: parseInt(expediente.numero_expediente),
+    telefono1: expediente.telefono1 || '',
+    telefono2: expediente.telefono2 || '',
+    edad: expediente.edad || null,
+    ciudad: expediente.ciudad || '',
+    fecha: fechaLocal, // ✅ Se guarda sin desfase
+    hora: formValues.hora,
+    medico: formValues.medico,
+    estado: 'Pendiente'
+  };
 
 
           console.log('📤 Enviando consulta:', nuevaConsulta);
@@ -709,75 +707,91 @@ const datosAtencion = {
 }
 
     // ====================== VER DATOS DE CONSULTA ATENDIDA ======================
-    async function verDatosConsulta(consultaId) {
-      try {
-        const resp = await fetch(`/api/atencion_consultas/${consultaId}`);
-        
-        if (!resp.ok) {
-          mostrarError('Error', 'No se encontraron datos de atención para esta consulta');
-          return;
-        }
+async function verDatosConsulta(consultaId) {
+  try {
+    const resp = await fetch(`/api/atencion_consultas/${consultaId}`);
+    if (!resp.ok) {
+      mostrarError('Error', 'No se encontraron datos de atención para esta consulta');
+      return;
+    }
 
-        const atencion = await resp.json();
+    const atencion = await resp.json();
 
-        Swal.fire({
-          title: 'Datos de la Consulta Atendida',
-          width: '800px',
-          html: `
-            <div class="text-start" style="max-height: 500px; overflow-y: auto;">
-              <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                <h5 style="color: #2c3e50; margin-bottom: 10px;">Información de la Atención</h5>
-                const fechaMX = new Date(atencion.created_at).toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
-<p><strong>Fecha de atención:</strong> ${fechaMX}</p>
-
-              </div>
-
-              <div class="mb-3">
-                <strong style="color: #2c3e50;">Motivo de Consulta:</strong>
-                <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">${atencion.motivo}</p>
-              </div>
-
-              <div class="mb-3">
-                <strong style="color: #2c3e50;">Diagnóstico:</strong>
-                <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">${atencion.diagnostico}</p>
-              </div>
-
-              ${atencion.observaciones ? `
-              <div class="mb-3">
-                <strong style="color: #2c3e50;">Observaciones:</strong>
-                <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">${atencion.observaciones}</p>
-              </div>
-              ` : ''}
-
-              <div class="mb-3">
-                <strong style="color: #2c3e50;">Tratamiento:</strong>
-                <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">${atencion.tratamiento}</p>
-              </div>
-
-              <div class="mb-3">
-                <strong style="color: #2c3e50;">Requiere Procedimiento:</strong>
-                <p style="background: ${atencion.requiere_cirugia ? '#fff3cd' : '#d4edda'}; padding: 10px; border-radius: 5px;">
-                  ${atencion.requiere_cirugia ? '✅ Sí' : '❌ No'}
-                </p>
-              </div>
-
-              ${atencion.requiere_cirugia && atencion.procedimiento ? `
-              <div class="mb-3">
-                <strong style="color: #2c3e50;">Tipo de Procedimiento:</strong>
-                <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">${atencion.procedimiento}</p>
-              </div>
-              ` : ''}
-            </div>
-          `,
-          confirmButtonText: 'Cerrar',
-          confirmButtonColor: '#3498db'
-        });
-
-      } catch (err) {
-        console.error('Error obteniendo datos de consulta:', err);
-        mostrarError('Error', 'No se pudieron cargar los datos de la consulta');
+    // ✅ Validar existencia y formato de la fecha
+    let fechaMX = 'Sin fecha registrada';
+    if (atencion.created_at) {
+      const fechaObj = new Date(atencion.created_at);
+      if (!isNaN(fechaObj)) {
+        fechaMX = fechaObj.toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
       }
     }
+
+    Swal.fire({
+      title: 'Datos de la Consulta Atendida',
+      width: '800px',
+      html: `
+        <div class="text-start" style="max-height: 500px; overflow-y: auto;">
+          <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+            <h5 style="color: #2c3e50; margin-bottom: 10px;">Información de la Atención</h5>
+            <p><strong>Fecha de atención:</strong> ${fechaMX}</p>
+          </div>
+
+          <div class="mb-3">
+            <strong style="color: #2c3e50;">Motivo de Consulta:</strong>
+            <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
+              ${atencion.motivo || 'No registrado'}
+            </p>
+          </div>
+
+          <div class="mb-3">
+            <strong style="color: #2c3e50;">Diagnóstico:</strong>
+            <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
+              ${atencion.diagnostico || 'No registrado'}
+            </p>
+          </div>
+
+          ${atencion.observaciones ? `
+          <div class="mb-3">
+            <strong style="color: #2c3e50;">Observaciones:</strong>
+            <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
+              ${atencion.observaciones}
+            </p>
+          </div>
+          ` : ''}
+
+          <div class="mb-3">
+            <strong style="color: #2c3e50;">Tratamiento:</strong>
+            <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
+              ${atencion.tratamiento || 'No registrado'}
+            </p>
+          </div>
+
+          <div class="mb-3">
+            <strong style="color: #2c3e50;">Requiere Procedimiento:</strong>
+            <p style="background: ${atencion.requiere_cirugia ? '#fff3cd' : '#d4edda'}; padding: 10px; border-radius: 5px;">
+              ${atencion.requiere_cirugia ? '✅ Sí' : '❌ No'}
+            </p>
+          </div>
+
+          ${atencion.requiere_cirugia && atencion.procedimiento ? `
+          <div class="mb-3">
+            <strong style="color: #2c3e50;">Tipo de Procedimiento:</strong>
+            <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
+              ${atencion.procedimiento}
+            </p>
+          </div>
+          ` : ''}
+        </div>
+      `,
+      confirmButtonText: 'Cerrar',
+      confirmButtonColor: '#3498db'
+    });
+
+  } catch (err) {
+    console.error('Error obteniendo datos de consulta:', err);
+    mostrarError('Error', 'No se pudieron cargar los datos de la consulta');
+  }
+}
 
     // ====================== IR A PAGAR (FUNCIÓN MEJORADA) ======================
     async function irAPagar(consultaId) {
