@@ -461,9 +461,14 @@ async function seleccionarExpediente(numeroExpediente) {
 
     if (formValues) {
       // ✅ Corregido: usar fecha limpia tipo "YYYY-MM-DD" sin desfase UTC
-// ✅ Corregido: crear fecha sin conversión a UTC
-const fechaSeleccionada = formValues.fecha; // viene como "YYYY-MM-DD" del input
-const fechaLocal = fechaSeleccionada; // ya está en formato correcto y sin desfase
+// ✅ Corrección definitiva para evitar que reste un día (UTC-6)
+const fechaSeleccionada = new Date(formValues.fecha + 'T00:00:00');
+const fechaLocal = new Date(
+  fechaSeleccionada.getTime() - fechaSeleccionada.getTimezoneOffset() * 60000
+)
+  .toISOString()
+  .slice(0, 10); // "YYYY-MM-DD" sin desfase
+
 
 
 const nuevaConsulta = {
