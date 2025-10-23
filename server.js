@@ -2611,6 +2611,7 @@ app.post('/api/consultas', verificarSesion, async (req, res) => {
       expediente_id,
       paciente,
       numero_expediente,
+      fecha_recibida: fecha,  // ← Ver qué fecha llega
       departamento: depto
     });
 
@@ -2619,6 +2620,10 @@ app.post('/api/consultas', verificarSesion, async (req, res) => {
       console.error('❌ Error: expediente_id es null o undefined');
       return res.status(400).json({ error: 'El expediente_id es requerido' });
     }
+
+    // ✅ CORRECCIÓN: Asegurar que la fecha se maneje correctamente como fecha local
+    // Extraer solo la parte de la fecha (YYYY-MM-DD) sin conversión de zona horaria
+    const fechaLocal = fecha.split('T')[0]; // Esto garantiza formato YYYY-MM-DD
 
     const result = await pool.query(`
       INSERT INTO consultas (
@@ -2634,17 +2639,17 @@ app.post('/api/consultas', verificarSesion, async (req, res) => {
         medico,
         estado,
         departamento
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::date, $9, $10, $11, $12)
       RETURNING *
     `, [
-      parseInt(expediente_id),  // ✅ Asegurar que sea número
+      parseInt(expediente_id),
       paciente,
-      parseInt(numero_expediente),  // ✅ Asegurar que sea número
+      parseInt(numero_expediente),
       telefono1,
       telefono2,
       edad,
       ciudad,
-      fecha,
+      fechaLocal,  // ← CAMBIO: Usar fechaLocal en lugar de fecha
       hora,
       medico,
       estado || 'Pendiente',
