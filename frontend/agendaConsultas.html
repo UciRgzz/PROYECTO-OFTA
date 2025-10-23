@@ -941,20 +941,21 @@ async function seleccionarExpediente(numeroExpediente) {
 function formatearFecha(fecha) {
   if (!fecha) return 'Sin fecha';
   try {
-    // Si viene como "YYYY-MM-DD" (tipo DATE en Postgres)
+    // Si la fecha viene tipo "YYYY-MM-DD", interpretarla como local, no UTC
     if (typeof fecha === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
-      const [a, m, d] = fecha.split('-');
-      return `${d}/${m}/${a}`; // mostrar tal cual sin convertir
+      const [y, m, d] = fecha.split('-');
+      return `${d}/${m}/${y}`; // sin usar new Date, así evitamos el desplazamiento
     }
 
-    // Si viene en formato ISO (timestamp)
+    // Si viene en formato completo ISO
     const fechaObj = new Date(fecha);
     if (isNaN(fechaObj)) return 'Sin fecha válida';
 
-    // Evita usar timeZone para no restar horas
-    return `${String(fechaObj.getDate()).padStart(2, '0')}/${
-      String(fechaObj.getMonth() + 1).padStart(2, '0')
-    }/${fechaObj.getFullYear()}`;
+    // Crear una fecha local sin conversión de zona horaria
+    const dia = String(fechaObj.getUTCDate()).padStart(2, '0');
+    const mes = String(fechaObj.getUTCMonth() + 1).padStart(2, '0');
+    const año = fechaObj.getUTCFullYear();
+    return `${dia}/${mes}/${año}`;
   } catch (e) {
     console.error('Error formateando fecha:', e);
     return 'Sin fecha válida';
