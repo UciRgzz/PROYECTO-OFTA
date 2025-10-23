@@ -582,134 +582,132 @@ function formatearHora12h(hora24) {
 }
 
 
-    // ====================== ATENDER CONSULTA ======================
-    async function atenderConsulta(consultaId, paciente, numero_expediente, fecha, hora) {
-      try {
-        const { value: formValues } = await Swal.fire({
-          title: 'Atender Consulta',
-          width: '800px',
-          html: `
-            <div class="text-start">
-              <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                <strong style="display: block; margin-bottom: 5px; color: #2c3e50;">Paciente:</strong> ${paciente || 'Sin nombre'}<br>
-                <strong style="display: block; margin-top: 10px; margin-bottom: 5px; color: #2c3e50;">Expediente:</strong> ${numero_expediente || 'Sin número'}<br>
-                <strong style="display: block; margin-top: 10px; margin-bottom: 5px; color: #2c3e50;">Fecha de Consulta:</strong> ${formatearFecha(fecha)} - ${hora || 'Sin hora'}
-              </div>
+   // ====================== ATENDER CONSULTA ======================
+async function atenderConsulta(consultaId, paciente, numero_expediente, fecha, hora) {
+  try {
+    const { value: formValues } = await Swal.fire({
+      title: 'Atender Consulta',
+      width: '800px',
+      html: `
+        <div class="text-start">
+          <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <strong style="display: block; margin-bottom: 5px; color: #2c3e50;">Paciente:</strong> ${paciente || 'Sin nombre'}<br>
+            <strong style="display: block; margin-top: 10px; margin-bottom: 5px; color: #2c3e50;">Expediente:</strong> ${numero_expediente || 'Sin número'}<br>
+            <strong style="display: block; margin-top: 10px; margin-bottom: 5px; color: #2c3e50;">Fecha de Consulta:</strong> ${formatearFecha(fecha)} - ${hora || 'Sin hora'}
+          </div>
 
-              <div class="mb-3">
-                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Motivo de Consulta:</label>
-                <textarea id="motivo" class="form-control" placeholder="Describe el motivo por el cual el paciente acude a consulta" style="min-height: 80px;" required></textarea>
-              </div>
+          <div class="mb-3">
+            <label class="form-label" style="font-weight: 600; color: #2c3e50;">Motivo de Consulta:</label>
+            <textarea id="motivo" class="form-control" placeholder="Describe el motivo por el cual el paciente acude a consulta" style="min-height: 80px;" required></textarea>
+          </div>
 
-              <div class="mb-3">
-                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Diagnóstico:</label>
-                <textarea id="diagnostico" class="form-control" placeholder="Diagnóstico médico del paciente" style="min-height: 80px;" required></textarea>
-              </div>
+          <div class="mb-3">
+            <label class="form-label" style="font-weight: 600; color: #2c3e50;">Diagnóstico:</label>
+            <textarea id="diagnostico" class="form-control" placeholder="Diagnóstico médico del paciente" style="min-height: 80px;" required></textarea>
+          </div>
 
-              <div class="mb-3">
-                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Observaciones Clínicas:</label>
-                <textarea id="observaciones" class="form-control" placeholder="Observaciones adicionales, hallazgos relevantes" style="min-height: 80px;"></textarea>
-              </div>
+          <div class="mb-3">
+            <label class="form-label" style="font-weight: 600; color: #2c3e50;">Observaciones Clínicas:</label>
+            <textarea id="observaciones" class="form-control" placeholder="Observaciones adicionales, hallazgos relevantes" style="min-height: 80px;"></textarea>
+          </div>
 
-              <div class="mb-3">
-                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Tratamiento / Indicaciones:</label>
-                <textarea id="tratamiento" class="form-control" placeholder="Tratamiento prescrito, medicamentos, indicaciones al paciente" style="min-height: 80px;" required></textarea>
-              </div>
+          <div class="mb-3">
+            <label class="form-label" style="font-weight: 600; color: #2c3e50;">Tratamiento / Indicaciones:</label>
+            <textarea id="tratamiento" class="form-control" placeholder="Tratamiento prescrito, medicamentos, indicaciones al paciente" style="min-height: 80px;" required></textarea>
+          </div>
 
-              <div class="mb-3">
-                <label class="form-label" style="font-weight: 600; color: #2c3e50;">¿Requiere procedimiento o cirugía?</label>
-                <select id="requiere_cirugia" class="form-select">
-                  <option value="no">No</option>
-                  <option value="si">Sí</option>
-                </select>
-              </div>
+          <div class="mb-3">
+            <label class="form-label" style="font-weight: 600; color: #2c3e50;">¿Requiere procedimiento o cirugía?</label>
+            <select id="requiere_cirugia" class="form-select">
+              <option value="no">No</option>
+              <option value="si">Sí</option>
+            </select>
+          </div>
 
-              <div class="mb-3" id="tipo-procedimiento" style="display: none;">
-                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Tipo de Procedimiento:</label>
-                <input type="text" id="procedimiento" class="form-control" placeholder="Ej: Facoemulsificación, Vitrectomía, etc.">
-              </div>
-            </div>
-          `,
-          focusConfirm: false,
-          showCancelButton: true,
-          confirmButtonText: '<i class="fas fa-check"></i> Guardar Atención',
-          cancelButtonText: 'Cancelar',
-          didOpen: () => {
-            document.getElementById('requiere_cirugia').addEventListener('change', (e) => {
-              const tipoProcDiv = document.getElementById('tipo-procedimiento');
-              tipoProcDiv.style.display = e.target.value === 'si' ? 'block' : 'none';
-            });
-          },
-          preConfirm: () => {
-            const motivo = document.getElementById('motivo').value;
-            const diagnostico = document.getElementById('diagnostico').value;
-            const observaciones = document.getElementById('observaciones').value;
-            const tratamiento = document.getElementById('tratamiento').value;
-            const requiere_cirugia = document.getElementById('requiere_cirugia').value;
-            const procedimiento = document.getElementById('procedimiento').value;
-
-            if (!motivo || !diagnostico || !tratamiento) {
-              Swal.showValidationMessage('Por favor completa todos los campos obligatorios');
-              return false;
-            }
-
-            return { motivo, diagnostico, observaciones, tratamiento, requiere_cirugia, procedimiento };
-          }
+          <div class="mb-3" id="tipo-procedimiento" style="display: none;">
+            <label class="form-label" style="font-weight: 600; color: #2c3e50;">Tipo de Procedimiento:</label>
+            <input type="text" id="procedimiento" class="form-control" placeholder="Ej: Facoemulsificación, Vitrectomía, etc.">
+          </div>
+        </div>
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: '<i class="fas fa-check"></i> Guardar Atención',
+      cancelButtonText: 'Cancelar',
+      didOpen: () => {
+        document.getElementById('requiere_cirugia').addEventListener('change', (e) => {
+          const tipoProcDiv = document.getElementById('tipo-procedimiento');
+          tipoProcDiv.style.display = e.target.value === 'si' ? 'block' : 'none';
         });
+      },
+      preConfirm: () => {
+        const motivo = document.getElementById('motivo').value;
+        const diagnostico = document.getElementById('diagnostico').value;
+        const observaciones = document.getElementById('observaciones').value;
+        const tratamiento = document.getElementById('tratamiento').value;
+        const requiere_cirugia = document.getElementById('requiere_cirugia').value;
+        const procedimiento = document.getElementById('procedimiento').value;
 
-        if (formValues) {
-         // 🔹 Asegurar fecha local exacta
-const hoy = new Date();
-const fechaLocal = new Date(hoy.getTime() - hoy.getTimezoneOffset() * 60000)
-  .toISOString()
-  .split("T")[0];
-
-const datosAtencion = {
-  consulta_id: consultaId,
-  motivo: formValues.motivo,
-  diagnostico: formValues.diagnostico,
-  observaciones: formValues.observaciones,
-  tratamiento: formValues.tratamiento,
-  requiere_cirugia: formValues.requiere_cirugia === 'si',
-  procedimiento: formValues.requiere_cirugia === 'si' ? formValues.procedimiento : null,
-  fecha: fechaLocal  // ✅ añade fecha local al registro
-};
-
-
-          console.log('📤 Guardando atención médica:', datosAtencion);
-
-          const respPost = await fetch('/api/atencion_consultas', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(datosAtencion)
-          });
-
-          if (respPost.ok) {
-            await fetch(`/api/consultas/${consultaId}/atender`, {
-              method: 'PUT'
-            });
-
-            Swal.fire({
-              icon: 'success',
-              title: '¡Consulta Atendida!',
-              text: 'La información médica ha sido guardada correctamente',
-              timer: 2000,
-              showConfirmButton: false
-            });
-
-            cargarConsultas();
-          } else {
-            const errorData = await respPost.json();
-            console.error('❌ Error del servidor:', errorData);
-            mostrarError('Error', errorData.error || 'No se pudo guardar la atención');
-          }
+        if (!motivo || !diagnostico || !tratamiento) {
+          Swal.showValidationMessage('Por favor completa todos los campos obligatorios');
+          return false;
         }
 
-      } catch (err) {
-        console.error('❌ Error atendiendo consulta:', err);
-        mostrarError('Error', 'Ocurrió un error al atender la consulta: ' + err.message);
+        return { motivo, diagnostico, observaciones, tratamiento, requiere_cirugia, procedimiento };
+      }
+    });
+
+    if (formValues) {
+      // 🔹 Corregir desfase de fecha y hora local
+      const ahora = new Date();
+      const offsetMs = ahora.getTimezoneOffset() * 60000; // minutos → milisegundos
+      const fechaHoraLocal = new Date(ahora.getTime() - offsetMs);
+
+      // Formato completo: YYYY-MM-DD HH:mm:ss
+      const fechaFormateada = fechaHoraLocal.toISOString().replace("T", " ").substring(0, 19);
+
+      const datosAtencion = {
+        consulta_id: consultaId,
+        motivo: formValues.motivo,
+        diagnostico: formValues.diagnostico,
+        observaciones: formValues.observaciones,
+        tratamiento: formValues.tratamiento,
+        requiere_cirugia: formValues.requiere_cirugia === 'si',
+        procedimiento: formValues.requiere_cirugia === 'si' ? formValues.procedimiento : null,
+        fecha: fechaFormateada // ✅ Guarda fecha y hora local reales
+      };
+
+      console.log('📤 Guardando atención médica:', datosAtencion);
+
+      const respPost = await fetch('/api/atencion_consultas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(datosAtencion)
+      });
+
+      if (respPost.ok) {
+        await fetch(`/api/consultas/${consultaId}/atender`, { method: 'PUT' });
+
+        Swal.fire({
+          icon: 'success',
+          title: '¡Consulta Atendida!',
+          text: 'La información médica ha sido guardada correctamente',
+          timer: 2000,
+          showConfirmButton: false
+        });
+
+        cargarConsultas();
+      } else {
+        const errorData = await respPost.json();
+        console.error('❌ Error del servidor:', errorData);
+        mostrarError('Error', errorData.error || 'No se pudo guardar la atención');
       }
     }
+  } catch (err) {
+    console.error('❌ Error atendiendo consulta:', err);
+    mostrarError('Error', 'Ocurrió un error al atender la consulta: ' + err.message);
+  }
+}
 
     // ====================== VER DATOS DE CONSULTA ATENDIDA ======================
     async function verDatosConsulta(consultaId) {
