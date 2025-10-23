@@ -461,23 +461,25 @@ async function seleccionarExpediente(numeroExpediente) {
 
     if (formValues) {
       // ✅ Corregido: usar fecha limpia tipo "YYYY-MM-DD" sin desfase UTC
-      const fechaSeleccionada = new Date(formValues.fecha + "T00:00:00");
-      const fechaLocal = fechaSeleccionada.toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' }); 
-      // "en-CA" genera formato ISO "YYYY-MM-DD"
+// ✅ Corregido: crear fecha sin conversión a UTC
+const fechaSeleccionada = formValues.fecha; // viene como "YYYY-MM-DD" del input
+const fechaLocal = fechaSeleccionada; // ya está en formato correcto y sin desfase
+
 
       const nuevaConsulta = {
-        expediente_id: parseInt(expediente.id), // ✅ usa id real del expediente, no numero_expediente
-        paciente: expediente.nombre_completo || 'Sin nombre',
-        numero_expediente: parseInt(expediente.numero_expediente),
-        telefono1: expediente.telefono1 || '',
-        telefono2: expediente.telefono2 || '',
-        edad: expediente.edad || null,
-        ciudad: expediente.ciudad || '',
-        fecha: fechaLocal, // ✅ ya sin desfase
-        hora: formValues.hora,
-        medico: formValues.medico,
-        estado: 'Pendiente'
-      };
+  expediente_id: parseInt(expediente.id),
+  paciente: expediente.nombre_completo || 'Sin nombre',
+  numero_expediente: parseInt(expediente.numero_expediente),
+  telefono1: expediente.telefono1 || '',
+  telefono2: expediente.telefono2 || '',
+  edad: expediente.edad || null,
+  ciudad: expediente.ciudad || '',
+  fecha: fechaLocal, // ✅ ya sin desfase
+  hora: formValues.hora,
+  medico: formValues.medico,
+  estado: 'Pendiente'
+};
+
 
       console.log('📤 Enviando nueva consulta:', nuevaConsulta);
 
