@@ -948,24 +948,25 @@ const nuevaConsulta = {
 function formatearFecha(fecha) {
   if (!fecha) return 'Sin fecha';
   try {
-    if (typeof fecha === 'string' && fecha.match(/^\d{4}-\d{2}-\d{2}$/)) {
-      // formato YYYY-MM-DD
+    // Si viene como "YYYY-MM-DD" (tipo DATE en Postgres)
+    if (typeof fecha === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
       const [a, m, d] = fecha.split('-');
-      return `${d}/${m}/${a}`;
+      return `${d}/${m}/${a}`; // mostrar tal cual sin convertir
     }
+
+    // Si viene en formato ISO (timestamp)
     const fechaObj = new Date(fecha);
     if (isNaN(fechaObj)) return 'Sin fecha válida';
-    return fechaObj.toLocaleDateString('es-MX', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      timeZone: 'America/Mexico_City'
-    });
+
+    // Evita usar timeZone para no restar horas
+    return `${String(fechaObj.getDate()).padStart(2, '0')}/${
+      String(fechaObj.getMonth() + 1).padStart(2, '0')
+    }/${fechaObj.getFullYear()}`;
   } catch (e) {
+    console.error('Error formateando fecha:', e);
     return 'Sin fecha válida';
   }
 }
-
 
 
 
