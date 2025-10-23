@@ -464,10 +464,13 @@
 
         if (formValues) {
           // 🔹 Ajuste local de fecha para evitar desfase UTC
-const fechaSeleccionada = new Date(formValues.fecha);
-const fechaLocal = new Date(fechaSeleccionada.getTime() - fechaSeleccionada.getTimezoneOffset() * 60000)
-  .toISOString()
-  .split("T")[0];
+// ✅ Corregir fecha local sin usar toISOString()
+const fechaSeleccionada = new Date(formValues.fecha + 'T00:00:00');
+const año = fechaSeleccionada.getFullYear();
+const mes = String(fechaSeleccionada.getMonth() + 1).padStart(2, '0');
+const dia = String(fechaSeleccionada.getDate()).padStart(2, '0');
+const fechaLocal = `${año}-${mes}-${dia}`;
+
 
 const nuevaConsulta = {
   expediente_id: parseInt(expediente.numero_expediente),
@@ -658,24 +661,20 @@ async function atenderConsulta(consultaId, paciente, numero_expediente, fecha, h
     });
 
     if (formValues) {
-      // 🔹 Corregir desfase de fecha y hora local
-      const ahora = new Date();
-      const offsetMs = ahora.getTimezoneOffset() * 60000; // minutos → milisegundos
-      const fechaHoraLocal = new Date(ahora.getTime() - offsetMs);
+// ✅ Corregido: dejar que el servidor maneje la zona horaria (ya usa timestamp with time zone)
+const fechaHoraLocal = new Date().toISOString();
 
-      // Formato completo: YYYY-MM-DD HH:mm:ss
-      const fechaFormateada = fechaHoraLocal.toISOString().replace("T", " ").substring(0, 19);
+const datosAtencion = {
+  consulta_id: consultaId,
+  motivo: formValues.motivo,
+  diagnostico: formValues.diagnostico,
+  observaciones: formValues.observaciones,
+  tratamiento: formValues.tratamiento,
+  requiere_cirugia: formValues.requiere_cirugia === 'si',
+  procedimiento: formValues.requiere_cirugia === 'si' ? formValues.procedimiento : null,
+  fecha: fechaHoraLocal // ✅ Fecha exacta ISO, el servidor la ajusta según zona
+};
 
-      const datosAtencion = {
-        consulta_id: consultaId,
-        motivo: formValues.motivo,
-        diagnostico: formValues.diagnostico,
-        observaciones: formValues.observaciones,
-        tratamiento: formValues.tratamiento,
-        requiere_cirugia: formValues.requiere_cirugia === 'si',
-        procedimiento: formValues.requiere_cirugia === 'si' ? formValues.procedimiento : null,
-        fecha: fechaFormateada // ✅ Guarda fecha y hora local reales
-      };
 
       console.log('📤 Guardando atención médica:', datosAtencion);
 
@@ -728,7 +727,9 @@ async function atenderConsulta(consultaId, paciente, numero_expediente, fecha, h
             <div class="text-start" style="max-height: 500px; overflow-y: auto;">
               <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                 <h5 style="color: #2c3e50; margin-bottom: 10px;">Información de la Atención</h5>
-                <p><strong>Fecha de atención:</strong> ${new Date(atencion.created_at).toLocaleString('es-MX')}</p>
+                const fechaMX = new Date(atencion.created_at).toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
+<p><strong>Fecha de atención:</strong> ${fechaMX}</p>
+
               </div>
 
               <div class="mb-3">
