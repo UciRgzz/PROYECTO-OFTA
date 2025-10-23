@@ -2369,33 +2369,6 @@ app.get("/api/cirugias", verificarSesion, async (req, res) => {
 });
 
 //======MODULO DE AGENDA DE CONSULTAS MÉDICAS======//
-
-// ==================== 🆕 FUNCIÓN AUXILIAR: FECHA/HORA LOCAL DE MÉXICO ====================
-// ✅ AGREGAR ESTA FUNCIÓN AL INICIO DE TU ARCHIVO
-function fechaHoraLocalMX() {
-  const ahora = new Date();
-  const opciones = {
-    timeZone: 'America/Mexico_City',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false
-  };
-  
-  const formatter = new Intl.DateTimeFormat('es-MX', opciones);
-  const partes = formatter.formatToParts(ahora);
-  
-  const obj = {};
-  partes.forEach(({ type, value }) => {
-    obj[type] = value;
-  });
-  
-  return `${obj.year}-${obj.month}-${obj.day} ${obj.hour}:${obj.minute}:${obj.second}`;
-}
-
 // ==================== BÚSQUEDA DE EXPEDIENTES (para agenda de consultas) ====================
 app.get('/api/expedientes/buscar', verificarSesion, async (req, res) => {
   try {
@@ -2638,7 +2611,6 @@ app.post('/api/consultas', verificarSesion, async (req, res) => {
       expediente_id,
       paciente,
       numero_expediente,
-      fecha_recibida: fecha,
       departamento: depto
     });
 
@@ -2647,10 +2619,6 @@ app.post('/api/consultas', verificarSesion, async (req, res) => {
       console.error('❌ Error: expediente_id es null o undefined');
       return res.status(400).json({ error: 'El expediente_id es requerido' });
     }
-
-    // ✅ 🔧 CORRECCIÓN 1: Extraer solo la parte de fecha sin zona horaria
-    const fechaLocal = fecha.split('T')[0];
-    console.log('📅 Fecha procesada correctamente:', fechaLocal);
 
     const result = await pool.query(`
       INSERT INTO consultas (
@@ -2676,7 +2644,7 @@ app.post('/api/consultas', verificarSesion, async (req, res) => {
       telefono2,
       edad,
       ciudad,
-      fechaLocal,  // ✅ 🔧 CAMBIO: Usar fechaLocal en lugar de fecha
+      fecha,
       hora,
       medico,
       estado || 'Pendiente',
@@ -2785,10 +2753,6 @@ app.post('/api/atencion_consultas', verificarSesion, async (req, res) => {
 
     console.log('📥 Guardando atención médica para consulta:', consulta_id);
 
-    // ✅ 🔧 CORRECCIÓN 2: Usar fecha/hora local de México
-    const fechaAtencion = fechaHoraLocalMX();
-    console.log('📅 Fecha de atención:', fechaAtencion);
-
     const result = await pool.query(`
       INSERT INTO atencion_consultas (
         consulta_id,
@@ -2798,9 +2762,8 @@ app.post('/api/atencion_consultas', verificarSesion, async (req, res) => {
         tratamiento,
         requiere_cirugia,
         procedimiento,
-        fecha_atencion,
         departamento
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
     `, [
       consulta_id,
@@ -2810,16 +2773,8 @@ app.post('/api/atencion_consultas', verificarSesion, async (req, res) => {
       tratamiento,
       requiere_cirugia,
       procedimiento,
-      fechaAtencion,  // ✅ 🔧 CAMBIO: Usar fecha/hora local
       depto
     ]);
-
-    // ✅ 🔧 CORRECCIÓN 3: Actualizar estado de la consulta a 'Atendida'
-    await pool.query(`
-      UPDATE consultas 
-      SET estado = 'Atendida' 
-      WHERE id = $1 AND departamento = $2
-    `, [consulta_id, depto]);
 
     console.log('✅ Atención médica guardada:', result.rows[0]);
     res.json(result.rows[0]);
@@ -2975,7 +2930,7 @@ app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
   0,                                              
   500.00,                                         
   'CONSULTA',                                     
-  'Consulta',
+  'Consulta',                  // ⬅️ CAMBIADO
   c.fecha,                                        
   depto                                           
 ]);
@@ -3040,6 +2995,8 @@ app.get('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+
 
 
 
