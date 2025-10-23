@@ -938,21 +938,27 @@ const fechaLocal = fechaSeleccionada; // ya está en formato correcto y sin desf
         }
       }
 
-      // ====================== FORMATEAR FECHA ======================
+// ====================== FORMATEAR FECHA ======================
 function formatearFecha(fecha) {
   if (!fecha) return 'Sin fecha';
   try {
-    const fechaObj = new Date(fecha);
-    return fechaObj.toLocaleDateString('es-MX', {
+    // ✅ Forzar interpretación como fecha local sin convertir a UTC
+    const [year, month, day] = fecha.split('-');
+    if (!year || !month || !day) return fecha;
+
+    // Crear fecha manualmente para que no reste día
+    const fechaLocal = new Date(Number(year), Number(month) - 1, Number(day));
+    return fechaLocal.toLocaleDateString('es-MX', {
       day: '2-digit',
       month: '2-digit',
-      year: 'numeric',
-      timeZone: 'America/Mexico_City'
+      year: 'numeric'
     });
   } catch (e) {
-    return 'Sin fecha';
+    console.error('Error formateando fecha:', e);
+    return fecha;
   }
 }
+
 
 
       // ====================== INICIALIZACIÓN ======================
