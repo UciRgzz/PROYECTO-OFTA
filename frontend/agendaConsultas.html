@@ -241,92 +241,44 @@
 
 <!-- ===== SECCIÓN DE BÚSQUEDA DE EXPEDIENTE CON BÚSQUEDA AUTOMÁTICA ===== -->
 <div class="card">
-  <div class="card-header">
-    <i class="fas fa-search"></i> Buscar Paciente para Agendar Consulta
-  </div>
+  <div class="card-header"><i class="fas fa-search"></i> Buscar Paciente para Agendar</div>
   <div class="card-body">
     <div class="busqueda-expediente">
-      <div class="row align-items-center">
-        <div class="col-md-12">
-          <div class="input-group">
-            <span class="input-group-text bg-primary text-white">
-              <i class="fas fa-search"></i>
-            </span>
-            <input 
-              type="text" 
-              class="form-control form-control-lg" 
-              id="buscarExpediente" 
-              placeholder="Escribe para buscar por número de expediente o nombre del paciente..."
-              autocomplete="off">
-            <span class="input-group-text">
-              <small class="text-muted"><i class="fas fa-info-circle"></i> Los resultados aparecen automáticamente mientras escribes</small>
-              <div class="search-loading" id="searchLoading">🔄 Buscando...</div>
-            </span>
-          </div>
+      <div class="position-relative">
+        <input 
+          type="text" 
+          class="form-control form-control-lg" 
+          id="buscarExpediente" 
+          placeholder="Escribe para buscar por número de expediente o nombre del paciente..."
+          autocomplete="off"
+          style="padding-right: 40px;"
+        >
+        <i class="fas fa-search" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #95a5a6; font-size: 1.2rem;"></i>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center mt-2">
+        <small class="text-muted">
+          <i class="fas fa-info-circle"></i> Los resultados aparecen automáticamente mientras escribes
+        </small>
+        <div class="search-loading" id="searchLoading">
+          <i class="fas fa-spinner fa-spin"></i> Buscando...
         </div>
       </div>
-      
-      <!-- Contenedor de resultados -->
-      <div class="resultado-busqueda" id="resultadosBusqueda"></div>
+
+      <!-- Resultados -->
+      <div id="resultadosBusqueda" class="resultado-busqueda"></div>
     </div>
   </div>
 </div>
 
 
-    <!-- ===== FORMULARIO PARA NUEVA CONSULTA ===== -->
-    <div class="card" id="formularioConsulta" style="display:none;">
-      <div class="card-header">
-        <i class="fas fa-user-plus"></i> Programar Nueva Consulta
-      </div>
-      <div class="card-body">
-        <form id="formConsulta">
-          <div class="row g-3">
-            <div class="col-md-3">
-              <label class="form-label"><i class="fas fa-id-card"></i> No. Expediente</label>
-              <input type="number" class="form-control" id="expedienteId" readonly>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label"><i class="fas fa-user"></i> Paciente</label>
-              <input type="text" class="form-control" id="pacienteNombre" readonly>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label"><i class="fas fa-birthday-cake"></i> Edad</label>
-              <input type="text" class="form-control" id="pacienteEdad" readonly>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label"><i class="fas fa-calendar"></i> Fecha *</label>
-              <input type="date" class="form-control" id="fecha" required>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label"><i class="fas fa-clock"></i> Hora *</label>
-              <input type="time" class="form-control" id="hora" required>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label"><i class="fas fa-user-md"></i> Médico *</label>
-              <input type="text" class="form-control" id="medico" required placeholder="Dr. Nombre Apellido">
-            </div>
-            <div class="col-12 text-center">
-              <button type="submit" class="btn btn-success btn-lg">
-                <i class="fas fa-calendar-plus"></i> Agendar Consulta
-              </button>
-              <button type="button" class="btn btn-secondary btn-lg" onclick="cancelarFormulario()">
-                <i class="fas fa-times"></i> Cancelar
-              </button>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-
     <!-- ===== TABLA DE CONSULTAS PROGRAMADAS ===== -->
     <div class="card">
-      <div class="card-header">
-        <i class="fas fa-list-ul"></i> Consultas Programadas
-      </div>
+      <div class="card-header"><i class="fas fa-list"></i> Consultas Programadas</div>
       <div class="card-body">
         <div class="table-responsive">
-          <table class="table table-hover">
-            <thead class="table-dark">
+          <table class="table">
+            <thead style="background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%); color: white;">
               <tr>
                 <th>ID</th>
                 <th>Paciente</th>
@@ -337,11 +289,9 @@
                 <th>Acciones</th>
               </tr>
             </thead>
-            <tbody id="tablaConsultas">
+            <tbody id="tabla-consultas">
               <tr>
-                <td colspan="7" class="text-center text-muted">
-                  <i class="fas fa-spinner fa-spin"></i> Cargando consultas...
-                </td>
+                <td colspan="7" class="text-muted">No hay consultas programadas</td>
               </tr>
             </tbody>
           </table>
@@ -349,175 +299,45 @@
       </div>
     </div>
 
-    <footer class="footer">
-      <p>&copy; 2025 Sistema Oftavisión - Todos los derechos reservados.</p>
-    </footer>
+    <div class="footer">
+      <p>Sistema de Gestión Oftavisión © 2025</p>
+    </div>
   </div>
 
+  <!-- Librerías -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
   <script>
-    let expedienteSeleccionado = null;
-    let userRole = localStorage.getItem("rol") || "usuario";
+    let rolUsuario = null;
 
-    // ====================== OBTENER ROL DEL USUARIO ======================
+  //======================= OBTENER ROL DE USUARIO ======================
     async function obtenerRolUsuario() {
-      try {
-        const res = await fetch('/api/check-session');
-        if (!res.ok) {
-          window.location.href = '/login.html';
-          return;
-        }
-        const data = await res.json();
-        userRole = data.rol || "usuario";
-        localStorage.setItem("rol", userRole);
-        console.log("✅ Rol del usuario:", userRole);
-      } catch (err) {
-        console.error("Error obteniendo rol:", err);
-        userRole = "usuario";
-      }
-    }
+  try {
+    const resp = await fetch('/api/check-session');
+    const data = await resp.json();
+    rolUsuario = data.usuario?.rol || 'usuario';
+  } catch (err) {
+    console.error('Error obteniendo rol:', err);
+    rolUsuario = 'usuario';
+  }
+}
 
-    // ====================== SELECCIONAR EXPEDIENTE ======================
-    function seleccionarExpediente(numeroExpediente) {
-      fetch(`/api/expedientes/${numeroExpediente}`)
-        .then(res => res.json())
-        .then(expediente => {
-          expedienteSeleccionado = expediente;
-          
-          document.getElementById('expedienteId').value = expediente.numero_expediente;
-          document.getElementById('pacienteNombre').value = expediente.nombre_completo;
-          document.getElementById('pacienteEdad').value = expediente.edad ? `${expediente.edad} años` : 'Sin datos';
-          
-          document.getElementById('formularioConsulta').style.display = 'block';
-          document.getElementById('resultadosBusqueda').innerHTML = '';
-          document.getElementById('buscarExpediente').value = '';
-          
-          mostrarExito('Paciente seleccionado', `${expediente.nombre_completo} - Exp. ${expediente.numero_expediente}`);
-        })
-        .catch(err => {
-          console.error('Error:', err);
-          mostrarError('Error', 'No se pudo cargar la información del expediente');
-        });
-    }
 
-    // ====================== CANCELAR FORMULARIO ======================
-    function cancelarFormulario() {
-      document.getElementById('formularioConsulta').style.display = 'none';
-      document.getElementById('formConsulta').reset();
-      expedienteSeleccionado = null;
-    }
-
-    // ====================== GUARDAR CONSULTA ======================
-    document.getElementById('formConsulta').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      if (!expedienteSeleccionado) {
-        mostrarError('Error', 'Debe seleccionar un paciente primero');
-        return;
-      }
-
-      const datos = {
-        expediente_id: expedienteSeleccionado.numero_expediente,
-        paciente: expedienteSeleccionado.nombre_completo,
-        fecha: document.getElementById('fecha').value,
-        hora: document.getElementById('hora').value,
-        medico: document.getElementById('medico').value
-      };
-
-      try {
-        const resp = await fetch('/api/consultas', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(datos)
-        });
-
-        if (resp.ok) {
-          mostrarExito('Éxito', 'Consulta agendada correctamente');
-          cancelarFormulario();
-          cargarConsultas();
-        } else {
-          const error = await resp.json();
-          mostrarError('Error', error.error || 'No se pudo agendar la consulta');
-        }
-      } catch (err) {
-        console.error('Error:', err);
-        mostrarError('Error', 'Ocurrió un error al guardar la consulta');
-      }
-    });
-
-    // ====================== CARGAR CONSULTAS ======================
-    async function cargarConsultas() {
-      try {
-        const resp = await fetch('/api/consultas');
-        const consultas = await resp.json();
-        
-        const tbody = document.getElementById('tablaConsultas');
-        
-        if (consultas.length === 0) {
-          tbody.innerHTML = `
-            <tr>
-              <td colspan="7" class="text-center text-muted">
-                <i class="fas fa-inbox"></i> No hay consultas programadas
-              </td>
-            </tr>
-          `;
-          return;
-        }
-
-        tbody.innerHTML = consultas.map(c => `
-          <tr>
-            <td><strong>${c.id}</strong></td>
-            <td>${c.paciente}</td>
-            <td>${formatearFecha(c.fecha)}</td>
-            <td>${c.hora}</td>
-            <td>${c.medico}</td>
-            <td>
-              ${c.estado === 'Pendiente' 
-                ? '<span class="badge bg-warning">Pendiente</span>' 
-                : '<span class="badge bg-success">Atendida</span>'}
-            </td>
-            <td>
-              <div class="btn-group-actions">
-                ${c.estado === 'Pendiente' 
-                  ? `<button class="btn btn-success btn-sm" onclick="verDatosAtencion(${c.id})">
-                       <i class="fas fa-stethoscope"></i> Ver Datos
-                     </button>` 
-                  : `<button class="btn btn-info btn-sm" onclick="verDatosAtencion(${c.id})">
-                       <i class="fas fa-eye"></i> Ver Datos
-                     </button>
-                     <button class="btn btn-warning btn-sm" onclick="procesarPago(${c.id})">
-                       <i class="fas fa-dollar-sign"></i> Pagar
-                     </button>`}
-                ${userRole === "admin" 
-                  ? `<button class="btn btn-danger btn-sm" onclick="eliminarConsulta(${c.id})">
-                       <i class="fas fa-trash"></i> Eliminar
-                     </button>` 
-                  : ''}
-              </div>
-            </td>
-          </tr>
-        `).join('');
-        
-      } catch (err) {
-        console.error('Error cargando consultas:', err);
-        document.getElementById('tablaConsultas').innerHTML = `
-          <tr>
-            <td colspan="7" class="text-center text-danger">
-              <i class="fas fa-exclamation-triangle"></i> Error al cargar consultas
-            </td>
-          </tr>
-        `;
-      }
-    }
-
-    // ====================== MOSTRAR MENSAJES ======================
+    // ====================== FUNCIONES DE NOTIFICACIÓN ====================
     function mostrarExito(titulo, mensaje) {
+      document.getElementById('successMessage').textContent = mensaje;
+      document.getElementById('successAlert').style.display = 'block';
+      
+      setTimeout(() => {
+        document.getElementById('successAlert').style.display = 'none';
+      }, 5000);
+      
       Swal.fire({
         icon: 'success',
         title: titulo,
         text: mensaje,
-        timer: 2000,
+        timer: 3000,
         showConfirmButton: false
       });
     }
@@ -530,164 +350,441 @@
       });
     }
 
-    // ====================== VER DATOS DE ATENCIÓN ======================
-    async function verDatosAtencion(consultaId) {
-      try {
-        // Obtener datos de la consulta
-        const respConsulta = await fetch(`/api/consultas/${consultaId}`);
-        if (!respConsulta.ok) {
-          throw new Error('No se pudo obtener la información de la consulta');
-        }
-        const consulta = await respConsulta.json();
-
-        // Obtener datos de atención
-        const respAtencion = await fetch(`/api/atencion_consultas/${consultaId}`);
-        
-        let contenidoModal = '';
-        
-        if (respAtencion.ok) {
-          // Si existe atención, mostrar datos completos
-          const atencion = await respAtencion.json();
-          
-          contenidoModal = `
-            <div class="text-start" style="padding: 20px;">
-              <div class="alert alert-success">
-                <i class="fas fa-check-circle"></i> <strong>Consulta Atendida</strong>
-              </div>
-              
-              <h5 class="text-primary mb-3"><i class="fas fa-user"></i> Información del Paciente</h5>
-              <p><strong>Nombre:</strong> ${consulta.paciente}</p>
-              <p><strong>Expediente:</strong> ${consulta.expediente_id}</p>
-              <p><strong>Médico:</strong> ${consulta.medico}</p>
-              <hr>
-              
-              <h5 class="text-primary mb-3"><i class="fas fa-clipboard-check"></i> Información de la Atención</h5>
-              <p><strong>Fecha de atención:</strong> ${formatearFechaHora(atencion.fecha)}</p>
-              <hr>
-              
-              <h5 class="text-info mb-3"><i class="fas fa-notes-medical"></i> Motivo de Consulta:</h5>
-              <p class="border p-3 rounded bg-light">${atencion.motivo_consulta || 'No especificado'}</p>
-              
-              <h5 class="text-info mb-3"><i class="fas fa-stethoscope"></i> Diagnóstico:</h5>
-              <p class="border p-3 rounded bg-light">${atencion.diagnostico || 'No especificado'}</p>
-              
-              <h5 class="text-info mb-3"><i class="fas fa-eye"></i> Observaciones:</h5>
-              <p class="border p-3 rounded bg-light">${atencion.observaciones || 'Sin observaciones'}</p>
-            </div>
-          `;
-        } else {
-          // Si no hay atención registrada, mostrar formulario
-          contenidoModal = `
-            <div class="text-start" style="padding: 20px;">
-              <div class="alert alert-warning">
-                <i class="fas fa-exclamation-triangle"></i> <strong>Esta consulta aún no ha sido atendida</strong>
-              </div>
-              
-              <h5 class="text-primary mb-3"><i class="fas fa-user"></i> Información del Paciente</h5>
-              <p><strong>Nombre:</strong> ${consulta.paciente}</p>
-              <p><strong>Expediente:</strong> ${consulta.expediente_id}</p>
-              <p><strong>Médico:</strong> ${consulta.medico}</p>
-              <p><strong>Fecha programada:</strong> ${formatearFecha(consulta.fecha)}</p>
-              <p><strong>Hora:</strong> ${consulta.hora}</p>
-              <hr>
-              
-              <h5 class="text-success mb-3"><i class="fas fa-clipboard-check"></i> Registrar Atención</h5>
-              <form id="formAtencion">
-                <div class="mb-3">
-                  <label class="form-label"><i class="fas fa-notes-medical"></i> Motivo de Consulta *</label>
-                  <textarea class="form-control" id="motivoConsulta" rows="3" required></textarea>
-                </div>
-                <div class="mb-3">
-                  <label class="form-label"><i class="fas fa-stethoscope"></i> Diagnóstico *</label>
-                  <textarea class="form-control" id="diagnostico" rows="3" required></textarea>
-                </div>
-                <div class="mb-3">
-                  <label class="form-label"><i class="fas fa-eye"></i> Observaciones</label>
-                  <textarea class="form-control" id="observaciones" rows="3"></textarea>
-                </div>
-              </form>
-            </div>
-          `;
-        }
-
-        await Swal.fire({
-          title: '<i class="fas fa-file-medical"></i> Datos de la Consulta Atendida',
-          html: contenidoModal,
-          width: '800px',
-          showCancelButton: respAtencion.ok ? false : true,
-          showConfirmButton: respAtencion.ok ? true : true,
-          confirmButtonText: respAtencion.ok ? '<i class="fas fa-times"></i> Cerrar' : '<i class="fas fa-save"></i> Guardar Atención',
-          cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
-          confirmButtonColor: respAtencion.ok ? '#95a5a6' : '#27ae60',
-          cancelButtonColor: '#95a5a6',
-          preConfirm: () => {
-            if (!respAtencion.ok) {
-              // Validar que los campos requeridos estén llenos
-              const motivo = document.getElementById('motivoConsulta').value.trim();
-              const diagnostico = document.getElementById('diagnostico').value.trim();
-              
-              if (!motivo || !diagnostico) {
-                Swal.showValidationMessage('Por favor completa todos los campos requeridos');
-                return false;
-              }
-              
-              return {
-                motivo_consulta: motivo,
-                diagnostico: diagnostico,
-                observaciones: document.getElementById('observaciones').value.trim() || null
-              };
-            }
-          }
-        }).then(async (result) => {
-          if (result.isConfirmed && result.value) {
-            // Guardar la atención
-            try {
-              const respGuardar = await fetch('/api/atencion_consultas', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  consulta_id: consultaId,
-                  ...result.value
-                })
-              });
-
-              if (respGuardar.ok) {
-                mostrarExito('Éxito', 'Atención registrada correctamente');
-                cargarConsultas(); // Recargar tabla para actualizar estado
-              } else {
-                const error = await respGuardar.json();
-                mostrarError('Error', error.error || 'No se pudo guardar la atención');
-              }
-            } catch (err) {
-              console.error('Error guardando atención:', err);
-              mostrarError('Error', 'Ocurrió un error al guardar la atención');
-            }
-          }
-        });
-
-      } catch (err) {
-        console.error('Error:', err);
-        mostrarError('Error', err.message || 'No se pudo cargar la información de la consulta');
+    // ====================== BUSCAR EXPEDIENTE ======================
+    async function buscarExpediente() {
+      const query = document.getElementById('buscarExpediente').value.trim();
+      
+      if (!query) {
+        mostrarError('Error', 'Por favor ingresa un número de expediente o nombre');
+        return;
       }
-    }
 
-    // ====================== PROCESAR PAGO (CREAR ORDEN MÉDICA) ======================
-    async function procesarPago(consultaId) {
       try {
-        // Primero verificar que la consulta esté atendida
-        const respAtencion = await fetch(`/api/atencion_consultas/${consultaId}`);
-        if (!respAtencion.ok) {
-          mostrarError('Error', 'Esta consulta debe ser atendida primero antes de procesar el pago');
+        const resp = await fetch(`/api/expedientes/buscar?q=${encodeURIComponent(query)}`);
+        const expedientes = await resp.json();
+        
+        const contenedor = document.getElementById('resultadosBusqueda');
+        
+        if (expedientes.length === 0) {
+          contenedor.innerHTML = `
+            <div class="alert alert-warning mt-3">
+              <i class="fas fa-exclamation-triangle"></i> No se encontraron expedientes con ese criterio
+            </div>
+          `;
           return;
         }
 
-        // Confirmar acción
-        const confirmacion = await Swal.fire({
-          title: '¿Crear Orden de Pago?',
+        contenedor.innerHTML = expedientes.map(exp => `
+          <div class="expediente-item" onclick="seleccionarExpediente(${exp.numero_expediente})">
+            <div class="expediente-info">
+              <strong>${exp.nombre_completo}</strong>
+              <small>
+                <i class="fas fa-id-card"></i> Expediente: ${exp.numero_expediente} | 
+                <i class="fas fa-phone"></i> ${exp.telefono1 || 'Sin teléfono'} | 
+                <i class="fas fa-birthday-cake"></i> ${exp.edad || 'Sin edad'} años
+              </small>
+            </div>
+            <button class="btn btn-primary btn-sm">
+              <i class="fas fa-calendar-plus"></i> Agendar
+            </button>
+          </div>
+        `).join('');
+
+      } catch (err) {
+        console.error('Error buscando expediente:', err);
+        mostrarError('Error', 'No se pudo realizar la búsqueda');
+      }
+    }
+
+    // Buscar al presionar Enter
+    document.getElementById('buscarExpediente')?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        buscarExpediente();
+      }
+    });
+
+    // ====================== SELECCIONAR EXPEDIENTE Y AGENDAR ======================
+    async function seleccionarExpediente(numeroExpediente) {
+      try {
+        console.log('📞 Solicitando expediente:', numeroExpediente);
+        
+        const resp = await fetch(`/api/expedientes/detalle/${numeroExpediente}`);
+        
+        if (!resp.ok) {
+          throw new Error('No se pudo obtener el expediente');
+        }
+        
+        const expediente = await resp.json();
+        console.log(' Expediente recibido:', expediente);
+
+        const { value: formValues } = await Swal.fire({
+          title: 'Agendar Consulta',
+          width: '600px',
           html: `
-            <p>Se creará una orden médica para procesar el pago de esta consulta.</p>
-            <p><strong>Nota:</strong> Serás redirigido al módulo de órdenes para completar el pago.</p>
+            <div class="text-start">
+              <div class="mb-3">
+                <label class="form-label"><strong>Paciente:</strong></label>
+                <input type="text" class="form-control" value="${expediente.nombre_completo || 'Sin nombre'}" disabled>
+              </div>
+              <div class="mb-3">
+                <label class="form-label"><strong>Expediente:</strong></label>
+                <input type="text" class="form-control" value="${expediente.numero_expediente || 'Sin número'}" disabled>
+              </div>
+              <div class="mb-3">
+                <label class="form-label"><strong>Fecha de Consulta:</strong></label>
+                <input type="date" id="swal-fecha" class="form-control" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label"><strong>Hora:</strong></label>
+                <input type="time" id="swal-hora" class="form-control" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label"><strong>Médico:</strong></label>
+                <input type="text" id="swal-medico" class="form-control" placeholder="Nombre del médico" required>
+              </div>
+            </div>
           `,
+          focusConfirm: false,
+          showCancelButton: true,
+          confirmButtonText: '<i class="fas fa-check"></i> Agendar',
+          cancelButtonText: 'Cancelar',
+          preConfirm: () => {
+            const fecha = document.getElementById('swal-fecha').value;
+            const hora = document.getElementById('swal-hora').value;
+            const medico = document.getElementById('swal-medico').value;
+
+            if (!fecha || !hora || !medico) {
+              Swal.showValidationMessage('Por favor completa todos los campos');
+              return false;
+            }
+
+            return { fecha, hora, medico };
+          }
+        });
+
+        if (formValues) {
+          // 🔹 Ajuste local de fecha para evitar desfase UTC
+const fechaSeleccionada = new Date(formValues.fecha);
+const fechaLocal = new Date(fechaSeleccionada.getTime() - fechaSeleccionada.getTimezoneOffset() * 60000)
+  .toISOString()
+  .split("T")[0];
+
+const nuevaConsulta = {
+  expediente_id: parseInt(expediente.numero_expediente),
+  paciente: expediente.nombre_completo || 'Sin nombre',
+  numero_expediente: parseInt(expediente.numero_expediente),
+  telefono1: expediente.telefono1 || '',
+  telefono2: expediente.telefono2 || '',
+  edad: expediente.edad || null,
+  ciudad: expediente.ciudad || '',
+  fecha: fechaLocal,   // ✅ Fecha corregida localmente
+  hora: formValues.hora,
+  medico: formValues.medico,
+  estado: 'Pendiente'
+};
+
+
+          console.log('📤 Enviando consulta:', nuevaConsulta);
+
+          const respPost = await fetch('/api/consultas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(nuevaConsulta)
+          });
+
+          if (respPost.ok) {
+            mostrarExito('¡Éxito!', 'Consulta agendada correctamente');
+            document.getElementById('buscarExpediente').value = '';
+            document.getElementById('resultadosBusqueda').innerHTML = '';
+            cargarConsultas();
+          } else {
+            const errorData = await respPost.json();
+            console.error(' Error del servidor:', errorData);
+            mostrarError('Error', errorData.error || 'No se pudo agendar la consulta');
+          }
+        }
+
+      } catch (err) {
+        console.error(' Error agendando consulta:', err);
+        mostrarError('Error', 'Ocurrió un error al agendar la consulta: ' + err.message);
+      }
+    }
+
+ // ====================== CARGAR CONSULTAS ======================
+async function cargarConsultas() {
+  try {
+    const resp = await fetch("/api/consultas");
+    const consultas = await resp.json();
+    const respOrdenes = await fetch('/api/ordenes_medicas_consulta');
+    const ordenes = respOrdenes.ok ? await respOrdenes.json() : [];
+    const tbody = document.getElementById("tabla-consultas");
+    tbody.innerHTML = "";
+
+    if (consultas.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" class="text-muted">No hay consultas programadas</td></tr>`;
+      return;
+    }
+
+    consultas.forEach(c => {
+      const tieneOrden = ordenes.some(o => o.consulta_id === c.id);
+      const fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td>${c.id}</td>
+        <td>${c.paciente}</td>
+        <td>${formatearFecha(c.fecha)}</td>
+        <td>${formatearHora12h(c.hora)}</td>
+        <td>${c.medico}</td>
+        <td>
+          <span class="badge bg-${c.estado === 'Pendiente' ? 'warning' : 'success'}">
+            ${c.estado}
+          </span>
+        </td>
+        <td>
+          <div class="btn-group-actions">
+            ${c.estado === 'Pendiente' ? `
+              <button class="btn btn-success btn-sm" onclick="atenderConsulta(${c.id}, '${c.paciente}', ${c.numero_expediente}, '${c.fecha}', '${c.hora}')">
+                <i class="fas fa-stethoscope"></i> Atender
+              </button>` 
+            : `
+              <button class="btn btn-info btn-sm" onclick="verDatosConsulta(${c.id})">
+                <i class="fas fa-eye"></i> Ver Datos
+              </button>
+              ${tieneOrden 
+                ? `<span class="badge bg-secondary p-2">Enviado</span>` 
+                : `<button class="btn btn-warning btn-sm" onclick="irAPagar(${c.id})">
+                     <i class="fas fa-dollar-sign"></i> Pagar
+                   </button>`}
+              ${rolUsuario === 'admin' ? `
+                <button class="btn btn-danger btn-sm" onclick="eliminarConsulta(${c.id})">
+                  <i class="fas fa-trash"></i> Eliminar
+                </button>` : ''
+              }
+            `}
+          </div>
+        </td>
+      `;
+      tbody.appendChild(fila);
+    });
+  } catch (err) {
+    console.error("Error cargando consultas:", err);
+    mostrarError("Error", "No se pudieron cargar las consultas");
+  }
+}
+
+// ====================== FORMATEAR HORA EN 12 HORAS ======================
+function formatearHora12h(hora24) {
+  if (!hora24) return "-";
+  const [hora, minutos] = hora24.split(":");
+  let h = parseInt(hora);
+  const ampm = h >= 12 ? "p.m." : "a.m.";
+  h = h % 12 || 12;
+  return `${h}:${minutos} ${ampm}`;
+}
+
+
+   // ====================== ATENDER CONSULTA ======================
+async function atenderConsulta(consultaId, paciente, numero_expediente, fecha, hora) {
+  try {
+    const { value: formValues } = await Swal.fire({
+      title: 'Atender Consulta',
+      width: '800px',
+      html: `
+        <div class="text-start">
+          <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <strong style="display: block; margin-bottom: 5px; color: #2c3e50;">Paciente:</strong> ${paciente || 'Sin nombre'}<br>
+            <strong style="display: block; margin-top: 10px; margin-bottom: 5px; color: #2c3e50;">Expediente:</strong> ${numero_expediente || 'Sin número'}<br>
+            <strong style="display: block; margin-top: 10px; margin-bottom: 5px; color: #2c3e50;">Fecha de Consulta:</strong> ${formatearFecha(fecha)} - ${hora || 'Sin hora'}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" style="font-weight: 600; color: #2c3e50;">Motivo de Consulta:</label>
+            <textarea id="motivo" class="form-control" placeholder="Describe el motivo por el cual el paciente acude a consulta" style="min-height: 80px;" required></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" style="font-weight: 600; color: #2c3e50;">Diagnóstico:</label>
+            <textarea id="diagnostico" class="form-control" placeholder="Diagnóstico médico del paciente" style="min-height: 80px;" required></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" style="font-weight: 600; color: #2c3e50;">Observaciones Clínicas:</label>
+            <textarea id="observaciones" class="form-control" placeholder="Observaciones adicionales, hallazgos relevantes" style="min-height: 80px;"></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" style="font-weight: 600; color: #2c3e50;">Tratamiento / Indicaciones:</label>
+            <textarea id="tratamiento" class="form-control" placeholder="Tratamiento prescrito, medicamentos, indicaciones al paciente" style="min-height: 80px;" required></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" style="font-weight: 600; color: #2c3e50;">¿Requiere procedimiento o cirugía?</label>
+            <select id="requiere_cirugia" class="form-select">
+              <option value="no">No</option>
+              <option value="si">Sí</option>
+            </select>
+          </div>
+
+          <div class="mb-3" id="tipo-procedimiento" style="display: none;">
+            <label class="form-label" style="font-weight: 600; color: #2c3e50;">Tipo de Procedimiento:</label>
+            <input type="text" id="procedimiento" class="form-control" placeholder="Ej: Facoemulsificación, Vitrectomía, etc.">
+          </div>
+        </div>
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: '<i class="fas fa-check"></i> Guardar Atención',
+      cancelButtonText: 'Cancelar',
+      didOpen: () => {
+        document.getElementById('requiere_cirugia').addEventListener('change', (e) => {
+          const tipoProcDiv = document.getElementById('tipo-procedimiento');
+          tipoProcDiv.style.display = e.target.value === 'si' ? 'block' : 'none';
+        });
+      },
+      preConfirm: () => {
+        const motivo = document.getElementById('motivo').value;
+        const diagnostico = document.getElementById('diagnostico').value;
+        const observaciones = document.getElementById('observaciones').value;
+        const tratamiento = document.getElementById('tratamiento').value;
+        const requiere_cirugia = document.getElementById('requiere_cirugia').value;
+        const procedimiento = document.getElementById('procedimiento').value;
+
+        if (!motivo || !diagnostico || !tratamiento) {
+          Swal.showValidationMessage('Por favor completa todos los campos obligatorios');
+          return false;
+        }
+
+        return { motivo, diagnostico, observaciones, tratamiento, requiere_cirugia, procedimiento };
+      }
+    });
+
+    if (formValues) {
+      // 🔹 Corregir desfase de fecha y hora local
+      const ahora = new Date();
+      const offsetMs = ahora.getTimezoneOffset() * 60000; // minutos → milisegundos
+      const fechaHoraLocal = new Date(ahora.getTime() - offsetMs);
+
+      // Formato completo: YYYY-MM-DD HH:mm:ss
+      const fechaFormateada = fechaHoraLocal.toISOString().replace("T", " ").substring(0, 19);
+
+      const datosAtencion = {
+        consulta_id: consultaId,
+        motivo: formValues.motivo,
+        diagnostico: formValues.diagnostico,
+        observaciones: formValues.observaciones,
+        tratamiento: formValues.tratamiento,
+        requiere_cirugia: formValues.requiere_cirugia === 'si',
+        procedimiento: formValues.requiere_cirugia === 'si' ? formValues.procedimiento : null,
+        fecha: fechaFormateada // ✅ Guarda fecha y hora local reales
+      };
+
+      console.log('📤 Guardando atención médica:', datosAtencion);
+
+      const respPost = await fetch('/api/atencion_consultas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(datosAtencion)
+      });
+
+      if (respPost.ok) {
+        await fetch(`/api/consultas/${consultaId}/atender`, { method: 'PUT' });
+
+        Swal.fire({
+          icon: 'success',
+          title: '¡Consulta Atendida!',
+          text: 'La información médica ha sido guardada correctamente',
+          timer: 2000,
+          showConfirmButton: false
+        });
+
+        cargarConsultas();
+      } else {
+        const errorData = await respPost.json();
+        console.error('❌ Error del servidor:', errorData);
+        mostrarError('Error', errorData.error || 'No se pudo guardar la atención');
+      }
+    }
+  } catch (err) {
+    console.error('❌ Error atendiendo consulta:', err);
+    mostrarError('Error', 'Ocurrió un error al atender la consulta: ' + err.message);
+  }
+}
+
+    // ====================== VER DATOS DE CONSULTA ATENDIDA ======================
+    async function verDatosConsulta(consultaId) {
+      try {
+        const resp = await fetch(`/api/atencion_consultas/${consultaId}`);
+        
+        if (!resp.ok) {
+          mostrarError('Error', 'No se encontraron datos de atención para esta consulta');
+          return;
+        }
+
+        const atencion = await resp.json();
+
+        Swal.fire({
+          title: 'Datos de la Consulta Atendida',
+          width: '800px',
+          html: `
+            <div class="text-start" style="max-height: 500px; overflow-y: auto;">
+              <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <h5 style="color: #2c3e50; margin-bottom: 10px;">Información de la Atención</h5>
+                <p><strong>Fecha de atención:</strong> ${new Date(atencion.created_at).toLocaleString('es-MX')}</p>
+              </div>
+
+              <div class="mb-3">
+                <strong style="color: #2c3e50;">Motivo de Consulta:</strong>
+                <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">${atencion.motivo}</p>
+              </div>
+
+              <div class="mb-3">
+                <strong style="color: #2c3e50;">Diagnóstico:</strong>
+                <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">${atencion.diagnostico}</p>
+              </div>
+
+              ${atencion.observaciones ? `
+              <div class="mb-3">
+                <strong style="color: #2c3e50;">Observaciones:</strong>
+                <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">${atencion.observaciones}</p>
+              </div>
+              ` : ''}
+
+              <div class="mb-3">
+                <strong style="color: #2c3e50;">Tratamiento:</strong>
+                <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">${atencion.tratamiento}</p>
+              </div>
+
+              <div class="mb-3">
+                <strong style="color: #2c3e50;">Requiere Procedimiento:</strong>
+                <p style="background: ${atencion.requiere_cirugia ? '#fff3cd' : '#d4edda'}; padding: 10px; border-radius: 5px;">
+                  ${atencion.requiere_cirugia ? '✅ Sí' : '❌ No'}
+                </p>
+              </div>
+
+              ${atencion.requiere_cirugia && atencion.procedimiento ? `
+              <div class="mb-3">
+                <strong style="color: #2c3e50;">Tipo de Procedimiento:</strong>
+                <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">${atencion.procedimiento}</p>
+              </div>
+              ` : ''}
+            </div>
+          `,
+          confirmButtonText: 'Cerrar',
+          confirmButtonColor: '#3498db'
+        });
+
+      } catch (err) {
+        console.error('Error obteniendo datos de consulta:', err);
+        mostrarError('Error', 'No se pudieron cargar los datos de la consulta');
+      }
+    }
+
+    // ====================== IR A PAGAR (FUNCIÓN MEJORADA) ======================
+    async function irAPagar(consultaId) {
+      try {
+        // Mostrar confirmación al usuario
+        const confirmacion = await Swal.fire({
+          title: '¿Deseas crear una orden de pago para esta consulta?',
+          text: "Se creará una orden médica y serás redirigido al módulo de órdenes",
           icon: 'question',
           showCancelButton: true,
           confirmButtonColor: '#3498db',
@@ -844,34 +941,6 @@
       
       if (isNaN(f)) return 'Sin fecha';
       return f.toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric" });
-    }
-
-    // ====================== FORMATEAR FECHA CON HORA ======================
-    function formatearFechaHora(fechaISO) {
-      if (!fechaISO) return 'Sin fecha';
-      
-      try {
-        // Crear objeto Date desde el timestamp con zona horaria de México
-        const fecha = new Date(fechaISO);
-        
-        if (isNaN(fecha)) return 'Sin fecha';
-        
-        const opciones = {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: true,
-          timeZone: 'America/Mexico_City'
-        };
-        
-        return fecha.toLocaleString('es-MX', opciones);
-      } catch (error) {
-        console.error('Error formateando fecha:', error);
-        return 'Fecha inválida';
-      }
     }
 
     // ====================== INICIALIZACIÓN ======================
