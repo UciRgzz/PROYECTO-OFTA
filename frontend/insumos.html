@@ -179,9 +179,8 @@ function cambiarMes(delta) {
     // Variable para saber si el usuario es admin
     let esAdmin = false;
 
-    document.addEventListener("DOMContentLoaded", () => {
-      verificarRolUsuario();
-      cargarInsumos();
+    document.addEventListener("DOMContentLoaded", async () => {
+      await verificarRolUsuario(); // Esperar a verificar el rol primero
       renderCalendar();
     });
 
@@ -191,10 +190,15 @@ function cambiarMes(delta) {
         const res = await fetch("/api/user/role");
         const data = await res.json();
         esAdmin = data.isAdmin || false;
+        console.log("✅ Rol verificado - Es Admin:", esAdmin);
+        console.log("📊 Datos del usuario:", data);
       } catch (err) {
-        console.error("Error verificando rol:", err);
+        console.error("❌ Error verificando rol:", err);
         esAdmin = false;
       }
+      
+      // Recargar la tabla después de verificar el rol
+      await cargarInsumos();
     }
 
     // Registrar insumo 
