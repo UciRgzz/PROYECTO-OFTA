@@ -40,11 +40,70 @@
     .nav-btn { background: #3498db; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
     .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
     .day-header { text-align: center; padding: 8px; background: #2c3e50; color: white; border-radius: 6px; }
-    .calendar-day { background: white; border-radius: 8px; min-height: 120px; padding: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-    .day-number { font-weight: 600; margin-bottom: 5px; color: #2c3e50; }
-    .insumo-item { background: #e3f2fd; padding: 6px; margin-bottom: 6px; border-radius: 5px; font-size: 0.85rem; border-left: 4px solid #2196f3; }
-    .insumo-name { font-weight: 600; }
-    .insumo-info { font-size: 0.8rem; color: #555; }
+    .calendar-day { background: white; border-radius: 8px; min-height: 140px; padding: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+    .day-number { font-weight: 600; margin-bottom: 8px; color: #2c3e50; font-size: 1.1rem; }
+    
+    /* NUEVOS ESTILOS PARA LAS ETIQUETAS */
+    .nota-editable {
+      background: #fff3cd;
+      border: 2px dashed #ffc107;
+      padding: 8px;
+      margin-bottom: 8px;
+      border-radius: 5px;
+      min-height: 40px;
+      font-size: 0.85rem;
+      color: #856404;
+      cursor: text;
+      transition: all 0.2s;
+    }
+    
+    .nota-editable:hover {
+      background: #fff8dc;
+      border-color: #ffb300;
+    }
+    
+    .nota-editable:focus {
+      outline: none;
+      background: #ffffff;
+      border-color: #ffc107;
+      border-style: solid;
+    }
+    
+    .nota-editable[contenteditable="true"]:empty:before {
+      content: "Click para agregar nota...";
+      color: #999;
+      font-style: italic;
+    }
+    
+    .total-dia {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 10px;
+      border-radius: 5px;
+      color: white;
+      font-weight: 600;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    }
+    
+    .total-dia .label {
+      font-size: 0.75rem;
+      opacity: 0.9;
+      display: block;
+      margin-bottom: 3px;
+    }
+    
+    .total-dia .monto {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+    
+    .sin-datos {
+      text-align: center;
+      color: #999;
+      font-size: 0.85rem;
+      padding: 10px;
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
@@ -122,8 +181,9 @@ function cambiarMes(delta) {
   cargarInsumos();
 }
 
-
     let fechaActual = new Date();
+    // Almacenar notas en localStorage
+    let notas = JSON.parse(localStorage.getItem('notasCalendario') || '{}');
 
     document.addEventListener("DOMContentLoaded", () => {
       cargarInsumos();
@@ -216,7 +276,6 @@ document.getElementById("uploadForm").addEventListener("change", async (e) => {
   }
 });
 
-
     // Listar insumos del mes actual
 async function cargarInsumos() {
   const tabla = document.getElementById("tablaInsumos");
@@ -255,7 +314,6 @@ async function cargarInsumos() {
     console.error(err);
   }
 }
-
 
     // Eliminar insumo 
 async function eliminarInsumo(id) {
@@ -305,7 +363,13 @@ async function eliminarInsumo(id) {
   });
 }
 
-    // Calendario dinámico
+// Función para guardar nota
+function guardarNota(fecha, texto) {
+  notas[fecha] = texto;
+  localStorage.setItem('notasCalendario', JSON.stringify(notas));
+}
+
+    // Calendario dinámico MODIFICADO
 async function renderCalendar() {
   const calendario = document.getElementById("calendario");
   const mesActual = document.getElementById("mesActual");
@@ -355,17 +419,33 @@ async function renderCalendar() {
       return f === fechaDia;
     });
 
-    let contenido = `<div class="calendar-day"><div class="day-number">${d}</div>`;
-    if (meds.length > 0) {
-      meds.forEach(m => {
-        contenido += `
-          <div class="insumo-item">
-            <div class="insumo-name">${m.concepto}</div>
-            <div class="insumo-info">Folio: ${m.folio}</div>
-            <div class="insumo-info">Monto: $${parseFloat(m.monto).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-          </div>`;
-      });
+    // Calcular el total del día
+    const totalDia = meds.reduce((sum, m) => sum + parseFloat(m.monto || 0), 0);
+    
+    // Obtener la nota guardada
+    const notaGuardada = notas[fechaDia] || '';
+
+    let contenido = `<div class="calendar-day">
+      <div class="day-number">${d}</div>`;
+    
+    // 1. NOTA EDITABLE
+    contenido += `<div class="nota-editable" 
+                       contenteditable="true" 
+                       data-fecha="${fechaDia}"
+                       onblur="guardarNota('${fechaDia}', this.innerText)"
+                       >${notaGuardada}</div>`;
+    
+    // 2. TOTAL DEL DÍA
+    if (totalDia > 0) {
+      contenido += `
+        <div class="total-dia">
+          <span class="label">Total del día</span>
+          <span class="monto">$${totalDia.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        </div>`;
+    } else {
+      contenido += `<div class="sin-datos">Sin insumos</div>`;
     }
+    
     contenido += "</div>";
     calendario.innerHTML += contenido;
   }
