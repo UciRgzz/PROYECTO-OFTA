@@ -2144,6 +2144,20 @@ app.delete("/api/insumos/:id", isAdmin, async (req, res) => {
   }
 });
 
+// Endpoint para verificar si el usuario es administrador
+app.get("/api/user/role", verificarSesion, (req, res) => {
+  try {
+    const esAdmin = req.session.rol === "admin" || req.session.usuario === "admin";
+    
+    res.json({ 
+      isAdmin: esAdmin,
+      usuario: req.session.usuario 
+    });
+  } catch (err) {
+    console.error("Error verificando rol:", err);
+    res.status(500).json({ error: "Error verificando rol de usuario" });
+  }
+});
 
 
 

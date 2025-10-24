@@ -176,11 +176,26 @@ function cambiarMes(delta) {
     let fechaActual = new Date();
     // Almacenar notas en localStorage
     let notas = JSON.parse(localStorage.getItem('notasCalendario') || '{}');
+    // Variable para saber si el usuario es admin
+    let esAdmin = false;
 
     document.addEventListener("DOMContentLoaded", () => {
+      verificarRolUsuario();
       cargarInsumos();
       renderCalendar();
     });
+
+    // Verificar si el usuario es administrador
+    async function verificarRolUsuario() {
+      try {
+        const res = await fetch("/api/user/role");
+        const data = await res.json();
+        esAdmin = data.isAdmin || false;
+      } catch (err) {
+        console.error("Error verificando rol:", err);
+        esAdmin = false;
+      }
+    }
 
     // Registrar insumo 
 document.getElementById("agendaForm").addEventListener("submit", async (e) => {
@@ -292,6 +307,10 @@ async function cargarInsumos() {
     }
 
     filtrados.forEach(i => {
+      const botonEliminar = esAdmin 
+        ? `<button class="btn btn-delete" onclick="eliminarInsumo(${i.id})"><i class="fas fa-trash"></i></button>`
+        : '-';
+      
       tabla.innerHTML += `
         <tr>
           <td>${i.fecha.split("T")[0].split("-").reverse().join("/")}</td>
@@ -299,7 +318,7 @@ async function cargarInsumos() {
           <td>${i.concepto}</td>
           <td>$${parseFloat(i.monto).toLocaleString("es-MX", { minimumFractionDigits: 2 })}</td>
           <td>${i.archivo ? `<a href="/uploads/${encodeURIComponent(i.archivo)}" download><i class="fas fa-download"></i> Descargar</a>` : "-"}</td>
-          <td><button class="btn btn-delete" onclick="eliminarInsumo(${i.id})"><i class="fas fa-trash"></i></button></td>
+          <td>${botonEliminar}</td>
         </tr>`;
     });
   } catch (err) {
