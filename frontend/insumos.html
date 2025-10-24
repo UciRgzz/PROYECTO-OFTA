@@ -428,15 +428,16 @@ async function renderCalendar() {
     let contenido = `<div class="calendar-day">
       <div class="day-number">${d}</div>`;
     
-    // 1. NOTA EDITABLE
-    contenido += `<div class="nota-editable" 
-                       contenteditable="true" 
-                       data-fecha="${fechaDia}"
-                       onblur="guardarNota('${fechaDia}', this.innerText)"
-                       >${notaGuardada}</div>`;
-    
-    // 2. TOTAL DEL DÍA
+    // SOLO MOSTRAR ETIQUETAS SI HAY INSUMOS
     if (totalDia > 0) {
+      // 1. NOTA EDITABLE
+      contenido += `<div class="nota-editable" 
+                         contenteditable="true" 
+                         data-fecha="${fechaDia}"
+                         onblur="guardarNota('${fechaDia}', this.innerText)"
+                         >${notaGuardada}</div>`;
+      
+      // 2. TOTAL DEL DÍA
       contenido += `
         <div class="total-dia">
           <span class="label">Total del día</span>
