@@ -45,44 +45,44 @@
     
     /* NUEVOS ESTILOS PARA LAS ETIQUETAS */
     .nota-editable {
-      background: #fff3cd;
-      border: 2px dashed #ffc107;
+      background: #d1ecf1;
+      border: 2px dashed #3498db;
       padding: 8px;
       margin-bottom: 8px;
       border-radius: 5px;
       min-height: 40px;
       font-size: 0.85rem;
-      color: #856404;
+      color: #0c5460;
       cursor: text;
       transition: all 0.2s;
     }
     
     .nota-editable:hover {
-      background: #fff8dc;
-      border-color: #ffb300;
+      background: #bee5eb;
+      border-color: #2980b9;
     }
     
     .nota-editable:focus {
       outline: none;
       background: #ffffff;
-      border-color: #ffc107;
+      border-color: #3498db;
       border-style: solid;
     }
     
     .nota-editable[contenteditable="true"]:empty:before {
       content: "Click para agregar nota...";
-      color: #999;
+      color: #6c757d;
       font-style: italic;
     }
     
     .total-dia {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
       padding: 10px;
       border-radius: 5px;
       color: white;
       font-weight: 600;
       text-align: center;
-      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+      box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
     }
     
     .total-dia .label {
@@ -95,14 +95,6 @@
     .total-dia .monto {
       font-size: 1.1rem;
       font-weight: 700;
-    }
-    
-    .sin-datos {
-      text-align: center;
-      color: #999;
-      font-size: 0.85rem;
-      padding: 10px;
-      font-style: italic;
     }
   </style>
 </head>
@@ -443,9 +435,8 @@ async function renderCalendar() {
           <span class="label">Total del día</span>
           <span class="monto">$${totalDia.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
         </div>`;
-    } else {
-      contenido += `<div class="sin-datos">Sin insumos</div>`;
     }
+    // Si no hay insumos, solo se muestra el número del día (sin texto adicional)
     
     contenido += "</div>";
     calendario.innerHTML += contenido;
