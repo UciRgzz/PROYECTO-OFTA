@@ -313,9 +313,11 @@
       <p class="description">Gestión de consultas médicas del sistema Oftavisión.</p>
     </header>
 
-    <div id="successAlert" class="success-alert"></div>
+    <div class="success-alert" id="successAlert">
+      <i class="fas fa-check-circle"></i> <span id="successMessage">Operación realizada correctamente.</span>
+    </div>
 
-    <!-- ===== NUEVA SECCIÓN: FILTRO POR FECHA ===== -->
+    <!-- ===== NUEVO: FILTRO POR FECHA ===== -->
     <div class="filtro-fecha">
       <h5><i class="fas fa-calendar-alt"></i> Filtrar por fecha:</h5>
       <div class="date-input-wrapper">
@@ -334,115 +336,45 @@
       </div>
     </div>
 
-    <!-- ===== SECCIÓN: BÚSQUEDA DE EXPEDIENTE ===== -->
+    <!-- ===== SECCIÓN DE BÚSQUEDA DE EXPEDIENTE CON BÚSQUEDA AUTOMÁTICA ===== -->
     <div class="card">
-      <div class="card-header">
-        <i class="fas fa-search"></i> Buscar Paciente
-      </div>
+      <div class="card-header"><i class="fas fa-search"></i> Buscar Paciente para Agendar</div>
       <div class="card-body">
         <div class="busqueda-expediente">
-          <div class="mb-3">
-            <label class="form-label">
-              <strong><i class="fas fa-user-search"></i> Buscar por número de expediente o nombre:</strong>
-            </label>
-            <div class="input-group">
-              <span class="input-group-text bg-primary text-white">
-                <i class="fas fa-search"></i>
-              </span>
-              <input 
-                type="text" 
-                id="buscarExpediente" 
-                class="form-control" 
-                placeholder="Escribe el número de expediente o nombre del paciente..."
-                autocomplete="off">
-            </div>
-            <small class="text-muted mt-2 d-block">
-              <i class="fas fa-info-circle"></i> Comienza a escribir y los resultados aparecerán automáticamente
-            </small>
-            <span id="searchLoading" class="search-loading">
-              <i class="fas fa-spinner fa-spin"></i> Buscando...
-            </span>
+          <div class="position-relative">
+            <input 
+              type="text" 
+              class="form-control form-control-lg" 
+              id="buscarExpediente" 
+              placeholder="Escribe para buscar por número de expediente o nombre del paciente..."
+              autocomplete="off"
+              style="padding-right: 40px;"
+            >
+            <i class="fas fa-search" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #95a5a6; font-size: 1.2rem;"></i>
           </div>
 
+          <div class="d-flex justify-content-between align-items-center mt-2">
+            <small class="text-muted">
+              <i class="fas fa-info-circle"></i> Los resultados aparecen automáticamente mientras escribes
+            </small>
+            <div class="search-loading" id="searchLoading">
+              <i class="fas fa-spinner fa-spin"></i> Buscando...
+            </div>
+          </div>
+
+          <!-- Resultados -->
           <div id="resultadosBusqueda" class="resultado-busqueda"></div>
         </div>
       </div>
     </div>
 
-    <!-- ===== SECCIÓN: AGENDAR NUEVA CONSULTA ===== -->
-    <div class="card">
-      <div class="card-header">
-        <i class="fas fa-calendar-plus"></i> Agendar Nueva Consulta
-      </div>
-      <div class="card-body">
-        <form id="formConsulta">
-          <div class="row g-3">
-            <input type="hidden" id="expediente_id" name="expediente_id">
-
-            <div class="col-md-6">
-              <label class="form-label"><strong>Paciente:</strong></label>
-              <input type="text" id="paciente" name="paciente" class="form-control" readonly required>
-            </div>
-
-            <div class="col-md-3">
-              <label class="form-label"><strong>Expediente #:</strong></label>
-              <input type="text" id="numero_expediente" name="numero_expediente" class="form-control" readonly required>
-            </div>
-
-            <div class="col-md-3">
-              <label class="form-label"><strong>Edad:</strong></label>
-              <input type="text" id="edad" name="edad" class="form-control" readonly>
-            </div>
-
-            <div class="col-md-4">
-              <label class="form-label"><strong>Teléfono 1:</strong></label>
-              <input type="tel" id="telefono1" name="telefono1" class="form-control" readonly>
-            </div>
-
-            <div class="col-md-4">
-              <label class="form-label"><strong>Teléfono 2:</strong></label>
-              <input type="tel" id="telefono2" name="telefono2" class="form-control" readonly>
-            </div>
-
-            <div class="col-md-4">
-              <label class="form-label"><strong>Ciudad:</strong></label>
-              <input type="text" id="ciudad" name="ciudad" class="form-control" readonly>
-            </div>
-
-            <div class="col-md-4">
-              <label class="form-label"><strong><i class="fas fa-calendar-day"></i> Fecha de Consulta:</strong></label>
-              <input type="date" id="fecha" name="fecha" class="form-control" required>
-            </div>
-
-            <div class="col-md-4">
-              <label class="form-label"><strong><i class="fas fa-clock"></i> Hora:</strong></label>
-              <input type="time" id="hora" name="hora" class="form-control" required>
-            </div>
-
-            <div class="col-md-4">
-              <label class="form-label"><strong><i class="fas fa-user-md"></i> Médico:</strong></label>
-              <input type="text" id="medico" name="medico" class="form-control" required>
-            </div>
-
-            <div class="col-12">
-              <button type="submit" class="btn btn-success btn-lg">
-                <i class="fas fa-save"></i> Agendar Consulta
-              </button>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-
     <!-- ===== TABLA DE CONSULTAS PROGRAMADAS ===== -->
     <div class="card">
-      <div class="card-header">
-        <i class="fas fa-list-alt"></i> Consultas Programadas
-      </div>
+      <div class="card-header"><i class="fas fa-list"></i> Consultas Programadas</div>
       <div class="card-body">
         <div class="table-responsive">
           <table class="table">
-            <thead>
+            <thead style="background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%); color: white;">
               <tr>
                 <th>ID</th>
                 <th>Paciente</th>
@@ -453,12 +385,9 @@
                 <th>Acciones</th>
               </tr>
             </thead>
-            <tbody id="tablaConsultas">
+            <tbody id="tabla-consultas">
               <tr>
-                <td colspan="7" style="text-align: center; padding: 40px;">
-                  <i class="fas fa-spinner fa-spin fa-2x" style="color: #3498db;"></i>
-                  <p style="margin-top: 15px; color: #7f8c8d;">Cargando consultas...</p>
-                </td>
+                <td colspan="7" class="text-muted">No hay consultas programadas</td>
               </tr>
             </tbody>
           </table>
@@ -466,29 +395,29 @@
       </div>
     </div>
 
-    <footer class="footer">
-      <p>Sistema de Gestión Oftavisión © 2025 | Módulo de Consultas</p>
-    </footer>
+    <div class="footer">
+      <p>Sistema de Gestión Oftavisión © 2025</p>
+    </div>
   </div>
 
+  <!-- Librerías -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
   <script>
-    // ====================== VARIABLES GLOBALES ======================
     let rolUsuario = null;
     let fechaInicio = null;
     let fechaFin = null;
 
-    // ====================== DETECTAR ROL DE USUARIO ======================
+    //======================= OBTENER ROL DE USUARIO ======================
     async function obtenerRolUsuario() {
       try {
-        const resp = await fetch('/api/sesion');
+        const resp = await fetch('/api/check-session');
         const data = await resp.json();
-        rolUsuario = data.rol;
-        console.log('👤 Rol del usuario:', rolUsuario);
+        rolUsuario = data.usuario?.rol || 'usuario';
       } catch (err) {
-        console.error('❌ Error obteniendo rol:', err);
-        rolUsuario = 'usuario'; // por defecto
+        console.error('Error obteniendo rol:', err);
+        rolUsuario = 'usuario';
       }
     }
 
@@ -624,114 +553,47 @@
       cargarConsultas();
     }
 
-    // Event listeners para las opciones del dropdown
-    document.addEventListener('DOMContentLoaded', function() {
-      document.querySelectorAll('.dropdown-opcion').forEach(opcion => {
-        opcion.addEventListener('click', function() {
-          const periodo = this.getAttribute('data-periodo');
-          filtrarPorPeriodo(periodo);
-        });
+    // ====================== FUNCIONES DE NOTIFICACIÓN ====================
+    function mostrarExito(titulo, mensaje) {
+      document.getElementById('successMessage').textContent = mensaje;
+      document.getElementById('successAlert').style.display = 'block';
+      
+      setTimeout(() => {
+        document.getElementById('successAlert').style.display = 'none';
+      }, 5000);
+      
+      Swal.fire({
+        icon: 'success',
+        title: titulo,
+        text: mensaje,
+        timer: 3000,
+        showConfirmButton: false
       });
-    });
+    }
 
-    // ====================== CARGAR CONSULTAS ======================
-    async function cargarConsultas() {
-      try {
-        let url = '/api/consultas';
-        
-        // Agregar parámetros de fecha si existen
-        if (fechaInicio && fechaFin) {
-          url += `?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
-        }
-
-        const resp = await fetch(url);
-        const consultas = await resp.json();
-
-        const tbody = document.getElementById('tablaConsultas');
-
-        if (consultas.length === 0) {
-          tbody.innerHTML = `
-            <tr>
-              <td colspan="7" style="text-align: center; padding: 40px;">
-                <i class="fas fa-calendar-times fa-3x" style="color: #95a5a6; margin-bottom: 15px;"></i>
-                <p style="color: #7f8c8d; font-size: 1.1rem;">No hay consultas programadas</p>
-              </td>
-            </tr>
-          `;
-          return;
-        }
-
-        tbody.innerHTML = consultas.map(c => {
-          const badgeEstado = c.estado === 'Atendida' ? 'bg-success' : 'bg-warning';
-          const iconoEstado = c.estado === 'Atendida' ? 'fa-check-circle' : 'fa-clock';
-
-          return `
-            <tr>
-              <td>${c.id}</td>
-              <td>${c.paciente}</td>
-              <td>${formatearFecha(c.fecha)}</td>
-              <td>${c.hora}</td>
-              <td>${c.medico}</td>
-              <td>
-                <span class="badge ${badgeEstado}">
-                  <i class="fas ${iconoEstado}"></i> ${c.estado}
-                </span>
-              </td>
-              <td>
-                <div class="btn-group-actions">
-                  ${c.estado === 'Pendiente' 
-                    ? `
-                      <button class="btn btn-warning btn-sm" onclick="atenderConsulta(${c.id})">
-                        <i class="fas fa-stethoscope"></i> Atender
-                      </button>
-                    ` 
-                    : `
-                      <button class="btn btn-info btn-sm" onclick="verDatosConsulta(${c.id})">
-                        <i class="fas fa-eye"></i> Ver Datos
-                      </button>
-                      <button class="btn btn-primary btn-sm" onclick="irAPagar(${c.id})">
-                        <i class="fas fa-credit-card"></i> Pagar
-                      </button>
-                    `
-                  }
-                  ${rolUsuario === 'admin' 
-                    ? `
-                      <button class="btn btn-danger btn-sm" onclick="eliminarConsulta(${c.id})">
-                        <i class="fas fa-trash"></i> Eliminar
-                      </button>
-                    ` 
-                    : ''
-                  }
-                </div>
-              </td>
-            </tr>
-          `;
-        }).join('');
-
-      } catch (err) {
-        console.error('Error cargando consultas:', err);
-        mostrarError('Error', 'No se pudieron cargar las consultas');
-      }
+    function mostrarError(titulo, mensaje) {
+      Swal.fire({
+        icon: 'error',
+        title: titulo,
+        text: mensaje
+      });
     }
 
     // ====================== BUSCAR EXPEDIENTE ======================
-    async function buscarExpediente(esAutomatico = false) {
+    async function buscarExpediente() {
       const query = document.getElementById('buscarExpediente').value.trim();
-      const contenedor = document.getElementById('resultadosBusqueda');
-      const loading = document.getElementById('searchLoading');
-
+      
       if (!query) {
-        contenedor.innerHTML = '';
+        document.getElementById('resultadosBusqueda').innerHTML = '';
         return;
       }
-
-      if (esAutomatico) loading.classList.add('active');
 
       try {
         const resp = await fetch(`/api/expedientes/buscar?q=${encodeURIComponent(query)}`);
         const expedientes = await resp.json();
-        loading.classList.remove('active');
-
+        
+        const contenedor = document.getElementById('resultadosBusqueda');
+        
         if (expedientes.length === 0) {
           contenedor.innerHTML = `
             <div class="alert alert-warning mt-3">
@@ -758,84 +620,170 @@
         `).join('');
 
       } catch (err) {
-        loading.classList.remove('active');
         console.error('Error buscando expediente:', err);
         mostrarError('Error', 'No se pudo realizar la búsqueda');
       }
     }
 
-    // ====================== SELECCIONAR EXPEDIENTE ======================
+    // ====================== SELECCIONAR EXPEDIENTE Y AGENDAR ======================
     async function seleccionarExpediente(numeroExpediente) {
       try {
-        console.log('🔍 Seleccionando expediente:', numeroExpediente);
+        console.log('📞 Solicitando expediente:', numeroExpediente);
 
         const resp = await fetch(`/api/expedientes/detalle/${numeroExpediente}`);
         if (!resp.ok) throw new Error('No se pudo obtener el expediente');
 
         const expediente = await resp.json();
-        console.log('✅ Expediente cargado:', expediente);
+        console.log('📋 Expediente recibido:', expediente);
 
-        document.getElementById('expediente_id').value = expediente.id;
-        document.getElementById('paciente').value = expediente.nombre_completo;
-        document.getElementById('numero_expediente').value = expediente.numero_expediente;
-        document.getElementById('edad').value = expediente.edad || '';
-        document.getElementById('telefono1').value = expediente.telefono1 || '';
-        document.getElementById('telefono2').value = expediente.telefono2 || '';
-        document.getElementById('ciudad').value = expediente.ciudad || '';
+        const { value: formValues } = await Swal.fire({
+          title: 'Agendar Consulta',
+          width: '600px',
+          html: `
+            <div class="text-start">
+              <div class="mb-3">
+                <label class="form-label"><strong>Paciente:</strong></label>
+                <input type="text" class="form-control" value="${expediente.nombre_completo || 'Sin nombre'}" disabled>
+              </div>
+              <div class="mb-3">
+                <label class="form-label"><strong>Expediente:</strong></label>
+                <input type="text" class="form-control" value="${expediente.numero_expediente || 'Sin número'}" disabled>
+              </div>
+              <div class="mb-3">
+                <label class="form-label"><strong>Fecha de Consulta:</strong></label>
+                <input type="date" id="swal-fecha" class="form-control" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label"><strong>Hora:</strong></label>
+                <input type="time" id="swal-hora" class="form-control" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label"><strong>Médico:</strong></label>
+                <input type="text" id="swal-medico" class="form-control" placeholder="Nombre del médico" required>
+              </div>
+            </div>
+          `,
+          focusConfirm: false,
+          showCancelButton: true,
+          confirmButtonText: '<i class="fas fa-check"></i> Agendar',
+          cancelButtonText: 'Cancelar',
+          preConfirm: () => {
+            const fecha = document.getElementById('swal-fecha').value;
+            const hora = document.getElementById('swal-hora').value;
+            const medico = document.getElementById('swal-medico').value;
 
-        document.getElementById('resultadosBusqueda').innerHTML = '';
-        document.getElementById('buscarExpediente').value = '';
+            if (!fecha || !hora || !medico) {
+              Swal.showValidationMessage('Por favor completa todos los campos');
+              return false;
+            }
 
-        mostrarExito('Expediente Cargado', `Paciente: ${expediente.nombre_completo}`);
+            return { fecha, hora, medico };
+          }
+        });
 
+        if (formValues) {
+          const fechaLocal = formValues.fecha;
+
+          const nuevaConsulta = {
+            expediente_id: parseInt(expediente.id || expediente.expediente_id || expediente.numero_expediente),
+            paciente: expediente.nombre_completo || 'Sin nombre',
+            numero_expediente: parseInt(expediente.numero_expediente || expediente.id),
+            telefono1: expediente.telefono1 || '',
+            telefono2: expediente.telefono2 || '',
+            edad: expediente.edad || null,
+            ciudad: expediente.ciudad || '',
+            fecha: fechaLocal,
+            hora: formValues.hora,
+            medico: formValues.medico,
+            estado: 'Pendiente'
+          };
+
+          console.log('📤 Enviando nueva consulta:', nuevaConsulta);
+
+          const respPost = await fetch('/api/consultas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(nuevaConsulta)
+          });
+
+          if (respPost.ok) {
+            mostrarExito('¡Éxito!', 'Consulta agendada correctamente');
+            document.getElementById('buscarExpediente').value = '';
+            document.getElementById('resultadosBusqueda').innerHTML = '';
+            cargarConsultas();
+          } else {
+            const errorData = await respPost.json();
+            console.error('❌ Error del servidor:', errorData);
+            mostrarError('Error', errorData.error || 'No se pudo agendar la consulta');
+          }
+        }
       } catch (err) {
-        console.error('❌ Error cargando expediente:', err);
-        mostrarError('Error', 'No se pudo cargar el expediente seleccionado');
+        console.error('❌ Error completo:', err);
+        mostrarError('Error', 'No se pudo agendar la consulta: ' + err.message);
       }
     }
 
-    // ====================== AGENDAR CONSULTA ======================
-    document.getElementById('formConsulta').addEventListener('submit', async function(e) {
-      e.preventDefault();
-
+    // ====================== CARGAR CONSULTAS ======================
+    async function cargarConsultas() {
       try {
-        const formData = {
-          expediente_id: parseInt(document.getElementById('expediente_id').value),
-          paciente: document.getElementById('paciente').value,
-          numero_expediente: parseInt(document.getElementById('numero_expediente').value),
-          telefono1: document.getElementById('telefono1').value,
-          telefono2: document.getElementById('telefono2').value,
-          edad: parseInt(document.getElementById('edad').value) || null,
-          ciudad: document.getElementById('ciudad').value,
-          fecha: document.getElementById('fecha').value,
-          hora: document.getElementById('hora').value,
-          medico: document.getElementById('medico').value,
-          estado: 'Pendiente'
-        };
+        let url = '/api/consultas';
+        
+        // Agregar parámetros de fecha si existen
+        if (fechaInicio && fechaFin) {
+          url += `?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+        }
 
-        console.log('📤 Enviando consulta:', formData);
+        const resp = await fetch(url);
+        const consultas = await resp.json();
 
-        const resp = await fetch('/api/consultas', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
-        });
+        const tbody = document.getElementById('tabla-consultas');
+        
+        if (consultas.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" class="text-muted">No hay consultas programadas</td></tr>';
+          return;
+        }
 
-        if (!resp.ok) throw new Error('No se pudo agendar la consulta');
-
-        const resultado = await resp.json();
-        console.log('✅ Consulta agendada:', resultado);
-
-        mostrarExito('¡Consulta Agendada!', `ID: ${resultado.id} | Paciente: ${resultado.paciente}`);
-
-        document.getElementById('formConsulta').reset();
-        cargarConsultas();
+        tbody.innerHTML = consultas.map(c => `
+          <tr>
+            <td>${c.id}</td>
+            <td>${c.paciente}</td>
+            <td>${formatearFecha(c.fecha)}</td>
+            <td>${c.hora}</td>
+            <td>${c.medico}</td>
+            <td>
+              <span class="badge ${c.estado === 'Atendida' ? 'bg-success' : 'bg-warning'}">
+                ${c.estado}
+              </span>
+            </td>
+            <td>
+              <div class="btn-group-actions">
+                ${c.estado === 'Pendiente' 
+                  ? `<button class="btn btn-warning btn-sm" onclick="atenderConsulta(${c.id})">
+                      <i class="fas fa-stethoscope"></i> Atender
+                    </button>` 
+                  : `<button class="btn btn-info btn-sm" onclick="verDatosConsulta(${c.id})">
+                      <i class="fas fa-eye"></i> Ver Datos
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="irAPagar(${c.id})">
+                      <i class="fas fa-credit-card"></i> Pagar
+                    </button>`
+                }
+                ${rolUsuario === 'admin' 
+                  ? `<button class="btn btn-danger btn-sm" onclick="eliminarConsulta(${c.id})">
+                      <i class="fas fa-trash"></i> Eliminar
+                    </button>` 
+                  : ''
+                }
+              </div>
+            </td>
+          </tr>
+        `).join('');
 
       } catch (err) {
-        console.error('❌ Error agendando consulta:', err);
-        mostrarError('Error', 'No se pudo agendar la consulta');
+        console.error('Error cargando consultas:', err);
+        mostrarError('Error', 'No se pudieron cargar las consultas');
       }
-    });
+    }
 
     // ====================== ATENDER CONSULTA ======================
     async function atenderConsulta(consultaId) {
@@ -979,104 +927,104 @@
     }
 
     // ====================== IR A PAGAR ======================
-async function irAPagar(consultaId) {
-  try {
-    console.log("🔍 Verificando orden existente para consulta:", consultaId);
+    async function irAPagar(consultaId) {
+      try {
+        console.log("🔍 Verificando orden existente para consulta:", consultaId);
 
-    const respOrdenes = await fetch("/api/ordenes_medicas_consulta");
-    const ordenes = await respOrdenes.json();
+        const respOrdenes = await fetch("/api/ordenes_medicas_consulta");
+        const ordenes = await respOrdenes.json();
 
-    const ordenExistente = ordenes.find(o => o.consulta_id === consultaId);
+        const ordenExistente = ordenes.find(o => o.consulta_id === consultaId);
 
-    if (ordenExistente) {
-      console.log("✅ Orden existente encontrada:", ordenExistente.id);
+        if (ordenExistente) {
+          console.log("✅ Orden existente encontrada:", ordenExistente.id);
 
-      await Swal.fire({
-        icon: 'info',
-        title: 'Orden Ya Existe',
-        html: `
-          <p>Ya existe una orden de pago para esta consulta.</p>
-          <p><strong>Orden #${ordenExistente.id}</strong></p>
-          <p>Serás redirigido al módulo de órdenes...</p>
-        `,
-        timer: 2500,
-        showConfirmButton: false
-      });
+          await Swal.fire({
+            icon: 'info',
+            title: 'Orden Ya Existe',
+            html: `
+              <p>Ya existe una orden de pago para esta consulta.</p>
+              <p><strong>Orden #${ordenExistente.id}</strong></p>
+              <p>Serás redirigido al módulo de órdenes...</p>
+            `,
+            timer: 2500,
+            showConfirmButton: false
+          });
 
-      setTimeout(() => {
-        window.location.href = '/ordenes';
-      }, 2500);
+          setTimeout(() => {
+            window.location.href = '/ordenes';
+          }, 2500);
 
-    } else {
-      const resp = await fetch("/api/ordenes_medicas_consulta", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ consultaId })
-      });
+        } else {
+          const resp = await fetch("/api/ordenes_medicas_consulta", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ consultaId })
+          });
 
-      if (!resp.ok) {
-        const errorData = await resp.json();
-        throw new Error(errorData.error || "No se pudo crear la orden");
-      }
-
-      const resultado = await resp.json();
-
-      const filaBoton = document.querySelector(`button[onclick="irAPagar(${consultaId})"]`);
-      if (filaBoton) {
-        const celdaAcciones = filaBoton.parentElement;
-        celdaAcciones.innerHTML = `
-          <button class="btn btn-info btn-sm" onclick="verDatosConsulta(${consultaId})">
-            <i class="fas fa-eye"></i> Ver Datos
-          </button>
-          <span class="badge bg-secondary p-2">Enviado</span>
-          ${rolUsuario === 'admin' ? `
-            <button class="btn btn-danger btn-sm" onclick="eliminarConsulta(${consultaId})">
-              <i class="fas fa-trash"></i> Eliminar
-            </button>` : ''
+          if (!resp.ok) {
+            const errorData = await resp.json();
+            throw new Error(errorData.error || "No se pudo crear la orden");
           }
-        `;
+
+          const resultado = await resp.json();
+
+          const filaBoton = document.querySelector(`button[onclick="irAPagar(${consultaId})"]`);
+          if (filaBoton) {
+            const celdaAcciones = filaBoton.parentElement;
+            celdaAcciones.innerHTML = `
+              <button class="btn btn-info btn-sm" onclick="verDatosConsulta(${consultaId})">
+                <i class="fas fa-eye"></i> Ver Datos
+              </button>
+              <span class="badge bg-secondary p-2">Enviado</span>
+              ${rolUsuario === 'admin' ? `
+                <button class="btn btn-danger btn-sm" onclick="eliminarConsulta(${consultaId})">
+                  <i class="fas fa-trash"></i> Eliminar
+                </button>` : ''
+              }
+            `;
+          }
+
+          await Swal.fire({
+            icon: 'success',
+            title: '¡Orden Creada Exitosamente!',
+            html: `
+              <div class="text-start" style="padding: 20px;">
+                <p style="font-size: 1.1rem;">
+                  <i class="fas fa-check-circle text-success"></i> Orden médica #${resultado.id} creada
+                </p>
+                <hr>
+                <p><strong>Procedimiento:</strong> ${resultado.procedimiento || 'Consulta Oftalmológica'}</p>
+                <p><strong>Precio:</strong> $${resultado.precio || 500}.00</p>
+                <p><strong>Estado:</strong> <span class="badge bg-warning">${resultado.estatus}</span></p>
+                <hr>
+                <p class="text-muted"><i class="fas fa-info-circle"></i> Redirigiendo al módulo de órdenes para procesar el pago...</p>
+              </div>
+            `,
+            timer: 3500,
+            showConfirmButton: false
+          });
+
+          setTimeout(() => {
+            window.location.href = '/ordenes';
+          }, 3500);
+        }
+
+      } catch (err) {
+        console.error("❌ Error procesando pago:", err);
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al Crear Orden',
+          html: `
+            <p>${err.message || "Ocurrió un error al procesar el pago"}</p>
+            <p class="text-muted mt-3"><small>Por favor, intenta nuevamente o contacta al administrador.</small></p>
+          `,
+          confirmButtonColor: '#e74c3c',
+          confirmButtonText: '<i class="fas fa-times"></i> Cerrar'
+        });
       }
-
-      await Swal.fire({
-        icon: 'success',
-        title: '¡Orden Creada Exitosamente!',
-        html: `
-          <div class="text-start" style="padding: 20px;">
-            <p style="font-size: 1.1rem;">
-              <i class="fas fa-check-circle text-success"></i> Orden médica #${resultado.id} creada
-            </p>
-            <hr>
-            <p><strong>Procedimiento:</strong> ${resultado.procedimiento || 'Consulta Oftalmológica'}</p>
-            <p><strong>Precio:</strong> $${resultado.precio || 500}.00</p>
-            <p><strong>Estado:</strong> <span class="badge bg-warning">${resultado.estatus}</span></p>
-            <hr>
-            <p class="text-muted"><i class="fas fa-info-circle"></i> Redirigiendo al módulo de órdenes para procesar el pago...</p>
-          </div>
-        `,
-        timer: 3500,
-        showConfirmButton: false
-      });
-
-      setTimeout(() => {
-        window.location.href = '/ordenes';
-      }, 3500);
     }
-
-  } catch (err) {
-    console.error("❌ Error procesando pago:", err);
-
-    Swal.fire({
-      icon: 'error',
-      title: 'Error al Crear Orden',
-      html: `
-        <p>${err.message || "Ocurrió un error al procesar el pago"}</p>
-        <p class="text-muted mt-3"><small>Por favor, intenta nuevamente o contacta al administrador.</small></p>
-      `,
-      confirmButtonColor: '#e74c3c',
-      confirmButtonText: '<i class="fas fa-times"></i> Cerrar'
-    });
-  }
-}
 
     // ====================== ELIMINAR CONSULTA ======================
     async function eliminarConsulta(consultaId) {
@@ -1136,26 +1084,6 @@ async function irAPagar(consultaId) {
       }
     }
 
-    // ====================== FUNCIONES DE UTILIDAD ======================
-    function mostrarExito(titulo, mensaje) {
-      Swal.fire({
-        icon: 'success',
-        title: titulo,
-        text: mensaje,
-        timer: 2000,
-        showConfirmButton: false
-      });
-    }
-
-    function mostrarError(titulo, mensaje) {
-      Swal.fire({
-        icon: 'error',
-        title: titulo,
-        text: mensaje,
-        confirmButtonColor: '#e74c3c'
-      });
-    }
-
     // ====================== BÚSQUEDA EN TIEMPO REAL CON DEBOUNCE ======================
     let searchTimeout = null;
 
@@ -1179,6 +1107,56 @@ async function irAPagar(consultaId) {
       });
     }
 
+    // Modificar función buscarExpediente para mostrar indicador
+    async function buscarExpediente(esAutomatico = false) {
+      const query = document.getElementById('buscarExpediente').value.trim();
+      const contenedor = document.getElementById('resultadosBusqueda');
+      const loading = document.getElementById('searchLoading');
+
+      if (!query) {
+        contenedor.innerHTML = '';
+        return;
+      }
+
+      if (esAutomatico) loading.classList.add('active');
+
+      try {
+        const resp = await fetch(`/api/expedientes/buscar?q=${encodeURIComponent(query)}`);
+        const expedientes = await resp.json();
+        loading.classList.remove('active');
+
+        if (expedientes.length === 0) {
+          contenedor.innerHTML = `
+            <div class="alert alert-warning mt-3">
+              <i class="fas fa-exclamation-triangle"></i> No se encontraron expedientes con ese criterio
+            </div>
+          `;
+          return;
+        }
+
+        contenedor.innerHTML = expedientes.map(exp => `
+          <div class="expediente-item" onclick="seleccionarExpediente(${exp.numero_expediente})">
+            <div class="expediente-info">
+              <strong>${exp.nombre_completo}</strong>
+              <small>
+                <i class="fas fa-id-card"></i> Expediente: ${exp.numero_expediente} | 
+                <i class="fas fa-phone"></i> ${exp.telefono1 || 'Sin teléfono'} | 
+                <i class="fas fa-birthday-cake"></i> ${exp.edad || 'Sin edad'} años
+              </small>
+            </div>
+            <button class="btn btn-primary btn-sm">
+              <i class="fas fa-calendar-plus"></i> Agendar
+            </button>
+          </div>
+        `).join('');
+
+      } catch (err) {
+        loading.classList.remove('active');
+        console.error('Error buscando expediente:', err);
+        mostrarError('Error', 'No se pudo realizar la búsqueda');
+      }
+    }
+
     // ====================== INICIALIZACIÓN ======================
     document.addEventListener("DOMContentLoaded", async () => {
       await obtenerRolUsuario();
@@ -1189,6 +1167,14 @@ async function irAPagar(consultaId) {
       fechaFin = hoy;
       document.getElementById('rangoFechas').value = `${formatearFechaDisplay(hoy)} - ${formatearFechaDisplay(hoy)}`;
       
+      // Event listeners para las opciones del dropdown
+      document.querySelectorAll('.dropdown-opcion').forEach(opcion => {
+        opcion.addEventListener('click', function() {
+          const periodo = this.getAttribute('data-periodo');
+          filtrarPorPeriodo(periodo);
+        });
+      });
+
       cargarConsultas();
       inicializarBusquedaEnTiempoReal();
     });
