@@ -2570,36 +2570,63 @@ app.get('/api/expedientes/detalle/:numero', verificarSesion, async (req, res) =>
 
 // ==================== MODULO DE AGENDA DE CONSULTAS ====================
 // Obtener todas las consultas
+// ==================== OBTENER CONSULTAS (CON FILTRO OPCIONAL DE FECHA) ====================
 app.get('/api/consultas', verificarSesion, async (req, res) => {
   try {
-    let depto = getDepartamento(req);
+    const { desde, hasta } = req.query;
+    const depto = getDepartamento(req);
+    let result;
 
-    const result = await pool.query(`
-      SELECT 
-        id,
-        expediente_id,
-        paciente,
-        numero_expediente,
-        fecha,
-        hora,
-        medico,
-        estado,
-        telefono1,
-        telefono2,
-        edad,
-        ciudad
-      FROM consultas
-      WHERE departamento = $1
-      ORDER BY fecha DESC, hora DESC
-    `, [depto]);
+    if (desde && hasta) {
+      // 🔹 Filtrar por rango de fechas si los parámetros existen
+      result = await pool.query(`
+        SELECT 
+          id,
+          expediente_id,
+          paciente,
+          numero_expediente,
+          fecha,
+          hora,
+          medico,
+          estado,
+          telefono1,
+          telefono2,
+          edad,
+          ciudad
+        FROM consultas
+        WHERE departamento = $1
+          AND fecha BETWEEN $2 AND $3
+        ORDER BY fecha DESC, hora DESC
+      `, [depto, desde, hasta]);
+    } else {
+      // 🔹 Si no hay filtro, traer todas
+      result = await pool.query(`
+        SELECT 
+          id,
+          expediente_id,
+          paciente,
+          numero_expediente,
+          fecha,
+          hora,
+          medico,
+          estado,
+          telefono1,
+          telefono2,
+          edad,
+          ciudad
+        FROM consultas
+        WHERE departamento = $1
+        ORDER BY fecha DESC, hora DESC
+      `, [depto]);
+    }
 
     res.json(result.rows);
-
   } catch (err) {
-    console.error('Error en /api/consultas:', err);
+    console.error('Error en GET /api/consultas:', err);
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // Crear una consulta
 app.post('/api/consultas', verificarSesion, async (req, res) => {
