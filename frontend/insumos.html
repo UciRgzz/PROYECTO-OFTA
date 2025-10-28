@@ -200,11 +200,18 @@ function cambiarMes(delta) {
   cargarInsumos();
 }
 
-    let fechaActual = new Date();
-    // Almacenar notas en localStorage
-    let notas = JSON.parse(localStorage.getItem('notasCalendario') || '{}');
-    // Variable para saber si el usuario es admin
-    let esAdmin = false;
+let fechaActual = new Date();
+
+// === Identificador único por usuario (para separar las notas de admin/usuario) ===
+let usuarioActual = localStorage.getItem('usuarioActual') || 'default';
+let notasKey = `notasCalendario_${usuarioActual}`;
+
+// === Cargar notas guardadas solo para ese usuario ===
+let notas = JSON.parse(localStorage.getItem(notasKey) || '{}');
+
+// Variable para saber si el usuario es admin
+let esAdmin = false;
+
 
     document.addEventListener("DOMContentLoaded", async () => {
       await verificarRolUsuario(); // Esperar a verificar el rol primero
@@ -212,21 +219,33 @@ function cambiarMes(delta) {
     });
 
     // Verificar si el usuario es administrador
-    async function verificarRolUsuario() {
-      try {
-        const res = await fetch("/api/user/role");
-        const data = await res.json();
-        esAdmin = data.isAdmin || false;
-        console.log("✅ Rol verificado - Es Admin:", esAdmin);
-        console.log("📊 Datos del usuario:", data);
-      } catch (err) {
-        console.error("❌ Error verificando rol:", err);
-        esAdmin = false;
-      }
-      
-      // Recargar la tabla después de verificar el rol
-      await cargarInsumos();
+async function verificarRolUsuario() {
+  try {
+    const res = await fetch("/api/user/role");
+    const data = await res.json();
+    esAdmin = data.isAdmin || false;
+    console.log("✅ Rol verificado - Es Admin:", esAdmin);
+    console.log("📊 Datos del usuario:", data);
+
+    // ✅ Guardar usuario actual en localStorage para separar sus notas
+    if (data.usuario) {
+      localStorage.setItem("usuarioActual", data.usuario);
     }
+
+    // ✅ Actualizar clave de notas dinámicamente según el usuario
+    usuarioActual = localStorage.getItem("usuarioActual") || "default";
+    notasKey = `notasCalendario_${usuarioActual}`;
+    notas = JSON.parse(localStorage.getItem(notasKey) || "{}");
+
+  } catch (err) {
+    console.error("❌ Error verificando rol:", err);
+    esAdmin = false;
+  }
+
+  // Recargar datos después de verificar el rol
+  await cargarInsumos();
+}
+
 
     // Registrar insumo 
 document.getElementById("agendaForm").addEventListener("submit", async (e) => {
@@ -408,8 +427,9 @@ async function eliminarInsumo(id) {
 // Función para guardar nota
 function guardarNota(fecha, texto) {
   notas[fecha] = texto;
-  localStorage.setItem('notasCalendario', JSON.stringify(notas));
+  localStorage.setItem(notasKey, JSON.stringify(notas));
 }
+
 
 // ==================== CALENDARIO CON COLORES POR ROL ====================
 async function renderCalendar() {
