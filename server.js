@@ -2626,8 +2626,6 @@ app.get('/api/consultas', verificarSesion, async (req, res) => {
   }
 });
 
-
-// Crear una consulta
 // Crear una consulta
 app.post('/api/consultas', verificarSesion, async (req, res) => {
   try {

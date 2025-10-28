@@ -1033,13 +1033,13 @@
       }
     }
 
-    // ====================== INICIALIZACIÓN ======================
-    document.addEventListener("DOMContentLoaded", async () => {
-      await obtenerRolUsuario(); // primero detecta si es admin
-      inicializarDateRangePicker();
-      cargarConsultas();
-      inicializarBusquedaEnTiempoReal();
-    });
+// ====================== INICIALIZACIÓN ======================
+document.addEventListener("DOMContentLoaded", async () => {
+  await obtenerRolUsuario(); // primero detecta si es admin
+  inicializarDateRangePicker(); // esta función ya carga automáticamente las de hoy
+  inicializarBusquedaEnTiempoReal(); // activa búsqueda
+});
+
 
     // ====================== BÚSQUEDA EN TIEMPO REAL CON DEBOUNCE ======================
     let searchTimeout = null;
