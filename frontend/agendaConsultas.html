@@ -529,21 +529,30 @@
     }
 
     // ====================== CARGAR CONSULTAS ======================
-    async function cargarConsultas() {
-      try {
-        const resp = await fetch("/api/consultas");
-        consultasOriginales = await resp.json();
-        consultasFiltradas = [...consultasOriginales];
-        
-        const respOrdenes = await fetch('/api/ordenes_medicas_consulta');
-        const ordenes = respOrdenes.ok ? await respOrdenes.json() : [];
-        
-        mostrarConsultas(consultasFiltradas, ordenes);
-      } catch (err) {
-        console.error("Error cargando consultas:", err);
-        mostrarError("Error", "No se pudieron cargar las consultas");
-      }
+// ✅ Cargar consultas del rango actual visible (por defecto hoy)
+async function cargarConsultas() {
+  try {
+    const valor = $('#filtroRangoConsultas').val();
+    if (!valor) {
+      // Si por alguna razón no hay rango, usa hoy
+      const hoy = moment().format("YYYY-MM-DD");
+      return cargarConsultasPorRango(hoy, hoy);
     }
+
+    // Extraer fechas del rango actual
+    const [desdeStr, hastaStr] = valor.split(' - ');
+    const desde = moment(desdeStr, 'DD/MM/YYYY').format('YYYY-MM-DD');
+    const hasta = moment(hastaStr, 'DD/MM/YYYY').format('YYYY-MM-DD');
+
+    // Filtrar solo ese rango
+    await cargarConsultasPorRango(desde, hasta);
+
+  } catch (err) {
+    console.error("Error cargando consultas:", err);
+    mostrarError("Error", "No se pudieron cargar las consultas");
+  }
+}
+
 
     // ====================== CARGAR CONSULTAS POR RANGO DE FECHAS ======================
     async function cargarConsultasPorRango(desde, hasta) {
