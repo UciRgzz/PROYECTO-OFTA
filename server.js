@@ -2578,7 +2578,7 @@ app.get('/api/consultas', verificarSesion, async (req, res) => {
     let result;
 
     if (desde && hasta) {
-      // 🔹 Filtrar por rango de fechas si los parámetros existen
+      // ✅ Filtrar por solo la parte de la fecha (ignora horas)
       result = await pool.query(`
         SELECT 
           id,
@@ -2595,11 +2595,10 @@ app.get('/api/consultas', verificarSesion, async (req, res) => {
           ciudad
         FROM consultas
         WHERE departamento = $1
-          AND fecha BETWEEN $2 AND $3
+          AND DATE(fecha) BETWEEN $2 AND $3
         ORDER BY fecha DESC, hora DESC
       `, [depto, desde, hasta]);
     } else {
-      // 🔹 Si no hay filtro, traer todas
       result = await pool.query(`
         SELECT 
           id,
@@ -2626,6 +2625,7 @@ app.get('/api/consultas', verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 // Crear una consulta
