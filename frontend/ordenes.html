@@ -495,23 +495,29 @@
       }
     ];
 
-    async function cargarOrdenes() {
-      try {
-        const res = await fetch("/api/ordenes_medicas");
-        if (res.ok) {
-          ordenesData = await res.json();
-        } else {
-          ordenesData = datosEjemplo;
-        }
-        
-        renderizarTabla();
-      } catch (err) { 
-        console.error("Error cargando órdenes:", err);
-        ordenesData = datosEjemplo;
-        renderizarTabla();
-      }
+    // Función para cargar órdenes desde el backend
+// ✅ Cargar órdenes solo del rango actual (por defecto hoy)
+async function cargarOrdenes() {
+  try {
+    const valor = $('#filtroRango').val();
+    if (!valor) {
+      const hoy = moment().format('YYYY-MM-DD');
+      return cargarOrdenesRango(hoy, hoy);
     }
 
+    const [desdeStr, hastaStr] = valor.split(' - ');
+    const desde = moment(desdeStr, 'DD/MM/YYYY').format('YYYY-MM-DD');
+    const hasta = moment(hastaStr, 'DD/MM/YYYY').format('YYYY-MM-DD');
+
+    await cargarOrdenesRango(desde, hasta);
+  } catch (err) {
+    console.error("Error cargando órdenes:", err);
+    mostrarError("Error", "No se pudieron cargar las órdenes médicas");
+  }
+}
+
+
+  // Función para actualizar un campo editable
     function renderizarTabla() {
       document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
         <tr>
