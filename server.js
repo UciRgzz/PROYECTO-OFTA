@@ -2980,44 +2980,6 @@ app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
 
     console.log('✅ Orden médica creada exitosamente:', result.rows[0].id);
 
-    // ✅ Registrar notificación
-    try {
-      await pool.query(
-        "INSERT INTO notificaciones (mensaje, usuario, fecha) VALUES ($1, $2, $3)",
-        [
-          `💳 Orden de consulta #${result.rows[0].id} creada para ${pacienteNombre}`,
-          req.session.usuario?.username || 'sistema',
-          fechaHoraLocalMX()
-        ]
-      );
-    } catch (notifErr) {
-      console.error('⚠️ Error registrando notificación:', notifErr);
-      // No detener el flujo por error de notificación
-    }
-
-    res.status(201).json({
-      ...result.rows[0],
-      mensaje: 'Orden creada exitosamente',
-      yaExiste: false
-    });
-
-  } catch (err) {
-    console.error('❌ Error en POST /api/ordenes_medicas_consulta:', err);
-    
-    // Manejar error específico de clave foránea
-    if (err.code === '23503') {
-      return res.status(400).json({ 
-        error: 'Error de referencia: Verifica que la consulta y el expediente existan',
-        detalle: err.detail 
-      });
-    }
-
-    res.status(500).json({ 
-      error: 'Error al crear la orden médica',
-      detalle: err.message 
-    });
-  }
-});
 
 // ==================== OBTENER ÓRDENES MÉDICAS DE CONSULTAS ====================
 app.get('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
