@@ -2594,7 +2594,7 @@ app.get('/api/consultas', verificarSesion, async (req, res) => {
           ciudad
         FROM consultas
         WHERE departamento = $1
-          AND fecha BETWEEN TO_DATE($2, 'YYYY-MM-DD') AND TO_DATE($3, 'YYYY-MM-DD')
+          AND DATE(fecha) BETWEEN TO_DATE($2, 'YYYY-MM-DD') AND TO_DATE($3, 'YYYY-MM-DD')
         ORDER BY fecha DESC, hora DESC
       `, [depto, desde, hasta]);
     } else {
