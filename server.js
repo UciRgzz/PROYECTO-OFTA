@@ -2629,6 +2629,7 @@ app.get('/api/consultas', verificarSesion, async (req, res) => {
 
 
 // Crear una consulta
+// Crear una consulta
 app.post('/api/consultas', verificarSesion, async (req, res) => {
   try {
     const {
@@ -2647,12 +2648,12 @@ app.post('/api/consultas', verificarSesion, async (req, res) => {
 
     let depto = getDepartamento(req);
 
-    // ✅ Log para debug
     console.log('📥 Datos recibidos para crear consulta:', {
       expediente_id,
       paciente,
       numero_expediente,
-      departamento: depto
+      departamento: depto,
+      fecha
     });
 
     // ✅ Validación crítica
@@ -2660,6 +2661,9 @@ app.post('/api/consultas', verificarSesion, async (req, res) => {
       console.error('❌ Error: expediente_id es null o undefined');
       return res.status(400).json({ error: 'El expediente_id es requerido' });
     }
+
+    // ✅ Corregir la fecha para que se guarde correctamente como día local
+    const fechaLocal = new Date(fecha).toISOString().split('T')[0];
 
     const result = await pool.query(`
       INSERT INTO consultas (
@@ -2685,7 +2689,7 @@ app.post('/api/consultas', verificarSesion, async (req, res) => {
       telefono2,
       edad,
       ciudad,
-      fecha,
+      fechaLocal, // ✅ ahora guarda la fecha exacta sin desfase
       hora,
       medico,
       estado || 'Pendiente',
@@ -2700,6 +2704,7 @@ app.post('/api/consultas', verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // Marcar consulta como atendida
 app.put('/api/consultas/:id/atender', verificarSesion, async (req, res) => {
