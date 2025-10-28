@@ -2874,7 +2874,7 @@ app.delete('/api/atencion_consultas/:consulta_id', verificarSesion, async (req, 
 app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
   try {
     const { consultaId } = req.body;
-    let depto = getDepartamento(req);
+    const depto = getDepartamento(req);
 
     console.log('📋 Creando orden médica para consulta:', consultaId);
 
@@ -2897,13 +2897,13 @@ app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
 
     // Verificar que la consulta esté atendida
     if (c.estado !== 'Atendida') {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'La consulta debe estar atendida antes de crear una orden',
         estado_actual: c.estado
       });
     }
 
-    // ✅ VERIFICAR SI YA EXISTE UNA ORDEN PARA ESTA CONSULTA
+    // ✅ Verificar si ya existe una orden para esta consulta
     const ordenExistente = await pool.query(
       'SELECT * FROM ordenes_medicas WHERE consulta_id = $1 AND departamento = $2',
       [consultaId, depto]
@@ -2911,7 +2911,7 @@ app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
 
     if (ordenExistente.rows.length > 0) {
       console.log('⚠️ Ya existe orden para esta consulta');
-      return res.status(200).json({ 
+      return res.status(200).json({
         mensaje: 'Ya existe una orden médica para esta consulta',
         orden: ordenExistente.rows[0],
         yaExiste: true
@@ -2925,24 +2925,24 @@ app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
     );
 
     if (atencion.rows.length === 0) {
-      return res.status(404).json({ 
-        error: 'No se encontró información de atención para esta consulta' 
+      return res.status(404).json({
+        error: 'No se encontró información de atención para esta consulta'
       });
     }
 
     const at = atencion.rows[0];
 
-    // Obtener información del paciente para notificaciones
+    // Obtener información del paciente (solo para registrar datos de orden)
     const expediente = await pool.query(
       'SELECT nombre_completo FROM expedientes WHERE numero_expediente = $1',
       [c.expediente_id]
     );
 
-    const pacienteNombre = expediente.rows.length > 0 
-      ? expediente.rows[0].nombre_completo 
+    const pacienteNombre = expediente.rows.length > 0
+      ? expediente.rows[0].nombre_completo
       : 'Paciente Desconocido';
 
-    // ✅ CREAR ORDEN MÉDICA CON TODAS LAS COLUMNAS NECESARIAS
+    // ✅ Crear orden médica con todas las columnas necesarias
     const result = await pool.query(`
       INSERT INTO ordenes_medicas (
         consulta_id,
@@ -2962,23 +2962,49 @@ app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
       RETURNING *
     `, [
-  consultaId,                                    
-  c.expediente_id,                               
-  c.medico,                                       
-  at.diagnostico || 'Consulta General',          
-  'OD',                                           
-  at.procedimiento || 'Consulta Oftalmológica',  
-  'Pendiente',                                    
-  500.00,                                         
-  0,                                              
-  500.00,                                         
-  'CONSULTA',                                     
-  'Consulta',                  // ⬅️ CAMBIADO
-  c.fecha,                                        
-  depto                                           
-]);
+      consultaId,
+      c.expediente_id,
+      c.medico,
+      at.diagnostico || 'Consulta General',
+      'OD',
+      at.procedimiento || 'Consulta Oftalmológica',
+      'Pendiente',
+      500.00,
+      0,
+      500.00,
+      'CONSULTA',
+      'Consulta',
+      c.fecha,
+      depto
+    ]);
 
     console.log('✅ Orden médica creada exitosamente:', result.rows[0].id);
+
+    // 🔇 Se eliminó el registro de notificaciones, ya no se guardan eventos de órdenes aquí
+
+    res.status(201).json({
+      ...result.rows[0],
+      mensaje: 'Orden creada exitosamente',
+      yaExiste: false
+    });
+
+  } catch (err) {
+    console.error('❌ Error en POST /api/ordenes_medicas_consulta:', err);
+
+    // Manejar error específico de clave foránea
+    if (err.code === '23503') {
+      return res.status(400).json({
+        error: 'Error de referencia: Verifica que la consulta y el expediente existan',
+        detalle: err.detail
+      });
+    }
+
+    res.status(500).json({
+      error: 'Error al crear la orden médica',
+      detalle: err.message
+    });
+  }
+});
 
 
 // ==================== OBTENER ÓRDENES MÉDICAS DE CONSULTAS ====================
