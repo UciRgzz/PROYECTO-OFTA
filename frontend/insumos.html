@@ -96,6 +96,33 @@
       font-size: 1.1rem;
       font-weight: 700;
     }
+
+/* === Colores por rol === */
+
+/* Admin (azul) */
+.total-dia.admin {
+  background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+}
+.nota-editable.admin {
+  background: #d1ecf1;
+  border: 2px dashed #3498db;
+  color: #0c5460;
+}
+
+/* Usuario (verde) */
+.total-dia.usuario {
+  background: linear-gradient(135deg, #1b5e20 0%, #43a047 100%);
+  box-shadow: 0 2px 8px rgba(67, 160, 71, 0.3);
+}
+.nota-editable.usuario {
+  background: #d4edda;
+  border: 2px dashed #28a745;
+  color: #155724;
+}
+
+
+
   </style>
 </head>
 <body>
@@ -384,7 +411,7 @@ function guardarNota(fecha, texto) {
   localStorage.setItem('notasCalendario', JSON.stringify(notas));
 }
 
-    // Calendario dinámico MODIFICADO
+// ==================== CALENDARIO CON COLORES POR ROL ====================
 async function renderCalendar() {
   const calendario = document.getElementById("calendario");
   const mesActual = document.getElementById("mesActual");
@@ -392,12 +419,15 @@ async function renderCalendar() {
   const year = fechaActual.getFullYear();
   const month = fechaActual.getMonth();
 
-  mesActual.textContent = fechaActual.toLocaleString("es-ES", { month: "long", year: "numeric" });
+  mesActual.textContent = fechaActual.toLocaleString("es-ES", {
+    month: "long",
+    year: "numeric",
+  });
 
   const primerDia = new Date(year, month, 1).getDay() || 7;
   const diasEnMes = new Date(year, month + 1, 0).getDate();
 
-  // Traer insumos
+  // Traer insumos desde el backend
   let insumos = [];
   try {
     const res = await fetch("/api/insumos");
@@ -406,61 +436,62 @@ async function renderCalendar() {
     console.error(err);
   }
 
-  const filtrados = insumos.filter(i => {
+  // Filtrar los insumos del mes actual
+  const filtrados = insumos.filter((i) => {
     let f = i.fecha;
     if (typeof f === "string" && f.includes("T")) f = f.split("T")[0];
-    const [yy, mm] = f.split("-").map(n => parseInt(n));
-    return yy === year && (mm - 1) === month;
+    const [yy, mm] = f.split("-").map((n) => parseInt(n));
+    return yy === year && mm - 1 === month;
   });
 
   calendario.innerHTML = "";
 
-  // Encabezados
-  ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].forEach(d => {
+  // Encabezados de los días
+  ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].forEach((d) => {
     calendario.innerHTML += `<div class="day-header">${d}</div>`;
   });
 
-  // Vacíos iniciales
+  // Días vacíos antes del inicio del mes
   for (let i = 1; i < primerDia; i++) {
     calendario.innerHTML += `<div class="empty-day"></div>`;
   }
 
-  // Días
+  // Días del mes
   for (let d = 1; d <= diasEnMes; d++) {
     const fechaDia = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-    const meds = filtrados.filter(i => {
+
+    const meds = filtrados.filter((i) => {
       let f = i.fecha;
       if (typeof f === "string" && f.includes("T")) f = f.split("T")[0];
       return f === fechaDia;
     });
 
-    // Calcular el total del día
     const totalDia = meds.reduce((sum, m) => sum + parseFloat(m.monto || 0), 0);
-    
-    // Obtener la nota guardada
-    const notaGuardada = notas[fechaDia] || '';
+    const notaGuardada = notas[fechaDia] || "";
 
-    let contenido = `<div class="calendar-day">
-      <div class="day-number">${d}</div>`;
-    
-    // SOLO MOSTRAR ETIQUETAS SI HAY INSUMOS
+    let contenido = `<div class="calendar-day"><div class="day-number">${d}</div>`;
+
+    // Solo mostrar etiquetas si hay insumos
     if (totalDia > 0) {
-      // 1. NOTA EDITABLE
-      contenido += `<div class="nota-editable" 
-                         contenteditable="true" 
-                         data-fecha="${fechaDia}"
-                         onblur="guardarNota('${fechaDia}', this.innerText)"
-                         >${notaGuardada}</div>`;
-      
-      // 2. TOTAL DEL DÍA
+      // 🔹 Asignar color según rol
+      const rolClass = esAdmin ? "admin" : "usuario";
+
       contenido += `
-        <div class="total-dia">
+        <div class="nota-editable ${rolClass}"
+             contenteditable="true"
+             data-fecha="${fechaDia}"
+             onblur="guardarNota('${fechaDia}', this.innerText)">
+          ${notaGuardada}
+        </div>
+        <div class="total-dia ${rolClass}">
           <span class="label">Total del día</span>
-          <span class="monto">$${totalDia.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          <span class="monto">$${totalDia.toLocaleString("es-MX", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}</span>
         </div>`;
     }
-    // Si no hay insumos, solo se muestra el número del día (sin texto adicional)
-    
+
     contenido += "</div>";
     calendario.innerHTML += contenido;
   }
