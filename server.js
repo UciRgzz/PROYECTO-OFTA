@@ -2570,7 +2570,6 @@ app.get('/api/expedientes/detalle/:numero', verificarSesion, async (req, res) =>
 
 // ==================== MODULO DE AGENDA DE CONSULTAS ====================
 // Obtener todas las consultas
-// ==================== OBTENER CONSULTAS (CON FILTRO OPCIONAL DE FECHA) ====================
 app.get('/api/consultas', verificarSesion, async (req, res) => {
   try {
     const { desde, hasta } = req.query;
@@ -2578,7 +2577,7 @@ app.get('/api/consultas', verificarSesion, async (req, res) => {
     let result;
 
     if (desde && hasta) {
-      // ✅ Filtrar por solo la parte de la fecha (ignora horas)
+      // ✅ Filtrar correctamente convirtiendo las fechas de texto a tipo DATE
       result = await pool.query(`
         SELECT 
           id,
@@ -2595,10 +2594,11 @@ app.get('/api/consultas', verificarSesion, async (req, res) => {
           ciudad
         FROM consultas
         WHERE departamento = $1
-          AND DATE(fecha) BETWEEN $2 AND $3
+          AND fecha BETWEEN TO_DATE($2, 'YYYY-MM-DD') AND TO_DATE($3, 'YYYY-MM-DD')
         ORDER BY fecha DESC, hora DESC
       `, [depto, desde, hasta]);
     } else {
+      // ✅ Si no hay rango, traer todas
       result = await pool.query(`
         SELECT 
           id,
@@ -2621,11 +2621,10 @@ app.get('/api/consultas', verificarSesion, async (req, res) => {
 
     res.json(result.rows);
   } catch (err) {
-    console.error('Error en GET /api/consultas:', err);
+    console.error('❌ Error en GET /api/consultas:', err);
     res.status(500).json({ error: err.message });
   }
 });
-
 
 
 // Crear una consulta
