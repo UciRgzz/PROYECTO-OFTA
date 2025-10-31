@@ -802,7 +802,7 @@
           `,
           focusConfirm: false,
           showCancelButton: true,
-          confirmButtonText: '<i class="fas fa-check"></i> Guardar y Enviar al Módulo Médico',
+          confirmButtonText: '<i class="fas fa-check"></i> Guardar Atención Médica',
           cancelButtonText: 'Cancelar',
           preConfirm: () => {
             const medico = document.getElementById('medico').value;
@@ -857,20 +857,20 @@
             medico: formValues.medico,
             diagnostico: formValues.diagnostico,
             lado: formValues.lado || 'No especificado',
-            procedimiento: formValues.procedimiento || 'Consulta Oftalmológica',
+            procedimiento_tipo: formValues.procedimiento || 'Consulta Oftalmológica',
             
             // Exploración Clínica
-            anexos: formValues.anexos || '',
-            conjuntiva: formValues.conjuntiva || '',
-            cornea: formValues.cornea || '',
-            cristalino: formValues.cristalino || '',
-            retina: formValues.retina || '',
-            macula: formValues.macula || '',
-            camara_anterior: formValues.camara_anterior || '',
-            nervio_optico: formValues.nervio_optico || '',
+            anexos: formValues.anexos || null,
+            conjuntiva: formValues.conjuntiva || null,
+            cornea: formValues.cornea || null,
+            cristalino: formValues.cristalino || null,
+            retina: formValues.retina || null,
+            macula: formValues.macula || null,
+            camara_anterior: formValues.camara_anterior || null,
+            nervio_optico: formValues.nervio_optico || null,
             
             // Problemas y Plan
-            problemas_identificados: formValues.problemas_identificados || '',
+            problemas_identificados: formValues.problemas_identificados || null,
             plan: formValues.plan,
             
             fecha: fechaHoraLocal
@@ -892,22 +892,6 @@
             return;
           }
 
-          // ✅ ENVIAR TAMBIÉN AL MÓDULO MÉDICO
-          const datosModuloMedico = {
-            consulta_id: consultaId,
-            expediente: numero_expediente,
-            paciente: paciente,
-            ...datosAtencion
-          };
-
-          console.log('📤 Enviando al Módulo Médico:', datosModuloMedico);
-
-          const respModulo = await fetch('/api/modulo_medico/pacientes', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(datosModuloMedico)
-          });
-
           // Actualizar estado de consulta a "Atendida"
           await fetch(`/api/consultas/${consultaId}/atender`, { method: 'PUT' });
 
@@ -918,10 +902,7 @@
             html: `
               <div class="text-start" style="padding: 20px;">
                 <p style="font-size: 1.1rem;">
-                  <i class="fas fa-check-circle text-success"></i> La información médica ha sido guardada
-                </p>
-                <p style="font-size: 1.1rem;">
-                  <i class="fas fa-check-circle text-success"></i> Datos enviados al Módulo Médico
+                  <i class="fas fa-check-circle text-success"></i> La información médica ha sido guardada correctamente
                 </p>
                 <hr>
                 <p class="text-muted">
@@ -977,7 +958,7 @@
                 <p><strong>Médico:</strong> ${atencion.medico || 'No registrado'}</p>
                 <p><strong>Diagnóstico:</strong> ${atencion.diagnostico || 'No registrado'}</p>
                 <p><strong>Lado:</strong> ${atencion.lado || 'No especificado'}</p>
-                <p><strong>Procedimiento:</strong> ${atencion.procedimiento || 'Consulta Oftalmológica'}</p>
+                <p><strong>Procedimiento:</strong> ${atencion.procedimiento_tipo || 'Consulta Oftalmológica'}</p>
               </div>
 
               <div style="background: #e8f4f8; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
