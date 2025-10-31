@@ -335,6 +335,7 @@
 
   <script>
     let rolUsuario = null;
+    let consultasOriginales = []; // Para almacenar todas las consultas
     let consultasFiltradas = []; // Para almacenar las consultas filtradas
 
     //======================= OBTENER ROL DE USUARIO ======================
@@ -347,14 +348,6 @@
         console.error('Error obteniendo rol:', err);
         rolUsuario = 'usuario';
       }
-    }
-
-    //======================= FUNCIÓN DE SEGURIDAD: ESCAPE HTML ======================
-    function escapeHtml(text) {
-      if (!text) return '';
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
     }
 
     // ====================== FUNCIONES DE NOTIFICACIÓN ====================
@@ -384,7 +377,57 @@
     }
 
     // ====================== BUSCAR EXPEDIENTE ======================
-    // Esta función está definida más abajo con el debounce para evitar duplicación
+    async function buscarExpediente() {
+      const query = document.getElementById('buscarExpediente').value.trim();
+      
+      if (!query) {
+        mostrarError('Error', 'Por favor ingresa un número de expediente o nombre');
+        return;
+      }
+
+      try {
+        const resp = await fetch(`/api/expedientes/buscar?q=${encodeURIComponent(query)}`);
+        const expedientes = await resp.json();
+        
+        const contenedor = document.getElementById('resultadosBusqueda');
+        
+        if (expedientes.length === 0) {
+          contenedor.innerHTML = `
+            <div class="alert alert-warning mt-3">
+              <i class="fas fa-exclamation-triangle"></i> No se encontraron expedientes con ese criterio
+            </div>
+          `;
+          return;
+        }
+
+        contenedor.innerHTML = expedientes.map(exp => `
+          <div class="expediente-item" onclick="seleccionarExpediente(${exp.numero_expediente})">
+            <div class="expediente-info">
+              <strong>${exp.nombre_completo}</strong>
+              <small>
+                <i class="fas fa-id-card"></i> Expediente: ${exp.numero_expediente} | 
+                <i class="fas fa-phone"></i> ${exp.telefono1 || 'Sin teléfono'} | 
+                <i class="fas fa-birthday-cake"></i> ${exp.edad || 'Sin edad'} años
+              </small>
+            </div>
+            <button class="btn btn-primary btn-sm">
+              <i class="fas fa-calendar-plus"></i> Agendar
+            </button>
+          </div>
+        `).join('');
+
+      } catch (err) {
+        console.error('Error buscando expediente:', err);
+        mostrarError('Error', 'No se pudo realizar la búsqueda');
+      }
+    }
+
+    // Buscar al presionar Enter
+    document.getElementById('buscarExpediente')?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        buscarExpediente();
+      }
+    });
 
     // ====================== SELECCIONAR EXPEDIENTE Y AGENDAR ======================
     async function seleccionarExpediente(numeroExpediente) {
@@ -589,39 +632,23 @@ async function cargarConsultas() {
       return `${h}:${minutos} ${ampm}`;
     }
 
-    // ====================== ATENDER CONSULTA Y ENVIAR AL MÓDULO MÉDICO ======================
+    // ====================== ATENDER CONSULTA ======================
     async function atenderConsulta(consultaId, paciente, numero_expediente, fecha, hora) {
       try {
-        // Obtener información del expediente para tener el ID
-        const respExp = await fetch(`/api/expedientes/detalle/${numero_expediente}`);
-        const expediente = await respExp.json();
-
         const { value: formValues } = await Swal.fire({
           title: 'Atender Consulta',
-          width: '900px',
+          width: '800px',
           html: `
             <div class="text-start">
               <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                <strong style="display: block; margin-bottom: 5px; color: #2c3e50;">Paciente:</strong> ${escapeHtml(paciente) || 'Sin nombre'}<br>
+                <strong style="display: block; margin-bottom: 5px; color: #2c3e50;">Paciente:</strong> ${paciente || 'Sin nombre'}<br>
                 <strong style="display: block; margin-top: 10px; margin-bottom: 5px; color: #2c3e50;">Expediente:</strong> ${numero_expediente || 'Sin número'}<br>
                 <strong style="display: block; margin-top: 10px; margin-bottom: 5px; color: #2c3e50;">Fecha de Consulta:</strong> ${formatearFecha(fecha)} - ${hora || 'Sin hora'}
               </div>
 
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label class="form-label" style="font-weight: 600; color: #2c3e50;">Médico:</label>
-                  <input type="text" id="medico" class="form-control" placeholder="Nombre del médico" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label" style="font-weight: 600; color: #2c3e50;">Lado:</label>
-                  <select id="lado" class="form-select" required>
-                    <option value="">Seleccionar...</option>
-                    <option value="OD">Ojo Derecho (OD)</option>
-                    <option value="OI">Ojo Izquierdo (OI)</option>
-                    <option value="AMBOS">Ambos Ojos</option>
-                    <option value="NINGUNO">Ninguno</option>
-                  </select>
-                </div>
+              <div class="mb-3">
+                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Motivo de Consulta:</label>
+                <textarea id="motivo" class="form-control" placeholder="Describe el motivo por el cual el paciente acude a consulta" style="min-height: 80px;" required></textarea>
               </div>
 
               <div class="mb-3">
@@ -630,195 +657,95 @@ async function cargarConsultas() {
               </div>
 
               <div class="mb-3">
-                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Procedimiento:</label>
-                <input type="text" id="procedimiento" class="form-control" placeholder="Ej: Consulta Oftalmológica, Facoemulsificación, etc." required>
-              </div>
-
-              <hr style="margin: 20px 0;">
-              <h6 style="color: #2c3e50; margin-bottom: 15px;">Exploración Clínica</h6>
-
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Anexos:</label>
-                  <textarea id="anexos" class="form-control" style="min-height: 60px;"></textarea>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Conjuntiva:</label>
-                  <textarea id="conjuntiva" class="form-control" style="min-height: 60px;"></textarea>
-                </div>
-              </div>
-
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Córnea:</label>
-                  <textarea id="cornea" class="form-control" style="min-height: 60px;"></textarea>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Cámara Anterior:</label>
-                  <textarea id="camara_anterior" class="form-control" style="min-height: 60px;"></textarea>
-                </div>
-              </div>
-
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Cristalino:</label>
-                  <textarea id="cristalino" class="form-control" style="min-height: 60px;"></textarea>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Retina:</label>
-                  <textarea id="retina" class="form-control" style="min-height: 60px;"></textarea>
-                </div>
-              </div>
-
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Mácula:</label>
-                  <textarea id="macula" class="form-control" style="min-height: 60px;"></textarea>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Nervio Óptico:</label>
-                  <textarea id="nervio_optico" class="form-control" style="min-height: 60px;"></textarea>
-                </div>
-              </div>
-
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Ciclopejía:</label>
-                  <input type="text" id="ciclopejia" class="form-control">
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Hora TP:</label>
-                  <input type="text" id="hora_tp" class="form-control">
-                </div>
+                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Observaciones Clínicas:</label>
+                <textarea id="observaciones" class="form-control" placeholder="Observaciones adicionales, hallazgos relevantes" style="min-height: 80px;"></textarea>
               </div>
 
               <div class="mb-3">
-                <label class="form-label">Problemas:</label>
-                <textarea id="problemas" class="form-control" style="min-height: 60px;"></textarea>
+                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Tratamiento / Indicaciones:</label>
+                <textarea id="tratamiento" class="form-control" placeholder="Tratamiento prescrito, medicamentos, indicaciones al paciente" style="min-height: 80px;" required></textarea>
               </div>
 
               <div class="mb-3">
-                <label class="form-label">Plan:</label>
-                <textarea id="plan" class="form-control" style="min-height: 60px;"></textarea>
+                <label class="form-label" style="font-weight: 600; color: #2c3e50;">¿Requiere procedimiento o cirugía?</label>
+                <select id="requiere_cirugia" class="form-select">
+                  <option value="no">No</option>
+                  <option value="si">Sí</option>
+                </select>
+              </div>
+
+              <div class="mb-3" id="tipo-procedimiento" style="display: none;">
+                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Tipo de Procedimiento:</label>
+                <input type="text" id="procedimiento" class="form-control" placeholder="Ej: Facoemulsificación, Vitrectomía, etc.">
               </div>
             </div>
           `,
           focusConfirm: false,
           showCancelButton: true,
-          confirmButtonText: '<i class="fas fa-check"></i> Guardar y Enviar al Módulo Médico',
+          confirmButtonText: '<i class="fas fa-check"></i> Guardar Atención',
           cancelButtonText: 'Cancelar',
+          didOpen: () => {
+            document.getElementById('requiere_cirugia').addEventListener('change', (e) => {
+              const tipoProcDiv = document.getElementById('tipo-procedimiento');
+              tipoProcDiv.style.display = e.target.value === 'si' ? 'block' : 'none';
+            });
+          },
           preConfirm: () => {
-            const medico = document.getElementById('medico').value.trim();
-            const diagnostico = document.getElementById('diagnostico').value.trim();
-            const lado = document.getElementById('lado').value;
-            const procedimiento = document.getElementById('procedimiento').value.trim();
+            const motivo = document.getElementById('motivo').value;
+            const diagnostico = document.getElementById('diagnostico').value;
+            const observaciones = document.getElementById('observaciones').value;
+            const tratamiento = document.getElementById('tratamiento').value;
+            const requiere_cirugia = document.getElementById('requiere_cirugia').value;
+            const procedimiento = document.getElementById('procedimiento').value;
 
-            if (!medico || !diagnostico || !lado || !procedimiento) {
-              Swal.showValidationMessage('Por favor completa todos los campos obligatorios (Médico, Diagnóstico, Lado, Procedimiento)');
+            if (!motivo || !diagnostico || !tratamiento) {
+              Swal.showValidationMessage('Por favor completa todos los campos obligatorios');
               return false;
             }
 
-            return {
-              medico,
-              diagnostico,
-              lado,
-              procedimiento,
-              anexos: document.getElementById('anexos').value.trim(),
-              conjuntiva: document.getElementById('conjuntiva').value.trim(),
-              cornea: document.getElementById('cornea').value.trim(),
-              camara_anterior: document.getElementById('camara_anterior').value.trim(),
-              cristalino: document.getElementById('cristalino').value.trim(),
-              retina: document.getElementById('retina').value.trim(),
-              macula: document.getElementById('macula').value.trim(),
-              nervio_optico: document.getElementById('nervio_optico').value.trim(),
-              ciclopejia: document.getElementById('ciclopejia').value.trim(),
-              hora_tp: document.getElementById('hora_tp').value.trim(),
-              problemas: document.getElementById('problemas').value.trim(),
-              plan: document.getElementById('plan').value.trim()
-            };
+            return { motivo, diagnostico, observaciones, tratamiento, requiere_cirugia, procedimiento };
           }
         });
 
         if (formValues) {
-          // Mostrar indicador de carga
-          Swal.fire({
-            title: 'Procesando...',
-            html: '<i class="fas fa-spinner fa-spin fa-3x text-primary"></i><br><br>Guardando datos y enviando al Módulo Médico...',
-            allowOutsideClick: false,
-            showConfirmButton: false,
-            didOpen: () => {
-              Swal.showLoading();
-            }
-          });
+          // ✅ Corregido: dejar que el servidor maneje la zona horaria (ya usa timestamp with time zone)
+          const fechaHoraLocal = new Date().toISOString();
 
-          // 1. Actualizar estado de consulta a "Atendida"
-          await fetch(`/api/consultas/${consultaId}/atender`, { method: 'PUT' });
-
-          // 2. Crear orden médica en el Módulo Médico
-          const ordenMedica = {
+          const datosAtencion = {
             consulta_id: consultaId,
-            expediente_id: parseInt(expediente.id || expediente.expediente_id),
-            medico: formValues.medico,
+            motivo: formValues.motivo,
             diagnostico: formValues.diagnostico,
-            lado: formValues.lado,
-            procedimiento: formValues.procedimiento,
-            anexos: formValues.anexos || null,
-            conjuntiva: formValues.conjuntiva || null,
-            cornea: formValues.cornea || null,
-            camara_anterior: formValues.camara_anterior || null,
-            cristalino: formValues.cristalino || null,
-            retina: formValues.retina || null,
-            macula: formValues.macula || null,
-            nervio_optico: formValues.nervio_optico || null,
-            ciclopejia: formValues.ciclopejia || null,
-            hora_tp: formValues.hora_tp || null,
-            problemas: formValues.problemas || null,
-            plan: formValues.plan || null,
-            estatus: 'Pendiente',
-            precio: 500.00,
-            pagado: 0,
-            pendiente: 500.00,
-            origen: 'CONSULTA',
-            tipo: 'Consulta'
+            observaciones: formValues.observaciones,
+            tratamiento: formValues.tratamiento,
+            requiere_cirugia: formValues.requiere_cirugia === 'si',
+            procedimiento: formValues.requiere_cirugia === 'si' ? formValues.procedimiento : null,
+            fecha: fechaHoraLocal // ✅ Fecha exacta ISO, el servidor la ajusta según zona
           };
 
-          console.log('📤 Enviando orden médica:', ordenMedica);
+          console.log('📤 Guardando atención médica:', datosAtencion);
 
-          const respOrden = await fetch('/api/ordenes_medicas_consulta_directa', {
+          const respPost = await fetch('/api/atencion_consultas', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(ordenMedica)
+            body: JSON.stringify(datosAtencion)
           });
 
-          if (respOrden.ok) {
-            const resultado = await respOrden.json();
+          if (respPost.ok) {
+            await fetch(`/api/consultas/${consultaId}/atender`, { method: 'PUT' });
 
-            await Swal.fire({
+            Swal.fire({
               icon: 'success',
-              title: '¡Consulta Atendida y Enviada!',
-              html: `
-                <div class="text-start" style="padding: 15px;">
-                  <p style="font-size: 1.1rem;">
-                    <i class="fas fa-check-circle text-success"></i> Los datos han sido guardados correctamente
-                  </p>
-                  <hr>
-                  <p><strong>Paciente:</strong> ${escapeHtml(paciente)}</p>
-                  <p><strong>Diagnóstico:</strong> ${escapeHtml(formValues.diagnostico)}</p>
-                  <p><strong>Procedimiento:</strong> ${escapeHtml(formValues.procedimiento)}</p>
-                  <hr>
-                  <p class="text-success"><i class="fas fa-paper-plane"></i> <strong>Enviado al Módulo Médico</strong></p>
-                  <p>Ya puede proceder con el pago</p>
-                </div>
-              `,
-              confirmButtonText: 'Entendido',
-              confirmButtonColor: '#27ae60'
+              title: '¡Consulta Atendida!',
+              text: 'La información médica ha sido guardada correctamente',
+              timer: 2000,
+              showConfirmButton: false
             });
 
             cargarConsultas();
           } else {
-            const errorData = await respOrden.json();
+            const errorData = await respPost.json();
             console.error('❌ Error del servidor:', errorData);
-            mostrarError('Error', errorData.error || 'No se pudo enviar al Módulo Médico');
+            mostrarError('Error', errorData.error || 'No se pudo guardar la atención');
           }
         }
       } catch (err) {
@@ -827,23 +754,21 @@ async function cargarConsultas() {
       }
     }
 
-    // ====================== VER DATOS DE CONSULTA ATENDIDA (DESDE MÓDULO MÉDICO) ======================
+    // ====================== VER DATOS DE CONSULTA ATENDIDA ======================
     async function verDatosConsulta(consultaId) {
       try {
-        // Buscar la orden médica asociada a esta consulta
-        const respOrden = await fetch(`/api/ordenes_medicas_por_consulta/${consultaId}`);
-
-        if (!respOrden.ok) {
-          mostrarError('Error', 'No se encontraron datos médicos para esta consulta');
+        const resp = await fetch(`/api/atencion_consultas/${consultaId}`);
+        if (!resp.ok) {
+          mostrarError('Error', 'No se encontraron datos de atención para esta consulta');
           return;
         }
 
-        const orden = await respOrden.json();
+        const atencion = await resp.json();
 
-        // Formatear fecha
+        // ✅ Validar existencia y formato de la fecha
         let fechaMX = 'Sin fecha registrada';
-        if (orden.fecha) {
-          const fechaObj = new Date(orden.fecha);
+        if (atencion.created_at) {
+          const fechaObj = new Date(atencion.created_at);
           if (!isNaN(fechaObj)) {
             fechaMX = fechaObj.toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
           }
@@ -851,166 +776,63 @@ async function cargarConsultas() {
 
         Swal.fire({
           title: 'Datos de la Consulta Atendida',
-          width: '900px',
+          width: '800px',
           html: `
-            <div class="text-start" style="max-height: 600px; overflow-y: auto;">
-              <!-- Información General -->
-              <div style="background: linear-gradient(135deg, #3498db 0%, #2c80b9 100%); padding: 15px; border-radius: 8px; margin-bottom: 20px; color: white;">
-                <h5 style="margin-bottom: 10px;"><i class="fas fa-info-circle"></i> Información General</h5>
+            <div class="text-start" style="max-height: 500px; overflow-y: auto;">
+              <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <h5 style="color: #2c3e50; margin-bottom: 10px;">Información de la Atención</h5>
                 <p><strong>Fecha de atención:</strong> ${fechaMX}</p>
-                <p><strong>Médico:</strong> ${escapeHtml(orden.medico) || 'No registrado'}</p>
-                <p><strong>Estado:</strong> <span class="badge bg-warning">${orden.estatus || 'Pendiente'}</span></p>
               </div>
 
-              <!-- Diagnóstico y Procedimiento -->
               <div class="mb-3">
-                <strong style="color: #2c3e50;"><i class="fas fa-stethoscope"></i> Diagnóstico:</strong>
+                <strong style="color: #2c3e50;">Motivo de Consulta:</strong>
                 <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
-                  ${escapeHtml(orden.diagnostico) || 'No registrado'}
+                  ${atencion.motivo || 'No registrado'}
                 </p>
               </div>
 
-              <div class="row mb-3">
-                <div class="col-md-6">
-                  <strong style="color: #2c3e50;"><i class="fas fa-eye"></i> Lado:</strong>
-                  <p style="background: #e3f2fd; padding: 10px; border-radius: 5px; font-weight: 600;">
-                    ${orden.lado || 'No especificado'}
-                  </p>
-                </div>
-                <div class="col-md-6">
-                  <strong style="color: #2c3e50;"><i class="fas fa-procedures"></i> Procedimiento:</strong>
-                  <p style="background: #e8f5e9; padding: 10px; border-radius: 5px; font-weight: 600;">
-                    ${escapeHtml(orden.procedimiento) || 'No registrado'}
-                  </p>
-                </div>
-              </div>
-
-              <!-- Exploración Clínica -->
-              <hr style="margin: 20px 0;">
-              <h6 style="color: #2c3e50; margin-bottom: 15px;"><i class="fas fa-microscope"></i> Exploración Clínica</h6>
-
-              <div class="row">
-                ${orden.anexos ? `
-                <div class="col-md-6 mb-3">
-                  <strong style="color: #2c3e50;">Anexos:</strong>
-                  <p style="background: #fff; padding: 8px; border-radius: 5px; border: 1px solid #dee2e6; font-size: 0.9rem;">
-                    ${escapeHtml(orden.anexos)}
-                  </p>
-                </div>` : ''}
-
-                ${orden.conjuntiva ? `
-                <div class="col-md-6 mb-3">
-                  <strong style="color: #2c3e50;">Conjuntiva:</strong>
-                  <p style="background: #fff; padding: 8px; border-radius: 5px; border: 1px solid #dee2e6; font-size: 0.9rem;">
-                    ${escapeHtml(orden.conjuntiva)}
-                  </p>
-                </div>` : ''}
-
-                ${orden.cornea ? `
-                <div class="col-md-6 mb-3">
-                  <strong style="color: #2c3e50;">Córnea:</strong>
-                  <p style="background: #fff; padding: 8px; border-radius: 5px; border: 1px solid #dee2e6; font-size: 0.9rem;">
-                    ${escapeHtml(orden.cornea)}
-                  </p>
-                </div>` : ''}
-
-                ${orden.camara_anterior ? `
-                <div class="col-md-6 mb-3">
-                  <strong style="color: #2c3e50;">Cámara Anterior:</strong>
-                  <p style="background: #fff; padding: 8px; border-radius: 5px; border: 1px solid #dee2e6; font-size: 0.9rem;">
-                    ${escapeHtml(orden.camara_anterior)}
-                  </p>
-                </div>` : ''}
-
-                ${orden.cristalino ? `
-                <div class="col-md-6 mb-3">
-                  <strong style="color: #2c3e50;">Cristalino:</strong>
-                  <p style="background: #fff; padding: 8px; border-radius: 5px; border: 1px solid #dee2e6; font-size: 0.9rem;">
-                    ${escapeHtml(orden.cristalino)}
-                  </p>
-                </div>` : ''}
-
-                ${orden.retina ? `
-                <div class="col-md-6 mb-3">
-                  <strong style="color: #2c3e50;">Retina:</strong>
-                  <p style="background: #fff; padding: 8px; border-radius: 5px; border: 1px solid #dee2e6; font-size: 0.9rem;">
-                    ${escapeHtml(orden.retina)}
-                  </p>
-                </div>` : ''}
-
-                ${orden.macula ? `
-                <div class="col-md-6 mb-3">
-                  <strong style="color: #2c3e50;">Mácula:</strong>
-                  <p style="background: #fff; padding: 8px; border-radius: 5px; border: 1px solid #dee2e6; font-size: 0.9rem;">
-                    ${escapeHtml(orden.macula)}
-                  </p>
-                </div>` : ''}
-
-                ${orden.nervio_optico ? `
-                <div class="col-md-6 mb-3">
-                  <strong style="color: #2c3e50;">Nervio Óptico:</strong>
-                  <p style="background: #fff; padding: 8px; border-radius: 5px; border: 1px solid #dee2e6; font-size: 0.9rem;">
-                    ${escapeHtml(orden.nervio_optico)}
-                  </p>
-                </div>` : ''}
-              </div>
-
-              ${orden.ciclopejia || orden.hora_tp ? `
-              <div class="row mb-3">
-                ${orden.ciclopejia ? `
-                <div class="col-md-6">
-                  <strong style="color: #2c3e50;">Ciclopejía:</strong>
-                  <p style="background: #fff; padding: 8px; border-radius: 5px; border: 1px solid #dee2e6; font-size: 0.9rem;">
-                    ${escapeHtml(orden.ciclopejia)}
-                  </p>
-                </div>` : ''}
-
-                ${orden.hora_tp ? `
-                <div class="col-md-6">
-                  <strong style="color: #2c3e50;">Hora TP:</strong>
-                  <p style="background: #fff; padding: 8px; border-radius: 5px; border: 1px solid #dee2e6; font-size: 0.9rem;">
-                    ${escapeHtml(orden.hora_tp)}
-                  </p>
-                </div>` : ''}
-              </div>` : ''}
-
-              ${orden.problemas ? `
               <div class="mb-3">
-                <strong style="color: #2c3e50;"><i class="fas fa-exclamation-triangle"></i> Problemas:</strong>
-                <p style="background: #fff3cd; padding: 10px; border-radius: 5px; border: 1px solid #ffc107; font-size: 0.9rem;">
-                  ${escapeHtml(orden.problemas)}
+                <strong style="color: #2c3e50;">Diagnóstico:</strong>
+                <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
+                  ${atencion.diagnostico || 'No registrado'}
                 </p>
-              </div>` : ''}
-
-              ${orden.plan ? `
-              <div class="mb-3">
-                <strong style="color: #2c3e50;"><i class="fas fa-clipboard-list"></i> Plan:</strong>
-                <p style="background: #e8f5e9; padding: 10px; border-radius: 5px; border: 1px solid #27ae60; font-size: 0.9rem;">
-                  ${escapeHtml(orden.plan)}
-                </p>
-              </div>` : ''}
-
-              <!-- Información de Pago -->
-              <hr style="margin: 20px 0;">
-              <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
-                <h6 style="color: #2c3e50; margin-bottom: 10px;"><i class="fas fa-dollar-sign"></i> Información de Pago</h6>
-                <div class="row">
-                  <div class="col-4">
-                    <p><strong>Precio:</strong> $${orden.precio || 500}.00</p>
-                  </div>
-                  <div class="col-4">
-                    <p><strong>Pagado:</strong> <span class="text-success">$${orden.pagado || 0}.00</span></p>
-                  </div>
-                  <div class="col-4">
-                    <p><strong>Pendiente:</strong> <span class="text-danger">$${orden.pendiente || orden.precio || 500}.00</span></p>
-                  </div>
-                </div>
               </div>
+
+              ${atencion.observaciones ? `
+              <div class="mb-3">
+                <strong style="color: #2c3e50;">Observaciones:</strong>
+                <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
+                  ${atencion.observaciones}
+                </p>
+              </div>
+              ` : ''}
+
+              <div class="mb-3">
+                <strong style="color: #2c3e50;">Tratamiento:</strong>
+                <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
+                  ${atencion.tratamiento || 'No registrado'}
+                </p>
+              </div>
+
+              <div class="mb-3">
+                <strong style="color: #2c3e50;">Requiere Procedimiento:</strong>
+                <p style="background: ${atencion.requiere_cirugia ? '#fff3cd' : '#d4edda'}; padding: 10px; border-radius: 5px;">
+                  ${atencion.requiere_cirugia ? '✅ Sí' : '❌ No'}
+                </p>
+              </div>
+
+              ${atencion.requiere_cirugia && atencion.procedimiento ? `
+              <div class="mb-3">
+                <strong style="color: #2c3e50;">Tipo de Procedimiento:</strong>
+                <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
+                  ${atencion.procedimiento}
+                </p>
+              </div>
+              ` : ''}
             </div>
           `,
           confirmButtonText: 'Cerrar',
-          confirmButtonColor: '#3498db',
-          width: '900px'
+          confirmButtonColor: '#3498db'
         });
 
       } catch (err) {
