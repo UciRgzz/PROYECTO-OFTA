@@ -3,7 +3,9 @@
     "allow": [
       "Bash(dir /s /b 'c:\\Users\\ucima\\Documents\\PROYECTO OPTAV\\backend' 'c:\\Users\\ucima\\Documents\\PROYECTO OPTAV\\routes' 2)",
       "Bash(nul)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(git checkout:*)",
+      "Bash(git restore:*)"
     ],
     "deny": [],
     "ask": []
