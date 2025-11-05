@@ -1233,6 +1233,53 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
   }
 });
 
+// ==================== ENVIAR CONSULTA AL MÓDULO MÉDICO ====================
+app.put('/api/consultas/:id/modulo_medico', verificarSesion, async (req, res) => {
+  const { id } = req.params;
+  const depto = getDepartamento(req);
+
+  try {
+    // Verificar si la consulta existe
+    const consultaRes = await pool.query(
+      `SELECT * FROM consultas WHERE id = $1 AND departamento = $2`,
+      [id, depto]
+    );
+
+    if (consultaRes.rowCount === 0) {
+      return res.status(404).json({ error: "Consulta no encontrada" });
+    }
+
+    const consulta = consultaRes.rows[0];
+
+    // Cambiar estado de la consulta a "Atendida"
+    await pool.query(
+      `UPDATE consultas SET estado = 'Atendida' WHERE id = $1 AND departamento = $2`,
+      [id, depto]
+    );
+
+    // Verificar si ya existe un registro en atencion_consultas
+    const existe = await pool.query(
+      `SELECT 1 FROM atencion_consultas WHERE consulta_id = $1 AND departamento = $2`,
+      [id, depto]
+    );
+
+    // Si no existe, crear el registro básico en atencion_consultas
+    if (existe.rowCount === 0) {
+      await pool.query(
+        `INSERT INTO atencion_consultas 
+          (consulta_id, expediente_id, departamento, procedimiento, requiere_cirugia)
+         VALUES ($1, $2, $3, 'Consulta Oftalmológica', false)`,
+        [consulta.id, consulta.expediente_id, depto]
+      );
+    }
+
+    res.json({ mensaje: "Consulta enviada correctamente al módulo médico" });
+  } catch (err) {
+    console.error("❌ Error en /api/consultas/:id/modulo_medico:", err);
+    res.status(500).json({ error: "Error al enviar consulta al módulo médico" });
+  }
+});
+
 
 // ==================== ÓRDENES POR EXPEDIENTE ====================
 app.get("/api/expedientes/:id/ordenes", verificarSesion, async (req, res) => {
