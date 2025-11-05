@@ -210,7 +210,6 @@
       align-items: center;
     }
 
-    /* ✅ ICONO DE ORDEN PAGADA - MÁS DISCRETO */
     .orden-pagada-icon {
       display: inline-flex;
       align-items: center;
@@ -595,7 +594,16 @@
       }
 
       consultas.forEach(c => {
-        const tieneOrden = ordenes.some(o => o.consulta_id === c.id);
+        const ordenRelacionada = ordenes.find(o => o.consulta_id === c.id);
+        const tieneOrden = !!ordenRelacionada;
+        const ordenLlena = ordenRelacionada && (
+          ordenRelacionada.anexos || 
+          ordenRelacionada.conjuntiva || 
+          ordenRelacionada.cornea ||
+          ordenRelacionada.camara_anterior ||
+          ordenRelacionada.cristalino ||
+          ordenRelacionada.retina
+        );
         
         const fila = document.createElement("tr");
         
@@ -621,16 +629,19 @@
               </button>
             `;
           }
+        } else if (c.estado === 'En Módulo Médico') {
+          // Estado "En Módulo Médico" → Mostrar estado
+          botonesAccion = `<span class="text-info fw-bold">En Módulo Médico</span>`;
         } else if (c.estado === 'Atendida') {
-          // Estado Atendida → Verificar si tiene orden médica de consulta
-          if (tieneOrden) {
+          // Estado "Atendida" → Verificar si tiene orden médica completa
+          if (ordenLlena) {
             botonesAccion = `
               <button class="btn btn-info btn-sm" onclick="verOrdenConsulta(${c.id})">
                 <i class="fas fa-file-medical"></i> Ver Consulta
               </button>
             `;
           } else {
-            botonesAccion = `<span class="text-muted">En módulo médico</span>`;
+            botonesAccion = `<span class="text-muted">Consulta atendida</span>`;
           }
         }
         
@@ -650,7 +661,11 @@
           <td>${formatearHora12h(c.hora)}</td>
           <td>${c.medico}</td>
           <td>
-            <span class="badge bg-${c.estado === 'Pendiente' ? 'warning' : c.estado === 'Atendida' ? 'success' : 'info'}">
+            <span class="badge bg-${
+              c.estado === 'Pendiente' ? 'warning' : 
+              c.estado === 'En Módulo Médico' ? 'info' : 
+              c.estado === 'Atendida' ? 'success' : 'secondary'
+            }">
               ${c.estado}
             </span>
           </td>
@@ -781,11 +796,10 @@
           didOpen: () => Swal.showLoading()
         });
 
-        // ✅ Actualizar estado a "Atendida"
-        const resp = await fetch(`/api/consultas/${consultaId}/estado`, {
+        // ✅ Actualizar estado a "En Módulo Médico"
+        const resp = await fetch(`/api/consultas/${consultaId}/modulo_medico`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ estado: 'Atendida' })
+          headers: { 'Content-Type': 'application/json' }
         });
 
         if (!resp.ok) {
