@@ -1424,7 +1424,37 @@ app.put("/api/ordenes_medicas/:id", verificarSesion, async (req, res) => {
     });
   }
 });
+// ==================== ENVIAR CONSULTA AL MÓDULO MÉDICO ====================
+app.put('/api/consultas/:id/modulo_medico', verificarSesion, async (req, res) => {
+  const { id } = req.params;
+  let depto = getDepartamento(req);
 
+  try {
+    // Primero verificar que exista la consulta
+    const existe = await pool.query(
+      'SELECT id FROM consultas WHERE id = $1 AND departamento = $2',
+      [id, depto]
+    );
+
+    if (existe.rowCount === 0) {
+      return res.status(404).json({ error: 'Consulta no encontrada' });
+    }
+
+    // Actualizar estado a "Atendida" (esto hace que aparezca en /api/pendientes-medico)
+    await pool.query(
+      `UPDATE consultas
+       SET estado = 'Atendida'
+       WHERE id = $1 AND departamento = $2`,
+      [id, depto]
+    );
+
+    res.json({ mensaje: 'Consulta enviada al módulo médico correctamente' });
+  } catch (err) {
+    console.error('Error en /api/consultas/:id/modulo_medico:', err);
+    res.status(500).json({ error: 'Error al enviar consulta al módulo médico' });
+  }
+});
+  
 
 
 
