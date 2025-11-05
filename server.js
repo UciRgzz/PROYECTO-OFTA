@@ -1263,13 +1263,13 @@ app.put('/api/consultas/:id/modulo_medico', verificarSesion, async (req, res) =>
       [id, depto]
     );
 
-    // Si no existe, crear el registro básico en atencion_consultas
+    // Si no existe, crear el registro básico con valores por defecto
     if (existe.rowCount === 0) {
       await pool.query(
         `INSERT INTO atencion_consultas 
-          (consulta_id, expediente_id, departamento, procedimiento, requiere_cirugia)
-         VALUES ($1, $2, $3, 'Consulta Oftalmológica', false)`,
-        [consulta.id, consulta.expediente_id, depto]
+          (consulta_id, motivo, diagnostico, observaciones, tratamiento, requiere_cirugia, procedimiento, departamento)
+         VALUES ($1, 'Pendiente de diagnóstico', 'Pendiente', 'Sin observaciones', 'Sin tratamiento', false, 'Consulta Oftalmológica', $2)`,
+        [consulta.id, depto]
       );
     }
 
