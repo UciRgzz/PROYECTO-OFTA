@@ -3034,41 +3034,16 @@ app.get("/api/pendientes-medico", verificarSesion, async (req, res) => {
   let depto = getDepartamento(req);
 
   try {
-    const result = await pool.query(`
-      -- 1️⃣ Recibos sin orden médica (lógica original)
+    const result = await pool.query(
+      `
       SELECT 
-          r.id AS recibo_id, 
-          e.numero_expediente AS expediente_id,
-          e.nombre_completo, 
-          e.edad, 
-          e.padecimientos,
-          r.procedimiento,
-          NULL AS consulta_id,
-          'RECIBO' AS origen
-      FROM recibos r
-      JOIN expedientes e 
-        ON r.paciente_id = e.numero_expediente 
-       AND r.departamento = e.departamento   
-      WHERE r.departamento = $1
-        AND NOT EXISTS (
-          SELECT 1 
-          FROM ordenes_medicas o 
-          WHERE o.folio_recibo = r.id         
-            AND o.departamento = r.departamento
-        )
-
-      UNION ALL
-
-      -- 2️⃣ Consultas pendientes o atendidas sin orden médica (corregido)
-      SELECT 
-          NULL AS recibo_id,
-          c.expediente_id,
-          e.nombre_completo,
-          e.edad,
-          e.padecimientos,
-          COALESCE(a.procedimiento, 'Consulta Oftalmológica') AS procedimiento,
-          c.id AS consulta_id,
-          'CONSULTA' AS origen
+        e.numero_expediente AS expediente_id,
+        e.nombre_completo,
+        e.edad,
+        e.padecimientos,
+        COALESCE(a.procedimiento, 'Consulta Oftalmológica') AS procedimiento,
+        c.id AS consulta_id,
+        'CONSULTA' AS origen
       FROM consultas c
       JOIN expedientes e
         ON c.expediente_id = e.numero_expediente
@@ -3084,16 +3059,18 @@ app.get("/api/pendientes-medico", verificarSesion, async (req, res) => {
           WHERE o.consulta_id = c.id
             AND o.departamento = c.departamento
         )
-      
-      ORDER BY nombre_completo ASC
-    `, [depto]);
+      ORDER BY c.id DESC
+      `,
+      [depto]
+    );
 
     res.json(result.rows);
   } catch (err) {
-    console.error("Error en /api/pendientes-medico:", err);
+    console.error("❌ Error en /api/pendientes-medico:", err);
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 
