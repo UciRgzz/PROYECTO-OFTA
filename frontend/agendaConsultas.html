@@ -759,60 +759,58 @@
       }
     }
 
-// ====================== ENVIAR A MÓDULO MÉDICO ======================
-async function enviarAModuloMedico(consultaId) {
-  try {
-    const confirmacion = await Swal.fire({
-      title: '¿Enviar al módulo médico?',
-      text: "El paciente será atendido por el médico",
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#27ae60',
-      cancelButtonColor: '#95a5a6',
-      confirmButtonText: '<i class="fas fa-check"></i> Sí, enviar',
-      cancelButtonText: 'Cancelar'
-    });
+    // ====================== ENVIAR A MÓDULO MÉDICO ======================
+    async function enviarAModuloMedico(consultaId) {
+      try {
+        const confirmacion = await Swal.fire({
+          title: '¿Enviar al módulo médico?',
+          text: "El paciente será atendido por el médico",
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonColor: '#27ae60',
+          cancelButtonColor: '#95a5a6',
+          confirmButtonText: '<i class="fas fa-check"></i> Sí, enviar',
+          cancelButtonText: 'Cancelar'
+        });
 
-    if (!confirmacion.isConfirmed) return;
+        if (!confirmacion.isConfirmed) return;
 
-    Swal.fire({
-      title: 'Enviando...',
-      html: '<i class="fas fa-spinner fa-spin fa-3x text-success"></i><br><br>Procesando envío al módulo médico...',
-      allowOutsideClick: false,
-      showConfirmButton: false,
-      didOpen: () => Swal.showLoading()
-    });
+        // Obtener los datos de la consulta para pasar al módulo médico
+        const resp = await fetch(`/api/consultas/${consultaId}`);
+        if (!resp.ok) {
+          throw new Error('No se pudo obtener la información de la consulta');
+        }
 
-    // ✅ Ahora usamos el nuevo endpoint
-    const resp = await fetch(`/api/consultas/${consultaId}/modulo_medico`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' }
-    });
+        const consulta = await resp.json();
+        
+        // Guardar la consulta en localStorage para que el módulo médico pueda acceder a ella
+        localStorage.setItem('consultaActiva', JSON.stringify(consulta));
+        
+        Swal.fire({
+          title: 'Redirigiendo...',
+          html: '<i class="fas fa-spinner fa-spin fa-3x text-success"></i><br><br>Enviando al módulo médico...',
+          allowOutsideClick: false,
+          showConfirmButton: false,
+          timer: 1500,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
 
-    if (!resp.ok) {
-      const errorData = await resp.json();
-      throw new Error(errorData.error || 'No se pudo actualizar la consulta');
+        // ✅ Redirigir al módulo médico con el ID de la consulta
+        setTimeout(() => {
+          window.location.href = `/medico?consulta=${consultaId}`;
+        }, 1500);
+
+      } catch (err) {
+        console.error('❌ Error enviando a módulo médico:', err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: err.message || 'No se pudo enviar al módulo médico'
+        });
+      }
     }
-
-    Swal.fire({
-      icon: 'success',
-      title: '¡Consulta enviada!',
-      text: 'El paciente ha sido enviado correctamente al módulo médico.',
-      confirmButtonColor: '#27ae60'
-    });
-
-    cargarConsultas(); // refresca tabla
-
-  } catch (err) {
-    console.error('❌ Error enviando a módulo médico:', err);
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: err.message || 'No se pudo enviar al módulo médico'
-    });
-  }
-}
-
 
     // ====================== VER DATOS DE CONSULTA ======================
     async function verDatosConsulta(consultaId) {
