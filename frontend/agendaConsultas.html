@@ -776,8 +776,8 @@ async function enviarAModuloMedico(consultaId) {
     if (!confirmacion.isConfirmed) return;
 
     Swal.fire({
-      title: 'Redirigiendo...',
-      html: '<i class="fas fa-spinner fa-spin fa-3x text-success"></i><br><br>Enviando al módulo médico...',
+      title: 'Enviando...',
+      html: '<i class="fas fa-spinner fa-spin fa-3x text-success"></i><br><br>Procesando envío al módulo médico...',
       allowOutsideClick: false,
       showConfirmButton: false,
       didOpen: () => {
@@ -785,7 +785,7 @@ async function enviarAModuloMedico(consultaId) {
       }
     });
 
-    // ✅ Actualizar estado de la consulta en la base de datos
+    // ✅ Actualizar el estado en la base de datos
     const resp = await fetch(`/api/consultas/${consultaId}/atender`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' }
@@ -796,10 +796,16 @@ async function enviarAModuloMedico(consultaId) {
       throw new Error(errorData.error || 'No se pudo actualizar la consulta');
     }
 
-    // ✅ Redirigir al módulo médico después de actualizar
-    setTimeout(() => {
-      window.location.href = '/medico';
-    }, 1500);
+    // ✅ Mostrar confirmación sin redirigir
+    Swal.fire({
+      icon: 'success',
+      title: '¡Consulta enviada!',
+      text: 'El paciente ha sido enviado correctamente al módulo médico.',
+      confirmButtonColor: '#27ae60'
+    });
+
+    // ✅ Recargar tabla para actualizar el estado visualmente
+    cargarConsultas();
 
   } catch (err) {
     console.error('❌ Error enviando a módulo médico:', err);
