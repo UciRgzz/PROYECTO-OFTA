@@ -1080,29 +1080,61 @@ app.get('/api/recibos/paciente/:folio', verificarSesion, async (req, res) => {
 
 // ==================== PACIENTES PENDIENTES DE ATENDER ====================
 app.get("/api/pendientes-medico", verificarSesion, async (req, res) => {
-  // Determinar sucursal activa
   let depto = getDepartamento(req);
 
   try {
     const result = await pool.query(`
+      -- 1️⃣ Recibos sin orden médica (lógica original)
       SELECT 
           r.id AS recibo_id, 
           e.numero_expediente AS expediente_id,
           e.nombre_completo, 
           e.edad, 
           e.padecimientos,
-          r.procedimiento
+          r.procedimiento,
+          NULL AS consulta_id,
+          'RECIBO' AS origen
       FROM recibos r
       JOIN expedientes e 
         ON r.paciente_id = e.numero_expediente 
-       AND r.departamento = e.departamento   -- 👈 asegura misma sucursal
+       AND r.departamento = e.departamento   
       WHERE r.departamento = $1
         AND NOT EXISTS (
           SELECT 1 
           FROM ordenes_medicas o 
-          WHERE o.folio_recibo = r.id         -- 👈 usar recibo en vez de expediente
+          WHERE o.folio_recibo = r.id         
             AND o.departamento = r.departamento
         )
+
+      UNION ALL
+
+      -- 2️⃣ Consultas atendidas sin orden médica (NUEVO)
+      SELECT 
+          NULL AS recibo_id,
+          c.expediente_id,
+          e.nombre_completo,
+          e.edad,
+          e.padecimientos,
+          COALESCE(a.procedimiento, 'Consulta Oftalmológica') AS procedimiento,
+          c.id AS consulta_id,
+          'CONSULTA' AS origen
+      FROM consultas c
+      JOIN expedientes e
+        ON c.expediente_id = e.numero_expediente
+       AND c.departamento = e.departamento
+      LEFT JOIN atencion_consultas a
+        ON a.consulta_id = c.id
+       AND a.departamento = c.departamento
+      WHERE c.departamento = $1
+        AND c.estado = 'Atendida'
+        AND NOT EXISTS (
+          SELECT 1
+          FROM ordenes_medicas o
+          WHERE o.consulta_id = c.id
+            AND o.departamento = c.departamento
+        )
+      
+      ORDER BY nombre_completo ASC
     `, [depto]);
 
     res.json(result.rows);
@@ -1111,7 +1143,6 @@ app.get("/api/pendientes-medico", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // ==================== GUARDAR ORDEN MÉDICA ====================
 app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {

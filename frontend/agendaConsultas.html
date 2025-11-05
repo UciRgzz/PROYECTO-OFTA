@@ -153,7 +153,6 @@
       border: 1px solid #c3e6cb;
     }
 
-    /* ===== ESTILOS PARA BÚSQUEDA DE EXPEDIENTE ===== */
     .busqueda-expediente {
       background: #f8f9fa;
       padding: 20px;
@@ -226,7 +225,6 @@
       display: inline-block;
     }
 
-    /* ===== ESTILOS PARA FILTRO DE FECHAS ===== */
     .filtro-fechas {
       background: #f8f9fa;
       padding: 20px;
@@ -255,7 +253,7 @@
       <i class="fas fa-check-circle"></i> <span id="successMessage">Operación realizada correctamente.</span>
     </div>
 
-    <!-- ===== SECCIÓN DE BÚSQUEDA DE EXPEDIENTE CON BÚSQUEDA AUTOMÁTICA ===== -->
+    <!-- SECCIÓN DE BÚSQUEDA DE EXPEDIENTE -->
     <div class="card">
       <div class="card-header"><i class="fas fa-search"></i> Buscar Paciente para Agendar</div>
       <div class="card-body">
@@ -281,18 +279,17 @@
             </div>
           </div>
 
-          <!-- Resultados -->
           <div id="resultadosBusqueda" class="resultado-busqueda"></div>
         </div>
       </div>
     </div>
 
-    <!-- ===== TABLA DE CONSULTAS PROGRAMADAS ===== -->
+    <!-- TABLA DE CONSULTAS PROGRAMADAS -->
     <div class="card">
       <div class="card-header"><i class="fas fa-list"></i> Consultas Programadas</div>
       <div class="card-body">
         
-        <!-- ===== FILTRO DE FECHAS ===== -->
+        <!-- FILTRO DE FECHAS -->
         <div class="filtro-fechas">
           <label for="filtroRangoConsultas" class="form-label fw-bold">Filtrar por fecha:</label>
           <input type="text" id="filtroRangoConsultas" class="form-control" style="max-width:300px;" placeholder="Selecciona un rango de fechas" readonly>
@@ -335,8 +332,8 @@
 
   <script>
     let rolUsuario = null;
-    let consultasOriginales = []; // Para almacenar todas las consultas
-    let consultasFiltradas = []; // Para almacenar las consultas filtradas
+    let consultasOriginales = [];
+    let consultasFiltradas = [];
 
     //======================= OBTENER ROL DE USUARIO ======================
     async function obtenerRolUsuario() {
@@ -422,7 +419,6 @@
       }
     }
 
-    // Buscar al presionar Enter
     document.getElementById('buscarExpediente')?.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         buscarExpediente();
@@ -486,7 +482,6 @@
         });
 
         if (formValues) {
-          // ✅ Mantiene la fecha exacta sin desfase
           const fechaLocal = formValues.fecha;
 
           const nuevaConsulta = {
@@ -497,7 +492,7 @@
             telefono2: expediente.telefono2 || '',
             edad: expediente.edad || null,
             ciudad: expediente.ciudad || '',
-            fecha: fechaLocal, // ✅ exacta como la eligió el usuario
+            fecha: fechaLocal,
             hora: formValues.hora,
             medico: formValues.medico,
             estado: 'Pendiente'
@@ -529,32 +524,27 @@
     }
 
     // ====================== CARGAR CONSULTAS ======================
-// ✅ Cargar consultas del rango actual visible (por defecto hoy)
-async function cargarConsultas() {
-  try {
-    const valor = $('#filtroRangoConsultas').val();
-    if (!valor) {
-      // Si por alguna razón no hay rango, usa hoy
-      const hoy = moment().format("YYYY-MM-DD");
-      return cargarConsultasPorRango(hoy, hoy);
+    async function cargarConsultas() {
+      try {
+        const valor = $('#filtroRangoConsultas').val();
+        if (!valor) {
+          const hoy = moment().format("YYYY-MM-DD");
+          return cargarConsultasPorRango(hoy, hoy);
+        }
+
+        const [desdeStr, hastaStr] = valor.split(' - ');
+        const desde = moment(desdeStr, 'DD/MM/YYYY').format('YYYY-MM-DD');
+        const hasta = moment(hastaStr, 'DD/MM/YYYY').format('YYYY-MM-DD');
+
+        await cargarConsultasPorRango(desde, hasta);
+
+      } catch (err) {
+        console.error("Error cargando consultas:", err);
+        mostrarError("Error", "No se pudieron cargar las consultas");
+      }
     }
 
-    // Extraer fechas del rango actual
-    const [desdeStr, hastaStr] = valor.split(' - ');
-    const desde = moment(desdeStr, 'DD/MM/YYYY').format('YYYY-MM-DD');
-    const hasta = moment(hastaStr, 'DD/MM/YYYY').format('YYYY-MM-DD');
-
-    // Filtrar solo ese rango
-    await cargarConsultasPorRango(desde, hasta);
-
-  } catch (err) {
-    console.error("Error cargando consultas:", err);
-    mostrarError("Error", "No se pudieron cargar las consultas");
-  }
-}
-
-
-    // ====================== CARGAR CONSULTAS POR RANGO DE FECHAS ======================
+    // ====================== CARGAR CONSULTAS POR RANGO ======================
     async function cargarConsultasPorRango(desde, hasta) {
       try {
         const resp = await fetch(`/api/consultas?desde=${desde}&hasta=${hasta}`);
@@ -597,8 +587,8 @@ async function cargarConsultas() {
           <td>
             <div class="btn-group-actions">
               ${c.estado === 'Pendiente' ? `
-                <button class="btn btn-success btn-sm" onclick="atenderConsulta(${c.id}, '${c.paciente}', ${c.numero_expediente}, '${c.fecha}', '${c.hora}')">
-                  <i class="fas fa-stethoscope"></i> Atender
+                <button class="btn btn-success btn-sm" onclick="enviarAModuloMedico(${c.id})">
+                  <i class="fas fa-paper-plane"></i> Atender
                 </button>` 
               : `
                 <button class="btn btn-info btn-sm" onclick="verDatosConsulta(${c.id})">
@@ -622,7 +612,7 @@ async function cargarConsultas() {
       });
     }
 
-    // ====================== FORMATEAR HORA EN 12 HORAS ======================
+    // ====================== FORMATEAR HORA ======================
     function formatearHora12h(hora24) {
       if (!hora24) return "-";
       const [hora, minutos] = hora24.split(":");
@@ -632,129 +622,60 @@ async function cargarConsultas() {
       return `${h}:${minutos} ${ampm}`;
     }
 
-    // ====================== ATENDER CONSULTA ======================
-    async function atenderConsulta(consultaId, paciente, numero_expediente, fecha, hora) {
+    // ====================== ENVIAR A MÓDULO MÉDICO ======================
+    async function enviarAModuloMedico(consultaId) {
       try {
-        const { value: formValues } = await Swal.fire({
-          title: 'Atender Consulta',
-          width: '800px',
-          html: `
-            <div class="text-start">
-              <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                <strong style="display: block; margin-bottom: 5px; color: #2c3e50;">Paciente:</strong> ${paciente || 'Sin nombre'}<br>
-                <strong style="display: block; margin-top: 10px; margin-bottom: 5px; color: #2c3e50;">Expediente:</strong> ${numero_expediente || 'Sin número'}<br>
-                <strong style="display: block; margin-top: 10px; margin-bottom: 5px; color: #2c3e50;">Fecha de Consulta:</strong> ${formatearFecha(fecha)} - ${hora || 'Sin hora'}
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Motivo de Consulta:</label>
-                <textarea id="motivo" class="form-control" placeholder="Describe el motivo por el cual el paciente acude a consulta" style="min-height: 80px;" required></textarea>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Diagnóstico:</label>
-                <textarea id="diagnostico" class="form-control" placeholder="Diagnóstico médico del paciente" style="min-height: 80px;" required></textarea>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Observaciones Clínicas:</label>
-                <textarea id="observaciones" class="form-control" placeholder="Observaciones adicionales, hallazgos relevantes" style="min-height: 80px;"></textarea>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Tratamiento / Indicaciones:</label>
-                <textarea id="tratamiento" class="form-control" placeholder="Tratamiento prescrito, medicamentos, indicaciones al paciente" style="min-height: 80px;" required></textarea>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label" style="font-weight: 600; color: #2c3e50;">¿Requiere procedimiento o cirugía?</label>
-                <select id="requiere_cirugia" class="form-select">
-                  <option value="no">No</option>
-                  <option value="si">Sí</option>
-                </select>
-              </div>
-
-              <div class="mb-3" id="tipo-procedimiento" style="display: none;">
-                <label class="form-label" style="font-weight: 600; color: #2c3e50;">Tipo de Procedimiento:</label>
-                <input type="text" id="procedimiento" class="form-control" placeholder="Ej: Facoemulsificación, Vitrectomía, etc.">
-              </div>
-            </div>
-          `,
-          focusConfirm: false,
-          showCancelButton: true,
-          confirmButtonText: '<i class="fas fa-check"></i> Guardar Atención',
-          cancelButtonText: 'Cancelar',
+        // Mostrar mensaje de envío
+        Swal.fire({
+          title: 'Enviando a Módulo Médico...',
+          html: '<i class="fas fa-spinner fa-spin fa-3x text-primary"></i><br><br>Cambiando estado de consulta...',
+          allowOutsideClick: false,
+          showConfirmButton: false,
           didOpen: () => {
-            document.getElementById('requiere_cirugia').addEventListener('change', (e) => {
-              const tipoProcDiv = document.getElementById('tipo-procedimiento');
-              tipoProcDiv.style.display = e.target.value === 'si' ? 'block' : 'none';
-            });
-          },
-          preConfirm: () => {
-            const motivo = document.getElementById('motivo').value;
-            const diagnostico = document.getElementById('diagnostico').value;
-            const observaciones = document.getElementById('observaciones').value;
-            const tratamiento = document.getElementById('tratamiento').value;
-            const requiere_cirugia = document.getElementById('requiere_cirugia').value;
-            const procedimiento = document.getElementById('procedimiento').value;
-
-            if (!motivo || !diagnostico || !tratamiento) {
-              Swal.showValidationMessage('Por favor completa todos los campos obligatorios');
-              return false;
-            }
-
-            return { motivo, diagnostico, observaciones, tratamiento, requiere_cirugia, procedimiento };
+            Swal.showLoading();
           }
         });
 
-        if (formValues) {
-          // ✅ Corregido: dejar que el servidor maneje la zona horaria (ya usa timestamp with time zone)
-          const fechaHoraLocal = new Date().toISOString();
+        // Cambiar estado a "Atendida"
+        const resp = await fetch(`/api/consultas/${consultaId}/atender`, {
+          method: 'PUT'
+        });
 
-          const datosAtencion = {
-            consulta_id: consultaId,
-            motivo: formValues.motivo,
-            diagnostico: formValues.diagnostico,
-            observaciones: formValues.observaciones,
-            tratamiento: formValues.tratamiento,
-            requiere_cirugia: formValues.requiere_cirugia === 'si',
-            procedimiento: formValues.requiere_cirugia === 'si' ? formValues.procedimiento : null,
-            fecha: fechaHoraLocal // ✅ Fecha exacta ISO, el servidor la ajusta según zona
-          };
-
-          console.log('📤 Guardando atención médica:', datosAtencion);
-
-          const respPost = await fetch('/api/atencion_consultas', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(datosAtencion)
-          });
-
-          if (respPost.ok) {
-            await fetch(`/api/consultas/${consultaId}/atender`, { method: 'PUT' });
-
-            Swal.fire({
-              icon: 'success',
-              title: '¡Consulta Atendida!',
-              text: 'La información médica ha sido guardada correctamente',
-              timer: 2000,
-              showConfirmButton: false
-            });
-
-            cargarConsultas();
-          } else {
-            const errorData = await respPost.json();
-            console.error('❌ Error del servidor:', errorData);
-            mostrarError('Error', errorData.error || 'No se pudo guardar la atención');
-          }
+        if (!resp.ok) {
+          throw new Error('No se pudo cambiar el estado de la consulta');
         }
+
+        // Mensaje de éxito y redirección
+        await Swal.fire({
+          icon: 'success',
+          title: '¡Consulta Enviada!',
+          html: `
+            <p>La consulta ha sido enviada al <strong>Módulo Médico</strong></p>
+            <p class="text-muted">El paciente está listo para ser atendido</p>
+          `,
+          timer: 2500,
+          showConfirmButton: false
+        });
+
+        // Recargar lista de consultas
+        cargarConsultas();
+
+        // Redirigir al módulo médico
+        setTimeout(() => {
+          window.location.href = '/medico';
+        }, 2500);
+
       } catch (err) {
-        console.error('❌ Error atendiendo consulta:', err);
-        mostrarError('Error', 'Ocurrió un error al atender la consulta: ' + err.message);
+        console.error('❌ Error enviando a módulo médico:', err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: err.message || 'No se pudo enviar al módulo médico'
+        });
       }
     }
 
-    // ====================== VER DATOS DE CONSULTA ATENDIDA ======================
+    // ====================== VER DATOS DE CONSULTA ======================
     async function verDatosConsulta(consultaId) {
       try {
         const resp = await fetch(`/api/atencion_consultas/${consultaId}`);
@@ -765,7 +686,6 @@ async function cargarConsultas() {
 
         const atencion = await resp.json();
 
-        // ✅ Validar existencia y formato de la fecha
         let fechaMX = 'Sin fecha registrada';
         if (atencion.created_at) {
           const fechaObj = new Date(atencion.created_at);
@@ -841,10 +761,9 @@ async function cargarConsultas() {
       }
     }
 
-    // ====================== IR A PAGAR (FUNCIÓN MEJORADA) ======================
+    // ====================== IR A PAGAR ======================
     async function irAPagar(consultaId) {
       try {
-        // Mostrar confirmación al usuario
         const confirmacion = await Swal.fire({
           title: '¿Deseas crear una orden de pago para esta consulta?',
           text: "Se creará una orden médica y serás redirigido al módulo de órdenes",
@@ -857,17 +776,15 @@ async function cargarConsultas() {
         });
 
         if (!confirmacion.isConfirmed) {
-          return; // Usuario canceló
+          return;
         }
 
-        // Desactivar el botón temporalmente para evitar doble clic
         const boton = document.querySelector(`button[onclick="irAPagar(${consultaId})"]`);
         if (boton) {
           boton.disabled = true;
           boton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
         }
 
-        // Mostrar indicador de carga
         Swal.fire({
           title: 'Procesando...',
           html: '<i class="fas fa-spinner fa-spin fa-3x text-primary"></i><br><br>Creando orden de pago...',
@@ -878,7 +795,6 @@ async function cargarConsultas() {
           }
         });
 
-        // Verificar si ya existe una orden para esta consulta
         const respOrdenes = await fetch('/api/ordenes_medicas_consulta');
         if (!respOrdenes.ok) {
           throw new Error('Error al verificar órdenes existentes');
@@ -888,7 +804,6 @@ async function cargarConsultas() {
         const ordenExistente = ordenes.find(o => o.consulta_id === consultaId);
 
         if (ordenExistente) {
-          // Si ya existe orden, informar y redirigir
           await Swal.fire({
             icon: 'info',
             title: 'Orden Existente',
@@ -906,7 +821,6 @@ async function cargarConsultas() {
           }, 2500);
 
         } else {
-          // Crear nueva orden
           const resp = await fetch("/api/ordenes_medicas_consulta", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -920,7 +834,6 @@ async function cargarConsultas() {
 
           const resultado = await resp.json();
 
-          // ✅ Actualizar el botón de "Pagar" en tiempo real sin recargar
           const filaBoton = document.querySelector(`button[onclick="irAPagar(${consultaId})"]`);
           if (filaBoton) {
             const celdaAcciones = filaBoton.parentElement;
@@ -937,7 +850,6 @@ async function cargarConsultas() {
             `;
           }
 
-          // Mostrar éxito
           await Swal.fire({
             icon: 'success',
             title: '¡Orden Creada Exitosamente!',
@@ -951,7 +863,7 @@ async function cargarConsultas() {
                 <p><strong>Precio:</strong> $${resultado.precio || 500}.00</p>
                 <p><strong>Estado:</strong> <span class="badge bg-warning">${resultado.estatus}</span></p>
                 <hr>
-                <p class="text-muted"><i class="fas fa-info-circle"></i> Redirigiendo al módulo de órdenes para procesar el pago...</p>
+                <p class="text-muted"><i class="fas fa-info-circle"></i> Redirigiendo al módulo de órdenes...</p>
               </div>
             `,
             timer: 3500,
@@ -971,7 +883,7 @@ async function cargarConsultas() {
           title: 'Error al Crear Orden',
           html: `
             <p>${err.message || "Ocurrió un error al procesar el pago"}</p>
-            <p class="text-muted mt-3"><small>Por favor, intenta nuevamente o contacta al administrador.</small></p>
+            <p class="text-muted mt-3"><small>Por favor, intenta nuevamente.</small></p>
           `,
           confirmButtonColor: '#e74c3c',
           confirmButtonText: '<i class="fas fa-times"></i> Cerrar'
@@ -994,12 +906,10 @@ async function cargarConsultas() {
         });
 
         if (confirmacion.isConfirmed) {
-          // Eliminar primero la atención (si existe)
           await fetch(`/api/atencion_consultas/${consultaId}`, {
             method: 'DELETE'
-          }).catch(() => {}); // Ignorar error si no existe
+          }).catch(() => {});
 
-          // Eliminar la consulta
           const resp = await fetch(`/api/consultas/${consultaId}`, {
             method: 'DELETE'
           });
@@ -1021,17 +931,14 @@ async function cargarConsultas() {
     function formatearFecha(fecha) {
       if (!fecha) return 'Sin fecha';
       try {
-        // Si la fecha viene tipo "YYYY-MM-DD", interpretarla como local, no UTC
         if (typeof fecha === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
           const [y, m, d] = fecha.split('-');
-          return `${d}/${m}/${y}`; // sin usar new Date, así evitamos el desplazamiento
+          return `${d}/${m}/${y}`;
         }
 
-        // Si viene en formato completo ISO
         const fechaObj = new Date(fecha);
         if (isNaN(fechaObj)) return 'Sin fecha válida';
 
-        // Crear una fecha local sin conversión de zona horaria
         const dia = String(fechaObj.getUTCDate()).padStart(2, '0');
         const mes = String(fechaObj.getUTCMonth() + 1).padStart(2, '0');
         const año = fechaObj.getUTCFullYear();
@@ -1042,15 +949,14 @@ async function cargarConsultas() {
       }
     }
 
-// ====================== INICIALIZACIÓN ======================
-document.addEventListener("DOMContentLoaded", async () => {
-  await obtenerRolUsuario(); // primero detecta si es admin
-  inicializarDateRangePicker(); // esta función ya carga automáticamente las de hoy
-  inicializarBusquedaEnTiempoReal(); // activa búsqueda
-});
+    // ====================== INICIALIZACIÓN ======================
+    document.addEventListener("DOMContentLoaded", async () => {
+      await obtenerRolUsuario();
+      inicializarDateRangePicker();
+      inicializarBusquedaEnTiempoReal();
+    });
 
-
-    // ====================== BÚSQUEDA EN TIEMPO REAL CON DEBOUNCE ======================
+    // ====================== BÚSQUEDA EN TIEMPO REAL ======================
     let searchTimeout = null;
 
     function inicializarBusquedaEnTiempoReal() {
@@ -1073,57 +979,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     }
 
-    // Modificar función buscarExpediente para mostrar indicador
-    async function buscarExpediente(esAutomatico = false) {
-      const query = document.getElementById('buscarExpediente').value.trim();
-      const contenedor = document.getElementById('resultadosBusqueda');
-      const loading = document.getElementById('searchLoading');
-
-      if (!query) {
-        contenedor.innerHTML = '';
-        return;
-      }
-
-      if (esAutomatico) loading.classList.add('active');
-
-      try {
-        const resp = await fetch(`/api/expedientes/buscar?q=${encodeURIComponent(query)}`);
-        const expedientes = await resp.json();
-        loading.classList.remove('active');
-
-        if (expedientes.length === 0) {
-          contenedor.innerHTML = `
-            <div class="alert alert-warning mt-3">
-              <i class="fas fa-exclamation-triangle"></i> No se encontraron expedientes con ese criterio
-            </div>
-          `;
-          return;
-        }
-
-        contenedor.innerHTML = expedientes.map(exp => `
-          <div class="expediente-item" onclick="seleccionarExpediente(${exp.numero_expediente})">
-            <div class="expediente-info">
-              <strong>${exp.nombre_completo}</strong>
-              <small>
-                <i class="fas fa-id-card"></i> Expediente: ${exp.numero_expediente} | 
-                <i class="fas fa-phone"></i> ${exp.telefono1 || 'Sin teléfono'} | 
-                <i class="fas fa-birthday-cake"></i> ${exp.edad || 'Sin edad'} años
-              </small>
-            </div>
-            <button class="btn btn-primary btn-sm">
-              <i class="fas fa-calendar-plus"></i> Agendar
-            </button>
-          </div>
-        `).join('');
-
-      } catch (err) {
-        loading.classList.remove('active');
-        console.error('Error buscando expediente:', err);
-        mostrarError('Error', 'No se pudo realizar la búsqueda');
-      }
-    }
-
-    // ====================== INICIALIZAR DATEPICKER ======================
+    // ====================== DATEPICKER ======================
     function inicializarDateRangePicker() {
       $('#filtroRangoConsultas').daterangepicker({
         autoUpdateInput: false,
@@ -1166,7 +1022,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         cargarConsultas();
       });
 
-      // Establecer fecha actual por defecto
       const hoy = moment();
       $('#filtroRangoConsultas').val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
       cargarConsultasPorRango(hoy.format("YYYY-MM-DD"), hoy.format("YYYY-MM-DD"));
