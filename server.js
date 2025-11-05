@@ -2955,8 +2955,6 @@ app.put('/api/consultas/:id/modulo_medico', verificarSesion, async (req, res) =>
 // ==================== PACIENTES PENDIENTES PARA MÓDULO MÉDICO ====================
 app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
   try {
-    const depto = getDepartamento(req);
-
     const result = await pool.query(`
       SELECT 
         c.id AS recibo_id,
@@ -2965,15 +2963,14 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
         e.nombre_completo,
         e.edad,
         COALESCE(e.padecimientos, 'NINGUNO') AS padecimientos,
-        'Consulta Oftalmológica' AS procedimiento
+        'Consulta Oftalmológica' AS procedimiento,
+        c.departamento
       FROM consultas c
       INNER JOIN expedientes e 
         ON e.numero_expediente = c.numero_expediente
-        AND e.departamento = c.departamento
-      WHERE c.departamento = $1
-        AND c.estado = 'En Módulo Médico'
+      WHERE c.estado = 'En Módulo Médico'
       ORDER BY c.fecha, c.hora;
-    `, [depto]);
+    `);
 
     res.json(result.rows);
 
