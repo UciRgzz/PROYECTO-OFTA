@@ -1454,7 +1454,7 @@ app.put('/api/consultas/:id/modulo_medico', verificarSesion, async (req, res) =>
     res.status(500).json({ error: 'Error al enviar consulta al módulo médico' });
   }
 });
-  
+
 
 
 
@@ -2982,33 +2982,72 @@ app.put('/api/consultas/:id/modulo_medico', verificarSesion, async (req, res) =>
     res.status(500).json({ error: err.message });
   }
 });
-// ==================== PACIENTES PENDIENTES PARA MÓDULO MÉDICO ====================
-app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
+// ==================== PACIENTES PENDIENTES DE ATENDER ====================
+app.get("/api/pendientes-medico", verificarSesion, async (req, res) => {
+  let depto = getDepartamento(req);
+
   try {
     const result = await pool.query(`
+      -- 1️⃣ Recibos sin orden médica (lógica original)
       SELECT 
-        c.id AS recibo_id,
-        c.expediente_id,
-        c.numero_expediente,
-        e.nombre_completo,
-        e.edad,
-        COALESCE(e.padecimientos, 'NINGUNO') AS padecimientos,
-        'Consulta Oftalmológica' AS procedimiento,
-        c.departamento
+          r.id AS recibo_id, 
+          e.numero_expediente AS expediente_id,
+          e.nombre_completo, 
+          e.edad, 
+          e.padecimientos,
+          r.procedimiento,
+          NULL AS consulta_id,
+          'RECIBO' AS origen
+      FROM recibos r
+      JOIN expedientes e 
+        ON r.paciente_id = e.numero_expediente 
+       AND r.departamento = e.departamento   
+      WHERE r.departamento = $1
+        AND NOT EXISTS (
+          SELECT 1 
+          FROM ordenes_medicas o 
+          WHERE o.folio_recibo = r.id         
+            AND o.departamento = r.departamento
+        )
+
+      UNION ALL
+
+      -- 2️⃣ Consultas pendientes o atendidas sin orden médica (corregido)
+      SELECT 
+          NULL AS recibo_id,
+          c.expediente_id,
+          e.nombre_completo,
+          e.edad,
+          e.padecimientos,
+          COALESCE(a.procedimiento, 'Consulta Oftalmológica') AS procedimiento,
+          c.id AS consulta_id,
+          'CONSULTA' AS origen
       FROM consultas c
-      INNER JOIN expedientes e 
-        ON e.numero_expediente = c.numero_expediente
-      WHERE c.estado = 'En Módulo Médico'
-      ORDER BY c.fecha, c.hora;
-    `);
+      JOIN expedientes e
+        ON c.expediente_id = e.numero_expediente
+       AND c.departamento = e.departamento
+      LEFT JOIN atencion_consultas a
+        ON a.consulta_id = c.id
+       AND a.departamento = c.departamento
+      WHERE c.departamento = $1
+        AND (c.estado = 'Pendiente' OR c.estado = 'Atendida')
+        AND NOT EXISTS (
+          SELECT 1
+          FROM ordenes_medicas o
+          WHERE o.consulta_id = c.id
+            AND o.departamento = c.departamento
+        )
+      
+      ORDER BY nombre_completo ASC
+    `, [depto]);
 
     res.json(result.rows);
-
   } catch (err) {
-    console.error('❌ Error en GET /api/pendientes-medico:', err);
+    console.error("Error en /api/pendientes-medico:", err);
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 
