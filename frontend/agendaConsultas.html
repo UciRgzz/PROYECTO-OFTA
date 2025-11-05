@@ -142,6 +142,7 @@
     }
     .badge.bg-warning { background: #f39c12 !important; color: white; }
     .badge.bg-success { background: #27ae60 !important; color: white; }
+    .badge.bg-info { background: #17a2b8 !important; color: white; }
     
     .success-alert {
       display: none;
@@ -378,7 +379,7 @@
       const query = document.getElementById('buscarExpediente').value.trim();
       
       if (!query) {
-        mostrarError('Error', 'Por favor ingresa un número de expediente o nombre');
+        document.getElementById('resultadosBusqueda').innerHTML = '';
         return;
       }
 
@@ -553,7 +554,10 @@
         const respOrdenes = await fetch('/api/ordenes_medicas_consulta');
         const ordenes = respOrdenes.ok ? await respOrdenes.json() : [];
         
-        mostrarConsultas(consultasFiltradas, ordenes);
+        const respAtenciones = await fetch('/api/atencion_consultas_todas');
+        const atenciones = respAtenciones.ok ? await respAtenciones.json() : [];
+        
+        mostrarConsultas(consultasFiltradas, ordenes, atenciones);
       } catch (err) {
         console.error("Error cargando consultas por rango:", err);
         mostrarError("Error", "No se pudieron cargar las consultas");
@@ -561,7 +565,7 @@
     }
 
     // ====================== MOSTRAR CONSULTAS EN TABLA ======================
-    function mostrarConsultas(consultas, ordenes) {
+    function mostrarConsultas(consultas, ordenes, atenciones) {
       const tbody = document.getElementById("tabla-consultas");
       tbody.innerHTML = "";
 
@@ -572,7 +576,49 @@
 
       consultas.forEach(c => {
         const tieneOrden = ordenes.some(o => o.consulta_id === c.id);
+        const tieneAtencion = atenciones.some(a => a.consulta_id === c.id);
+        
         const fila = document.createElement("tr");
+        
+        // Lógica de botones según el estado
+        let botonesAccion = '';
+        
+        if (c.estado === 'Pendiente') {
+          // Estado Pendiente → Solo botón Pagar
+          botonesAccion = `
+            <button class="btn btn-warning btn-sm" onclick="irAPagar(${c.id})">
+              <i class="fas fa-dollar-sign"></i> Pagar
+            </button>
+          `;
+        } else if (c.estado === 'Atendida') {
+          // Estado Atendida
+          if (tieneAtencion) {
+            // Ya tiene datos de atención → Solo Ver Datos
+            botonesAccion = `
+              <button class="btn btn-info btn-sm" onclick="verDatosConsulta(${c.id})">
+                <i class="fas fa-eye"></i> Ver Datos
+              </button>
+            `;
+          } else if (tieneOrden) {
+            // Tiene orden pero no atención → Botón Atender (envía a módulo médico)
+            botonesAccion = `
+              <span class="badge bg-secondary p-2">Enviado</span>
+              <button class="btn btn-success btn-sm" onclick="enviarAModuloMedico(${c.id})">
+                <i class="fas fa-stethoscope"></i> Atender
+              </button>
+            `;
+          }
+        }
+        
+        // Botón de eliminar solo para admin
+        if (rolUsuario === 'admin') {
+          botonesAccion += `
+            <button class="btn btn-danger btn-sm" onclick="eliminarConsulta(${c.id})">
+              <i class="fas fa-trash"></i> Eliminar
+            </button>
+          `;
+        }
+        
         fila.innerHTML = `
           <td>${c.id}</td>
           <td>${c.paciente}</td>
@@ -580,31 +626,13 @@
           <td>${formatearHora12h(c.hora)}</td>
           <td>${c.medico}</td>
           <td>
-            <span class="badge bg-${c.estado === 'Pendiente' ? 'warning' : 'success'}">
+            <span class="badge bg-${c.estado === 'Pendiente' ? 'warning' : c.estado === 'Atendida' ? 'success' : 'info'}">
               ${c.estado}
             </span>
           </td>
           <td>
             <div class="btn-group-actions">
-              ${c.estado === 'Pendiente' ? `
-                <button class="btn btn-success btn-sm" onclick="enviarAModuloMedico(${c.id})">
-                  <i class="fas fa-paper-plane"></i> Atender
-                </button>` 
-              : `
-                <button class="btn btn-info btn-sm" onclick="verDatosConsulta(${c.id})">
-                  <i class="fas fa-eye"></i> Ver Datos
-                </button>
-                ${tieneOrden 
-                  ? `<span class="badge bg-secondary p-2">Enviado</span>` 
-                  : `<button class="btn btn-warning btn-sm" onclick="irAPagar(${c.id})">
-                      <i class="fas fa-dollar-sign"></i> Pagar
-                    </button>`}
-                ${rolUsuario === 'admin' ? `
-                  <button class="btn btn-danger btn-sm" onclick="eliminarConsulta(${c.id})">
-                    <i class="fas fa-trash"></i> Eliminar
-                  </button>` : ''
-                }
-              `}
+              ${botonesAccion}
             </div>
           </td>
         `;
@@ -622,13 +650,25 @@
       return `${h}:${minutos} ${ampm}`;
     }
 
-    // ====================== ENVIAR A MÓDULO MÉDICO ======================
-    async function enviarAModuloMedico(consultaId) {
+    // ====================== IR A PAGAR (CREAR ORDEN) ======================
+    async function irAPagar(consultaId) {
       try {
-        // Mostrar mensaje de envío
+        const confirmacion = await Swal.fire({
+          title: '¿Crear orden de pago?',
+          text: "Se creará una orden médica para esta consulta",
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonColor: '#3498db',
+          cancelButtonColor: '#95a5a6',
+          confirmButtonText: '<i class="fas fa-check"></i> Sí, crear',
+          cancelButtonText: 'Cancelar'
+        });
+
+        if (!confirmacion.isConfirmed) return;
+
         Swal.fire({
-          title: 'Enviando a Módulo Médico...',
-          html: '<i class="fas fa-spinner fa-spin fa-3x text-primary"></i><br><br>Cambiando estado de consulta...',
+          title: 'Enviando a Órdenes...',
+          html: '<i class="fas fa-spinner fa-spin fa-3x text-primary"></i><br><br>Creando orden de pago...',
           allowOutsideClick: false,
           showConfirmButton: false,
           didOpen: () => {
@@ -636,34 +676,90 @@
           }
         });
 
-        // Cambiar estado a "Atendida"
-        const resp = await fetch(`/api/consultas/${consultaId}/atender`, {
-          method: 'PUT'
+        const respOrdenes = await fetch('/api/ordenes_medicas_consulta');
+        if (!respOrdenes.ok) {
+          throw new Error('Error al verificar órdenes existentes');
+        }
+
+        const ordenes = await respOrdenes.json();
+        const ordenExistente = ordenes.find(o => o.consulta_id === consultaId);
+
+        if (ordenExistente) {
+          await Swal.fire({
+            icon: 'info',
+            title: 'Orden Existente',
+            html: `<p>Ya existe una orden para esta consulta.</p>`,
+            timer: 2000,
+            showConfirmButton: false
+          });
+          cargarConsultas();
+          return;
+        }
+
+        const resp = await fetch("/api/ordenes_medicas_consulta", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ consultaId })
         });
 
         if (!resp.ok) {
-          throw new Error('No se pudo cambiar el estado de la consulta');
+          const errorData = await resp.json();
+          throw new Error(errorData.error || "No se pudo crear la orden");
         }
 
-        // Mensaje de éxito y redirección
+        const resultado = await resp.json();
+
         await Swal.fire({
           icon: 'success',
-          title: '¡Consulta Enviada!',
+          title: '¡Orden Creada!',
           html: `
-            <p>La consulta ha sido enviada al <strong>Módulo Médico</strong></p>
-            <p class="text-muted">El paciente está listo para ser atendido</p>
+            <p>Orden médica #${resultado.id} creada correctamente</p>
+            <p class="text-muted">Ahora puedes atender al paciente</p>
           `,
           timer: 2500,
           showConfirmButton: false
         });
 
-        // Recargar lista de consultas
         cargarConsultas();
 
-        // Redirigir al módulo médico
+      } catch (err) {
+        console.error("❌ Error creando orden:", err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: err.message || 'No se pudo crear la orden',
+          confirmButtonColor: '#e74c3c'
+        });
+      }
+    }
+
+    // ====================== ENVIAR A MÓDULO MÉDICO ======================
+    async function enviarAModuloMedico(consultaId) {
+      try {
+        Swal.fire({
+          title: 'Enviando a Módulo Médico...',
+          html: '<i class="fas fa-spinner fa-spin fa-3x text-primary"></i><br><br>Preparando consulta...',
+          allowOutsideClick: false,
+          showConfirmButton: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        await Swal.fire({
+          icon: 'success',
+          title: '¡Consulta Lista!',
+          html: `
+            <p>El paciente está listo para ser atendido</p>
+            <p class="text-muted">Redirigiendo al módulo médico...</p>
+          `,
+          timer: 2000,
+          showConfirmButton: false
+        });
+
         setTimeout(() => {
           window.location.href = '/medico';
-        }, 2500);
+        }, 2000);
 
       } catch (err) {
         console.error('❌ Error enviando a módulo médico:', err);
@@ -761,142 +857,12 @@
       }
     }
 
-    // ====================== IR A PAGAR ======================
-    async function irAPagar(consultaId) {
-      try {
-        const confirmacion = await Swal.fire({
-          title: '¿Deseas crear una orden de pago para esta consulta?',
-          text: "Se creará una orden médica y serás redirigido al módulo de órdenes",
-          icon: 'question',
-          showCancelButton: true,
-          confirmButtonColor: '#3498db',
-          cancelButtonColor: '#95a5a6',
-          confirmButtonText: '<i class="fas fa-check"></i> Sí, crear orden',
-          cancelButtonText: '<i class="fas fa-times"></i> Cancelar'
-        });
-
-        if (!confirmacion.isConfirmed) {
-          return;
-        }
-
-        const boton = document.querySelector(`button[onclick="irAPagar(${consultaId})"]`);
-        if (boton) {
-          boton.disabled = true;
-          boton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
-        }
-
-        Swal.fire({
-          title: 'Procesando...',
-          html: '<i class="fas fa-spinner fa-spin fa-3x text-primary"></i><br><br>Creando orden de pago...',
-          allowOutsideClick: false,
-          showConfirmButton: false,
-          didOpen: () => {
-            Swal.showLoading();
-          }
-        });
-
-        const respOrdenes = await fetch('/api/ordenes_medicas_consulta');
-        if (!respOrdenes.ok) {
-          throw new Error('Error al verificar órdenes existentes');
-        }
-
-        const ordenes = await respOrdenes.json();
-        const ordenExistente = ordenes.find(o => o.consulta_id === consultaId);
-
-        if (ordenExistente) {
-          await Swal.fire({
-            icon: 'info',
-            title: 'Orden Existente',
-            html: `
-              <p>Ya existe una orden de pago para esta consulta.</p>
-              <p><strong>Orden #${ordenExistente.id}</strong></p>
-              <p>Serás redirigido al módulo de órdenes...</p>
-            `,
-            timer: 2500,
-            showConfirmButton: false
-          });
-
-          setTimeout(() => {
-            window.location.href = '/ordenes';
-          }, 2500);
-
-        } else {
-          const resp = await fetch("/api/ordenes_medicas_consulta", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ consultaId })
-          });
-
-          if (!resp.ok) {
-            const errorData = await resp.json();
-            throw new Error(errorData.error || "No se pudo crear la orden");
-          }
-
-          const resultado = await resp.json();
-
-          const filaBoton = document.querySelector(`button[onclick="irAPagar(${consultaId})"]`);
-          if (filaBoton) {
-            const celdaAcciones = filaBoton.parentElement;
-            celdaAcciones.innerHTML = `
-              <button class="btn btn-info btn-sm" onclick="verDatosConsulta(${consultaId})">
-                <i class="fas fa-eye"></i> Ver Datos
-              </button>
-              <span class="badge bg-secondary p-2">Enviado</span>
-              ${rolUsuario === 'admin' ? `
-                <button class="btn btn-danger btn-sm" onclick="eliminarConsulta(${consultaId})">
-                  <i class="fas fa-trash"></i> Eliminar
-                </button>` : ''
-              }
-            `;
-          }
-
-          await Swal.fire({
-            icon: 'success',
-            title: '¡Orden Creada Exitosamente!',
-            html: `
-              <div class="text-start" style="padding: 20px;">
-                <p style="font-size: 1.1rem;">
-                  <i class="fas fa-check-circle text-success"></i> Orden médica #${resultado.id} creada
-                </p>
-                <hr>
-                <p><strong>Procedimiento:</strong> ${resultado.procedimiento || 'Consulta Oftalmológica'}</p>
-                <p><strong>Precio:</strong> $${resultado.precio || 500}.00</p>
-                <p><strong>Estado:</strong> <span class="badge bg-warning">${resultado.estatus}</span></p>
-                <hr>
-                <p class="text-muted"><i class="fas fa-info-circle"></i> Redirigiendo al módulo de órdenes...</p>
-              </div>
-            `,
-            timer: 3500,
-            showConfirmButton: false
-          });
-
-          setTimeout(() => {
-            window.location.href = '/ordenes';
-          }, 3500);
-        }
-
-      } catch (err) {
-        console.error("❌ Error procesando pago:", err);
-
-        Swal.fire({
-          icon: 'error',
-          title: 'Error al Crear Orden',
-          html: `
-            <p>${err.message || "Ocurrió un error al procesar el pago"}</p>
-            <p class="text-muted mt-3"><small>Por favor, intenta nuevamente.</small></p>
-          `,
-          confirmButtonColor: '#e74c3c',
-          confirmButtonText: '<i class="fas fa-times"></i> Cerrar'
-        });
-      }
-    }
-
     // ====================== ELIMINAR CONSULTA ======================
     async function eliminarConsulta(consultaId) {
       try {
         const confirmacion = await Swal.fire({
           title: '¿Estás seguro?',
-          text: "Esta acción eliminará la consulta y sus datos de atención",
+          text: "Esta acción eliminará la consulta y todos sus datos",
           icon: 'warning',
           showCancelButton: true,
           confirmButtonColor: '#e74c3c',
@@ -961,12 +927,11 @@
 
     function inicializarBusquedaEnTiempoReal() {
       const inputBusqueda = document.getElementById('buscarExpediente');
-      const loading = document.getElementById('searchLoading');
 
       inputBusqueda.addEventListener('input', function() {
         if (searchTimeout) clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
-          buscarExpediente(true);
+          buscarExpediente();
         }, 500);
       });
 
@@ -974,7 +939,7 @@
         if (e.key === 'Enter') {
           e.preventDefault();
           if (searchTimeout) clearTimeout(searchTimeout);
-          buscarExpediente(false);
+          buscarExpediente();
         }
       });
     }

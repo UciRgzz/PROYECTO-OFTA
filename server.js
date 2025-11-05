@@ -2809,7 +2809,6 @@ app.delete('/api/consultas/:id', verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== ATENCIÓN DE CONSULTAS (MÓDULO MÉDICO) ====================
 // Guardar atención médica de una consulta
 app.post('/api/atencion_consultas', verificarSesion, async (req, res) => {
   try {
@@ -2900,7 +2899,6 @@ app.delete('/api/atencion_consultas/:consulta_id', verificarSesion, async (req, 
   }
 });
 
-// ==================== CREAR ORDEN MÉDICA DESDE CONSULTA ATENDIDA ====================
 // ✅ ENDPOINT CORREGIDO - Crear orden médica automáticamente desde una consulta atendida
 app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
   try {
@@ -3037,6 +3035,27 @@ app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
   }
 });
 
+// ==================== OBTENER TODAS LAS ATENCIONES DE CONSULTAS ====================
+app.get('/api/atencion_consultas_todas', verificarSesion, async (req, res) => {
+  try {
+    let depto = getDepartamento(req);
+
+    const result = await pool.query(
+      `SELECT consulta_id, motivo, diagnostico, observaciones, tratamiento, 
+              requiere_cirugia, procedimiento, created_at
+       FROM atencion_consultas 
+       WHERE departamento = $1
+       ORDER BY created_at DESC`,
+      [depto]
+    );
+
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error('Error en GET /api/atencion_consultas_todas:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // ==================== OBTENER ÓRDENES MÉDICAS DE CONSULTAS ====================
 app.get('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
