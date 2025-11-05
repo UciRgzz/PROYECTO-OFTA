@@ -207,29 +207,6 @@
       gap: 5px;
       flex-wrap: wrap;
       justify-content: center;
-      align-items: center;
-    }
-
-    /* ✅ ICONO DE ORDEN PAGADA - MÁS DISCRETO */
-    .orden-pagada-icon {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 26px;
-      height: 26px;
-      background: #27ae60;
-      border-radius: 50%;
-      color: white;
-      font-size: 0.8rem;
-      margin-right: 5px;
-      box-shadow: 0 2px 6px rgba(39, 174, 96, 0.3);
-      cursor: help;
-      transition: all 0.3s ease;
-    }
-
-    .orden-pagada-icon:hover {
-      transform: scale(1.15);
-      box-shadow: 0 3px 10px rgba(39, 174, 96, 0.5);
     }
     
     .footer { text-align: center; margin-top: 40px; color: #6c757d; font-size: 0.9rem; }
@@ -603,34 +580,31 @@
         
         const fila = document.createElement("tr");
         
-        // ✅ LÓGICA CORREGIDA DE BOTONES CON ICONO DISCRETO
+        // Lógica de botones según el estado
         let botonesAccion = '';
         
         if (c.estado === 'Pendiente') {
-          if (!tieneOrden) {
-            // NO tiene orden → Mostrar botón Pagar
-            botonesAccion = `
-              <button class="btn btn-warning btn-sm" onclick="irAPagar(${c.id})">
-                <i class="fas fa-dollar-sign"></i> Pagar
-              </button>
-            `;
-          } else {
-            // SÍ tiene orden (ya pagó) → Mostrar PALOMITA VERDE + botón Atender
-            botonesAccion = `
-              <span class="orden-pagada-icon" title="✅ Orden de pago creada">
-                <i class="fas fa-check"></i>
-              </span>
-              <button class="btn btn-success btn-sm" onclick="enviarAModuloMedico(${c.id})">
-                <i class="fas fa-stethoscope"></i> Atender
-              </button>
-            `;
-          }
+          // Estado Pendiente → Solo botón Pagar
+          botonesAccion = `
+            <button class="btn btn-warning btn-sm" onclick="irAPagar(${c.id})">
+              <i class="fas fa-dollar-sign"></i> Pagar
+            </button>
+          `;
         } else if (c.estado === 'Atendida') {
-          // Estado Atendida → Mostrar Ver Datos
+          // Estado Atendida
           if (tieneAtencion) {
+            // Ya tiene datos de atención → Solo Ver Datos
             botonesAccion = `
               <button class="btn btn-info btn-sm" onclick="verDatosConsulta(${c.id})">
                 <i class="fas fa-eye"></i> Ver Datos
+              </button>
+            `;
+          } else if (tieneOrden) {
+            // Tiene orden pero no atención → Botón Atender (envía a módulo médico)
+            botonesAccion = `
+              <span class="badge bg-secondary p-2">Enviado</span>
+              <button class="btn btn-success btn-sm" onclick="enviarAModuloMedico(${c.id})">
+                <i class="fas fa-stethoscope"></i> Atender
               </button>
             `;
           }
@@ -676,7 +650,7 @@
       return `${h}:${minutos} ${ampm}`;
     }
 
-    // ====================== IR A PAGAR (CREAR ORDEN) ======================
+    // ====================== IR A PAGAR (CREAR ORDEN Y CAMBIAR ESTADO) ======================
     async function irAPagar(consultaId) {
       try {
         const confirmacion = await Swal.fire({
@@ -693,8 +667,8 @@
         if (!confirmacion.isConfirmed) return;
 
         Swal.fire({
-          title: 'Creando orden...',
-          html: '<i class="fas fa-spinner fa-spin fa-3x text-primary"></i><br><br>Generando orden de pago...',
+          title: 'Enviando a Órdenes...',
+          html: '<i class="fas fa-spinner fa-spin fa-3x text-primary"></i><br><br>Creando orden de pago...',
           allowOutsideClick: false,
           showConfirmButton: false,
           didOpen: () => {
@@ -722,6 +696,7 @@
           return;
         }
 
+        // 1️⃣ Crear la orden médica
         const resp = await fetch("/api/ordenes_medicas_consulta", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -735,17 +710,27 @@
 
         const resultado = await resp.json();
 
+        // 2️⃣ Cambiar el estado de la consulta a "Atendida"
+        const respEstado = await fetch(`/api/consultas/${consultaId}/atender`, {
+          method: 'PUT'
+        });
+
+        if (!respEstado.ok) {
+          console.error('No se pudo cambiar el estado de la consulta');
+        }
+
         await Swal.fire({
           icon: 'success',
           title: '¡Orden Creada!',
           html: `
             <p>Orden médica #${resultado.id} creada correctamente</p>
-            <p class="text-muted">Ahora el botón "Atender" está disponible</p>
+            <p class="text-muted">Ahora puedes atender al paciente</p>
           `,
           timer: 2500,
           showConfirmButton: false
         });
 
+        // 3️⃣ Recargar la tabla
         cargarConsultas();
 
       } catch (err) {
@@ -759,60 +744,43 @@
       }
     }
 
-// ====================== ENVIAR A MÓDULO MÉDICO ======================
-async function enviarAModuloMedico(consultaId) {
-  try {
-    const confirmacion = await Swal.fire({
-      title: '¿Enviar al módulo médico?',
-      text: "El paciente será atendido por el médico",
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#27ae60',
-      cancelButtonColor: '#95a5a6',
-      confirmButtonText: '<i class="fas fa-check"></i> Sí, enviar',
-      cancelButtonText: 'Cancelar'
-    });
+    // ====================== ENVIAR A MÓDULO MÉDICO ======================
+    async function enviarAModuloMedico(consultaId) {
+      try {
+        Swal.fire({
+          title: 'Enviando a Módulo Médico...',
+          html: '<i class="fas fa-spinner fa-spin fa-3x text-primary"></i><br><br>Preparando consulta...',
+          allowOutsideClick: false,
+          showConfirmButton: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
 
-    if (!confirmacion.isConfirmed) return;
+        await Swal.fire({
+          icon: 'success',
+          title: '¡Consulta Lista!',
+          html: `
+            <p>El paciente está listo para ser atendido</p>
+            <p class="text-muted">Redirigiendo al módulo médico...</p>
+          `,
+          timer: 2000,
+          showConfirmButton: false
+        });
 
-    Swal.fire({
-      title: 'Enviando...',
-      html: '<i class="fas fa-spinner fa-spin fa-3x text-success"></i><br><br>Procesando envío al módulo médico...',
-      allowOutsideClick: false,
-      showConfirmButton: false,
-      didOpen: () => Swal.showLoading()
-    });
+        setTimeout(() => {
+          window.location.href = '/medico';
+        }, 2000);
 
-    // ✅ Ahora usamos el nuevo endpoint
-    const resp = await fetch(`/api/consultas/${consultaId}/modulo_medico`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' }
-    });
-
-    if (!resp.ok) {
-      const errorData = await resp.json();
-      throw new Error(errorData.error || 'No se pudo actualizar la consulta');
+      } catch (err) {
+        console.error('❌ Error enviando a módulo médico:', err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: err.message || 'No se pudo enviar al módulo médico'
+        });
+      }
     }
-
-    Swal.fire({
-      icon: 'success',
-      title: '¡Consulta enviada!',
-      text: 'El paciente ha sido enviado correctamente al módulo médico.',
-      confirmButtonColor: '#27ae60'
-    });
-
-    cargarConsultas(); // refresca tabla
-
-  } catch (err) {
-    console.error('❌ Error enviando a módulo médico:', err);
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: err.message || 'No se pudo enviar al módulo médico'
-    });
-  }
-}
-
 
     // ====================== VER DATOS DE CONSULTA ======================
     async function verDatosConsulta(consultaId) {

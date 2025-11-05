@@ -1078,7 +1078,7 @@ app.get('/api/recibos/paciente/:folio', verificarSesion, async (req, res) => {
 
   
 
-// ==================== PACIENTES PENDIENTES DE ATENDER ====================
+// ==================== PACIENTES PENDIENTES DE ATENDER (INCLUYE CONSULTAS) ====================
 app.get("/api/pendientes-medico", verificarSesion, async (req, res) => {
   let depto = getDepartamento(req);
 
