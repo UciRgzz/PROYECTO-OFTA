@@ -2413,11 +2413,12 @@ app.get("/api/cirugias", verificarSesion, async (req, res) => {
   }
 });
 
-//======MODULO DE AGENDA DE CONSULTAS MÉDICAS======//
-// ==================== BÚSQUEDA DE EXPEDIENTES (para agenda de consultas) ====================
+// ==================== MODULO DE AGENDA DE CONSULTAS MÉDICAS ====================
+
+// ==================== BÚSQUEDA DE EXPEDIENTES ====================
 app.get('/api/expedientes/buscar', verificarSesion, async (req, res) => {
   try {
-    const { q } = req.query; // query de búsqueda
+    const { q } = req.query;
     let depto = getDepartamento(req);
 
     if (!q || q.trim() === '') {
@@ -2455,30 +2456,7 @@ app.get('/api/expedientes/buscar', verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== OBTENER UN EXPEDIENTE POR ID ====================
-app.get('/api/expedientes/:id', verificarSesion, async (req, res) => {
-  try {
-    const { id } = req.params;
-    let depto = getDepartamento(req);
-
-    const result = await pool.query(
-      `SELECT * FROM expedientes WHERE id = $1 AND departamento = $2`,
-      [id, depto]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Expediente no encontrado' });
-    }
-
-    res.json(result.rows[0]);
-
-  } catch (err) {
-    console.error('Error en /api/expedientes/:id:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ==================== OBTENER UN EXPEDIENTE POR NUMERO_EXPEDIENTE (para agendar) ====================
+// ==================== OBTENER EXPEDIENTE POR NUMERO ====================
 app.get('/api/expedientes/detalle/:numero', verificarSesion, async (req, res) => {
   try {
     const { numero } = req.params;
@@ -2505,102 +2483,7 @@ app.get('/api/expedientes/detalle/:numero', verificarSesion, async (req, res) =>
   }
 });
 
-
-//======MODULO DE AGENDA DE CONSULTAS MÉDICAS======//
-// ==================== BÚSQUEDA DE EXPEDIENTES (para agenda de consultas) ====================
-app.get('/api/expedientes/buscar', verificarSesion, async (req, res) => {
-  try {
-    const { q } = req.query; // query de búsqueda
-    let depto = getDepartamento(req);
-
-    if (!q || q.trim() === '') {
-      return res.status(400).json({ error: 'Debe proporcionar un término de búsqueda' });
-    }
-
-    const query = `
-      SELECT 
-        id,
-        numero_expediente,
-        nombre_completo,
-        telefono1,
-        telefono2,
-        edad,
-        ciudad,
-        fecha_nacimiento,
-        padecimientos,
-        colonia
-      FROM expedientes
-      WHERE departamento = $1
-        AND (
-          numero_expediente::text ILIKE $2 
-          OR nombre_completo ILIKE $2
-        )
-      ORDER BY nombre_completo ASC
-      LIMIT 20
-    `;
-
-    const result = await pool.query(query, [depto, `%${q}%`]);
-    res.json(result.rows);
-
-  } catch (err) {
-    console.error('Error en /api/expedientes/buscar:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ==================== OBTENER UN EXPEDIENTE POR ID ====================
-app.get('/api/expedientes/:id', verificarSesion, async (req, res) => {
-  try {
-    const { id } = req.params;
-    let depto = getDepartamento(req);
-
-    const result = await pool.query(
-      `SELECT * FROM expedientes WHERE id = $1 AND departamento = $2`,
-      [id, depto]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Expediente no encontrado' });
-    }
-
-    res.json(result.rows[0]);
-
-  } catch (err) {
-    console.error('Error en /api/expedientes/:id:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ==================== OBTENER UN EXPEDIENTE POR NUMERO_EXPEDIENTE (para agendar) ====================
-app.get('/api/expedientes/detalle/:numero', verificarSesion, async (req, res) => {
-  try {
-    const { numero } = req.params;
-    let depto = getDepartamento(req);
-
-    console.log('🔍 Buscando expediente número:', numero, 'en departamento:', depto);
-
-    const result = await pool.query(
-      `SELECT * FROM expedientes WHERE numero_expediente = $1 AND departamento = $2`,
-      [parseInt(numero), depto]
-    );
-
-    if (result.rows.length === 0) {
-      console.log('❌ Expediente no encontrado');
-      return res.status(404).json({ error: 'Expediente no encontrado' });
-    }
-
-    console.log('✅ Expediente encontrado:', result.rows[0].nombre_completo);
-    res.json(result.rows[0]);
-
-  } catch (err) {
-    console.error('❌ Error en /api/expedientes/detalle/:numero:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-
-// ==================== MODULO DE AGENDA DE CONSULTAS ====================
-// Obtener todas las consultas
+// ==================== OBTENER TODAS LAS CONSULTAS ====================
 app.get('/api/consultas', verificarSesion, async (req, res) => {
   try {
     const { desde, hasta } = req.query;
@@ -2608,7 +2491,6 @@ app.get('/api/consultas', verificarSesion, async (req, res) => {
     let result;
 
     if (desde && hasta) {
-      // ✅ Filtrar correctamente convirtiendo las fechas de texto a tipo DATE
       result = await pool.query(`
         SELECT 
           id,
@@ -2629,7 +2511,6 @@ app.get('/api/consultas', verificarSesion, async (req, res) => {
         ORDER BY fecha DESC, hora DESC
       `, [depto, desde, hasta]);
     } else {
-      // ✅ Si no hay rango, traer todas
       result = await pool.query(`
         SELECT 
           id,
@@ -2657,7 +2538,7 @@ app.get('/api/consultas', verificarSesion, async (req, res) => {
   }
 });
 
-// Crear una consulta
+// ==================== CREAR CONSULTA ====================
 app.post('/api/consultas', verificarSesion, async (req, res) => {
   try {
     const {
@@ -2684,13 +2565,11 @@ app.post('/api/consultas', verificarSesion, async (req, res) => {
       fecha
     });
 
-    // ✅ Validación crítica
     if (!expediente_id) {
       console.error('❌ Error: expediente_id es null o undefined');
       return res.status(400).json({ error: 'El expediente_id es requerido' });
     }
 
-    // ✅ Corregir la fecha para que se guarde correctamente como día local
     const fechaLocal = new Date(fecha).toISOString().split('T')[0];
 
     const result = await pool.query(`
@@ -2710,14 +2589,14 @@ app.post('/api/consultas', verificarSesion, async (req, res) => {
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       RETURNING *
     `, [
-      parseInt(expediente_id),  // ✅ Asegurar que sea número
+      parseInt(expediente_id),
       paciente,
-      parseInt(numero_expediente),  // ✅ Asegurar que sea número
+      parseInt(numero_expediente),
       telefono1,
       telefono2,
       edad,
       ciudad,
-      fechaLocal, // ✅ ahora guarda la fecha exacta sin desfase
+      fechaLocal,
       hora,
       medico,
       estado || 'Pendiente',
@@ -2733,8 +2612,7 @@ app.post('/api/consultas', verificarSesion, async (req, res) => {
   }
 });
 
-
-// Marcar consulta como atendida
+// ==================== MARCAR CONSULTA COMO ATENDIDA ====================
 app.put('/api/consultas/:id/atender', verificarSesion, async (req, res) => {
   try {
     const { id } = req.params;
@@ -2759,13 +2637,13 @@ app.put('/api/consultas/:id/atender', verificarSesion, async (req, res) => {
   }
 });
 
-// Eliminar consulta
+// ==================== ELIMINAR CONSULTA ====================
 app.delete('/api/consultas/:id', verificarSesion, async (req, res) => {
   try {
     const { id } = req.params;
     let depto = getDepartamento(req);
 
-    // ✅ PASO 1: Eliminar la orden médica asociada (si existe)
+    // Eliminar orden médica asociada (si existe)
     try {
       await pool.query(
         'DELETE FROM ordenes_medicas WHERE consulta_id = $1 AND departamento = $2',
@@ -2776,7 +2654,7 @@ app.delete('/api/consultas/:id', verificarSesion, async (req, res) => {
       console.log('⚠️ No había orden médica o error al eliminar:', ordenErr.message);
     }
 
-    // ✅ PASO 2: Eliminar la atención médica (si existe)
+    // Eliminar atención médica (si existe)
     try {
       await pool.query(
         'DELETE FROM atencion_consultas WHERE consulta_id = $1 AND departamento = $2',
@@ -2787,7 +2665,7 @@ app.delete('/api/consultas/:id', verificarSesion, async (req, res) => {
       console.log('⚠️ No había atención médica o error al eliminar:', atencionErr.message);
     }
 
-    // ✅ PASO 3: Eliminar la consulta
+    // Eliminar la consulta
     const result = await pool.query(
       'DELETE FROM consultas WHERE id = $1 AND departamento = $2 RETURNING *',
       [id, depto]
@@ -2809,7 +2687,7 @@ app.delete('/api/consultas/:id', verificarSesion, async (req, res) => {
   }
 });
 
-// Guardar atención médica de una consulta
+// ==================== GUARDAR ATENCIÓN MÉDICA ====================
 app.post('/api/atencion_consultas', verificarSesion, async (req, res) => {
   try {
     const {
@@ -2858,7 +2736,7 @@ app.post('/api/atencion_consultas', verificarSesion, async (req, res) => {
   }
 });
 
-// Obtener atención médica de una consulta
+// ==================== OBTENER ATENCIÓN MÉDICA DE UNA CONSULTA ====================
 app.get('/api/atencion_consultas/:consulta_id', verificarSesion, async (req, res) => {
   try {
     const { consulta_id } = req.params;
@@ -2881,7 +2759,29 @@ app.get('/api/atencion_consultas/:consulta_id', verificarSesion, async (req, res
   }
 }); 
 
-// Eliminar atención de consulta
+// ==================== OBTENER TODAS LAS ATENCIONES ====================
+app.get('/api/atencion_consultas_todas', verificarSesion, async (req, res) => {
+  try {
+    let depto = getDepartamento(req);
+
+    const result = await pool.query(
+      `SELECT consulta_id, motivo, diagnostico, observaciones, tratamiento, 
+              requiere_cirugia, procedimiento, created_at
+       FROM atencion_consultas 
+       WHERE departamento = $1
+       ORDER BY created_at DESC`,
+      [depto]
+    );
+
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error('Error en GET /api/atencion_consultas_todas:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ==================== ELIMINAR ATENCIÓN DE CONSULTA ====================
 app.delete('/api/atencion_consultas/:consulta_id', verificarSesion, async (req, res) => {
   try {
     const { consulta_id } = req.params;
@@ -2899,7 +2799,7 @@ app.delete('/api/atencion_consultas/:consulta_id', verificarSesion, async (req, 
   }
 });
 
-// ✅ ENDPOINT CORREGIDO - Crear orden médica automáticamente desde una consulta atendida
+// ==================== CREAR ORDEN MÉDICA DESDE CONSULTA (CORREGIDO) ====================
 app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
   try {
     const { consultaId } = req.body;
@@ -2912,7 +2812,7 @@ app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
       return res.status(400).json({ error: 'Se requiere el ID de la consulta' });
     }
 
-    // Obtener datos de la consulta
+    // Obtener datos de la consulta (SIN validar estado)
     const consulta = await pool.query(
       'SELECT * FROM consultas WHERE id = $1 AND departamento = $2',
       [consultaId, depto]
@@ -2923,14 +2823,6 @@ app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
     }
 
     const c = consulta.rows[0];
-
-    // Verificar que la consulta esté atendida
-    if (c.estado !== 'Atendida') {
-      return res.status(400).json({
-        error: 'La consulta debe estar atendida antes de crear una orden',
-        estado_actual: c.estado
-      });
-    }
 
     // ✅ Verificar si ya existe una orden para esta consulta
     const ordenExistente = await pool.query(
@@ -2947,31 +2839,17 @@ app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
       });
     }
 
-    // Obtener datos de atención médica
-    const atencion = await pool.query(
-      'SELECT * FROM atencion_consultas WHERE consulta_id = $1 AND departamento = $2',
-      [consultaId, depto]
-    );
-
-    if (atencion.rows.length === 0) {
-      return res.status(404).json({
-        error: 'No se encontró información de atención para esta consulta'
-      });
-    }
-
-    const at = atencion.rows[0];
-
-    // Obtener información del paciente (solo para registrar datos de orden)
+    // Obtener información del paciente
     const expediente = await pool.query(
-      'SELECT nombre_completo FROM expedientes WHERE numero_expediente = $1',
-      [c.expediente_id]
+      'SELECT nombre_completo FROM expedientes WHERE numero_expediente = $1 AND departamento = $2',
+      [c.expediente_id, depto]
     );
 
     const pacienteNombre = expediente.rows.length > 0
       ? expediente.rows[0].nombre_completo
       : 'Paciente Desconocido';
 
-    // ✅ Crear orden médica con todas las columnas necesarias
+    // ✅ Crear orden médica (sin requerir que esté atendida)
     const result = await pool.query(`
       INSERT INTO ordenes_medicas (
         consulta_id,
@@ -2994,9 +2872,9 @@ app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
       consultaId,
       c.expediente_id,
       c.medico,
-      at.diagnostico || 'Consulta General',
+      'Consulta General',
       'OD',
-      at.procedimiento || 'Consulta Oftalmológica',
+      'Consulta Oftalmológica',
       'Pendiente',
       500.00,
       0,
@@ -3008,8 +2886,6 @@ app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
     ]);
 
     console.log('✅ Orden médica creada exitosamente:', result.rows[0].id);
-
-    // 🔇 Se eliminó el registro de notificaciones, ya no se guardan eventos de órdenes aquí
 
     res.status(201).json({
       ...result.rows[0],
@@ -3035,28 +2911,6 @@ app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== OBTENER TODAS LAS ATENCIONES DE CONSULTAS ====================
-app.get('/api/atencion_consultas_todas', verificarSesion, async (req, res) => {
-  try {
-    let depto = getDepartamento(req);
-
-    const result = await pool.query(
-      `SELECT consulta_id, motivo, diagnostico, observaciones, tratamiento, 
-              requiere_cirugia, procedimiento, created_at
-       FROM atencion_consultas 
-       WHERE departamento = $1
-       ORDER BY created_at DESC`,
-      [depto]
-    );
-
-    res.json(result.rows);
-
-  } catch (err) {
-    console.error('Error en GET /api/atencion_consultas_todas:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
 // ==================== OBTENER ÓRDENES MÉDICAS DE CONSULTAS ====================
 app.get('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
   try {
@@ -3076,8 +2930,6 @@ app.get('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-
 
 
 
