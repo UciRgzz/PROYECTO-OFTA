@@ -207,6 +207,29 @@
       gap: 5px;
       flex-wrap: wrap;
       justify-content: center;
+      align-items: center;
+    }
+
+    /* ✅ ICONO DE ORDEN PAGADA - MÁS DISCRETO */
+    .orden-pagada-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      background: #27ae60;
+      border-radius: 50%;
+      color: white;
+      font-size: 0.8rem;
+      margin-right: 5px;
+      box-shadow: 0 2px 6px rgba(39, 174, 96, 0.3);
+      cursor: help;
+      transition: all 0.3s ease;
+    }
+
+    .orden-pagada-icon:hover {
+      transform: scale(1.15);
+      box-shadow: 0 3px 10px rgba(39, 174, 96, 0.5);
     }
     
     .footer { text-align: center; margin-top: 40px; color: #6c757d; font-size: 0.9rem; }
@@ -580,7 +603,7 @@
         
         const fila = document.createElement("tr");
         
-        // ✅ LÓGICA CORREGIDA DE BOTONES
+        // ✅ LÓGICA CORREGIDA DE BOTONES CON ICONO DISCRETO
         let botonesAccion = '';
         
         if (c.estado === 'Pendiente') {
@@ -592,9 +615,11 @@
               </button>
             `;
           } else {
-            // SÍ tiene orden (ya pagó) → Mostrar botón Atender
+            // SÍ tiene orden (ya pagó) → Mostrar PALOMITA VERDE + botón Atender
             botonesAccion = `
-              <span class="badge bg-info mb-1">Orden Creada</span><br>
+              <span class="orden-pagada-icon" title="✅ Orden de pago creada">
+                <i class="fas fa-check"></i>
+              </span>
               <button class="btn btn-success btn-sm" onclick="enviarAModuloMedico(${c.id})">
                 <i class="fas fa-stethoscope"></i> Atender
               </button>
@@ -715,7 +740,7 @@
           title: '¡Orden Creada!',
           html: `
             <p>Orden médica #${resultado.id} creada correctamente</p>
-            <p class="text-muted">El botón "Atender" ya está disponible</p>
+            <p class="text-muted">Ahora el botón "Atender" está disponible</p>
           `,
           timer: 2500,
           showConfirmButton: false
@@ -751,31 +776,20 @@
         if (!confirmacion.isConfirmed) return;
 
         Swal.fire({
-          title: 'Enviando al módulo médico...',
-          html: '<i class="fas fa-spinner fa-spin fa-3x text-success"></i><br><br>Preparando consulta...',
+          title: 'Redirigiendo...',
+          html: '<i class="fas fa-spinner fa-spin fa-3x text-success"></i><br><br>Enviando al módulo médico...',
           allowOutsideClick: false,
           showConfirmButton: false,
+          timer: 1500,
           didOpen: () => {
             Swal.showLoading();
           }
         });
 
-        await new Promise(resolve => setTimeout(resolve, 1500));
-
-        await Swal.fire({
-          icon: 'success',
-          title: '¡Consulta Lista!',
-          html: `
-            <p>El paciente está listo para ser atendido</p>
-            <p class="text-muted">Redirigiendo al módulo médico...</p>
-          `,
-          timer: 2000,
-          showConfirmButton: false
-        });
-
+        // ✅ Redirigir directamente al módulo médico
         setTimeout(() => {
           window.location.href = '/medico';
-        }, 2000);
+        }, 1500);
 
       } catch (err) {
         console.error('❌ Error enviando a módulo médico:', err);
