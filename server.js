@@ -2952,7 +2952,27 @@ app.put('/api/consultas/:id/modulo_medico', verificarSesion, async (req, res) =>
     res.status(500).json({ error: err.message });
   }
 });
+// ==================== OBTENER CONSULTA POR ID ====================
+app.get('/api/consultas/:id', verificarSesion, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const depto = getDepartamento(req);
 
+    const result = await pool.query(`
+      SELECT * FROM consultas 
+      WHERE id = $1 AND departamento = $2
+    `, [id, depto]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Consulta no encontrada' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('❌ Error en GET /api/consultas/:id:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 
 
