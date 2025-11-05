@@ -2414,7 +2414,6 @@ app.get("/api/cirugias", verificarSesion, async (req, res) => {
 });
 
 // ==================== MODULO DE AGENDA DE CONSULTAS MÉDICAS ====================
-
 // ==================== BÚSQUEDA DE EXPEDIENTES ====================
 app.get('/api/expedientes/buscar', verificarSesion, async (req, res) => {
   try {

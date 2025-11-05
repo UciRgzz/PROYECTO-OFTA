@@ -759,47 +759,58 @@
       }
     }
 
-    // ====================== ENVIAR A MÓDULO MÉDICO ======================
-    async function enviarAModuloMedico(consultaId) {
-      try {
-        const confirmacion = await Swal.fire({
-          title: '¿Enviar al módulo médico?',
-          text: "El paciente será atendido por el médico",
-          icon: 'question',
-          showCancelButton: true,
-          confirmButtonColor: '#27ae60',
-          cancelButtonColor: '#95a5a6',
-          confirmButtonText: '<i class="fas fa-check"></i> Sí, enviar',
-          cancelButtonText: 'Cancelar'
-        });
+// ====================== ENVIAR A MÓDULO MÉDICO ======================
+async function enviarAModuloMedico(consultaId) {
+  try {
+    const confirmacion = await Swal.fire({
+      title: '¿Enviar al módulo médico?',
+      text: "El paciente será atendido por el médico",
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#27ae60',
+      cancelButtonColor: '#95a5a6',
+      confirmButtonText: '<i class="fas fa-check"></i> Sí, enviar',
+      cancelButtonText: 'Cancelar'
+    });
 
-        if (!confirmacion.isConfirmed) return;
+    if (!confirmacion.isConfirmed) return;
 
-        Swal.fire({
-          title: 'Redirigiendo...',
-          html: '<i class="fas fa-spinner fa-spin fa-3x text-success"></i><br><br>Enviando al módulo médico...',
-          allowOutsideClick: false,
-          showConfirmButton: false,
-          timer: 1500,
-          didOpen: () => {
-            Swal.showLoading();
-          }
-        });
-
-        // ✅ Redirigir directamente al módulo médico
-        setTimeout(() => {
-          window.location.href = '/medico';
-        }, 1500);
-
-      } catch (err) {
-        console.error('❌ Error enviando a módulo médico:', err);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: err.message || 'No se pudo enviar al módulo médico'
-        });
+    Swal.fire({
+      title: 'Redirigiendo...',
+      html: '<i class="fas fa-spinner fa-spin fa-3x text-success"></i><br><br>Enviando al módulo médico...',
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
       }
+    });
+
+    // ✅ Actualizar estado de la consulta en la base de datos
+    const resp = await fetch(`/api/consultas/${consultaId}/atender`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (!resp.ok) {
+      const errorData = await resp.json();
+      throw new Error(errorData.error || 'No se pudo actualizar la consulta');
     }
+
+    // ✅ Redirigir al módulo médico después de actualizar
+    setTimeout(() => {
+      window.location.href = '/medico';
+    }, 1500);
+
+  } catch (err) {
+    console.error('❌ Error enviando a módulo médico:', err);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: err.message || 'No se pudo enviar al módulo médico'
+    });
+  }
+}
+
 
     // ====================== VER DATOS DE CONSULTA ======================
     async function verDatosConsulta(consultaId) {
