@@ -2952,6 +2952,38 @@ app.put('/api/consultas/:id/modulo_medico', verificarSesion, async (req, res) =>
     res.status(500).json({ error: err.message });
   }
 });
+// ==================== OBTENER PACIENTES PARA EL MÓDULO MÉDICO ====================
+app.get('/api/consultas_modulo_medico', verificarSesion, async (req, res) => {
+  try {
+    const depto = getDepartamento(req);
+
+    const result = await pool.query(`
+      SELECT 
+        id,
+        expediente_id,
+        paciente,
+        numero_expediente,
+        fecha,
+        hora,
+        medico,
+        estado,
+        telefono1,
+        telefono2,
+        edad,
+        ciudad
+      FROM consultas
+      WHERE departamento = $1
+        AND estado IN ('Pendiente', 'En Módulo Médico')
+      ORDER BY fecha, hora
+    `, [depto]);
+
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error('❌ Error en GET /api/consultas_modulo_medico:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 
 
