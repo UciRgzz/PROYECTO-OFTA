@@ -580,31 +580,32 @@
         
         const fila = document.createElement("tr");
         
-        // Lógica de botones según el estado
+        // ✅ LÓGICA CORREGIDA DE BOTONES
         let botonesAccion = '';
         
         if (c.estado === 'Pendiente') {
-          // Estado Pendiente → Solo botón Pagar
-          botonesAccion = `
-            <button class="btn btn-warning btn-sm" onclick="irAPagar(${c.id})">
-              <i class="fas fa-dollar-sign"></i> Pagar
-            </button>
-          `;
+          if (!tieneOrden) {
+            // NO tiene orden → Mostrar botón Pagar
+            botonesAccion = `
+              <button class="btn btn-warning btn-sm" onclick="irAPagar(${c.id})">
+                <i class="fas fa-dollar-sign"></i> Pagar
+              </button>
+            `;
+          } else {
+            // SÍ tiene orden (ya pagó) → Mostrar botón Atender
+            botonesAccion = `
+              <span class="badge bg-info mb-1">Orden Creada</span><br>
+              <button class="btn btn-success btn-sm" onclick="enviarAModuloMedico(${c.id})">
+                <i class="fas fa-stethoscope"></i> Atender
+              </button>
+            `;
+          }
         } else if (c.estado === 'Atendida') {
-          // Estado Atendida
+          // Estado Atendida → Mostrar Ver Datos
           if (tieneAtencion) {
-            // Ya tiene datos de atención → Solo Ver Datos
             botonesAccion = `
               <button class="btn btn-info btn-sm" onclick="verDatosConsulta(${c.id})">
                 <i class="fas fa-eye"></i> Ver Datos
-              </button>
-            `;
-          } else if (tieneOrden) {
-            // Tiene orden pero no atención → Botón Atender (envía a módulo médico)
-            botonesAccion = `
-              <span class="badge bg-secondary p-2">Enviado</span>
-              <button class="btn btn-success btn-sm" onclick="enviarAModuloMedico(${c.id})">
-                <i class="fas fa-stethoscope"></i> Atender
               </button>
             `;
           }
@@ -667,8 +668,8 @@
         if (!confirmacion.isConfirmed) return;
 
         Swal.fire({
-          title: 'Enviando a Órdenes...',
-          html: '<i class="fas fa-spinner fa-spin fa-3x text-primary"></i><br><br>Creando orden de pago...',
+          title: 'Creando orden...',
+          html: '<i class="fas fa-spinner fa-spin fa-3x text-primary"></i><br><br>Generando orden de pago...',
           allowOutsideClick: false,
           showConfirmButton: false,
           didOpen: () => {
@@ -714,7 +715,7 @@
           title: '¡Orden Creada!',
           html: `
             <p>Orden médica #${resultado.id} creada correctamente</p>
-            <p class="text-muted">Ahora puedes atender al paciente</p>
+            <p class="text-muted">El botón "Atender" ya está disponible</p>
           `,
           timer: 2500,
           showConfirmButton: false
@@ -736,15 +737,30 @@
     // ====================== ENVIAR A MÓDULO MÉDICO ======================
     async function enviarAModuloMedico(consultaId) {
       try {
+        const confirmacion = await Swal.fire({
+          title: '¿Enviar al módulo médico?',
+          text: "El paciente será atendido por el médico",
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonColor: '#27ae60',
+          cancelButtonColor: '#95a5a6',
+          confirmButtonText: '<i class="fas fa-check"></i> Sí, enviar',
+          cancelButtonText: 'Cancelar'
+        });
+
+        if (!confirmacion.isConfirmed) return;
+
         Swal.fire({
-          title: 'Enviando a Módulo Médico...',
-          html: '<i class="fas fa-spinner fa-spin fa-3x text-primary"></i><br><br>Preparando consulta...',
+          title: 'Enviando al módulo médico...',
+          html: '<i class="fas fa-spinner fa-spin fa-3x text-success"></i><br><br>Preparando consulta...',
           allowOutsideClick: false,
           showConfirmButton: false,
           didOpen: () => {
             Swal.showLoading();
           }
         });
+
+        await new Promise(resolve => setTimeout(resolve, 1500));
 
         await Swal.fire({
           icon: 'success',
