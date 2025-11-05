@@ -2957,18 +2957,21 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
   try {
     const depto = getDepartamento(req);
 
+    // Trae solo los que ya fueron enviados al módulo médico
     const result = await pool.query(`
       SELECT 
-        id AS recibo_id,
-        expediente_id,
-        paciente AS nombre_completo,
-        edad,
-        '' AS padecimientos,
+        c.id AS recibo_id,
+        c.expediente_id,
+        c.numero_expediente,
+        e.nombre_completo,
+        e.edad,
+        COALESCE(e.padecimientos, 'NINGUNO') AS padecimientos,
         'Consulta Oftalmológica' AS procedimiento
-      FROM consultas
-      WHERE departamento = $1
-        AND estado IN ('Pendiente', 'En Módulo Médico')
-      ORDER BY fecha, hora
+      FROM consultas c
+      JOIN expedientes e ON e.numero_expediente = c.numero_expediente AND e.departamento = c.departamento
+      WHERE c.departamento = $1
+        AND c.estado = 'En Módulo Médico'
+      ORDER BY c.fecha, c.hora
     `, [depto]);
 
     res.json(result.rows);
