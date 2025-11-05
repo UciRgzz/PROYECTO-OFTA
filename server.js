@@ -2961,13 +2961,14 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
       SELECT 
         c.id AS recibo_id,
         c.expediente_id,
+        c.numero_expediente,
         e.nombre_completo,
         e.edad,
         COALESCE(e.padecimientos, 'NINGUNO') AS padecimientos,
         'Consulta Oftalmológica' AS procedimiento
       FROM consultas c
       INNER JOIN expedientes e 
-        ON e.numero_expediente = c.numero_expediente 
+        ON e.numero_expediente = c.numero_expediente
         AND e.departamento = c.departamento
       WHERE c.departamento = $1
         AND c.estado = 'En Módulo Médico'
@@ -2975,6 +2976,7 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
     `, [depto]);
 
     res.json(result.rows);
+
   } catch (err) {
     console.error('❌ Error en GET /api/pendientes-medico:', err);
     res.status(500).json({ error: err.message });
