@@ -577,10 +577,7 @@
         const respOrdenes = await fetch('/api/ordenes_medicas_consulta');
         const ordenes = respOrdenes.ok ? await respOrdenes.json() : [];
         
-        const respAtenciones = await fetch('/api/atencion_consultas_todas');
-        const atenciones = respAtenciones.ok ? await respAtenciones.json() : [];
-        
-        mostrarConsultas(consultasFiltradas, ordenes, atenciones);
+        mostrarConsultas(consultasFiltradas, ordenes);
       } catch (err) {
         console.error("Error cargando consultas por rango:", err);
         mostrarError("Error", "No se pudieron cargar las consultas");
@@ -588,7 +585,7 @@
     }
 
     // ====================== MOSTRAR CONSULTAS EN TABLA ======================
-    function mostrarConsultas(consultas, ordenes, atenciones) {
+    function mostrarConsultas(consultas, ordenes) {
       const tbody = document.getElementById("tabla-consultas");
       tbody.innerHTML = "";
 
@@ -599,11 +596,10 @@
 
       consultas.forEach(c => {
         const tieneOrden = ordenes.some(o => o.consulta_id === c.id);
-        const tieneAtencion = atenciones.some(a => a.consulta_id === c.id);
         
         const fila = document.createElement("tr");
         
-        // ✅ LÓGICA CORREGIDA DE BOTONES CON ICONO DISCRETO
+        // ✅ LÓGICA CORREGIDA DE BOTONES
         let botonesAccion = '';
         
         if (c.estado === 'Pendiente') {
@@ -626,13 +622,15 @@
             `;
           }
         } else if (c.estado === 'Atendida') {
-          // Estado Atendida → Mostrar Ver Datos
-          if (tieneAtencion) {
+          // Estado Atendida → Verificar si tiene orden médica de consulta
+          if (tieneOrden) {
             botonesAccion = `
-              <button class="btn btn-info btn-sm" onclick="verDatosConsulta(${c.id})">
-                <i class="fas fa-eye"></i> Ver Datos
+              <button class="btn btn-info btn-sm" onclick="verOrdenConsulta(${c.id})">
+                <i class="fas fa-file-medical"></i> Ver Consulta
               </button>
             `;
+          } else {
+            botonesAccion = `<span class="text-muted">En módulo médico</span>`;
           }
         }
         
@@ -759,132 +757,144 @@
       }
     }
 
-// ====================== ENVIAR A MÓDULO MÉDICO ======================
-async function enviarAModuloMedico(consultaId) {
-  try {
-    const confirmacion = await Swal.fire({
-      title: '¿Enviar al módulo médico?',
-      text: "El paciente será atendido por el médico",
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#27ae60',
-      cancelButtonColor: '#95a5a6',
-      confirmButtonText: '<i class="fas fa-check"></i> Sí, enviar',
-      cancelButtonText: 'Cancelar'
-    });
+    // ====================== ENVIAR A MÓDULO MÉDICO ======================
+    async function enviarAModuloMedico(consultaId) {
+      try {
+        const confirmacion = await Swal.fire({
+          title: '¿Enviar al módulo médico?',
+          text: "El paciente será enviado para atención médica",
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonColor: '#27ae60',
+          cancelButtonColor: '#95a5a6',
+          confirmButtonText: '<i class="fas fa-check"></i> Sí, enviar',
+          cancelButtonText: 'Cancelar'
+        });
 
-    if (!confirmacion.isConfirmed) return;
+        if (!confirmacion.isConfirmed) return;
 
-    Swal.fire({
-      title: 'Enviando...',
-      html: '<i class="fas fa-spinner fa-spin fa-3x text-success"></i><br><br>Procesando envío al módulo médico...',
-      allowOutsideClick: false,
-      showConfirmButton: false,
-      didOpen: () => Swal.showLoading()
-    });
+        Swal.fire({
+          title: 'Enviando...',
+          html: '<i class="fas fa-spinner fa-spin fa-3x text-success"></i><br><br>Procesando envío al módulo médico...',
+          allowOutsideClick: false,
+          showConfirmButton: false,
+          didOpen: () => Swal.showLoading()
+        });
 
-    // ✅ Ahora usamos el nuevo endpoint
-    const resp = await fetch(`/api/consultas/${consultaId}/modulo_medico`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' }
-    });
+        // ✅ Actualizar estado a "Atendida"
+        const resp = await fetch(`/api/consultas/${consultaId}/estado`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ estado: 'Atendida' })
+        });
 
-    if (!resp.ok) {
-      const errorData = await resp.json();
-      throw new Error(errorData.error || 'No se pudo actualizar la consulta');
+        if (!resp.ok) {
+          const errorData = await resp.json();
+          throw new Error(errorData.error || 'No se pudo actualizar la consulta');
+        }
+
+        Swal.fire({
+          icon: 'success',
+          title: '¡Consulta enviada!',
+          text: 'El paciente ha sido enviado al módulo médico correctamente.',
+          confirmButtonColor: '#27ae60'
+        });
+
+        cargarConsultas();
+
+      } catch (err) {
+        console.error('❌ Error enviando a módulo médico:', err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: err.message || 'No se pudo enviar al módulo médico'
+        });
+      }
     }
 
-    Swal.fire({
-      icon: 'success',
-      title: '¡Consulta enviada!',
-      text: 'El paciente ha sido enviado correctamente al módulo médico.',
-      confirmButtonColor: '#27ae60'
-    });
-
-    cargarConsultas(); // refresca tabla
-
-  } catch (err) {
-    console.error('❌ Error enviando a módulo médico:', err);
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: err.message || 'No se pudo enviar al módulo médico'
-    });
-  }
-}
-
-
-    // ====================== VER DATOS DE CONSULTA ======================
-    async function verDatosConsulta(consultaId) {
+    // ====================== VER ORDEN DE CONSULTA ======================
+    async function verOrdenConsulta(consultaId) {
       try {
-        const resp = await fetch(`/api/atencion_consultas/${consultaId}`);
+        const resp = await fetch(`/api/ordenes_medicas_consulta/${consultaId}`);
         if (!resp.ok) {
-          mostrarError('Error', 'No se encontraron datos de atención para esta consulta');
+          mostrarError('Error', 'No se encontró la orden médica para esta consulta');
           return;
         }
 
-        const atencion = await resp.json();
+        const orden = await resp.json();
 
         let fechaMX = 'Sin fecha registrada';
-        if (atencion.created_at) {
-          const fechaObj = new Date(atencion.created_at);
+        if (orden.fecha) {
+          const fechaObj = new Date(orden.fecha);
           if (!isNaN(fechaObj)) {
-            fechaMX = fechaObj.toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
+            fechaMX = fechaObj.toLocaleString('es-MX', { 
+              timeZone: 'America/Mexico_City',
+              dateStyle: 'long'
+            });
           }
         }
 
         Swal.fire({
-          title: 'Datos de la Consulta Atendida',
-          width: '800px',
+          title: 'Orden Médica de Consulta',
+          width: '900px',
           html: `
-            <div class="text-start" style="max-height: 500px; overflow-y: auto;">
+            <div class="text-start" style="max-height: 600px; overflow-y: auto;">
               <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                <h5 style="color: #2c3e50; margin-bottom: 10px;">Información de la Atención</h5>
-                <p><strong>Fecha de atención:</strong> ${fechaMX}</p>
-              </div>
-
-              <div class="mb-3">
-                <strong style="color: #2c3e50;">Motivo de Consulta:</strong>
-                <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
-                  ${atencion.motivo || 'No registrado'}
-                </p>
+                <h5 style="color: #2c3e50; margin-bottom: 10px;">Información de la Orden</h5>
+                <p><strong>Fecha:</strong> ${fechaMX}</p>
+                <p><strong>Médico:</strong> ${orden.medico || 'No registrado'}</p>
               </div>
 
               <div class="mb-3">
                 <strong style="color: #2c3e50;">Diagnóstico:</strong>
                 <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
-                  ${atencion.diagnostico || 'No registrado'}
+                  ${orden.diagnostico || 'No registrado'}
                 </p>
               </div>
 
-              ${atencion.observaciones ? `
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <strong style="color: #2c3e50;">Lado:</strong>
+                  <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
+                    ${orden.lado || 'No especificado'}
+                  </p>
+                </div>
+                <div class="col-md-6">
+                  <strong style="color: #2c3e50;">Procedimiento:</strong>
+                  <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
+                    ${orden.procedimiento || 'No especificado'}
+                  </p>
+                </div>
+              </div>
+
+              ${orden.anexos || orden.conjuntiva || orden.cornea ? `
+              <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <h6 style="color: #2c3e50; margin-bottom: 10px;"><i class="fas fa-eye"></i> Exploración Clínica</h6>
+                ${orden.anexos ? `<p><strong>Anexos:</strong> ${orden.anexos}</p>` : ''}
+                ${orden.conjuntiva ? `<p><strong>Conjuntiva:</strong> ${orden.conjuntiva}</p>` : ''}
+                ${orden.cornea ? `<p><strong>Córnea:</strong> ${orden.cornea}</p>` : ''}
+                ${orden.camara_anterior ? `<p><strong>Cámara Anterior:</strong> ${orden.camara_anterior}</p>` : ''}
+                ${orden.cristalino ? `<p><strong>Cristalino:</strong> ${orden.cristalino}</p>` : ''}
+                ${orden.retina ? `<p><strong>Retina:</strong> ${orden.retina}</p>` : ''}
+                ${orden.macula ? `<p><strong>Mácula:</strong> ${orden.macula}</p>` : ''}
+                ${orden.nervio_optico ? `<p><strong>Nervio Óptico:</strong> ${orden.nervio_optico}</p>` : ''}
+              </div>
+              ` : ''}
+
+              ${orden.problemas ? `
               <div class="mb-3">
-                <strong style="color: #2c3e50;">Observaciones:</strong>
+                <strong style="color: #2c3e50;">Problemas:</strong>
                 <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
-                  ${atencion.observaciones}
+                  ${orden.problemas}
                 </p>
               </div>
               ` : ''}
 
+              ${orden.plan ? `
               <div class="mb-3">
-                <strong style="color: #2c3e50;">Tratamiento:</strong>
+                <strong style="color: #2c3e50;">Plan:</strong>
                 <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
-                  ${atencion.tratamiento || 'No registrado'}
-                </p>
-              </div>
-
-              <div class="mb-3">
-                <strong style="color: #2c3e50;">Requiere Procedimiento:</strong>
-                <p style="background: ${atencion.requiere_cirugia ? '#fff3cd' : '#d4edda'}; padding: 10px; border-radius: 5px;">
-                  ${atencion.requiere_cirugia ? '✅ Sí' : '❌ No'}
-                </p>
-              </div>
-
-              ${atencion.requiere_cirugia && atencion.procedimiento ? `
-              <div class="mb-3">
-                <strong style="color: #2c3e50;">Tipo de Procedimiento:</strong>
-                <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
-                  ${atencion.procedimiento}
+                  ${orden.plan}
                 </p>
               </div>
               ` : ''}
@@ -895,8 +905,8 @@ async function enviarAModuloMedico(consultaId) {
         });
 
       } catch (err) {
-        console.error('Error obteniendo datos de consulta:', err);
-        mostrarError('Error', 'No se pudieron cargar los datos de la consulta');
+        console.error('Error obteniendo orden de consulta:', err);
+        mostrarError('Error', 'No se pudieron cargar los datos de la orden médica');
       }
     }
 
@@ -915,7 +925,8 @@ async function enviarAModuloMedico(consultaId) {
         });
 
         if (confirmacion.isConfirmed) {
-          await fetch(`/api/atencion_consultas/${consultaId}`, {
+          // Intentar eliminar orden de consulta asociada si existe
+          await fetch(`/api/ordenes_medicas_consulta/${consultaId}`, {
             method: 'DELETE'
           }).catch(() => {});
 

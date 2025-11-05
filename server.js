@@ -1044,7 +1044,7 @@ app.get('/api/procedimientos', verificarSesion, async (req, res) => {
 
 
 
-// ==================== MODULO MÉDICO ====================
+// ==================== MODULO MEDICO ====================
 // ----------------BUSCAR PACIENTE POR FOLIO ----------------
 app.get('/api/recibos/paciente/:folio', verificarSesion, async (req, res) => {
   const { folio } = req.params;
