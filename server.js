@@ -3029,7 +3029,7 @@ app.put('/api/consultas/:id/modulo_medico', verificarSesion, async (req, res) =>
   }
 });
 
-// ==================== PACIENTES PENDIENTES PARA MÓDULO MÉDICO (CORREGIDO) ====================
+// ==================== PACIENTES PENDIENTES PARA MÓDULO MÉDICO (SOLUCIÓN FINAL) ====================
 app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
   try {
     const depto = getDepartamento(req);
@@ -3037,8 +3037,7 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
     console.log('\n🔍 ===== DEBUGGING CARGA MÓDULO MÉDICO =====');
     console.log('🏢 Departamento solicitado:', depto);
 
-    // ✅ CORRECCIÓN 1: JOIN con numero_expediente (no con expediente_id)
-    // ✅ CORRECCIÓN 2: Usar ILIKE para búsqueda case-insensitive
+    // ✅ SOLUCIÓN: JOIN debe incluir departamento Y numero_expediente
     const result = await pool.query(`
       SELECT 
         c.id AS recibo_id,
@@ -3054,6 +3053,7 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
       FROM consultas c
       INNER JOIN expedientes e 
         ON e.numero_expediente = c.numero_expediente
+        AND e.departamento = c.departamento
       WHERE c.estado ILIKE '%módulo médico%'
         AND c.departamento = $1
       ORDER BY c.fecha, c.hora
@@ -3064,7 +3064,7 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
     if (result.rows.length > 0) {
       console.log('📋 Detalles de pacientes:');
       result.rows.forEach((p, i) => {
-        console.log(`   ${i + 1}. ${p.nombre_completo} (Exp: ${p.numero_expediente}, Estado: ${p.estado})`);
+        console.log(`   ${i + 1}. ${p.nombre_completo} (Exp: ${p.numero_expediente}, Depto: ${p.departamento})`);
       });
     } else {
       console.log('⚠️ No se encontraron pacientes pendientes');
@@ -3080,7 +3080,6 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 
 
