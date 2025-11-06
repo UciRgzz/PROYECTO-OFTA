@@ -588,90 +588,90 @@
     }
 
     // ====================== MOSTRAR CONSULTAS EN TABLA ======================
-    function mostrarConsultas(consultas, ordenes, atenciones) {
-      const tbody = document.getElementById("tabla-consultas");
-      tbody.innerHTML = "";
+function mostrarConsultas(consultas, ordenes, atenciones) {
+  const tbody = document.getElementById("tabla-consultas");
+  tbody.innerHTML = "";
 
-      if (consultas.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-muted">No hay consultas programadas</td></tr>`;
-        return;
-      }
+  if (consultas.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" class="text-muted">No hay consultas programadas</td></tr>`;
+    return;
+  }
 
-      consultas.forEach(c => {
-        const tieneOrden = ordenes.some(o => o.consulta_id === c.id);
-        const tieneAtencion = atenciones.some(a => a.consulta_id === c.id);
-        
-        const fila = document.createElement("tr");
-        
-        // ✅ LÓGICA CORREGIDA DE BOTONES CON ICONO DISCRETO
-        let botonesAccion = '';
-        
-        if (c.estado === 'Pendiente') {
-          if (!tieneOrden) {
-            // NO tiene orden → Mostrar botón Pagar
-            botonesAccion = `
-              <button class="btn btn-warning btn-sm" onclick="irAPagar(${c.id})">
-                <i class="fas fa-dollar-sign"></i> Pagar
-              </button>
-            `;
-          } else {
-            // SÍ tiene orden (ya pagó) → Mostrar PALOMITA VERDE + botón Atender
-            botonesAccion = `
-              <span class="orden-pagada-icon" title="✅ Orden de pago creada">
-                <i class="fas fa-check"></i>
-              </span>
-              <button class="btn btn-success btn-sm" onclick="enviarAModuloMedico(${c.id})">
-                <i class="fas fa-stethoscope"></i> Atender
-              </button>
-            `;
-          }
-        } else if (c.estado === 'En Módulo Médico') {
-          // Estado "En Módulo Médico" → Mostrar mensaje informativo
-          botonesAccion = `
-            <span class="badge bg-info">
-              <i class="fas fa-user-md"></i> En atención médica
-            </span>
-          `;
-        } else if (c.estado === 'Atendida') {
-          // Estado Atendida → Mostrar Ver Datos
-          if (tieneAtencion) {
-            botonesAccion = `
-              <button class="btn btn-info btn-sm" onclick="verDatosConsulta(${c.id})">
-                <i class="fas fa-eye"></i> Ver Datos
-              </button>
-            `;
-          }
-        }
-        
-        // Botón de eliminar solo para admin
-        if (rolUsuario === 'admin') {
-          botonesAccion += `
-            <button class="btn btn-danger btn-sm" onclick="eliminarConsulta(${c.id})">
-              <i class="fas fa-trash"></i> Eliminar
-            </button>
-          `;
-        }
-        
-        fila.innerHTML = `
-          <td>${c.id}</td>
-          <td>${c.paciente}</td>
-          <td>${formatearFecha(c.fecha)}</td>
-          <td>${formatearHora12h(c.hora)}</td>
-          <td>${c.medico}</td>
-          <td>
-            <span class="badge bg-${c.estado === 'Pendiente' ? 'warning' : c.estado === 'Atendida' ? 'success' : 'info'}">
-              ${c.estado}
-            </span>
-          </td>
-          <td>
-            <div class="btn-group-actions">
-              ${botonesAccion}
-            </div>
-          </td>
+  consultas.forEach(c => {
+    const tieneOrden = ordenes.some(o => o.consulta_id === c.id);
+    const tieneAtencion = atenciones.some(a => a.consulta_id === c.id);
+    
+    const fila = document.createElement("tr");
+    
+    // ✅ LÓGICA CORREGIDA DE BOTONES CON ICONO DISCRETO
+    let botonesAccion = '';
+    
+    if (c.estado === 'Pendiente') {
+      if (!tieneOrden) {
+        // NO tiene orden → Mostrar botón Pagar
+        botonesAccion = `
+          <button class="btn btn-warning btn-sm" onclick="irAPagar(${c.id})">
+            <i class="fas fa-dollar-sign"></i> Pagar
+          </button>
         `;
-        tbody.appendChild(fila);
-      });
+      } else {
+        // SÍ tiene orden (ya pagó) → Mostrar PALOMITA VERDE + botón Atender
+        botonesAccion = `
+          <span class="orden-pagada-icon" title="✅ Orden de pago creada">
+            <i class="fas fa-check"></i>
+          </span>
+          <button class="btn btn-success btn-sm" onclick="enviarAModuloMedico(${c.id})">
+            <i class="fas fa-stethoscope"></i> Atender
+          </button>
+        `;
+      }
+    } else if (c.estado === 'En Módulo Médico') {
+      // Estado "En Módulo Médico" → Mostrar mensaje informativo
+      botonesAccion = `
+        <span class="badge bg-info">
+          <i class="fas fa-user-md"></i> En atención médica
+        </span>
+      `;
+    } else if (c.estado === 'Atendida') {
+      // Estado Atendida → Mostrar Ver Datos
+      if (tieneAtencion) {
+        botonesAccion = `
+          <button class="btn btn-info btn-sm" onclick="verDatosConsulta(${c.id})">
+            <i class="fas fa-eye"></i> Ver Datos
+          </button>
+        `;
+      }
     }
+    
+    // Botón de eliminar solo para admin
+    if (rolUsuario === 'admin') {
+      botonesAccion += `
+        <button class="btn btn-danger btn-sm" onclick="eliminarConsulta(${c.id})">
+          <i class="fas fa-trash"></i> Eliminar
+        </button>
+      `;
+    }
+    
+    fila.innerHTML = `
+      <td>${c.id}</td>
+      <td>${c.paciente}</td>
+      <td>${formatearFecha(c.fecha)}</td>
+      <td>${formatearHora12h(c.hora)}</td>
+      <td>${c.medico}</td>
+      <td>
+        <span class="badge bg-${c.estado === 'Pendiente' ? 'warning' : c.estado === 'Atendida' ? 'success' : 'info'}">
+          ${c.estado}
+        </span>
+      </td>
+      <td>
+        <div class="btn-group-actions">
+          ${botonesAccion}
+        </div>
+      </td>
+    `;
+    tbody.appendChild(fila);
+  });
+}
 
     // ====================== FORMATEAR HORA ======================
     function formatearHora12h(hora24) {
