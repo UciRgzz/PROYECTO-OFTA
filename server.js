@@ -3029,34 +3029,64 @@ app.put('/api/consultas/:id/modulo_medico', verificarSesion, async (req, res) =>
   }
 });
 
-// ==================== DEBUG ENDPOINT ====================
-app.get('/api/debug-consultas', verificarSesion, async (req, res) => {
+// ==================== PACIENTES PENDIENTES PARA MÓDULO MÉDICO (VERSIÓN DEFINITIVA) ====================
+app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
   try {
     const depto = getDepartamento(req);
     
-    const consultas = await pool.query(`
-      SELECT id, expediente_id, paciente, estado, fecha, hora
-      FROM consultas 
-      WHERE departamento = $1
-      ORDER BY id DESC
-      LIMIT 10
+    console.log('\n🔄 ===== SOLICITUD MÓDULO MÉDICO =====');
+    console.log('🏢 Departamento:', depto);
+    console.log('👤 Usuario:', req.usuario?.nombre || 'Desconocido');
+    console.log('🕒 Timestamp:', new Date().toISOString());
+
+    // ✅ CONSULTA MEJORADA - Buscar por estado exacto
+    const result = await pool.query(`
+      SELECT 
+        c.id AS recibo_id,
+        c.expediente_id,
+        c.numero_expediente,
+        c.paciente,
+        c.estado,
+        c.departamento,
+        c.edad,
+        c.fecha,
+        c.hora,
+        COALESCE(e.nombre_completo, c.paciente) AS nombre_completo,
+        COALESCE(e.padecimientos, 'NINGUNO') AS padecimientos,
+        'Consulta Oftalmológica' AS procedimiento
+      FROM consultas c
+      LEFT JOIN expedientes e 
+        ON c.expediente_id = e.numero_expediente 
+        AND e.departamento = c.departamento
+      WHERE c.estado = 'En Módulo Médico'
+        AND c.departamento = $1
+      ORDER BY c.fecha DESC, c.hora DESC
     `, [depto]);
+
+    console.log('✅ Consulta SQL ejecutada exitosamente');
+    console.log('📊 Pacientes encontrados:', result.rows.length);
     
-    const pendientes = await pool.query(`
-      SELECT id, expediente_id, paciente, estado
-      FROM consultas 
-      WHERE estado = 'En Módulo Médico' AND departamento = $1
-    `, [depto]);
-    
-    res.json({
-      ultimas_consultas: consultas.rows,
-      pendientes_modulo_medico: pendientes.rows,
-      departamento: depto
-    });
-    
+    if (result.rows.length > 0) {
+      console.log('👥 Detalles de pacientes:');
+      result.rows.forEach((paciente, index) => {
+        console.log(`   ${index + 1}. ID: ${paciente.recibo_id}, Paciente: ${paciente.nombre_completo}, Expediente: ${paciente.expediente_id}, Estado: ${paciente.estado}`);
+      });
+    } else {
+      console.log('❌ No se encontraron pacientes en estado "En Módulo Médico"');
+    }
+
+    console.log('🔚 ===== FIN SOLICITUD MÓDULO MÉDICO =====\n');
+
+    res.json(result.rows);
+
   } catch (err) {
-    console.error('Error en debug:', err);
-    res.status(500).json({ error: err.message });
+    console.error('❌ ERROR CRÍTICO en /api/pendientes-medico:', err);
+    console.error('Stack trace:', err.stack);
+    res.status(500).json({ 
+      error: 'Error interno del servidor',
+      detalle: err.message,
+      timestamp: new Date().toISOString()
+    });
   }
 });
 
