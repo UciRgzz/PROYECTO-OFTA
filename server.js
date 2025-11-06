@@ -3005,6 +3005,8 @@ app.put('/api/consultas/:id/modulo_medico', verificarSesion, async (req, res) =>
 // ==================== PACIENTES PENDIENTES PARA MÓDULO MÉDICO ====================
 app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
   try {
+    let depto = getDepartamento(req);
+
     const result = await pool.query(`
       SELECT 
         c.id AS recibo_id,
@@ -3017,11 +3019,13 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
         c.departamento
       FROM consultas c
       INNER JOIN expedientes e 
-        ON e.numero_expediente = c.numero_expediente
+        ON e.numero_expediente = c.expediente_id
       WHERE c.estado = 'En Módulo Médico'
+        AND c.departamento = $1
       ORDER BY c.fecha, c.hora;
-    `);
+    `, [depto]);
 
+    console.log(`✅ Pacientes pendientes en módulo médico (${depto}):`, result.rows.length);
     res.json(result.rows);
 
   } catch (err) {
