@@ -2970,6 +2970,53 @@ app.get('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// ==================== OBTENER ORDEN MÉDICA POR CONSULTA ====================
+app.get("/api/ordenes_medicas/consulta/:consultaId", verificarSesion, async (req, res) => {
+  try {
+    const { consultaId } = req.params;
+    const depto = getDepartamento(req);
+
+    // Buscar la orden médica asociada a esa consulta
+    const result = await pool.query(`
+      SELECT 
+        o.id,
+        o.expediente_id,
+        o.consulta_id,
+        o.paciente_nombre,
+        o.medico,
+        o.diagnostico,
+        o.lado,
+        o.procedimiento,
+        o.anexos,
+        o.conjuntiva,
+        o.cornea,
+        o.camara_anterior,
+        o.cristalino,
+        o.retina,
+        o.macula,
+        o.nervio_optico,
+        o.ciclopejia,
+        o.hora_tp,
+        o.problemas,
+        o.plan,
+        o.fecha,
+        o.departamento
+      FROM ordenes_medicas o
+      WHERE o.consulta_id = $1 AND o.departamento = $2
+      LIMIT 1
+    `, [consultaId, depto]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "No se encontró información médica para esta consulta" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Error en /api/ordenes_medicas/consulta/:consultaId:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 // ==================== ENVIAR CONSULTA AL MÓDULO MÉDICO ====================
 app.put('/api/consultas/:id/modulo_medico', verificarSesion, async (req, res) => {
