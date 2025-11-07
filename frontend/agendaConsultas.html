@@ -47,12 +47,6 @@
       margin-bottom: 30px;
       overflow: hidden;
       border: none;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 12px 25px rgba(0,0,0,0.15);
     }
     
     .card-header {
@@ -117,13 +111,6 @@
     }
     .btn-info:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(23, 162, 184, 0.4); }
     
-    .btn-medical {
-      background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
-      color: white;
-      box-shadow: 0 4px 10px rgba(155, 89, 182, 0.3);
-    }
-    .btn-medical:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(155, 89, 182, 0.4); }
-    
     .btn-sm { padding: 8px 15px; font-size: 0.85rem; }
     
     .table {
@@ -156,7 +143,6 @@
     .badge.bg-warning { background: #f39c12 !important; color: white; }
     .badge.bg-success { background: #27ae60 !important; color: white; }
     .badge.bg-info { background: #17a2b8 !important; color: white; }
-    .badge.bg-purple { background: #9b59b6 !important; color: white; }
     
     .success-alert {
       display: none;
@@ -251,7 +237,6 @@
       h1 { font-size: 2rem; }
       .table-responsive { overflow-x: auto; }
       .card-header { font-size: 1.1rem; padding: 15px; }
-      .btn-group-actions { flex-direction: column; }
     }
     .search-loading {
       display: none;
@@ -276,49 +261,6 @@
       margin-bottom: 8px;
       color: var(--primary-color);
       display: block;
-    }
-
-    .medical-info-modal {
-      max-height: 70vh;
-      overflow-y: auto;
-    }
-
-    .medical-section {
-      background: #f8f9fa;
-      border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 15px;
-      border-left: 4px solid #9b59b6;
-    }
-
-    .medical-section h6 {
-      color: #9b59b6;
-      margin-bottom: 10px;
-      font-weight: 600;
-    }
-
-    .medical-data-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .medical-data-item {
-      background: white;
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #dee2e6;
-    }
-
-    .medical-data-item strong {
-      color: var(--primary-color);
-      display: block;
-      margin-bottom: 5px;
-    }
-
-    .medical-data-item span {
-      color: #6c757d;
     }
 
   </style>
@@ -677,10 +619,7 @@
           }
         } else if (c.estado === 'En Módulo Médico') {
           botonesAccion = `
-            <button class="btn btn-medical btn-sm" onclick="verInformacionModuloMedico(${c.id})">
-              <i class="fas fa-file-medical"></i> Ver Info Médica
-            </button>
-            <span class="badge bg-purple">
+            <span class="badge bg-info">
               <i class="fas fa-user-md"></i> En atención médica
             </span>
           `;
@@ -688,9 +627,6 @@
           botonesAccion = `
             <button class="btn btn-info btn-sm" onclick="verDatosConsulta(${c.id})">
               <i class="fas fa-eye"></i> Ver Datos
-            </button>
-            <button class="btn btn-medical btn-sm" onclick="verInformacionModuloMedico(${c.id})">
-              <i class="fas fa-file-medical"></i> Info Médica
             </button>
           `;
         }
@@ -710,7 +646,7 @@
           <td>${formatearHora12h(c.hora)}</td>
           <td>${c.medico}</td>
           <td>
-            <span class="badge bg-${c.estado === 'Pendiente' ? 'warning' : c.estado === 'Atendida' ? 'success' : 'purple'}">
+            <span class="badge bg-${c.estado === 'Pendiente' ? 'warning' : c.estado === 'Atendida' ? 'success' : 'info'}">
               ${c.estado}
             </span>
           </td>
@@ -884,178 +820,6 @@
           text: err.message || 'No se pudo enviar al módulo médico',
           confirmButtonColor: '#e74c3c'
         });
-      }
-    }
-
-    // ====================== VER INFORMACIÓN DEL MÓDULO MÉDICO ======================
-    async function verInformacionModuloMedico(consultaId) {
-      try {
-        // Obtener información del módulo médico
-        const resp = await fetch(`/api/modulo_medico/consulta/${consultaId}`);
-        if (!resp.ok) {
-          mostrarError('Error', 'No se encontró información del módulo médico para esta consulta');
-          return;
-        }
-
-        const infoMedica = await resp.json();
-
-        Swal.fire({
-          title: 'Información del Módulo Médico',
-          width: '900px',
-          html: `
-            <div class="medical-info-modal text-start">
-              
-              <!-- Información General -->
-              <div class="medical-section">
-                <h6><i class="fas fa-info-circle"></i> Información General</h6>
-                <div class="medical-data-grid">
-                  <div class="medical-data-item">
-                    <strong>Paciente:</strong>
-                    <span>${infoMedica.paciente_nombre || 'No registrado'}</span>
-                  </div>
-                  <div class="medical-data-item">
-                    <strong>Médico:</strong>
-                    <span>${infoMedica.medico || 'No registrado'}</span>
-                  </div>
-                  <div class="medical-data-item">
-                    <strong>Fecha de atención:</strong>
-                    <span>${formatearFecha(infoMedica.fecha_atencion) || 'No registrada'}</span>
-                  </div>
-                  <div class="medical-data-item">
-                    <strong>Expediente:</strong>
-                    <span>${infoMedica.expediente_id || 'No registrado'}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Diagnóstico -->
-              ${infoMedica.diagnostico ? `
-              <div class="medical-section">
-                <h6><i class="fas fa-diagnoses"></i> Diagnóstico</h6>
-                <p style="background: #fff; padding: 12px; border-radius: 5px; border: 1px solid #dee2e6;">
-                  ${infoMedica.diagnostico}
-                </p>
-              </div>
-              ` : ''}
-
-              <!-- Exploración Clínica -->
-              ${(infoMedica.anexos || infoMedica.conjuntiva || infoMedica.cornea || infoMedica.camara_anterior || 
-                 infoMedica.cristalino || infoMedica.retina || infoMedica.macula || infoMedica.nervio_optico) ? `
-              <div class="medical-section">
-                <h6><i class="fas fa-stethoscope"></i> Exploración Clínica</h6>
-                <div class="medical-data-grid">
-                  ${infoMedica.anexos ? `
-                  <div class="medical-data-item">
-                    <strong>Anexos:</strong>
-                    <span>${infoMedica.anexos}</span>
-                  </div>
-                  ` : ''}
-                  ${infoMedica.conjuntiva ? `
-                  <div class="medical-data-item">
-                    <strong>Conjuntiva:</strong>
-                    <span>${infoMedica.conjuntiva}</span>
-                  </div>
-                  ` : ''}
-                  ${infoMedica.cornea ? `
-                  <div class="medical-data-item">
-                    <strong>Córnea:</strong>
-                    <span>${infoMedica.cornea}</span>
-                  </div>
-                  ` : ''}
-                  ${infoMedica.camara_anterior ? `
-                  <div class="medical-data-item">
-                    <strong>Cámara Anterior:</strong>
-                    <span>${infoMedica.camara_anterior}</span>
-                  </div>
-                  ` : ''}
-                  ${infoMedica.cristalino ? `
-                  <div class="medical-data-item">
-                    <strong>Cristalino:</strong>
-                    <span>${infoMedica.cristalino}</span>
-                  </div>
-                  ` : ''}
-                  ${infoMedica.retina ? `
-                  <div class="medical-data-item">
-                    <strong>Retina:</strong>
-                    <span>${infoMedica.retina}</span>
-                  </div>
-                  ` : ''}
-                  ${infoMedica.macula ? `
-                  <div class="medical-data-item">
-                    <strong>Mácula:</strong>
-                    <span>${infoMedica.macula}</span>
-                  </div>
-                  ` : ''}
-                  ${infoMedica.nervio_optico ? `
-                  <div class="medical-data-item">
-                    <strong>Nervio Óptico:</strong>
-                    <span>${infoMedica.nervio_optico}</span>
-                  </div>
-                  ` : ''}
-                </div>
-              </div>
-              ` : ''}
-
-              <!-- Ciclopejia -->
-              ${infoMedica.ciclopejia ? `
-              <div class="medical-section">
-                <h6><i class="fas fa-eye-dropper"></i> Ciclopejia</h6>
-                <p style="background: #fff; padding: 12px; border-radius: 5px; border: 1px solid #dee2e6;">
-                  ${infoMedica.ciclopejia}
-                  ${infoMedica.hora_tp ? ` - Hora TP: ${infoMedica.hora_tp}` : ''}
-                </p>
-              </div>
-              ` : ''}
-
-              <!-- Problemas Identificados -->
-              ${infoMedica.problemas ? `
-              <div class="medical-section">
-                <h6><i class="fas fa-exclamation-triangle"></i> Problemas Identificados</h6>
-                <p style="background: #fff3cd; padding: 12px; border-radius: 5px; border: 1px solid #ffc107;">
-                  ${infoMedica.problemas}
-                </p>
-              </div>
-              ` : ''}
-
-              <!-- Plan de Tratamiento -->
-              ${infoMedica.plan ? `
-              <div class="medical-section">
-                <h6><i class="fas fa-clipboard-list"></i> Plan de Tratamiento</h6>
-                <p style="background: #fff; padding: 12px; border-radius: 5px; border: 1px solid #dee2e6;">
-                  ${infoMedica.plan}
-                </p>
-              </div>
-              ` : ''}
-
-              <!-- Procedimiento -->
-              ${infoMedica.procedimiento ? `
-              <div class="medical-section">
-                <h6><i class="fas fa-procedures"></i> Procedimiento Recomendado</h6>
-                <p style="background: #d4edda; padding: 12px; border-radius: 5px; border: 1px solid #28a745;">
-                  ${infoMedica.procedimiento}
-                </p>
-              </div>
-              ` : ''}
-
-              ${!infoMedica.diagnostico && !infoMedica.anexos && !infoMedica.conjuntiva && !infoMedica.cornea && 
-                !infoMedica.camara_anterior && !infoMedica.cristalino && !infoMedica.retina && !infoMedica.macula && 
-                !infoMedica.nervio_optico && !infoMedica.ciclopejia && !infoMedica.problemas && !infoMedica.plan && 
-                !infoMedica.procedimiento ? `
-              <div class="alert alert-info">
-                <i class="fas fa-info-circle"></i> No hay información médica registrada para esta consulta.
-              </div>
-              ` : ''}
-
-            </div>
-          `,
-          confirmButtonText: '<i class="fas fa-times"></i> Cerrar',
-          confirmButtonColor: '#3498db',
-          width: '900px'
-        });
-
-      } catch (err) {
-        console.error('Error obteniendo información del módulo médico:', err);
-        mostrarError('Error', 'No se pudieron cargar los datos del módulo médico');
       }
     }
 
