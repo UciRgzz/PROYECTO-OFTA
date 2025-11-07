@@ -1091,6 +1091,7 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
         e.padecimientos,
         r.procedimiento,
         NULL AS consulta_id,
+        r.id AS folio_recibo_real,  -- ID real del recibo
         'RECIBO' AS origen
       FROM recibos r
       JOIN expedientes e 
@@ -1105,7 +1106,7 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
 
       UNION ALL
 
-      -- 2️⃣ Consultas en módulo médico (aunque YA tengan orden de pago)
+      -- 2️⃣ Consultas en módulo médico (con o sin orden de pago)
       SELECT 
         c.id AS recibo_id,
         c.numero_expediente AS expediente_id,
@@ -1114,6 +1115,14 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
         COALESCE(e.padecimientos, 'NINGUNO') AS padecimientos,
         'Consulta Oftalmológica' AS procedimiento,
         c.id AS consulta_id,
+        (
+          SELECT o.folio_recibo 
+          FROM ordenes_medicas o 
+          WHERE o.consulta_id = c.id 
+            AND o.departamento = c.departamento
+            AND o.origen = 'CONSULTA'
+          LIMIT 1
+        ) AS folio_recibo_real,  -- Buscar si ya tiene orden de pago
         'CONSULTA' AS origen
       FROM consultas c
       LEFT JOIN expedientes e 
@@ -1121,8 +1130,6 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
         AND c.departamento = e.departamento
       WHERE c.departamento = $1
         AND c.estado = 'En Módulo Médico'
-        -- ✅ SIN FILTRO: Muestra todas las consultas en "En Módulo Médico"
-        -- Ya tengan o no orden de pago creada
 
       ORDER BY nombre_completo ASC
     `, [depto]);

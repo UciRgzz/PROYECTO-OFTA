@@ -535,7 +535,7 @@
 
           // ✅ PASAR consulta_id si existe (viene de Agenda Consultas)
           const consultaId = exp.consulta_id || 'null';
-          const reciboId = exp.recibo_id || 'null';
+          const reciboId = exp.folio_recibo_real || 'null';
 
           console.log(`👤 ${exp.nombre_completo} - Consulta ID: ${consultaId}, Recibo ID: ${reciboId}`);
 
