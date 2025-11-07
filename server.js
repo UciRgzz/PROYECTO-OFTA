@@ -1108,7 +1108,7 @@ app.get("/api/pendientes-medico", verificarSesion, async (req, res) => {
 
       UNION ALL
 
-      -- 2️⃣ Consultas atendidas sin orden médica (NUEVO)
+      -- 2️⃣ Consultas atendidas o en módulo médico sin orden médica
       SELECT 
           NULL AS recibo_id,
           c.expediente_id,
@@ -1126,7 +1126,7 @@ app.get("/api/pendientes-medico", verificarSesion, async (req, res) => {
         ON a.consulta_id = c.id
        AND a.departamento = c.departamento
       WHERE c.departamento = $1
-        AND c.estado = 'Atendida'
+        AND c.estado IN ('Atendida', 'En Módulo Médico')  -- 👈 INCLUYE AMBOS ESTADOS
         AND NOT EXISTS (
           SELECT 1
           FROM ordenes_medicas o
@@ -1424,58 +1424,6 @@ app.put("/api/ordenes_medicas/:id", verificarSesion, async (req, res) => {
     });
   }
 });
-// ==================== PACIENTES PENDIENTES DE ATENDER ====================
-app.get("/api/pendientes-medico", verificarSesion, async (req, res) => {
-  const depto = getDepartamento(req); // Cada sucursal ve solo su info
-
-  try {
-    const result = await pool.query(
-      `
-      SELECT 
-        e.numero_expediente AS expediente_id,
-        e.nombre_completo,
-        e.edad,
-        e.padecimientos,
-        COALESCE(a.procedimiento, 'Consulta Oftalmológica') AS procedimiento,
-        c.id AS consulta_id,
-        'CONSULTA' AS origen
-      FROM consultas c
-      JOIN expedientes e
-        ON c.expediente_id = e.numero_expediente
-       AND c.departamento = e.departamento
-      LEFT JOIN atencion_consultas a
-        ON a.consulta_id = c.id
-       AND a.departamento = c.departamento
-      WHERE c.departamento = $1
-        AND (c.estado = 'Pendiente' OR c.estado = 'Atendida')
-        -- ⚠️ Elimina solo las consultas que realmente tienen orden médica activa
-        AND (
-          NOT EXISTS (
-            SELECT 1
-            FROM ordenes_medicas o
-            WHERE o.consulta_id = c.id
-              AND o.departamento = c.departamento
-              AND o.estado != 'Cancelada'
-          )
-          OR NOT EXISTS (
-            SELECT 1
-            FROM ordenes_medicas o2
-            WHERE o2.departamento = c.departamento
-          )
-        )
-      ORDER BY c.id DESC
-      `,
-      [depto]
-    );
-
-    res.json(result.rows);
-  } catch (err) {
-    console.error("❌ Error en /api/pendientes-medico:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-
 
 
 // ==================== PAGOS ====================

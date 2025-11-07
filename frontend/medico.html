@@ -544,7 +544,7 @@
         mostrarError("Error", "No se pudieron cargar los pacientes pendientes");
       }
     }
-
+// Cargar procedimientos en el select
     async function cargarProcedimientos() {
       try {
         const res = await fetch('/api/procedimientos');
