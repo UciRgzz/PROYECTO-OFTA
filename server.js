@@ -2679,55 +2679,36 @@ app.put('/api/consultas/:id/atender', verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== ELIMINAR CONSULTA ====================
+// ==================== ELIMINAR CONSULTA (versión robusta) ====================
 app.delete('/api/consultas/:id', verificarSesion, async (req, res) => {
   try {
     const { id } = req.params;
-    let depto = getDepartamento(req);
+    const depto = getDepartamento(req);
 
-    // Eliminar orden médica asociada (si existe)
-    try {
-      await pool.query(
-        'DELETE FROM ordenes_medicas WHERE consulta_id = $1 AND departamento = $2',
-        [id, depto]
-      );
-      console.log(`✅ Orden médica de consulta ${id} eliminada`);
-    } catch (ordenErr) {
-      console.log('⚠️ No había orden médica o error al eliminar:', ordenErr.message);
-    }
+    console.log(`🗑️ Eliminando consulta ${id} en ${depto}...`);
 
-    // Eliminar atención médica (si existe)
-    try {
-      await pool.query(
-        'DELETE FROM atencion_consultas WHERE consulta_id = $1 AND departamento = $2',
-        [id, depto]
-      );
-      console.log(`✅ Atención médica de consulta ${id} eliminada`);
-    } catch (atencionErr) {
-      console.log('⚠️ No había atención médica o error al eliminar:', atencionErr.message);
-    }
+    // 🧩 Eliminar dependencias en orden correcto
+    await pool.query(`DELETE FROM atencion_consultas WHERE consulta_id = $1 AND departamento = $2`, [id, depto]);
+    await pool.query(`DELETE FROM ordenes_medicas WHERE consulta_id = $1 AND departamento = $2`, [id, depto]);
 
-    // Eliminar la consulta
+    // ✅ Eliminar la consulta principal
     const result = await pool.query(
-      'DELETE FROM consultas WHERE id = $1 AND departamento = $2 RETURNING *',
+      `DELETE FROM consultas WHERE id = $1 AND departamento = $2 RETURNING *`,
       [id, depto]
     );
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Consulta no encontrada' });
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Consulta no encontrada" });
     }
 
-    console.log(`✅ Consulta ${id} eliminada completamente`);
-    res.json({ 
-      mensaje: 'Consulta eliminada correctamente',
-      detalles: 'Se eliminaron la consulta, atención médica y orden médica asociadas'
-    });
-
+    console.log(`✅ Consulta ${id} eliminada correctamente.`);
+    res.json({ mensaje: "Consulta eliminada exitosamente" });
   } catch (err) {
-    console.error('❌ Error en DELETE /api/consultas/:id:', err);
-    res.status(500).json({ error: err.message });
+    console.error("❌ Error al eliminar consulta:", err);
+    res.status(500).json({ error: "Error al eliminar la consulta", detalle: err.message });
   }
 });
+
 
 // ==================== GUARDAR ATENCIÓN MÉDICA ====================
 app.post('/api/atencion_consultas', verificarSesion, async (req, res) => {
