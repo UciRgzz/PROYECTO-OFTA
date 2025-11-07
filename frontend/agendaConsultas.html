@@ -968,36 +968,39 @@
     }
 
     // ====================== ELIMINAR CONSULTA ======================
-    async function eliminarConsulta(consultaId) {
-      try {
-        const confirmacion = await Swal.fire({
-          title: '¿Estás seguro?',
-          text: "Esta acción eliminará la consulta y todos sus datos",
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#e74c3c',
-          cancelButtonColor: '#95a5a6',
-          confirmButtonText: 'Sí, eliminar',
-          cancelButtonText: 'Cancelar'
+async function eliminarConsulta(id) {
+  try {
+    const resp = await fetch(`/api/consultas/${id}`, {
+      method: "DELETE",
+      credentials: "include"
+    });
+
+    if (resp.status === 409) {
+      const data = await resp.json();
+      const confirmar = confirm(data.mensaje);
+      if (confirmar) {
+        const resp2 = await fetch(`/api/consultas/${id}?forzar=true`, {
+          method: "DELETE",
+          credentials: "include"
         });
-
-        if (confirmacion.isConfirmed) {
-          const resp = await fetch(`/api/consultas/${consultaId}`, {
-            method: 'DELETE'
-          });
-
-          if (resp.ok) {
-            mostrarExito('Eliminado', 'La consulta ha sido eliminada correctamente');
-            cargarConsultas();
-          } else {
-            mostrarError('Error', 'No se pudo eliminar la consulta');
-          }
-        }
-      } catch (err) {
-        console.error("Error eliminando consulta:", err);
-        mostrarError("Error", "Ocurrió un error al eliminar la consulta");
+        const data2 = await resp2.json();
+        alert(data2.mensaje || "Consulta eliminada");
+        location.reload();
       }
+      return;
     }
+
+    if (!resp.ok) throw new Error("No se pudo eliminar la consulta");
+
+    const data = await resp.json();
+    alert(data.mensaje || "Consulta eliminada correctamente");
+    location.reload();
+  } catch (err) {
+    console.error(err);
+    alert("Error al eliminar la consulta");
+  }
+}
+
 
     // ====================== FORMATEAR FECHA ======================
     function formatearFecha(fecha) {

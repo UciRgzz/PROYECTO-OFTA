@@ -2679,33 +2679,84 @@ app.put('/api/consultas/:id/atender', verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== ELIMINAR CONSULTA (versión robusta) ====================
+// ==================== ELIMINAR CONSULTA ====================
 app.delete('/api/consultas/:id', verificarSesion, async (req, res) => {
+  const client = await pool.connect();
   try {
     const { id } = req.params;
+    const { forzar } = req.query; // 👈 viene del frontend, true o false
     const depto = getDepartamento(req);
 
-    console.log(`🗑️ Eliminando consulta ${id} en ${depto}...`);
+    console.log(`🗑️ Eliminando consulta ${id} en ${depto} (forzar = ${forzar})`);
 
-    // 🧩 Eliminar dependencias en orden correcto
-    await pool.query(`DELETE FROM atencion_consultas WHERE consulta_id = $1 AND departamento = $2`, [id, depto]);
-    await pool.query(`DELETE FROM ordenes_medicas WHERE consulta_id = $1 AND departamento = $2`, [id, depto]);
+    await client.query('BEGIN');
 
-    // ✅ Eliminar la consulta principal
-    const result = await pool.query(
-      `DELETE FROM consultas WHERE id = $1 AND departamento = $2 RETURNING *`,
+    // 1️⃣ Buscar orden médica asociada
+    const orden = await client.query(
+      'SELECT id FROM ordenes_medicas WHERE consulta_id = $1 AND departamento = $2',
+      [id, depto]
+    );
+
+    if (orden.rowCount > 0) {
+      const ordenId = orden.rows[0].id;
+
+      // 2️⃣ Revisar si tiene pagos
+      const pagos = await client.query(
+        'SELECT COUNT(*) AS total FROM pagos WHERE orden_id = $1 AND departamento = $2',
+        [ordenId, depto]
+      );
+      const tienePagos = parseInt(pagos.rows[0].total) > 0;
+
+      if (tienePagos && forzar !== 'true') {
+        await client.query('ROLLBACK');
+        return res.status(409).json({
+          requiereConfirmacion: true,
+          mensaje: 'La orden médica asociada a esta consulta tiene pagos registrados. ¿Deseas eliminarla de todos modos?',
+        });
+      }
+
+      // 3️⃣ Si el usuario confirmó (forzar=true), eliminar pagos y orden
+      if (tienePagos && forzar === 'true') {
+        await client.query(
+          'DELETE FROM pagos WHERE orden_id = $1 AND departamento = $2',
+          [ordenId, depto]
+        );
+        console.log(`🧾 Pagos de la orden ${ordenId} eliminados`);
+      }
+
+      await client.query(
+        'DELETE FROM ordenes_medicas WHERE id = $1 AND departamento = $2',
+        [ordenId, depto]
+      );
+      console.log(`✅ Orden médica ${ordenId} eliminada`);
+    }
+
+    // 4️⃣ Eliminar atención médica (si existe)
+    await client.query(
+      'DELETE FROM atencion_consultas WHERE consulta_id = $1 AND departamento = $2',
+      [id, depto]
+    );
+
+    // 5️⃣ Eliminar la consulta
+    const result = await client.query(
+      'DELETE FROM consultas WHERE id = $1 AND departamento = $2 RETURNING *',
       [id, depto]
     );
 
     if (result.rowCount === 0) {
-      return res.status(404).json({ error: "Consulta no encontrada" });
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Consulta no encontrada' });
     }
 
-    console.log(`✅ Consulta ${id} eliminada correctamente.`);
-    res.json({ mensaje: "Consulta eliminada exitosamente" });
+    await client.query('COMMIT');
+    res.json({ mensaje: 'Consulta y orden médica eliminadas correctamente' });
+
   } catch (err) {
-    console.error("❌ Error al eliminar consulta:", err);
-    res.status(500).json({ error: "Error al eliminar la consulta", detalle: err.message });
+    await client.query('ROLLBACK');
+    console.error('❌ Error al eliminar consulta:', err);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
   }
 });
 
