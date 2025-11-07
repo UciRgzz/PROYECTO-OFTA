@@ -1105,7 +1105,7 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
 
       UNION ALL
 
-      -- 2️⃣ Consultas en módulo médico sin orden médica
+      -- 2️⃣ Consultas en módulo médico (aunque YA tengan orden de pago)
       SELECT 
         c.id AS recibo_id,
         c.numero_expediente AS expediente_id,
@@ -1121,11 +1121,8 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
         AND c.departamento = e.departamento
       WHERE c.departamento = $1
         AND c.estado = 'En Módulo Médico'
-        AND NOT EXISTS (
-          SELECT 1 FROM ordenes_medicas o 
-          WHERE o.consulta_id = c.id 
-            AND o.departamento = c.departamento
-        )
+        -- ✅ SIN FILTRO: Muestra todas las consultas en "En Módulo Médico"
+        -- Ya tengan o no orden de pago creada
 
       ORDER BY nombre_completo ASC
     `, [depto]);
@@ -1138,7 +1135,6 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // ==================== GUARDAR ORDEN MÉDICA ====================
 app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
