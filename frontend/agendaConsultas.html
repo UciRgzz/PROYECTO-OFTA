@@ -573,10 +573,9 @@
         const resp = await fetch(`/api/consultas?desde=${desde}&hasta=${hasta}`);
         consultasFiltradas = await resp.json();
         
-        const respOrdenes = await fetch('/api/ordenes_medicas_consulta');
-        const ordenes = respOrdenes.ok ? await respOrdenes.json() : [];
+        console.log('📋 Consultas cargadas:', consultasFiltradas);
         
-        mostrarConsultas(consultasFiltradas, ordenes);
+        mostrarConsultas(consultasFiltradas);
       } catch (err) {
         console.error("Error cargando consultas por rango:", err);
         mostrarError("Error", "No se pudieron cargar las consultas");
@@ -584,7 +583,7 @@
     }
 
     // ====================== MOSTRAR CONSULTAS EN TABLA ======================
-    function mostrarConsultas(consultas, ordenes) {
+    function mostrarConsultas(consultas) {
       const tbody = document.getElementById("tabla-consultas");
       tbody.innerHTML = "";
 
@@ -594,29 +593,18 @@
       }
 
       consultas.forEach(c => {
-        const tieneOrden = ordenes.some(o => o.consulta_id === c.id);
+        console.log(`📊 Consulta ${c.id}: Estado = ${c.estado}`);
         
         const fila = document.createElement("tr");
-        
         let botonesAccion = '';
         
+        // ✅ LÓGICA CORREGIDA PARA MOSTRAR BOTONES SEGÚN ESTADO
         if (c.estado === 'Pendiente') {
-          if (!tieneOrden) {
-            botonesAccion = `
-              <button class="btn btn-warning btn-sm" onclick="irAPagar(${c.id})">
-                <i class="fas fa-dollar-sign"></i> Pagar
-              </button>
-            `;
-          } else {
-            botonesAccion = `
-              <span class="orden-pagada-icon" title="✅ Orden de pago creada">
-                <i class="fas fa-check"></i>
-              </span>
-              <button class="btn btn-success btn-sm" onclick="enviarAModuloMedico(${c.id})">
-                <i class="fas fa-stethoscope"></i> Atender
-              </button>
-            `;
-          }
+          botonesAccion = `
+            <button class="btn btn-warning btn-sm" onclick="irAPagar(${c.id})">
+              <i class="fas fa-dollar-sign"></i> Pagar
+            </button>
+          `;
         } else if (c.estado === 'En Módulo Médico') {
           botonesAccion = `
             <span class="badge bg-info">
@@ -624,6 +612,7 @@
             </span>
           `;
         } else if (c.estado === 'Atendida') {
+          // ✅ CUANDO ESTÁ ATENDIDA, MOSTRAR BOTÓN VER DATOS
           botonesAccion = `
             <button class="btn btn-info btn-sm" onclick="verDatosConsulta(${c.id})">
               <i class="fas fa-eye"></i> Ver Datos
@@ -631,6 +620,7 @@
           `;
         }
         
+        // Botón de eliminar solo para admin
         if (rolUsuario === 'admin') {
           botonesAccion += `
             <button class="btn btn-danger btn-sm" onclick="eliminarConsulta(${c.id})">
@@ -696,26 +686,6 @@
           }
         });
 
-        const respOrdenes = await fetch('/api/ordenes_medicas_consulta');
-        if (!respOrdenes.ok) {
-          throw new Error('Error al verificar órdenes existentes');
-        }
-
-        const ordenes = await respOrdenes.json();
-        const ordenExistente = ordenes.find(o => o.consulta_id === consultaId);
-
-        if (ordenExistente) {
-          await Swal.fire({
-            icon: 'info',
-            title: 'Orden Existente',
-            html: `<p>Ya existe una orden para esta consulta.</p>`,
-            timer: 2000,
-            showConfirmButton: false
-          });
-          cargarConsultas();
-          return;
-        }
-
         const resp = await fetch("/api/ordenes_medicas_consulta", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -734,7 +704,7 @@
           title: '¡Orden Creada!',
           html: `
             <p>Orden médica #${resultado.id} creada correctamente</p>
-            <p class="text-muted">Ahora el botón "Atender" está disponible</p>
+            <p class="text-muted">Ahora el botón "Enviar a Módulo Médico" está disponible</p>
           `,
           timer: 2500,
           showConfirmButton: false
@@ -826,7 +796,8 @@
     // ====================== VER DATOS DE CONSULTA ======================
     async function verDatosConsulta(consultaId) {
       try {
-        // ✅ Buscar la orden médica de la consulta
+        console.log('👁️ Ver datos de consulta:', consultaId);
+        
         const resp = await fetch(`/api/ordenes_medicas/consulta/${consultaId}`);
         if (!resp.ok) {
           mostrarError('Error', 'No se encontró información médica para esta consulta');
@@ -834,6 +805,7 @@
         }
 
         const orden = await resp.json();
+        console.log('📋 Orden médica recibida:', orden);
 
         let fechaMX = 'Sin fecha registrada';
         if (orden.fecha) {
@@ -906,19 +878,6 @@
                   </div>
                 </div>
               </div>
-
-              <!-- Ciclopejia -->
-              ${orden.ciclopejia ? `
-              <div class="mb-3">
-                <h6 style="color: #2c3e50; border-bottom: 2px solid #9b59b6; padding-bottom: 5px;">
-                  <i class="fas fa-eye-dropper"></i> Ciclopejia
-                </h6>
-                <p style="background: #fff; padding: 12px; border-radius: 5px; border: 1px solid #dee2e6;">
-                  ${orden.ciclopejia}
-                  ${orden.hora_tp ? ` - Hora TP: ${orden.hora_tp}` : ''}
-                </p>
-              </div>
-              ` : ''}
 
               <!-- Problemas Identificados -->
               ${orden.problemas ? `
