@@ -975,29 +975,67 @@ async function eliminarConsulta(id) {
       credentials: "include"
     });
 
+    // ⚠️ Caso: el backend pide confirmación porque hay pagos
     if (resp.status === 409) {
       const data = await resp.json();
-      const confirmar = confirm(data.mensaje);
-      if (confirmar) {
+
+      const result = await Swal.fire({
+        title: 'Atención',
+        text: data.mensaje,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6'
+      });
+
+      if (result.isConfirmed) {
         const resp2 = await fetch(`/api/consultas/${id}?forzar=true`, {
           method: "DELETE",
           credentials: "include"
         });
         const data2 = await resp2.json();
-        alert(data2.mensaje || "Consulta eliminada");
+
+        await Swal.fire({
+          icon: 'success',
+          title: 'Eliminada',
+          text: data2.mensaje || 'Consulta eliminada correctamente',
+          confirmButtonColor: '#3085d6'
+        });
         location.reload();
+      } else {
+        await Swal.fire({
+          icon: 'info',
+          title: 'Cancelado',
+          text: 'La consulta no fue eliminada',
+          confirmButtonColor: '#3085d6'
+        });
       }
       return;
     }
 
-    if (!resp.ok) throw new Error("No se pudo eliminar la consulta");
-
+    // ✅ Caso normal (sin pagos)
+    if (!resp.ok) throw new Error("Error al eliminar la consulta");
     const data = await resp.json();
-    alert(data.mensaje || "Consulta eliminada correctamente");
+
+    await Swal.fire({
+      icon: 'success',
+      title: 'Eliminada',
+      text: data.mensaje || 'Consulta eliminada correctamente',
+      confirmButtonColor: '#3085d6'
+    });
+
     location.reload();
+
   } catch (err) {
     console.error(err);
-    alert("Error al eliminar la consulta");
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Ocurrió un problema al eliminar la consulta',
+      confirmButtonColor: '#d33'
+    });
   }
 }
 
