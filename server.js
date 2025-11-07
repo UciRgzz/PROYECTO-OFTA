@@ -2982,7 +2982,7 @@ app.get("/api/ordenes_medicas/consulta/:consultaId", verificarSesion, async (req
         o.id,
         o.expediente_id,
         o.consulta_id,
-        o.paciente_nombre,
+        e.nombre_completo AS paciente,  -- ✅ se une para traer el nombre
         o.medico,
         o.diagnostico,
         o.lado,
@@ -2999,9 +2999,11 @@ app.get("/api/ordenes_medicas/consulta/:consultaId", verificarSesion, async (req
         o.hora_tp,
         o.problemas,
         o.plan,
-        o.fecha,
-        o.departamento
+        o.fecha
       FROM ordenes_medicas o
+      LEFT JOIN expedientes e 
+        ON e.numero_expediente = o.expediente_id 
+       AND e.departamento = o.departamento
       WHERE o.consulta_id = $1 AND o.departamento = $2
       LIMIT 1
     `, [consultaId, depto]);
