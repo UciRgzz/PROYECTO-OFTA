@@ -355,6 +355,7 @@
           <form id="form-orden">
             <input type="hidden" id="expediente_id">
             <input type="hidden" id="folio_recibo">
+            <input type="hidden" id="consulta_id">
 
             <div class="mb-3">
               <label class="form-label">Médico:</label>
@@ -512,6 +513,7 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <script>
+    // ====================== CARGAR PACIENTES PENDIENTES ======================
     async function cargarPacientes() {
       try {
         const res = await fetch('/api/pendientes-medico');
@@ -519,32 +521,50 @@
         const tbody = document.getElementById('lista-medica');
         tbody.innerHTML = '';
 
+        console.log('📋 Pacientes pendientes:', data.length);
+
         data.forEach(exp => {
           let clase = "";
-          if (exp.procedimiento === "Consulta") clase = "table-consulta";
-          else if (exp.procedimiento === "Estudio") clase = "table-estudio";
-          else if (exp.procedimiento === "Cirugía") clase = "table-cirugia";
+          if (exp.procedimiento && exp.procedimiento.toLowerCase().includes("consulta")) {
+            clase = "table-consulta";
+          } else if (exp.procedimiento && exp.procedimiento.toLowerCase().includes("estudio")) {
+            clase = "table-estudio";
+          } else if (exp.procedimiento && exp.procedimiento.toLowerCase().includes("cirug")) {
+            clase = "table-cirugia";
+          }
+
+          // ✅ PASAR consulta_id si existe (viene de Agenda Consultas)
+          const consultaId = exp.consulta_id || 'null';
+          const reciboId = exp.recibo_id || 'null';
+
+          console.log(`👤 ${exp.nombre_completo} - Consulta ID: ${consultaId}, Recibo ID: ${reciboId}`);
 
           tbody.innerHTML += `
             <tr class="${clase}">
               <td>${exp.expediente_id}</td>
               <td>${exp.nombre_completo}</td>
-              <td>${exp.edad}</td>
-              <td>${exp.padecimientos}</td>
+              <td>${exp.edad || 'N/A'}</td>
+              <td>${exp.padecimientos || 'NINGUNO'}</td>
               <td><span class="badge bg-primary">${exp.procedimiento}</span></td>
               <td>
-                <button class="btn btn-primary btn-sm" onclick="abrirOrden(${exp.expediente_id}, ${exp.recibo_id})">
+                <button class="btn btn-primary btn-sm" onclick="abrirOrden(${exp.expediente_id}, ${reciboId}, ${consultaId})">
                   <i class="fas fa-stethoscope"></i> Atención Médica
                 </button>
               </td>
             </tr>`;
         });
+
+        if (data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No hay pacientes pendientes de atender</td></tr>';
+        }
+
       } catch (err) {
-        console.error("Error cargando pacientes:", err);
+        console.error("❌ Error cargando pacientes:", err);
         mostrarError("Error", "No se pudieron cargar los pacientes pendientes");
       }
     }
-// Cargar procedimientos en el select
+
+    // ====================== CARGAR PROCEDIMIENTOS ======================
     async function cargarProcedimientos() {
       try {
         const res = await fetch('/api/procedimientos');
@@ -560,19 +580,27 @@
       }
     }
 
-    function abrirOrden(expediente_id, recibo_id) {
-      // Limpiar formulario y checkboxes al abrir modal
+    // ====================== ABRIR MODAL DE ORDEN MÉDICA ======================
+    function abrirOrden(expediente_id, recibo_id = null, consulta_id = null) {
+      console.log('📋 Abriendo orden para:');
+      console.log('  - Expediente:', expediente_id);
+      console.log('  - Recibo:', recibo_id);
+      console.log('  - Consulta:', consulta_id);
+
+      // Limpiar formulario y checkboxes
       document.getElementById('form-orden').reset();
       document.querySelectorAll('input[name="problemas"]').forEach(cb => cb.checked = false);
 
-      // Setear paciente actual
-      document.getElementById('expediente_id').value = expediente_id;
-      document.getElementById('folio_recibo').value = recibo_id;
+      // ✅ Setear valores en campos ocultos
+      document.getElementById('expediente_id').value = expediente_id || '';
+      document.getElementById('folio_recibo').value = recibo_id || '';
+      document.getElementById('consulta_id').value = consulta_id || '';
 
       cargarProcedimientos();
       new bootstrap.Modal(document.getElementById('modalOrden')).show();
     }
 
+    // ====================== GUARDAR ORDEN MÉDICA ======================
     document.getElementById('form-orden').addEventListener('submit', async e => {
       e.preventDefault();
       try {
@@ -580,8 +608,12 @@
           document.querySelectorAll('input[name="problemas"]:checked')
         ).map(cb => cb.value).join(", ");
 
+        const folioRecibo = document.getElementById('folio_recibo').value;
+        const consultaId = document.getElementById('consulta_id').value;
+
         const data = {
-          folio_recibo: document.getElementById('folio_recibo').value,
+          folio_recibo: folioRecibo || null,
+          consulta_id: consultaId || null,  // ✅ AGREGAR consulta_id
           medico: document.getElementById('medico').value,
           diagnostico: document.getElementById('diagnostico').value,
           lado: document.getElementById('lado').value,
@@ -598,6 +630,8 @@
           plan: document.getElementById('plan').value
         };
 
+        console.log('📤 Enviando orden médica:', data);
+
         const res = await fetch('/api/ordenes_medicas', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -606,29 +640,31 @@
         const json = await res.json();
 
         if (res.ok) {
+          console.log('✅ Orden guardada exitosamente');
           mostrarExito("¡Éxito!", json.mensaje || 'Orden médica guardada correctamente');
 
-          // Limpiar formulario después de guardar
+          // Limpiar formulario
           document.getElementById("form-orden").reset();
           document.querySelectorAll('input[name="problemas"]').forEach(cb => cb.checked = false);
 
+          // Cerrar modal y recargar pacientes
           bootstrap.Modal.getInstance(document.getElementById('modalOrden')).hide();
           cargarPacientes();
         } else {
+          console.error('❌ Error al guardar:', json);
           mostrarError("Error", json.error || 'No se pudo guardar la orden médica');
         }
       } catch (err) {
-        console.error("Error guardando orden:", err);
+        console.error("❌ Error guardando orden:", err);
         mostrarError("Error", "Ocurrió un problema al guardar la orden médica");
       }
     });
 
-    // Mostrar mensaje de éxito
+    // ====================== MOSTRAR MENSAJE DE ÉXITO ======================
     function mostrarExito(titulo, mensaje) {
       document.getElementById('successMessage').textContent = mensaje;
       document.getElementById('successAlert').style.display = 'block';
       
-      // Ocultar después de 5 segundos
       setTimeout(() => {
         document.getElementById('successAlert').style.display = 'none';
       }, 5000);
@@ -642,7 +678,7 @@
       });
     }
 
-    // Mostrar error
+    // ====================== MOSTRAR ERROR ======================
     function mostrarError(titulo, mensaje) {
       Swal.fire({
         icon: 'error',
@@ -651,8 +687,9 @@
       });
     }
 
-    // Cargar pacientes al inicio
+    // ====================== INICIALIZACIÓN ======================
     document.addEventListener("DOMContentLoaded", function() {
+      console.log('🏥 Módulo Médico cargado');
       cargarPacientes();
     });
   </script>

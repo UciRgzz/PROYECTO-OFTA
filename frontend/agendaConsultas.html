@@ -210,7 +210,6 @@
       align-items: center;
     }
 
-    /* ✅ ICONO DE ORDEN PAGADA - MÁS DISCRETO */
     .orden-pagada-icon {
       display: inline-flex;
       align-items: center;
@@ -577,10 +576,7 @@
         const respOrdenes = await fetch('/api/ordenes_medicas_consulta');
         const ordenes = respOrdenes.ok ? await respOrdenes.json() : [];
         
-        const respAtenciones = await fetch('/api/atencion_consultas_todas');
-        const atenciones = respAtenciones.ok ? await respAtenciones.json() : [];
-        
-        mostrarConsultas(consultasFiltradas, ordenes, atenciones);
+        mostrarConsultas(consultasFiltradas, ordenes);
       } catch (err) {
         console.error("Error cargando consultas por rango:", err);
         mostrarError("Error", "No se pudieron cargar las consultas");
@@ -588,7 +584,7 @@
     }
 
     // ====================== MOSTRAR CONSULTAS EN TABLA ======================
-    function mostrarConsultas(consultas, ordenes, atenciones) {
+    function mostrarConsultas(consultas, ordenes) {
       const tbody = document.getElementById("tabla-consultas");
       tbody.innerHTML = "";
 
@@ -599,23 +595,19 @@
 
       consultas.forEach(c => {
         const tieneOrden = ordenes.some(o => o.consulta_id === c.id);
-        const tieneAtencion = atenciones.some(a => a.consulta_id === c.id);
         
         const fila = document.createElement("tr");
         
-        // ✅ LÓGICA CORREGIDA DE BOTONES CON ICONO DISCRETO
         let botonesAccion = '';
         
         if (c.estado === 'Pendiente') {
           if (!tieneOrden) {
-            // NO tiene orden → Mostrar botón Pagar
             botonesAccion = `
               <button class="btn btn-warning btn-sm" onclick="irAPagar(${c.id})">
                 <i class="fas fa-dollar-sign"></i> Pagar
               </button>
             `;
           } else {
-            // SÍ tiene orden (ya pagó) → Mostrar PALOMITA VERDE + botón Atender
             botonesAccion = `
               <span class="orden-pagada-icon" title="✅ Orden de pago creada">
                 <i class="fas fa-check"></i>
@@ -626,24 +618,19 @@
             `;
           }
         } else if (c.estado === 'En Módulo Médico') {
-          // Estado "En Módulo Médico" → Mostrar mensaje informativo
           botonesAccion = `
             <span class="badge bg-info">
               <i class="fas fa-user-md"></i> En atención médica
             </span>
           `;
         } else if (c.estado === 'Atendida') {
-          // Estado Atendida → Mostrar Ver Datos
-          if (tieneAtencion) {
-            botonesAccion = `
-              <button class="btn btn-info btn-sm" onclick="verDatosConsulta(${c.id})">
-                <i class="fas fa-eye"></i> Ver Datos
-              </button>
-            `;
-          }
+          botonesAccion = `
+            <button class="btn btn-info btn-sm" onclick="verDatosConsulta(${c.id})">
+              <i class="fas fa-eye"></i> Ver Datos
+            </button>
+          `;
         }
         
-        // Botón de eliminar solo para admin
         if (rolUsuario === 'admin') {
           botonesAccion += `
             <button class="btn btn-danger btn-sm" onclick="eliminarConsulta(${c.id})">
@@ -796,7 +783,6 @@
           didOpen: () => Swal.showLoading()
         });
 
-        // ✅ Llamar al endpoint correcto
         const resp = await fetch(`/api/consultas/${consultaId}/modulo_medico`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' }
@@ -824,7 +810,6 @@
           timer: 3000
         });
 
-        // Refrescar tabla
         cargarConsultas();
 
       } catch (err) {
@@ -841,81 +826,139 @@
     // ====================== VER DATOS DE CONSULTA ======================
     async function verDatosConsulta(consultaId) {
       try {
-        const resp = await fetch(`/api/atencion_consultas/${consultaId}`);
+        // ✅ Buscar la orden médica de la consulta
+        const resp = await fetch(`/api/ordenes_medicas/consulta/${consultaId}`);
         if (!resp.ok) {
-          mostrarError('Error', 'No se encontraron datos de atención para esta consulta');
+          mostrarError('Error', 'No se encontró información médica para esta consulta');
           return;
         }
 
-        const atencion = await resp.json();
+        const orden = await resp.json();
 
         let fechaMX = 'Sin fecha registrada';
-        if (atencion.created_at) {
-          const fechaObj = new Date(atencion.created_at);
+        if (orden.fecha) {
+          const fechaObj = new Date(orden.fecha);
           if (!isNaN(fechaObj)) {
-            fechaMX = fechaObj.toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
+            fechaMX = fechaObj.toLocaleDateString('es-MX', { 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            });
           }
         }
 
         Swal.fire({
-          title: 'Datos de la Consulta Atendida',
-          width: '800px',
+          title: 'Orden Médica - Consulta Atendida',
+          width: '900px',
           html: `
-            <div class="text-start" style="max-height: 500px; overflow-y: auto;">
-              <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                <h5 style="color: #2c3e50; margin-bottom: 10px;">Información de la Atención</h5>
+            <div class="text-start" style="max-height: 600px; overflow-y: auto;">
+              
+              <!-- Información General -->
+              <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <h5 style="color: #1976d2; margin-bottom: 10px;">
+                  <i class="fas fa-info-circle"></i> Información General
+                </h5>
+                <p><strong>Paciente:</strong> ${orden.paciente_nombre || 'No registrado'}</p>
+                <p><strong>Médico:</strong> ${orden.medico || 'No registrado'}</p>
                 <p><strong>Fecha de atención:</strong> ${fechaMX}</p>
+                <p><strong>Expediente:</strong> ${orden.expediente_id || 'No registrado'}</p>
               </div>
 
+              <!-- Diagnóstico -->
               <div class="mb-3">
-                <strong style="color: #2c3e50;">Motivo de Consulta:</strong>
-                <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
-                  ${atencion.motivo || 'No registrado'}
+                <h6 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
+                  <i class="fas fa-diagnoses"></i> Diagnóstico
+                </h6>
+                <p style="background: #fff; padding: 12px; border-radius: 5px; border: 1px solid #dee2e6;">
+                  ${orden.diagnostico || 'No registrado'}
                 </p>
               </div>
 
+              <!-- Lado -->
               <div class="mb-3">
-                <strong style="color: #2c3e50;">Diagnóstico:</strong>
-                <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
-                  ${atencion.diagnostico || 'No registrado'}
+                <h6 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
+                  <i class="fas fa-eye"></i> Ojo Afectado
+                </h6>
+                <p style="background: #fff; padding: 12px; border-radius: 5px; border: 1px solid #dee2e6;">
+                  ${orden.lado || 'No registrado'}
                 </p>
               </div>
 
-              ${atencion.observaciones ? `
+              <!-- Exploración Clínica -->
               <div class="mb-3">
-                <strong style="color: #2c3e50;">Observaciones:</strong>
-                <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
-                  ${atencion.observaciones}
+                <h6 style="color: #2c3e50; border-bottom: 2px solid #27ae60; padding-bottom: 5px;">
+                  <i class="fas fa-stethoscope"></i> Exploración Clínica
+                </h6>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 5px;">
+                  <div class="row">
+                    <div class="col-6">
+                      <p><strong>Anexos:</strong> ${orden.anexos || 'N/A'}</p>
+                      <p><strong>Conjuntiva:</strong> ${orden.conjuntiva || 'N/A'}</p>
+                      <p><strong>Córnea:</strong> ${orden.cornea || 'N/A'}</p>
+                      <p><strong>Cámara Anterior:</strong> ${orden.camara_anterior || 'N/A'}</p>
+                    </div>
+                    <div class="col-6">
+                      <p><strong>Cristalino:</strong> ${orden.cristalino || 'N/A'}</p>
+                      <p><strong>Retina:</strong> ${orden.retina || 'N/A'}</p>
+                      <p><strong>Mácula:</strong> ${orden.macula || 'N/A'}</p>
+                      <p><strong>Nervio Óptico:</strong> ${orden.nervio_optico || 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Ciclopejia -->
+              ${orden.ciclopejia ? `
+              <div class="mb-3">
+                <h6 style="color: #2c3e50; border-bottom: 2px solid #9b59b6; padding-bottom: 5px;">
+                  <i class="fas fa-eye-dropper"></i> Ciclopejia
+                </h6>
+                <p style="background: #fff; padding: 12px; border-radius: 5px; border: 1px solid #dee2e6;">
+                  ${orden.ciclopejia}
+                  ${orden.hora_tp ? ` - Hora TP: ${orden.hora_tp}` : ''}
                 </p>
               </div>
               ` : ''}
 
+              <!-- Problemas Identificados -->
+              ${orden.problemas ? `
               <div class="mb-3">
-                <strong style="color: #2c3e50;">Tratamiento:</strong>
-                <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
-                  ${atencion.tratamiento || 'No registrado'}
-                </p>
-              </div>
-
-              <div class="mb-3">
-                <strong style="color: #2c3e50;">Requiere Procedimiento:</strong>
-                <p style="background: ${atencion.requiere_cirugia ? '#fff3cd' : '#d4edda'}; padding: 10px; border-radius: 5px;">
-                  ${atencion.requiere_cirugia ? '✅ Sí' : '❌ No'}
-                </p>
-              </div>
-
-              ${atencion.requiere_cirugia && atencion.procedimiento ? `
-              <div class="mb-3">
-                <strong style="color: #2c3e50;">Tipo de Procedimiento:</strong>
-                <p style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
-                  ${atencion.procedimiento}
+                <h6 style="color: #2c3e50; border-bottom: 2px solid #e74c3c; padding-bottom: 5px;">
+                  <i class="fas fa-exclamation-triangle"></i> Problemas Identificados
+                </h6>
+                <p style="background: #fff3cd; padding: 12px; border-radius: 5px; border: 1px solid #ffc107;">
+                  ${orden.problemas}
                 </p>
               </div>
               ` : ''}
+
+              <!-- Plan de Tratamiento -->
+              ${orden.plan ? `
+              <div class="mb-3">
+                <h6 style="color: #2c3e50; border-bottom: 2px solid #9b59b6; padding-bottom: 5px;">
+                  <i class="fas fa-clipboard-list"></i> Plan de Tratamiento
+                </h6>
+                <p style="background: #fff; padding: 12px; border-radius: 5px; border: 1px solid #dee2e6;">
+                  ${orden.plan}
+                </p>
+              </div>
+              ` : ''}
+
+              <!-- Procedimiento -->
+              <div class="mb-3">
+                <h6 style="color: #2c3e50; border-bottom: 2px solid #16a085; padding-bottom: 5px;">
+                  <i class="fas fa-procedures"></i> Procedimiento Recomendado
+                </h6>
+                <p style="background: #d4edda; padding: 12px; border-radius: 5px; border: 1px solid #28a745;">
+                  ${orden.procedimiento || 'No especificado'}
+                </p>
+              </div>
+
             </div>
           `,
-          confirmButtonText: 'Cerrar',
-          confirmButtonColor: '#3498db'
+          confirmButtonText: '<i class="fas fa-times"></i> Cerrar',
+          confirmButtonColor: '#3498db',
+          width: '900px'
         });
 
       } catch (err) {
@@ -939,10 +982,6 @@
         });
 
         if (confirmacion.isConfirmed) {
-          await fetch(`/api/atencion_consultas/${consultaId}`, {
-            method: 'DELETE'
-          }).catch(() => {});
-
           const resp = await fetch(`/api/consultas/${consultaId}`, {
             method: 'DELETE'
           });
@@ -1061,4 +1100,4 @@
 
   </script>
 </body>
-</html> 
+</html>
