@@ -516,7 +516,7 @@
           return `
             <tr>
               <td><strong>${numeroOrden}</strong></td>
-              <td><span class="badge ${numeroFolio === 'Sin Recibo' ? 'bg-secondary' : 'bg-info'}">${numeroFolio}</span></td>
+              <td>${numeroFolio === 'Sin Recibo' ? '<span class="badge bg-secondary">Sin Recibo</span>' : `<strong>${numeroFolio}</strong>`}</td>
               <td><strong>${numeroExpediente}</strong></td>
               <td>
                 <span class="info-link" onclick="verDetalles(${i})" title="Ver detalles">
