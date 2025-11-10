@@ -866,16 +866,14 @@ $(document).ready(function () {
             <td>${parseFloat(o.pagado).toFixed(2)}</td>
             <td>${parseFloat(o.pendiente).toFixed(2)}</td>
             <td>
-              ${o.estatus === "Pagado"
-                ? `<div>
-                    <span class="badge bg-success">Pagado</span>
-                    <br>
-                    <button class="btn btn-primary btn-print-small" onclick="imprimirReciboOrden(${i})">
-                      <i class="fas fa-print"></i> Recibo
-                    </button>
-                  </div>`
-                : `<span class="badge bg-warning">${o.estatus}</span>`}
-            </td>
+  <div>
+    <span class="badge ${o.estatus === "Pagado" ? 'bg-success' : 'bg-warning'}">${o.estatus}</span>
+    <br>
+    <button class="btn btn-primary btn-print-small" onclick="imprimirReciboOrden(${i})">
+      <i class="fas fa-print"></i> Recibo
+    </button>
+  </div>
+</td>
 
             <td style="white-space: nowrap; vertical-align: middle;">
               ${(() => {
