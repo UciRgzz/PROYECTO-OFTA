@@ -1397,7 +1397,7 @@ app.get("/api/expedientes/:id/ordenes", verificarSesion, async (req, res) => {
 app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
   try {
     let depto = getDepartamento(req);
-    const { desde, hasta } = req.query; // 👈 soporte para filtro de rango
+    const { desde, hasta } = req.query;
 
     let params = [depto];
     let where = "o.departamento = $1";
@@ -1409,8 +1409,9 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
 
     const query = `
       SELECT 
-        o.id AS orden_id,                          
-        e.numero_expediente AS expediente_numero, 
+        o.id AS orden_id,
+        o.numero_orden AS n_orden,                 -- 👈 N.Orden (número consecutivo)
+        e.numero_expediente AS expediente_numero,  -- 👈 Expediente del paciente
         e.nombre_completo AS paciente, 
         o.medico, 
         o.diagnostico, 
@@ -1421,7 +1422,9 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         COALESCE(SUM(p.monto), 0) AS pagado,      
         (o.precio - COALESCE(SUM(p.monto), 0)) AS pendiente,
         o.estatus,
-        o.fecha
+        o.fecha,
+        o.folio_recibo,
+        r.numero_recibo AS n_folio                 -- 👈 N.Folio del recibo asociado
       FROM ordenes_medicas o
       JOIN expedientes e 
         ON e.numero_expediente = o.expediente_id
@@ -1429,17 +1432,24 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
       LEFT JOIN pagos p 
         ON p.orden_id = o.id 
        AND p.departamento = o.departamento
+      LEFT JOIN recibos r                          -- 👈 JOIN para obtener el número de recibo
+        ON r.id = o.folio_recibo
+       AND r.departamento = o.departamento
       WHERE ${where}
       GROUP BY o.id, e.numero_expediente, e.nombre_completo, 
                o.medico, o.diagnostico, o.lado, o.procedimiento, 
-               o.tipo, o.precio, o.estatus, o.fecha
-      ORDER BY o.fecha DESC;
+               o.tipo, o.precio, o.estatus, o.fecha, o.folio_recibo,
+               o.numero_orden, r.numero_recibo      -- 👈 Agregar al GROUP BY
+      ORDER BY o.numero_orden DESC;                -- 👈 Ordenar por número de orden
     `;
 
     const result = await pool.query(query, params);
+    
+    console.log("✅ Órdenes médicas cargadas:", result.rows.length);
+    
     res.json(result.rows);
   } catch (err) {
-    console.error("Error en /api/ordenes_medicas:", err);
+    console.error("❌ Error en /api/ordenes_medicas:", err);
     res.status(500).json({ error: err.message });
   }
 });
