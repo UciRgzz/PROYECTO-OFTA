@@ -469,23 +469,22 @@
 
 <div class="table-responsive">
   <table class="table table-striped table-bordered text-center align-middle">
-  <thead>
-    <tr>
-      <th>Fecha</th>
-      <th>N.Folio</th>         <!-- 👈 Número de recibo consecutivo -->
-      <th>Expediente</th>      <!-- 👈 NUEVO: Número del paciente -->
-      <th>Paciente</th>
-      <th>Procedimiento</th>
-      <th>Tipo</th>
-      <th>Forma de Pago</th>
-      <th>Monto Pagado</th>
-      <th>Precio</th>
-      <th>Pendiente</th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
-  <tbody id="tablaRecibos"></tbody>
-</table>
+    <thead>
+      <tr>
+        <th>Fecha</th>
+        <th>Folio</th>
+        <th>Paciente</th>
+        <th>Procedimiento</th>
+        <th>Tipo</th>
+        <th>Forma de Pago</th>
+        <th>Monto Pagado</th>
+        <th>Precio</th>
+        <th>Pendiente</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="tablaRecibos"></tbody>
+  </table>
 </div>
 
 
@@ -771,8 +770,7 @@ recibos.sort((a, b) => a.id - b.id);
 document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
   <tr>
     <td>${r.fecha.split("T")[0]}</td>
-    <td><strong>${r.numero_recibo || r.n_folio}</strong></td>  <!-- 👈 N.Folio -->
-    <td>${r.folio}</td>                                         <!-- 👈 Expediente del paciente -->
+    <td>${r.folio}</td>
     <td>${r.paciente}</td>
     <td>${r.procedimiento}</td>
     <td><span class="badge bg-info">${r.tipo}</span></td>
@@ -806,7 +804,6 @@ document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
     </td>
   </tr>
 `).join('');
-
 
     // 📊 actualizar estadísticas
     actualizarStats(recibos);
