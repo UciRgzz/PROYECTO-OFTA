@@ -1143,12 +1143,12 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== GUARDAR ORDEN MÉDICA ====================
+// ==================== GUARDAR O ACTUALIZAR ORDEN MÉDICA ====================
 app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
   try {
     const {
       folio_recibo,
-      consulta_id,  // 👈 NUEVO: Para identificar si viene de Agenda Consultas
+      consulta_id,
       medico,
       diagnostico,
       lado,
@@ -1186,7 +1186,71 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
 
       expediente_id = consultaResult.rows[0].expediente_id || consultaResult.rows[0].numero_expediente;
       tipo_orden = 'Consulta';
-      folio_recibo_final = folio_recibo || null; // Puede tener orden de pago previa o no
+      folio_recibo_final = folio_recibo || null;
+
+      // 🔍 VERIFICAR SI YA EXISTE UNA ORDEN PARA ESTA CONSULTA
+      const ordenExistente = await pool.query(
+        `SELECT id FROM ordenes_medicas 
+         WHERE consulta_id = $1 AND departamento = $2 
+         LIMIT 1`,
+        [consulta_id, depto]
+      );
+
+      if (ordenExistente.rows.length > 0) {
+        // ✅ YA EXISTE → ACTUALIZAR EN LUGAR DE CREAR NUEVA
+        const ordenId = ordenExistente.rows[0].id;
+        console.log(`🔄 Actualizando orden existente ID: ${ordenId}`);
+
+        // Buscar procedimiento
+        const procResult = await pool.query(
+          `SELECT nombre, precio FROM catalogo_procedimientos WHERE id = $1`,
+          [procedimiento_id]
+        );
+
+        if (procResult.rows.length === 0) {
+          return res.status(404).json({ error: "No se encontró el procedimiento en el catálogo" });
+        }
+
+        const { nombre: procedimientoNombre, precio: procedimientoPrecio } = procResult.rows[0];
+
+        // ACTUALIZAR la orden existente
+        const result = await pool.query(
+          `UPDATE ordenes_medicas 
+           SET medico = $1, diagnostico = $2, lado = $3, 
+               procedimiento = $4, precio = $5,
+               anexos = $6, conjuntiva = $7, cornea = $8, 
+               camara_anterior = $9, cristalino = $10,
+               retina = $11, macula = $12, nervio_optico = $13, 
+               ciclopejia = $14, hora_tp = $15,
+               problemas = $16, plan = $17
+           WHERE id = $18 AND departamento = $19
+           RETURNING *`,
+          [
+            medico, diagnostico, lado,
+            procedimientoNombre, procedimientoPrecio,
+            anexos, conjuntiva, cornea, camara_anterior, cristalino,
+            retina, macula, nervio_optico, ciclopejia, hora_tp,
+            problemas, plan,
+            ordenId, depto
+          ]
+        );
+
+        // Actualizar estado de consulta
+        await pool.query(
+          `UPDATE consultas SET estado = 'Atendida' WHERE id = $1 AND departamento = $2`,
+          [consulta_id, depto]
+        );
+
+        console.log(`✅ Orden ${ordenId} actualizada y consulta marcada como Atendida`);
+
+        return res.json({ 
+          mensaje: "Orden médica actualizada correctamente", 
+          orden: result.rows[0],
+          actualizada: true
+        });
+      }
+
+      // Si no existe orden previa, continuar para crear una nueva
 
     } else if (folio_recibo) {
       // ✅ FLUJO DE RECIBOS (funcionalidad original)
@@ -1222,7 +1286,7 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
 
     const { nombre: procedimientoNombre, precio: procedimientoPrecio } = procResult.rows[0];
 
-    // ========== GUARDAR ORDEN MÉDICA ==========
+    // ========== CREAR NUEVA ORDEN MÉDICA ==========
     const fechaLocal = fechaLocalMX();
 
     const result = await pool.query(
@@ -1231,20 +1295,20 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         procedimiento, tipo, precio,
         anexos, conjuntiva, cornea, camara_anterior, cristalino,
         retina, macula, nervio_optico, ciclopejia, hora_tp,
-        problemas, plan, estatus, fecha, departamento
+        problemas, plan, estatus, fecha, departamento, origen
       )
       VALUES (
         $1, $2, $3, $4, $5, $6,
         $7, $8, $9,
         $10, $11, $12, $13, $14,
         $15, $16, $17, $18, $19,
-        $20, $21, 'Pendiente', $22::date, $23
+        $20, $21, 'Pendiente', $22::date, $23, $24
       )
       RETURNING *`,
       [
         expediente_id,
         folio_recibo_final,
-        consulta_id || null,  // 👈 Guardar consulta_id si existe
+        consulta_id || null,
         medico, diagnostico, lado,
         procedimientoNombre,
         tipo_orden,
@@ -1253,7 +1317,8 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         retina, macula, nervio_optico, ciclopejia, hora_tp,
         problemas, plan,
         fechaLocal,
-        depto
+        depto,
+        consulta_id ? 'CONSULTA' : 'CIRUGIA'  // 👈 Marcar origen correctamente
       ]
     );
 
@@ -1268,7 +1333,8 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
 
     res.json({ 
       mensaje: "Orden médica creada correctamente", 
-      orden: result.rows[0] 
+      orden: result.rows[0],
+      actualizada: false
     });
 
   } catch (err) {
@@ -1276,7 +1342,6 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // ==================== ÓRDENES POR EXPEDIENTE ====================
 app.get("/api/expedientes/:id/ordenes", verificarSesion, async (req, res) => {
