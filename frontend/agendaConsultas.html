@@ -603,7 +603,7 @@
         if (c.estado === 'Pendiente') {
           if (!tieneOrden) {
             botonesAccion = `
-              <button class="btn btn-warning btn-sm" onclick="irAPagar(${c.id})">
+              <button class="btn btn-warning btn-sm" onclick="irAPagar(${c.id}, ${c.numero_expediente}, '${c.paciente.replace(/'/g, "\\'")}')">
                 <i class="fas fa-dollar-sign"></i> Pagar
               </button>
             `;
@@ -670,32 +670,84 @@
       return `${h}:${minutos} ${ampm}`;
     }
 
-    // ====================== IR A PAGAR (CREAR ORDEN) ======================
-    async function irAPagar(consultaId) {
+    // ====================== IR A PAGAR (CREAR RECIBO + ORDEN) ✅ CORREGIDO ======================
+    async function irAPagar(consultaId, numeroExpediente, nombrePaciente) {
       try {
-        const confirmacion = await Swal.fire({
-          title: '¿Crear orden de pago?',
-          text: "Se creará una orden médica para esta consulta",
-          icon: 'question',
+        const { value: formaPago } = await Swal.fire({
+          title: '💵 Crear Orden de Pago',
+          html: `
+            <div class="text-start">
+              <div class="mb-3">
+                <label class="form-label"><strong>Paciente:</strong></label>
+                <input type="text" class="form-control" value="${nombrePaciente}" disabled>
+              </div>
+              <div class="mb-3">
+                <label class="form-label"><strong>Procedimiento:</strong></label>
+                <input type="text" class="form-control" value="Consulta Oftalmológica" disabled>
+              </div>
+              <div class="mb-3">
+                <label class="form-label"><strong>Precio:</strong></label>
+                <input type="text" class="form-control" value="$500.00" disabled>
+              </div>
+              <div class="mb-3">
+                <label class="form-label"><strong>Forma de Pago:</strong></label>
+                <select id="swal-forma-pago" class="form-control">
+                  <option value="Efectivo">Efectivo</option>
+                  <option value="Tarjeta Débito">Tarjeta Débito</option>
+                  <option value="Tarjeta Crédito">Tarjeta Crédito</option>
+                  <option value="Transferencia">Transferencia</option>
+                </select>
+              </div>
+            </div>
+          `,
           showCancelButton: true,
-          confirmButtonColor: '#3498db',
+          confirmButtonText: '<i class="fas fa-check"></i> Crear Orden',
+          cancelButtonText: 'Cancelar',
+          confirmButtonColor: '#27ae60',
           cancelButtonColor: '#95a5a6',
-          confirmButtonText: '<i class="fas fa-check"></i> Sí, crear',
-          cancelButtonText: 'Cancelar'
-        });
-
-        if (!confirmacion.isConfirmed) return;
-
-        Swal.fire({
-          title: 'Creando orden...',
-          html: '<i class="fas fa-spinner fa-spin fa-3x text-primary"></i><br><br>Generando orden de pago...',
-          allowOutsideClick: false,
-          showConfirmButton: false,
-          didOpen: () => {
-            Swal.showLoading();
+          preConfirm: () => {
+            return document.getElementById('swal-forma-pago').value;
           }
         });
 
+        if (!formaPago) return;
+
+        Swal.fire({
+          title: 'Creando orden de pago...',
+          html: '<i class="fas fa-spinner fa-spin fa-3x text-primary"></i><br><br>Generando recibo y orden médica...',
+          allowOutsideClick: false,
+          showConfirmButton: false,
+          didOpen: () => Swal.showLoading()
+        });
+
+        // 1️⃣ Crear el RECIBO primero
+        const fechaLocal = new Date().toISOString().split('T')[0];
+
+        const datosRecibo = {
+          fecha: fechaLocal,
+          paciente_id: numeroExpediente,
+          procedimiento: 'Consulta Oftalmológica',
+          precio: 500.00,
+          forma_pago: formaPago,
+          monto_pagado: 500.00,
+          tipo: 'Normal'
+        };
+
+        const respRecibo = await fetch('/api/recibos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(datosRecibo)
+        });
+
+        if (!respRecibo.ok) {
+          const errorData = await respRecibo.json();
+          throw new Error(errorData.error || 'No se pudo crear el recibo');
+        }
+
+        const reciboCreado = await respRecibo.json();
+        console.log('✅ Recibo creado:', reciboCreado);
+
+        // 2️⃣ Verificar que no existe orden previa
         const respOrdenes = await fetch('/api/ordenes_medicas_consulta');
         if (!respOrdenes.ok) {
           throw new Error('Error al verificar órdenes existentes');
@@ -716,28 +768,31 @@
           return;
         }
 
-        const resp = await fetch("/api/ordenes_medicas_consulta", {
+        // 3️⃣ Crear la ORDEN MÉDICA vinculada al recibo
+        const respOrden = await fetch("/api/ordenes_medicas_consulta", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ consultaId })
         });
 
-        if (!resp.ok) {
-          const errorData = await resp.json();
+        if (!respOrden.ok) {
+          const errorData = await respOrden.json();
           throw new Error(errorData.error || "No se pudo crear la orden");
         }
 
-        const resultado = await resp.json();
+        const resultado = await respOrden.json();
+        console.log('✅ Orden médica creada:', resultado);
 
         await Swal.fire({
           icon: 'success',
           title: '¡Orden Creada!',
           html: `
-            <p>Orden médica #${resultado.id} creada correctamente</p>
-            <p class="text-muted">Ahora el botón "Atender" está disponible</p>
+            <p>✅ Recibo N° ${reciboCreado.recibo.numero_recibo} creado</p>
+            <p>✅ Orden médica #${resultado.id} creada</p>
+            <p class="text-muted mt-3">Ahora el botón "Atender" está disponible</p>
           `,
-          timer: 2500,
-          showConfirmButton: false
+          confirmButtonColor: '#27ae60',
+          timer: 3500
         });
 
         cargarConsultas();
@@ -826,7 +881,6 @@
     // ====================== VER DATOS DE CONSULTA ======================
     async function verDatosConsulta(consultaId) {
       try {
-        // ✅ Buscar la orden médica de la consulta
         const resp = await fetch(`/api/ordenes_medicas/consulta/${consultaId}`);
         if (!resp.ok) {
           mostrarError('Error', 'No se encontró información médica para esta consulta');
@@ -835,25 +889,19 @@
 
         const orden = await resp.json();
 
-
-
-        // ✅ CÓDIGO NUEVO - Manejo correcto de fecha UTC
-let fechaMX = 'Sin fecha registrada';
-if (orden.fecha) {
-  // Si la fecha viene en formato YYYY-MM-DD (como "2025-11-10")
-  if (typeof orden.fecha === 'string' && /^\d{4}-\d{2}-\d{2}/.test(orden.fecha)) {
-    const [año, mes, dia] = orden.fecha.split('T')[0].split('-');
-    const fechaLocal = new Date(parseInt(año), parseInt(mes) - 1, parseInt(dia));
-    
-    fechaMX = fechaLocal.toLocaleDateString('es-MX', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-  } else {
-    fechaMX = 'Sin fecha válida';
-  }
-}
+        let fechaMX = 'Sin fecha registrada';
+        if (orden.fecha) {
+          if (typeof orden.fecha === 'string' && /^\d{4}-\d{2}-\d{2}/.test(orden.fecha)) {
+            const [año, mes, dia] = orden.fecha.split('T')[0].split('-');
+            const fechaLocal = new Date(parseInt(año), parseInt(mes) - 1, parseInt(dia));
+            
+            fechaMX = fechaLocal.toLocaleDateString('es-MX', { 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            });
+          }
+        }
 
         Swal.fire({
           title: 'Orden Médica - Consulta Atendida',
@@ -915,7 +963,6 @@ if (orden.fecha) {
                 </div>
               </div>
 
-              <!-- Ciclopejia -->
               ${orden.ciclopejia ? `
               <div class="mb-3">
                 <h6 style="color: #2c3e50; border-bottom: 2px solid #9b59b6; padding-bottom: 5px;">
@@ -928,7 +975,6 @@ if (orden.fecha) {
               </div>
               ` : ''}
 
-              <!-- Problemas Identificados -->
               ${orden.problemas ? `
               <div class="mb-3">
                 <h6 style="color: #2c3e50; border-bottom: 2px solid #e74c3c; padding-bottom: 5px;">
@@ -940,7 +986,6 @@ if (orden.fecha) {
               </div>
               ` : ''}
 
-              <!-- Plan de Tratamiento -->
               ${orden.plan ? `
               <div class="mb-3">
                 <h6 style="color: #2c3e50; border-bottom: 2px solid #9b59b6; padding-bottom: 5px;">
@@ -952,7 +997,6 @@ if (orden.fecha) {
               </div>
               ` : ''}
 
-              <!-- Procedimiento -->
               <div class="mb-3">
                 <h6 style="color: #2c3e50; border-bottom: 2px solid #16a085; padding-bottom: 5px;">
                   <i class="fas fa-procedures"></i> Procedimiento Recomendado
@@ -976,77 +1020,74 @@ if (orden.fecha) {
     }
 
     // ====================== ELIMINAR CONSULTA ======================
-async function eliminarConsulta(id) {
-  try {
-    const resp = await fetch(`/api/consultas/${id}`, {
-      method: "DELETE",
-      credentials: "include"
-    });
-
-    // ⚠️ Caso: el backend pide confirmación porque hay pagos
-    if (resp.status === 409) {
-      const data = await resp.json();
-
-      const result = await Swal.fire({
-        title: 'Atención',
-        text: data.mensaje,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar',
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6'
-      });
-
-      if (result.isConfirmed) {
-        const resp2 = await fetch(`/api/consultas/${id}?forzar=true`, {
+    async function eliminarConsulta(id) {
+      try {
+        const resp = await fetch(`/api/consultas/${id}`, {
           method: "DELETE",
           credentials: "include"
         });
-        const data2 = await resp2.json();
+
+        if (resp.status === 409) {
+          const data = await resp.json();
+
+          const result = await Swal.fire({
+            title: 'Atención',
+            text: data.mensaje,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6'
+          });
+
+          if (result.isConfirmed) {
+            const resp2 = await fetch(`/api/consultas/${id}?forzar=true`, {
+              method: "DELETE",
+              credentials: "include"
+            });
+            const data2 = await resp2.json();
+
+            await Swal.fire({
+              icon: 'success',
+              title: 'Eliminada',
+              text: data2.mensaje || 'Consulta eliminada correctamente',
+              confirmButtonColor: '#3085d6'
+            });
+            location.reload();
+          } else {
+            await Swal.fire({
+              icon: 'info',
+              title: 'Cancelado',
+              text: 'La consulta no fue eliminada',
+              confirmButtonColor: '#3085d6'
+            });
+          }
+          return;
+        }
+
+        if (!resp.ok) throw new Error("Error al eliminar la consulta");
+        const data = await resp.json();
 
         await Swal.fire({
           icon: 'success',
           title: 'Eliminada',
-          text: data2.mensaje || 'Consulta eliminada correctamente',
+          text: data.mensaje || 'Consulta eliminada correctamente',
           confirmButtonColor: '#3085d6'
         });
+
         location.reload();
-      } else {
-        await Swal.fire({
-          icon: 'info',
-          title: 'Cancelado',
-          text: 'La consulta no fue eliminada',
-          confirmButtonColor: '#3085d6'
+
+      } catch (err) {
+        console.error(err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Ocurrió un problema al eliminar la consulta',
+          confirmButtonColor: '#d33'
         });
       }
-      return;
     }
-
-    // ✅ Caso normal (sin pagos)
-    if (!resp.ok) throw new Error("Error al eliminar la consulta");
-    const data = await resp.json();
-
-    await Swal.fire({
-      icon: 'success',
-      title: 'Eliminada',
-      text: data.mensaje || 'Consulta eliminada correctamente',
-      confirmButtonColor: '#3085d6'
-    });
-
-    location.reload();
-
-  } catch (err) {
-    console.error(err);
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Ocurrió un problema al eliminar la consulta',
-      confirmButtonColor: '#d33'
-    });
-  }
-}
-
 
     // ====================== FORMATEAR FECHA ======================
     function formatearFecha(fecha) {

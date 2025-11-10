@@ -80,7 +80,6 @@
     
     .card-body {
       padding: 25px;
-      overflow: visible;
     }
     
     .table-container {
@@ -114,7 +113,7 @@
       border-bottom: 1px solid #eee;
       text-align: center;
       font-size: 0.9rem;
-      word-wrap: break-word;
+      vertical-align: middle;
     }
     
     .table tr:last-child td {
@@ -147,10 +146,11 @@
     }
     
     .badge {
-      padding: 4px 8px;
+      padding: 5px 10px;
       border-radius: 6px;
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       font-weight: 600;
+      white-space: nowrap;
     }
     
     .badge.bg-info {
@@ -196,12 +196,6 @@
     
     .btn-close {
       filter: invert(1);
-    }
-    
-    .text-truncate-cell {
-      white-space: normal;
-      word-wrap: break-word;
-      max-width: none;
     }
 
     /* Estilos para el recibo */
@@ -262,11 +256,21 @@
       max-width: 90vw;
     }
 
-    /* Botón de imprimir pequeño */
-    .btn-print-small {
-      padding: 4px 8px;
-      font-size: 0.75rem;
-      margin-top: 5px;
+    .btn-icon {
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      margin: 2px;
+    }
+
+    .info-link {
+      color: var(--secondary-color);
+      cursor: pointer;
+      text-decoration: underline;
+      font-weight: 600;
+    }
+
+    .info-link:hover {
+      color: #2c80b9;
     }
     
     @media (max-width: 1200px) {
@@ -276,8 +280,8 @@
       }
       
       .badge {
-        font-size: 0.7rem;
-        padding: 3px 6px;
+        font-size: 0.75rem;
+        padding: 4px 8px;
       }
     }
     
@@ -304,20 +308,6 @@
       .table th, .table td {
         font-size: 0.8rem;
         padding: 8px 5px;
-      }
-    }
-    
-    @media (max-width: 576px) {
-      body {
-        padding: 10px;
-      }
-      
-      header {
-        padding: 15px 10px;
-      }
-      
-      h1 {
-        font-size: 1.8rem;
       }
     }
   </style>
@@ -349,11 +339,7 @@
                 <th>N.Folio</th>
                 <th>Expediente</th>
                 <th>Paciente</th>
-                <th>Médico</th>
-                <th>Diagnóstico</th>
-                <th>Lado</th>
                 <th>Procedimiento</th>
-                <th>Tipo</th>
                 <th>Precio</th>
                 <th>Pagado</th>
                 <th>Pendiente</th>
@@ -370,6 +356,41 @@
     
     <div class="footer">
       <p>Sistema de Gestión Oftavisión &copy; 2025</p>
+    </div>
+  </div>
+
+  <!-- Modal Detalles -->
+  <div class="modal fade" id="modalDetalles" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="fas fa-info-circle"></i> Detalles de Orden</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label"><strong>Médico:</strong></label>
+              <input type="text" id="detalleMedico" class="form-control">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label"><strong>Diagnóstico:</strong></label>
+              <input type="text" id="detalleDiagnostico" class="form-control">
+            </div>
+            <div class="col-md-12 mb-3">
+              <label class="form-label"><strong>Lado:</strong></label>
+              <input type="text" id="detalleLado" class="form-control">
+            </div>
+          </div>
+          <input type="hidden" id="detalleOrdenId">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+          <button type="button" class="btn btn-success" onclick="guardarDetalles()">
+            <i class="fas fa-save"></i> Guardar Cambios
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -474,61 +495,94 @@
 
         console.log("📊 Datos recibidos:", ordenesData);
 
-        document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
-          <tr>
-            <td><strong>${o.n_orden || 'N/A'}</strong></td>
-            <td>${o.n_folio || 'N/A'}</td>
-            <td><strong>${o.expediente_numero || o.numero_expediente || 'N/A'}</strong></td>
-            <td class="text-truncate-cell" title="${o.paciente || 'Sin nombre'}">${o.paciente || 'Sin nombre'}</td>
-            
-            <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'medico', this.innerText)">
-              ${o.medico || 'Pendiente'}
-            </td>
-            <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'diagnostico', this.innerText)">
-              ${o.diagnostico || 'Pendiente'}
-            </td>
-            <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'lado', this.innerText)">
-              ${o.lado || 'N/A'}
-            </td>
+        document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => {
+          const numeroOrden = o.n_orden || o.numero_orden || 'N/A';
+          const numeroFolio = o.n_folio || 'Sin Recibo';
+          const numeroExpediente = o.expediente_numero || o.numero_expediente || 'N/A';
+          const nombrePaciente = o.paciente || 'Sin nombre';
+          const procedimiento = o.procedimiento || 'N/A';
+          const precio = parseFloat(o.precio || 0).toFixed(2);
+          const pagado = parseFloat(o.pagado || 0).toFixed(2);
+          const pendiente = parseFloat(o.pendiente || 0).toFixed(2);
+          const estatus = o.estatus || 'Pendiente';
+          
+          let fecha = 'N/A';
+          if (o.fecha) {
+            const soloFecha = o.fecha.split("T")[0];
+            const [anio, mes, dia] = soloFecha.split("-");
+            fecha = `${dia}/${mes}/${anio}`;
+          }
 
-            <td class="text-truncate-cell" title="${o.procedimiento || 'N/A'}">${o.procedimiento || 'N/A'}</td>
-            <td><span class="badge bg-info">${o.tipo || 'N/A'}</span></td>
-            <td>$${parseFloat(o.precio || 0).toFixed(2)}</td>
-            <td>$${parseFloat(o.pagado || 0).toFixed(2)}</td>
-            <td>$${parseFloat(o.pendiente || 0).toFixed(2)}</td>
-
-            <td>
-              <div>
-                <span class="badge ${o.estatus === "Pagado" ? 'bg-success' : 'bg-warning'}">${o.estatus || 'Pendiente'}</span>
+          return `
+            <tr>
+              <td><strong>${numeroOrden}</strong></td>
+              <td><span class="badge ${numeroFolio === 'Sin Recibo' ? 'bg-secondary' : 'bg-info'}">${numeroFolio}</span></td>
+              <td><strong>${numeroExpediente}</strong></td>
+              <td>
+                <span class="info-link" onclick="verDetalles(${i})" title="Ver detalles">
+                  ${nombrePaciente}
+                </span>
+              </td>
+              <td style="max-width: 200px; white-space: normal; word-wrap: break-word;">${procedimiento}</td>
+              <td><strong>$${precio}</strong></td>
+              <td><span class="badge bg-info">$${pagado}</span></td>
+              <td><span class="badge bg-warning">$${pendiente}</span></td>
+              <td>
+                <span class="badge ${estatus === "Pagado" ? 'bg-success' : 'bg-warning'}">${estatus}</span>
                 <br>
-                <button class="btn btn-primary btn-print-small" onclick="imprimirReciboOrden(${i})">
-                  <i class="fas fa-print"></i> Recibo
+                <button class="btn btn-primary btn-icon mt-1" onclick="imprimirReciboOrden(${i})" title="Imprimir recibo">
+                  <i class="fas fa-print"></i>
                 </button>
-              </div>
-            </td>
-
-            <td style="white-space: nowrap; vertical-align: middle;">
-              ${(() => {
-                if (!o.fecha) return "N/A";
-                const soloFecha = o.fecha.split("T")[0];
-                const [anio, mes, dia] = soloFecha.split("-");
-                return `${dia}/${mes}/${anio}`;
-              })()}
-            </td>
-
-            <td class="text-center">
-              ${o.estatus === "Pagado"
-                ? `<button class="btn btn-secondary btn-sm" disabled>
-                    <i class="fas fa-check"></i> Pagado
-                  </button>`
-                : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
-                    <i class="fas fa-dollar-sign"></i> Pagar
-                  </button>`}
-            </td>
-          </tr>
-        `).join('');
+              </td>
+              <td>${fecha}</td>
+              <td>
+                ${estatus === "Pagado"
+                  ? `<button class="btn btn-secondary btn-sm" disabled><i class="fas fa-check"></i> Pagado</button>`
+                  : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})"><i class="fas fa-dollar-sign"></i> Pagar</button>`
+                }
+              </td>
+            </tr>
+          `;
+        }).join('');
       } catch (err) {
         console.error("❌ Error cargando órdenes por rango:", err);
+      }
+    }
+
+    function verDetalles(index) {
+      const o = ordenesData[index];
+      document.getElementById("detalleOrdenId").value = o.orden_id;
+      document.getElementById("detalleMedico").value = o.medico || '';
+      document.getElementById("detalleDiagnostico").value = o.diagnostico || '';
+      document.getElementById("detalleLado").value = o.lado || '';
+      
+      new bootstrap.Modal(document.getElementById("modalDetalles")).show();
+    }
+
+    async function guardarDetalles() {
+      const ordenId = document.getElementById("detalleOrdenId").value;
+      const medico = document.getElementById("detalleMedico").value;
+      const diagnostico = document.getElementById("detalleDiagnostico").value;
+      const lado = document.getElementById("detalleLado").value;
+
+      try {
+        const res = await fetch(`/api/ordenes_medicas/${ordenId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ medico, diagnostico, lado }),
+        });
+
+        if (res.ok) {
+          mostrarExito("¡Actualizado!", "Detalles guardados correctamente");
+          bootstrap.Modal.getInstance(document.getElementById("modalDetalles")).hide();
+          cargarOrdenes();
+        } else {
+          const data = await res.json();
+          mostrarError("Error", data.error || "No se pudo actualizar");
+        }
+      } catch (err) {
+        console.error("Error guardando detalles:", err);
+        mostrarError("Error", "Error de conexión");
       }
     }
 
@@ -550,8 +604,8 @@
     async function imprimirReciboOrden(index) {
       const orden = ordenesData[index];
       
-      let numeroRecibo = orden.n_folio || 'N/A';
-      let numeroOrden = orden.n_orden || 'N/A';
+      let numeroRecibo = orden.n_folio || 'Sin Recibo';
+      let numeroOrden = orden.n_orden || orden.numero_orden || 'N/A';
       let numeroExpediente = orden.expediente_numero || orden.numero_expediente || 'N/A';
       let nombrePaciente = orden.paciente || 'Sin nombre';
       
@@ -771,40 +825,6 @@
         cargarOrdenesRango(hoy.format('YYYY-MM-DD'), hoy.format('YYYY-MM-DD'));
       });
     });
-
-    async function actualizarCampo(id, campo, valor) {
-      if (!valor.trim()) return;
-
-      try {
-        const res = await fetch(`/api/ordenes_medicas/${id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ [campo]: valor }),
-        });
-
-        let data;
-        try {
-          data = await res.json();
-        } catch {
-          data = {};
-        }
-
-        if (!res.ok) {
-          console.warn("Error backend:", data);
-          const mensaje =
-            data.error ||
-            data.message ||
-            "No se pudo actualizar el campo. Verifica sesión o permisos.";
-          Swal.fire("Error", mensaje, "error");
-          return;
-        }
-
-        console.log("Actualización exitosa:", data);
-      } catch (err) {
-        console.error("Fallo actualizando campo:", err);
-        Swal.fire("Error", err.message || "Error de red al actualizar", "error");
-      }
-    }
   </script>
 </body>
 </html>
