@@ -472,11 +472,14 @@
         const data = await res.json();
         ordenesData = data;
 
+        console.log("📊 Datos recibidos:", ordenesData);
+
         document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
           <tr>
-            <td><strong>${o.n_orden || o.numero_orden || 'N/A'}</strong></td>
-            <td>${o.numero_expediente || o.expediente_numero || 'N/A'}</td>
-            <td class="text-truncate-cell" title="${o.paciente}">${o.paciente}</td>
+            <td><strong>${o.n_orden || 'N/A'}</strong></td>
+            <td>${o.n_folio || 'N/A'}</td>
+            <td><strong>${o.expediente_numero || o.numero_expediente || 'N/A'}</strong></td>
+            <td class="text-truncate-cell" title="${o.paciente || 'Sin nombre'}">${o.paciente || 'Sin nombre'}</td>
             
             <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'medico', this.innerText)">
               ${o.medico || 'Pendiente'}
@@ -488,15 +491,15 @@
               ${o.lado || 'N/A'}
             </td>
 
-            <td class="text-truncate-cell" title="${o.procedimiento}">${o.procedimiento}</td>
-            <td><span class="badge bg-info">${o.tipo}</span></td>
-            <td>$${parseFloat(o.precio).toFixed(2)}</td>
-            <td>$${parseFloat(o.pagado).toFixed(2)}</td>
-            <td>$${parseFloat(o.pendiente).toFixed(2)}</td>
+            <td class="text-truncate-cell" title="${o.procedimiento || 'N/A'}">${o.procedimiento || 'N/A'}</td>
+            <td><span class="badge bg-info">${o.tipo || 'N/A'}</span></td>
+            <td>$${parseFloat(o.precio || 0).toFixed(2)}</td>
+            <td>$${parseFloat(o.pagado || 0).toFixed(2)}</td>
+            <td>$${parseFloat(o.pendiente || 0).toFixed(2)}</td>
 
             <td>
               <div>
-                <span class="badge ${o.estatus === "Pagado" ? 'bg-success' : 'bg-warning'}">${o.estatus}</span>
+                <span class="badge ${o.estatus === "Pagado" ? 'bg-success' : 'bg-warning'}">${o.estatus || 'Pendiente'}</span>
                 <br>
                 <button class="btn btn-primary btn-print-small" onclick="imprimirReciboOrden(${i})">
                   <i class="fas fa-print"></i> Recibo
@@ -504,11 +507,9 @@
               </div>
             </td>
 
-            <td>${o.n_folio || 'N/A'}</td>
-
             <td style="white-space: nowrap; vertical-align: middle;">
               ${(() => {
-                if (!o.fecha) return "";
+                if (!o.fecha) return "N/A";
                 const soloFecha = o.fecha.split("T")[0];
                 const [anio, mes, dia] = soloFecha.split("-");
                 return `${dia}/${mes}/${anio}`;
@@ -535,12 +536,12 @@
       const o = ordenesData[index];
       document.getElementById("formPago").reset();
       document.getElementById("orden_id").value = o.orden_id;
-      document.getElementById("pacientePago").textContent = o.paciente;
-      document.getElementById("procedimientoPago").textContent = o.procedimiento;
-      document.getElementById("precioPago").textContent = parseFloat(o.precio).toFixed(2);
-      document.getElementById("pagadoPago").textContent = parseFloat(o.pagado).toFixed(2);
-      document.getElementById("pendientePago").textContent = parseFloat(o.pendiente).toFixed(2);
-      document.getElementById("montoLiquidar").setAttribute("max", o.pendiente);
+      document.getElementById("pacientePago").textContent = o.paciente || 'Sin nombre';
+      document.getElementById("procedimientoPago").textContent = o.procedimiento || 'N/A';
+      document.getElementById("precioPago").textContent = parseFloat(o.precio || 0).toFixed(2);
+      document.getElementById("pagadoPago").textContent = parseFloat(o.pagado || 0).toFixed(2);
+      document.getElementById("pendientePago").textContent = parseFloat(o.pendiente || 0).toFixed(2);
+      document.getElementById("montoLiquidar").setAttribute("max", o.pendiente || 0);
       document.getElementById("montoLiquidar").value = "";
       
       new bootstrap.Modal(document.getElementById("modalPago")).show();
@@ -550,7 +551,9 @@
       const orden = ordenesData[index];
       
       let numeroRecibo = orden.n_folio || 'N/A';
-      let numeroOrden = orden.n_orden || orden.numero_orden || 'N/A';
+      let numeroOrden = orden.n_orden || 'N/A';
+      let numeroExpediente = orden.expediente_numero || orden.numero_expediente || 'N/A';
+      let nombrePaciente = orden.paciente || 'Sin nombre';
       
       const contenido = `
         <div class="recibo-preview">
@@ -565,7 +568,7 @@
             <table style="width:100%; margin-bottom:15px; font-size:14px;">
               <tr>
                 <td><b>Fecha:</b> ${(() => {
-                  if (!orden.fecha) return "";
+                  if (!orden.fecha) return "N/A";
                   const soloFecha = orden.fecha.split("T")[0];
                   const [anio, mes, dia] = soloFecha.split("-");
                   return `${dia}/${mes}/${anio}`;
@@ -574,10 +577,10 @@
               </tr>
               <tr>
                 <td><b>N.Orden:</b> ${numeroOrden}</td>
-                <td style="text-align:right;"><b>Expediente:</b> ${orden.numero_expediente || orden.expediente_numero || 'N/A'}</td>
+                <td style="text-align:right;"><b>Expediente:</b> ${numeroExpediente}</td>
               </tr>
               <tr>
-                <td colspan="2"><b>Paciente:</b> ${orden.paciente}</td>
+                <td colspan="2"><b>Paciente:</b> ${nombrePaciente}</td>
               </tr>
               <tr>
                 <td><b>Médico:</b> ${orden.medico || 'N/A'}</td>
@@ -600,10 +603,10 @@
             </thead>
             <tbody>
               <tr>
-                <td>${orden.procedimiento}</td>
-                <td style="text-align:right;">$${parseFloat(orden.precio).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-                <td style="text-align:right;">$${parseFloat(orden.pagado).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-                <td style="text-align:right;">$${parseFloat(orden.pendiente).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+                <td>${orden.procedimiento || 'N/A'}</td>
+                <td style="text-align:right;">$${parseFloat(orden.precio || 0).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+                <td style="text-align:right;">$${parseFloat(orden.pagado || 0).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+                <td style="text-align:right;">$${parseFloat(orden.pendiente || 0).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
               </tr>
             </tbody>
           </table>
