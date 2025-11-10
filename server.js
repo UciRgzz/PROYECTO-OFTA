@@ -2873,10 +2873,29 @@ app.delete('/api/atencion_consultas/:consulta_id', verificarSesion, async (req, 
   }
 });
 
-// ==================== CREAR ORDEN MÉDICA DESDE CONSULTA ====================
+// ==================== CREAR ORDEN MÉDICA DESDE CONSULTA (CORREGIDO) ====================
 app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
   try {
-    const { consultaId } = req.body;
+    const {
+      consultaId,
+      medico,
+      diagnostico,
+      lado,
+      procedimiento,
+      anexos,
+      conjuntiva,
+      cornea,
+      camara_anterior,
+      cristalino,
+      retina,
+      macula,
+      nervio_optico,
+      ciclopejia,
+      hora_tp,
+      problemas,
+      plan
+    } = req.body;
+
     const depto = getDepartamento(req);
 
     console.log('📋 Creando orden médica para consulta:', consultaId);
@@ -2885,7 +2904,7 @@ app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
       return res.status(400).json({ error: 'Se requiere el ID de la consulta' });
     }
 
-    // Obtener datos de la consulta
+    // 1️⃣ Obtener datos de la consulta
     const consulta = await pool.query(
       'SELECT * FROM consultas WHERE id = $1 AND departamento = $2',
       [consultaId, depto]
@@ -2897,32 +2916,23 @@ app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
 
     const c = consulta.rows[0];
 
-    // Verificar si ya existe una orden para esta consulta
-    const ordenExistente = await pool.query(
-      'SELECT * FROM ordenes_medicas WHERE consulta_id = $1 AND departamento = $2',
+    // 2️⃣ Verificar si ya existe una orden médica
+    const existe = await pool.query(
+      'SELECT id FROM ordenes_medicas WHERE consulta_id = $1 AND departamento = $2',
       [consultaId, depto]
     );
 
-    if (ordenExistente.rows.length > 0) {
-      console.log('⚠️ Ya existe orden para esta consulta');
+    if (existe.rows.length > 0) {
       return res.status(200).json({
+        yaExiste: true,
         mensaje: 'Ya existe una orden médica para esta consulta',
-        orden: ordenExistente.rows[0],
-        yaExiste: true
+        ordenId: existe.rows[0].id
       });
     }
 
-    // Obtener información del paciente
-    const expediente = await pool.query(
-      'SELECT nombre_completo FROM expedientes WHERE numero_expediente = $1 AND departamento = $2',
-      [c.expediente_id, depto]
-    );
+    // 3️⃣ Crear la nueva orden médica con todos los campos
+    const fechaLocal = fechaLocalMX();
 
-    const pacienteNombre = expediente.rows.length > 0
-      ? expediente.rows[0].nombre_completo
-      : 'Paciente Desconocido';
-
-    // Crear orden médica
     const result = await pool.query(`
       INSERT INTO ordenes_medicas (
         consulta_id,
@@ -2931,57 +2941,77 @@ app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
         diagnostico,
         lado,
         procedimiento,
+        anexos,
+        conjuntiva,
+        cornea,
+        camara_anterior,
+        cristalino,
+        retina,
+        macula,
+        nervio_optico,
+        ciclopejia,
+        hora_tp,
+        problemas,
+        plan,
         estatus,
+        origen,
+        tipo,
         precio,
         pagado,
         pendiente,
-        origen,
-        tipo,
         fecha,
         departamento
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-      RETURNING *
+      )
+      VALUES (
+        $1,$2,$3,$4,$5,$6,
+        $7,$8,$9,$10,$11,
+        $12,$13,$14,$15,$16,
+        $17,$18,'Pendiente',
+        'CONSULTA','Consulta',
+        500,0,500,$19,$20
+      )
+      RETURNING *;
     `, [
       consultaId,
       c.expediente_id,
-      c.medico,
-      'Consulta General',
-      'OD',
-      'Consulta Oftalmológica',
-      'Pendiente',
-      500.00,
-      0,
-      500.00,
-      'CONSULTA',
-      'Consulta',
-      c.fecha,
+      medico || c.medico,
+      diagnostico || 'Consulta General',
+      lado || 'OD',
+      procedimiento || 'Consulta Oftalmológica',
+      anexos || 'N/A',
+      conjuntiva || 'N/A',
+      cornea || 'N/A',
+      camara_anterior || 'N/A',
+      cristalino || 'N/A',
+      retina || 'N/A',
+      macula || 'N/A',
+      nervio_optico || 'N/A',
+      ciclopejia || null,
+      hora_tp || null,
+      problemas || null,
+      plan || null,
+      fechaLocal,
       depto
     ]);
 
-    console.log('✅ Orden médica creada exitosamente:', result.rows[0].id);
+    // 4️⃣ Marcar consulta como atendida
+    await pool.query(
+      `UPDATE consultas SET estado = 'Atendida' WHERE id = $1 AND departamento = $2`,
+      [consultaId, depto]
+    );
 
     res.status(201).json({
-      ...result.rows[0],
-      mensaje: 'Orden creada exitosamente',
+      mensaje: 'Orden médica creada correctamente desde la consulta',
+      orden: result.rows[0],
       yaExiste: false
     });
 
   } catch (err) {
     console.error('❌ Error en POST /api/ordenes_medicas_consulta:', err);
-
-    if (err.code === '23503') {
-      return res.status(400).json({
-        error: 'Error de referencia: Verifica que la consulta y el expediente existan',
-        detalle: err.detail
-      });
-    }
-
-    res.status(500).json({
-      error: 'Error al crear la orden médica',
-      detalle: err.message
-    });
+    res.status(500).json({ error: err.message });
   }
 });
+
 
 // ==================== OBTENER ÓRDENES MÉDICAS DE CONSULTAS ====================
 app.get('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
@@ -3002,19 +3032,21 @@ app.get('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-// ==================== OBTENER ORDEN MÉDICA POR CONSULTA ====================
+// ==================== OBTENER ORDEN MÉDICA POR CONSULTA (CORREGIDO) ====================
 app.get("/api/ordenes_medicas/consulta/:consultaId", verificarSesion, async (req, res) => {
   try {
     const { consultaId } = req.params;
     const depto = getDepartamento(req);
 
-    // Buscar la orden médica asociada a esa consulta
+    console.log('🔍 Buscando orden médica para consulta:', consultaId);
+
+    // ✅ Query corregida - trae TODOS los datos correctamente
     const result = await pool.query(`
       SELECT 
         o.id,
         o.expediente_id,
         o.consulta_id,
-        e.nombre_completo AS paciente,  -- ✅ se une para traer el nombre
+        e.nombre_completo AS paciente_nombre,
         o.medico,
         o.diagnostico,
         o.lado,
@@ -3031,22 +3063,28 @@ app.get("/api/ordenes_medicas/consulta/:consultaId", verificarSesion, async (req
         o.hora_tp,
         o.problemas,
         o.plan,
-        o.fecha
+        o.fecha,
+        o.precio,
+        o.estatus
       FROM ordenes_medicas o
       LEFT JOIN expedientes e 
         ON e.numero_expediente = o.expediente_id 
        AND e.departamento = o.departamento
-      WHERE o.consulta_id = $1 AND o.departamento = $2
+      WHERE o.consulta_id = $1 
+        AND o.departamento = $2
       LIMIT 1
     `, [consultaId, depto]);
 
     if (result.rows.length === 0) {
+      console.log('❌ No se encontró orden médica para consulta:', consultaId);
       return res.status(404).json({ error: "No se encontró información médica para esta consulta" });
     }
 
+    console.log('✅ Orden médica encontrada:', result.rows[0]);
     res.json(result.rows[0]);
+
   } catch (err) {
-    console.error("Error en /api/ordenes_medicas/consulta/:consultaId:", err);
+    console.error("❌ Error en /api/ordenes_medicas/consulta/:consultaId:", err);
     res.status(500).json({ error: err.message });
   }
 });
