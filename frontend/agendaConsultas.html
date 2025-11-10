@@ -573,9 +573,10 @@
         const resp = await fetch(`/api/consultas?desde=${desde}&hasta=${hasta}`);
         consultasFiltradas = await resp.json();
         
-        console.log('📋 Consultas cargadas:', consultasFiltradas);
+        const respOrdenes = await fetch('/api/ordenes_medicas_consulta');
+        const ordenes = respOrdenes.ok ? await respOrdenes.json() : [];
         
-        mostrarConsultas(consultasFiltradas);
+        mostrarConsultas(consultasFiltradas, ordenes);
       } catch (err) {
         console.error("Error cargando consultas por rango:", err);
         mostrarError("Error", "No se pudieron cargar las consultas");
@@ -583,7 +584,7 @@
     }
 
     // ====================== MOSTRAR CONSULTAS EN TABLA ======================
-    function mostrarConsultas(consultas) {
+    function mostrarConsultas(consultas, ordenes) {
       const tbody = document.getElementById("tabla-consultas");
       tbody.innerHTML = "";
 
@@ -593,18 +594,29 @@
       }
 
       consultas.forEach(c => {
-        console.log(`📊 Consulta ${c.id}: Estado = ${c.estado}`);
+        const tieneOrden = ordenes.some(o => o.consulta_id === c.id);
         
         const fila = document.createElement("tr");
+        
         let botonesAccion = '';
         
-        // ✅ LÓGICA CORREGIDA PARA MOSTRAR BOTONES SEGÚN ESTADO
         if (c.estado === 'Pendiente') {
-          botonesAccion = `
-            <button class="btn btn-warning btn-sm" onclick="irAPagar(${c.id})">
-              <i class="fas fa-dollar-sign"></i> Pagar
-            </button>
-          `;
+          if (!tieneOrden) {
+            botonesAccion = `
+              <button class="btn btn-warning btn-sm" onclick="irAPagar(${c.id})">
+                <i class="fas fa-dollar-sign"></i> Pagar
+              </button>
+            `;
+          } else {
+            botonesAccion = `
+              <span class="orden-pagada-icon" title="✅ Orden de pago creada">
+                <i class="fas fa-check"></i>
+              </span>
+              <button class="btn btn-success btn-sm" onclick="enviarAModuloMedico(${c.id})">
+                <i class="fas fa-stethoscope"></i> Atender
+              </button>
+            `;
+          }
         } else if (c.estado === 'En Módulo Médico') {
           botonesAccion = `
             <span class="badge bg-info">
@@ -612,7 +624,6 @@
             </span>
           `;
         } else if (c.estado === 'Atendida') {
-          // ✅ CUANDO ESTÁ ATENDIDA, MOSTRAR BOTÓN VER DATOS
           botonesAccion = `
             <button class="btn btn-info btn-sm" onclick="verDatosConsulta(${c.id})">
               <i class="fas fa-eye"></i> Ver Datos
@@ -620,7 +631,6 @@
           `;
         }
         
-        // Botón de eliminar solo para admin
         if (rolUsuario === 'admin') {
           botonesAccion += `
             <button class="btn btn-danger btn-sm" onclick="eliminarConsulta(${c.id})">
@@ -686,6 +696,26 @@
           }
         });
 
+        const respOrdenes = await fetch('/api/ordenes_medicas_consulta');
+        if (!respOrdenes.ok) {
+          throw new Error('Error al verificar órdenes existentes');
+        }
+
+        const ordenes = await respOrdenes.json();
+        const ordenExistente = ordenes.find(o => o.consulta_id === consultaId);
+
+        if (ordenExistente) {
+          await Swal.fire({
+            icon: 'info',
+            title: 'Orden Existente',
+            html: `<p>Ya existe una orden para esta consulta.</p>`,
+            timer: 2000,
+            showConfirmButton: false
+          });
+          cargarConsultas();
+          return;
+        }
+
         const resp = await fetch("/api/ordenes_medicas_consulta", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -704,7 +734,7 @@
           title: '¡Orden Creada!',
           html: `
             <p>Orden médica #${resultado.id} creada correctamente</p>
-            <p class="text-muted">Ahora el botón "Enviar a Módulo Médico" está disponible</p>
+            <p class="text-muted">Ahora el botón "Atender" está disponible</p>
           `,
           timer: 2500,
           showConfirmButton: false
@@ -796,8 +826,7 @@
     // ====================== VER DATOS DE CONSULTA ======================
     async function verDatosConsulta(consultaId) {
       try {
-        console.log('👁️ Ver datos de consulta:', consultaId);
-        
+        // ✅ Buscar la orden médica de la consulta
         const resp = await fetch(`/api/ordenes_medicas/consulta/${consultaId}`);
         if (!resp.ok) {
           mostrarError('Error', 'No se encontró información médica para esta consulta');
@@ -805,7 +834,6 @@
         }
 
         const orden = await resp.json();
-        console.log('📋 Orden médica recibida:', orden);
 
         let fechaMX = 'Sin fecha registrada';
         if (orden.fecha) {
@@ -879,6 +907,19 @@
                 </div>
               </div>
 
+              <!-- Ciclopejia -->
+              ${orden.ciclopejia ? `
+              <div class="mb-3">
+                <h6 style="color: #2c3e50; border-bottom: 2px solid #9b59b6; padding-bottom: 5px;">
+                  <i class="fas fa-eye-dropper"></i> Ciclopejia
+                </h6>
+                <p style="background: #fff; padding: 12px; border-radius: 5px; border: 1px solid #dee2e6;">
+                  ${orden.ciclopejia}
+                  ${orden.hora_tp ? ` - Hora TP: ${orden.hora_tp}` : ''}
+                </p>
+              </div>
+              ` : ''}
+
               <!-- Problemas Identificados -->
               ${orden.problemas ? `
               <div class="mb-3">
@@ -927,36 +968,77 @@
     }
 
     // ====================== ELIMINAR CONSULTA ======================
-    async function eliminarConsulta(consultaId) {
-      try {
-        const confirmacion = await Swal.fire({
-          title: '¿Estás seguro?',
-          text: "Esta acción eliminará la consulta y todos sus datos",
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#e74c3c',
-          cancelButtonColor: '#95a5a6',
-          confirmButtonText: 'Sí, eliminar',
-          cancelButtonText: 'Cancelar'
+async function eliminarConsulta(id) {
+  try {
+    const resp = await fetch(`/api/consultas/${id}`, {
+      method: "DELETE",
+      credentials: "include"
+    });
+
+    // ⚠️ Caso: el backend pide confirmación porque hay pagos
+    if (resp.status === 409) {
+      const data = await resp.json();
+
+      const result = await Swal.fire({
+        title: 'Atención',
+        text: data.mensaje,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6'
+      });
+
+      if (result.isConfirmed) {
+        const resp2 = await fetch(`/api/consultas/${id}?forzar=true`, {
+          method: "DELETE",
+          credentials: "include"
         });
+        const data2 = await resp2.json();
 
-        if (confirmacion.isConfirmed) {
-          const resp = await fetch(`/api/consultas/${consultaId}`, {
-            method: 'DELETE'
-          });
-
-          if (resp.ok) {
-            mostrarExito('Eliminado', 'La consulta ha sido eliminada correctamente');
-            cargarConsultas();
-          } else {
-            mostrarError('Error', 'No se pudo eliminar la consulta');
-          }
-        }
-      } catch (err) {
-        console.error("Error eliminando consulta:", err);
-        mostrarError("Error", "Ocurrió un error al eliminar la consulta");
+        await Swal.fire({
+          icon: 'success',
+          title: 'Eliminada',
+          text: data2.mensaje || 'Consulta eliminada correctamente',
+          confirmButtonColor: '#3085d6'
+        });
+        location.reload();
+      } else {
+        await Swal.fire({
+          icon: 'info',
+          title: 'Cancelado',
+          text: 'La consulta no fue eliminada',
+          confirmButtonColor: '#3085d6'
+        });
       }
+      return;
     }
+
+    // ✅ Caso normal (sin pagos)
+    if (!resp.ok) throw new Error("Error al eliminar la consulta");
+    const data = await resp.json();
+
+    await Swal.fire({
+      icon: 'success',
+      title: 'Eliminada',
+      text: data.mensaje || 'Consulta eliminada correctamente',
+      confirmButtonColor: '#3085d6'
+    });
+
+    location.reload();
+
+  } catch (err) {
+    console.error(err);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Ocurrió un problema al eliminar la consulta',
+      confirmButtonColor: '#d33'
+    });
+  }
+}
+
 
     // ====================== FORMATEAR FECHA ======================
     function formatearFecha(fecha) {
