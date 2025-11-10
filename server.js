@@ -3073,13 +3073,14 @@ app.get("/api/ordenes_medicas/consulta/:consultaId", verificarSesion, async (req
     const { consultaId } = req.params;
     const depto = getDepartamento(req);
 
-    // Buscar la orden médica asociada a esa consulta
+    console.log('🔍 Buscando orden para consulta:', consultaId);
+
     const result = await pool.query(`
       SELECT 
         o.id,
         o.expediente_id,
         o.consulta_id,
-        e.nombre_completo AS paciente,  -- ✅ se une para traer el nombre
+        COALESCE(e.nombre_completo, c.paciente, 'No registrado') AS paciente_nombre,
         o.medico,
         o.diagnostico,
         o.lado,
@@ -3096,18 +3097,27 @@ app.get("/api/ordenes_medicas/consulta/:consultaId", verificarSesion, async (req
         o.hora_tp,
         o.problemas,
         o.plan,
-        o.fecha
+        TO_CHAR(o.fecha, 'YYYY-MM-DD') as fecha
       FROM ordenes_medicas o
+      LEFT JOIN consultas c 
+        ON c.id = o.consulta_id 
+        AND c.departamento = o.departamento
       LEFT JOIN expedientes e 
         ON e.numero_expediente = o.expediente_id 
-       AND e.departamento = o.departamento
+        AND e.departamento = o.departamento
       WHERE o.consulta_id = $1 AND o.departamento = $2
+      ORDER BY o.id DESC
       LIMIT 1
     `, [consultaId, depto]);
 
     if (result.rows.length === 0) {
+      console.log('❌ No se encontró orden para consulta:', consultaId);
       return res.status(404).json({ error: "No se encontró información médica para esta consulta" });
     }
+
+    console.log('✅ Orden encontrada:', result.rows[0]);
+    console.log('  - Paciente:', result.rows[0].paciente_nombre);
+    console.log('  - Fecha:', result.rows[0].fecha);
 
     res.json(result.rows[0]);
   } catch (err) {

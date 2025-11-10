@@ -835,17 +835,25 @@
 
         const orden = await resp.json();
 
-        let fechaMX = 'Sin fecha registrada';
-        if (orden.fecha) {
-          const fechaObj = new Date(orden.fecha);
-          if (!isNaN(fechaObj)) {
-            fechaMX = fechaObj.toLocaleDateString('es-MX', { 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            });
-          }
-        }
+
+
+        // ✅ CÓDIGO NUEVO - Manejo correcto de fecha UTC
+let fechaMX = 'Sin fecha registrada';
+if (orden.fecha) {
+  // Si la fecha viene en formato YYYY-MM-DD (como "2025-11-10")
+  if (typeof orden.fecha === 'string' && /^\d{4}-\d{2}-\d{2}/.test(orden.fecha)) {
+    const [año, mes, dia] = orden.fecha.split('T')[0].split('-');
+    const fechaLocal = new Date(parseInt(año), parseInt(mes) - 1, parseInt(dia));
+    
+    fechaMX = fechaLocal.toLocaleDateString('es-MX', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  } else {
+    fechaMX = 'Sin fecha válida';
+  }
+}
 
         Swal.fire({
           title: 'Orden Médica - Consulta Atendida',
