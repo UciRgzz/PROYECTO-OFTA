@@ -2873,6 +2873,116 @@ app.delete('/api/atencion_consultas/:consulta_id', verificarSesion, async (req, 
   }
 });
 
+// ==================== CREAR ORDEN MÉDICA DESDE CONSULTA ====================
+app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
+  try {
+    const { consultaId } = req.body;
+    const depto = getDepartamento(req);
+
+    console.log('📋 Creando orden médica para consulta:', consultaId);
+
+    if (!consultaId) {
+      return res.status(400).json({ error: 'Se requiere el ID de la consulta' });
+    }
+
+    // Obtener datos de la consulta
+    const consulta = await pool.query(
+      'SELECT * FROM consultas WHERE id = $1 AND departamento = $2',
+      [consultaId, depto]
+    );
+
+    if (consulta.rows.length === 0) {
+      return res.status(404).json({ error: 'Consulta no encontrada' });
+    }
+
+    const c = consulta.rows[0];
+
+    // Verificar si ya existe una orden para esta consulta
+    const ordenExistente = await pool.query(
+      'SELECT * FROM ordenes_medicas WHERE consulta_id = $1 AND departamento = $2',
+      [consultaId, depto]
+    );
+
+    if (ordenExistente.rows.length > 0) {
+      console.log('⚠️ Ya existe orden para esta consulta');
+      return res.status(200).json({
+        mensaje: 'Ya existe una orden médica para esta consulta',
+        orden: ordenExistente.rows[0],
+        yaExiste: true
+      });
+    }
+
+    // Obtener información del paciente
+    const expediente = await pool.query(
+      'SELECT nombre_completo FROM expedientes WHERE numero_expediente = $1 AND departamento = $2',
+      [c.expediente_id, depto]
+    );
+
+    const pacienteNombre = expediente.rows.length > 0
+      ? expediente.rows[0].nombre_completo
+      : 'Paciente Desconocido';
+
+    // Crear orden médica
+    const result = await pool.query(`
+      INSERT INTO ordenes_medicas (
+        consulta_id,
+        expediente_id,
+        medico,
+        diagnostico,
+        lado,
+        procedimiento,
+        estatus,
+        precio,
+        pagado,
+        pendiente,
+        origen,
+        tipo,
+        fecha,
+        departamento
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      RETURNING *
+    `, [
+      consultaId,
+      c.expediente_id,
+      c.medico,
+      'Consulta General',
+      'OD',
+      'Consulta Oftalmológica',
+      'Pendiente',
+      500.00,
+      0,
+      500.00,
+      'CONSULTA',
+      'Consulta',
+      c.fecha,
+      depto
+    ]);
+
+    console.log('✅ Orden médica creada exitosamente:', result.rows[0].id);
+
+    res.status(201).json({
+      ...result.rows[0],
+      mensaje: 'Orden creada exitosamente',
+      yaExiste: false
+    });
+
+  } catch (err) {
+    console.error('❌ Error en POST /api/ordenes_medicas_consulta:', err);
+
+    if (err.code === '23503') {
+      return res.status(400).json({
+        error: 'Error de referencia: Verifica que la consulta y el expediente existan',
+        detalle: err.detail
+      });
+    }
+
+    res.status(500).json({
+      error: 'Error al crear la orden médica',
+      detalle: err.message
+    });
+  }
+});
+
 // ==================== OBTENER ÓRDENES MÉDICAS DE CONSULTAS ====================
 app.get('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
   try {
