@@ -85,7 +85,7 @@
     
     .table-container {
       width: 100%;
-      overflow: visible;
+      overflow-x: auto;
     }
     
     .table {
@@ -128,20 +128,6 @@
     .table tr:hover {
       background-color: #eef6ff;
     }
-    
-    .table th:nth-child(1), .table td:nth-child(1) { width: 5%; }
-    .table th:nth-child(2), .table td:nth-child(2) { width: 20%; }
-    .table th:nth-child(3), .table td:nth-child(3) { width: 15%; }
-    .table th:nth-child(4), .table td:nth-child(4) { width: 15%; }
-    .table th:nth-child(5), .table td:nth-child(5) { width: 5%; }
-    .table th:nth-child(6), .table td:nth-child(6) { width: 15%; }
-    .table th:nth-child(7), .table td:nth-child(7) { width: 8%; }
-    .table th:nth-child(8), .table td:nth-child(8) { width: 8%; }
-    .table th:nth-child(9), .table td:nth-child(9) { width: 8%; }
-    .table th:nth-child(10), .table td:nth-child(10) { width: 8%; }
-    .table th:nth-child(11), .table td:nth-child(11) { width: 8%; }
-    .table th:nth-child(12), .table td:nth-child(12) { width: 8%; }
-    .table th:nth-child(13), .table td:nth-child(13) { width: 8%; }
     
     .success-alert {
       display: none;
@@ -303,11 +289,6 @@
       .card-body {
         padding: 15px;
       }
-      
-      .table th:nth-child(4), .table td:nth-child(4),
-      .table th:nth-child(7), .table td:nth-child(7) {
-        display: none;
-      }
     }
     
     @media (max-width: 768px) {
@@ -318,13 +299,6 @@
       .card-header {
         font-size: 1.1rem;
         padding: 15px;
-      }
-      
-      .table th:nth-child(3), .table td:nth-child(3),
-      .table th:nth-child(4), .table td:nth-child(4),
-      .table th:nth-child(7), .table td:nth-child(7),
-      .table th:nth-child(12), .table td:nth-child(12) {
-        display: none;
       }
       
       .table th, .table td {
@@ -344,12 +318,6 @@
       
       h1 {
         font-size: 1.8rem;
-      }
-      
-      .table th:nth-child(1), .table td:nth-child(1),
-      .table th:nth-child(9), .table td:nth-child(9),
-      .table th:nth-child(10), .table td:nth-child(10) {
-        display: none;
       }
     }
   </style>
@@ -373,11 +341,12 @@
           <input type="text" id="filtroRango" class="form-control" style="max-width:300px;" placeholder="Selecciona un rango de fechas" readonly>
         </div>
 
-        <div class="table-container d-flex justify-content-center">
-          <table class="table text-center align-middle" style="width: auto; min-width: 95%;">
+        <div class="table-container">
+          <table class="table text-center align-middle">
             <thead>
               <tr>
-                <th>Número</th>
+                <th>N.Orden</th>
+                <th>Expediente</th>
                 <th>Paciente</th>
                 <th>Médico</th>
                 <th>Diagnóstico</th>
@@ -388,6 +357,7 @@
                 <th>Pagado</th>
                 <th>Pendiente</th>
                 <th>Estatus</th>
+                <th>N.Folio</th>
                 <th>Fecha</th>
                 <th>Acción</th>
               </tr>
@@ -477,25 +447,6 @@
   <script>
     let ordenesData = [];
 
-    const datosEjemplo = [
-      {
-        numero: 3,
-        paciente: "Ana Sofía Hernández López",
-        medico: "Jose Manuel L.",
-        diagnostico: "mckd",
-        lado: "OD",
-        procedimiento: "Cirugía de Catarata",
-        tipo: "Normal",
-        precio: 8000.00,
-        pagado: 300.00,
-        pendiente: 7700.00,
-        estatus: "Pendiente",
-        fecha: "2025-09-22",
-        orden_id: 3
-      }
-    ];
-
-    // Función para cargar órdenes desde el backend
     async function cargarOrdenes() {
       try {
         const valor = $('#filtroRango').val();
@@ -515,60 +466,69 @@
       }
     }
 
-    // Función para actualizar un campo editable
-    function renderizarTabla() {
-      document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
-        <tr>
-          <td>${o.numero || o.expediente_numero || ''}</td>
-          <td class="text-truncate-cell" title="${o.paciente}">${o.paciente}</td>
-          
-          <td ${o.tipo === 'OrdenCirugia' ? 'contenteditable="true"' : ''} onblur="actualizarCampo(${o.orden_id}, 'medico', this.innerText)">
-            ${o.medico || 'Pendiente'}
-          </td>
-          <td ${o.tipo === 'OrdenCirugia' ? 'contenteditable="true"' : ''} onblur="actualizarCampo(${o.orden_id}, 'diagnostico', this.innerText)">
-            ${o.diagnostico || 'Pendiente'}
-          </td>
-          <td ${o.tipo === 'OrdenCirugia' ? 'contenteditable="true"' : ''} onblur="actualizarCampoLado(${o.orden_id}, this.innerText)" 
-              title="${o.tipo === 'OrdenCirugia' ? 'Valores permitidos: OD, OI, AO' : 'No editable para tipo Normal'}">
-            ${o.lado || (o.tipo === 'OrdenCirugia' ? 'Pendiente' : 'N/A')}
-          </td>
+    async function cargarOrdenesRango(desde, hasta) {
+      try {
+        const res = await fetch(`/api/ordenes_medicas?desde=${desde}&hasta=${hasta}`);
+        const data = await res.json();
+        ordenesData = data;
 
-          <td class="text-truncate-cell" title="${o.procedimiento}">${o.procedimiento}</td>
-          <td><span class="badge bg-info">${o.tipo}</span></td>
-          <td>$${parseFloat(o.precio).toFixed(2)}</td>
-          <td>$${parseFloat(o.pagado).toFixed(2)}</td>
-          <td>$${parseFloat(o.pendiente).toFixed(2)}</td>
+        document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => `
+          <tr>
+            <td><strong>${o.n_orden || o.numero_orden || 'N/A'}</strong></td>
+            <td>${o.numero_expediente || o.expediente_numero || 'N/A'}</td>
+            <td class="text-truncate-cell" title="${o.paciente}">${o.paciente}</td>
+            
+            <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'medico', this.innerText)">
+              ${o.medico || 'Pendiente'}
+            </td>
+            <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'diagnostico', this.innerText)">
+              ${o.diagnostico || 'Pendiente'}
+            </td>
+            <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'lado', this.innerText)">
+              ${o.lado || 'N/A'}
+            </td>
 
-          <td>
-            <div>
-              <span class="badge ${o.estatus === "Pagado" ? 'bg-success' : 'bg-warning'}">${o.estatus}</span>
-              <br>
-              <button class="btn btn-primary btn-print-small" onclick="imprimirReciboOrden(${i})">
-                <i class="fas fa-print"></i> Recibo
-              </button>
-            </div>
-          </td>
+            <td class="text-truncate-cell" title="${o.procedimiento}">${o.procedimiento}</td>
+            <td><span class="badge bg-info">${o.tipo}</span></td>
+            <td>$${parseFloat(o.precio).toFixed(2)}</td>
+            <td>$${parseFloat(o.pagado).toFixed(2)}</td>
+            <td>$${parseFloat(o.pendiente).toFixed(2)}</td>
 
-          <td style="white-space: nowrap; vertical-align: middle;">
-            ${(() => {
-              if (!o.fecha) return "";
-              const soloFecha = o.fecha.split("T")[0];
-              const [anio, mes, dia] = soloFecha.split("-");
-              return `${dia}/${mes}/${anio}`;
-            })()}
-          </td>
+            <td>
+              <div>
+                <span class="badge ${o.estatus === "Pagado" ? 'bg-success' : 'bg-warning'}">${o.estatus}</span>
+                <br>
+                <button class="btn btn-primary btn-print-small" onclick="imprimirReciboOrden(${i})">
+                  <i class="fas fa-print"></i> Recibo
+                </button>
+              </div>
+            </td>
 
-          <td class="text-center">
-            ${o.estatus === "Pagado"
-              ? `<button class="btn btn-secondary btn-sm" disabled>
-                  <i class="fas fa-check"></i> Pagado
-                </button>`
-              : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
-                  <i class="fas fa-dollar-sign"></i> Pagar
-                </button>`}
-          </td>
-        </tr>
-      `).join("");
+            <td>${o.n_folio || 'N/A'}</td>
+
+            <td style="white-space: nowrap; vertical-align: middle;">
+              ${(() => {
+                if (!o.fecha) return "";
+                const soloFecha = o.fecha.split("T")[0];
+                const [anio, mes, dia] = soloFecha.split("-");
+                return `${dia}/${mes}/${anio}`;
+              })()}
+            </td>
+
+            <td class="text-center">
+              ${o.estatus === "Pagado"
+                ? `<button class="btn btn-secondary btn-sm" disabled>
+                    <i class="fas fa-check"></i> Pagado
+                  </button>`
+                : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
+                    <i class="fas fa-dollar-sign"></i> Pagar
+                  </button>`}
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        console.error("❌ Error cargando órdenes por rango:", err);
+      }
     }
 
     function abrirPago(index) {
@@ -586,23 +546,11 @@
       new bootstrap.Modal(document.getElementById("modalPago")).show();
     }
 
-    // Función para imprimir recibo de orden (CORREGIDA)
     async function imprimirReciboOrden(index) {
       const orden = ordenesData[index];
       
-      // 🔹 Obtener el numero_recibo desde el backend
-      let numeroRecibo = orden.orden_id; // valor por defecto
-      
-      try {
-        // Buscar el recibo asociado a esta orden para obtener el numero_recibo correcto
-        const resRecibo = await fetch(`/api/ordenes/${orden.orden_id}/recibo`);
-        if (resRecibo.ok) {
-          const reciboData = await resRecibo.json();
-          numeroRecibo = reciboData.numero_recibo || orden.orden_id;
-        }
-      } catch (err) {
-        console.warn("No se pudo obtener numero_recibo, usando orden_id");
-      }
+      let numeroRecibo = orden.n_folio || 'N/A';
+      let numeroOrden = orden.n_orden || orden.numero_orden || 'N/A';
       
       const contenido = `
         <div class="recibo-preview">
@@ -622,11 +570,11 @@
                   const [anio, mes, dia] = soloFecha.split("-");
                   return `${dia}/${mes}/${anio}`;
                 })()}</td>
-                <td style="text-align:right;"><b>Recibo N°:</b> ${numeroRecibo}</td>
+                <td style="text-align:right;"><b>N.Folio:</b> ${numeroRecibo}</td>
               </tr>
               <tr>
-                <td><b>Expediente:</b> ${orden.numero || orden.expediente_numero || 'N/A'}</td>
-                <td style="text-align:right;"><b>Tipo:</b> ${orden.tipo}</td>
+                <td><b>N.Orden:</b> ${numeroOrden}</td>
+                <td style="text-align:right;"><b>Expediente:</b> ${orden.numero_expediente || orden.expediente_numero || 'N/A'}</td>
               </tr>
               <tr>
                 <td colspan="2"><b>Paciente:</b> ${orden.paciente}</td>
@@ -661,7 +609,7 @@
           </table>
 
           <div class="recibo-footer">
-            <p><b>CLÍNICA OFTAVISION</b> - Este recibo es un comprobante de orden médica pagada.</p>
+            <p><b>CLÍNICA OFTAVISION</b> - Este recibo es un comprobante de orden médica.</p>
           </div>
         </div>
       `;
@@ -679,7 +627,7 @@
         preConfirm: () => {
           const opt = {
             margin: 10,
-            filename: `recibo_${numeroRecibo}.pdf`,
+            filename: `recibo_orden_${numeroOrden}_folio_${numeroRecibo}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2 },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -820,80 +768,6 @@
         cargarOrdenesRango(hoy.format('YYYY-MM-DD'), hoy.format('YYYY-MM-DD'));
       });
     });
-
-    async function cargarOrdenesRango(desde, hasta) {
-      try {
-        const res = await fetch(`/api/ordenes_medicas?desde=${desde}&hasta=${hasta}`);
-        const data = await res.json();
-        ordenesData = data;
-
-        document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => {
-          let fechaFormateada = "";
-          if (o.fecha) {
-            const partes = o.fecha.split("T")[0].split("-");
-            if (partes.length === 3) {
-              const [anio, mes, dia] = partes;
-              fechaFormateada = `${dia}/${mes}/${anio}`;
-            } else {
-              fechaFormateada = o.fecha;
-            }
-          }
-
-          return `
-          <tr>
-            <td>${o.numero || o.expediente_numero || ''}</td>
-            <td>${o.paciente}</td>
-
-            <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'medico', this.innerText)">
-              ${o.medico || 'Pendiente'}
-            </td>
-            <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'diagnostico', this.innerText)">
-              ${o.diagnostico || 'NULL'}
-            </td>
-            <td contenteditable="true" onblur="actualizarCampo(${o.orden_id}, 'lado', this.innerText)">
-              ${o.lado || 'NULL'}
-            </td>
-
-            <td>${o.procedimiento}</td>
-            <td><span class="badge bg-info">${o.tipo}</span></td>
-            <td>${parseFloat(o.precio).toFixed(2)}</td>
-            <td>${parseFloat(o.pagado).toFixed(2)}</td>
-            <td>${parseFloat(o.pendiente).toFixed(2)}</td>
-            <td>
-              <div>
-                <span class="badge ${o.estatus === "Pagado" ? 'bg-success' : 'bg-warning'}">${o.estatus}</span>
-                <br>
-                <button class="btn btn-primary btn-print-small" onclick="imprimirReciboOrden(${i})">
-                  <i class="fas fa-print"></i> Recibo
-                </button>
-              </div>
-            </td>
-
-            <td style="white-space: nowrap; vertical-align: middle;">
-              ${(() => {
-                if (!o.fecha) return "";
-                const soloFecha = o.fecha.split("T")[0];
-                const [anio, mes, dia] = soloFecha.split("-");
-                return `${dia}/${mes}/${anio}`;
-              })()}
-            </td>
-
-            <td class="text-center">
-              ${o.estatus === "Pagado"
-                ? `<button class="btn btn-secondary btn-sm" disabled>
-                    <i class="fas fa-check"></i> Pagado
-                  </button>`
-                : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})">
-                    <i class="fas fa-dollar-sign"></i> Pagar
-                  </button>`}
-            </td>
-          </tr>
-        `;
-        }).join('');
-      } catch (err) {
-        console.error("❌ Error cargando órdenes por rango:", err);
-      }
-    }
 
     async function actualizarCampo(id, campo, valor) {
       if (!valor.trim()) return;
