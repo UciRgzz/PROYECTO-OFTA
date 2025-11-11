@@ -3002,43 +3002,37 @@ app.delete('/api/atencion_consultas/:consulta_id', verificarSesion, async (req, 
   }
 });
 
-// ==================== CREAR ORDEN MÉDICA DESDE CONSULTA (CORREGIDO) ====================
+// ==================== CREAR ORDEN MÉDICA DESDE CONSULTA ====================
 app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
-  const client = await pool.connect();
   try {
-    const { consultaId, folio_recibo } = req.body;  // ✅ Agregar folio_recibo
+    const { consultaId, folio_recibo } = req.body;
     const depto = getDepartamento(req);
 
     console.log('📋 Creando orden médica para consulta:', consultaId);
-    console.log('📋 Folio recibo:', folio_recibo);
 
     if (!consultaId) {
       return res.status(400).json({ error: 'Se requiere el ID de la consulta' });
     }
 
-    await client.query('BEGIN');
-
     // Obtener datos de la consulta
-    const consulta = await client.query(
+    const consulta = await pool.query(
       'SELECT * FROM consultas WHERE id = $1 AND departamento = $2',
       [consultaId, depto]
     );
 
     if (consulta.rows.length === 0) {
-      await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Consulta no encontrada' });
     }
 
     const c = consulta.rows[0];
 
     // Verificar si ya existe una orden para esta consulta
-    const ordenExistente = await client.query(
+    const ordenExistente = await pool.query(
       'SELECT * FROM ordenes_medicas WHERE consulta_id = $1 AND departamento = $2',
       [consultaId, depto]
     );
 
     if (ordenExistente.rows.length > 0) {
-      await client.query('ROLLBACK');
       console.log('⚠️ Ya existe orden para esta consulta');
       return res.status(200).json({
         mensaje: 'Ya existe una orden médica para esta consulta',
@@ -3047,12 +3041,8 @@ app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
       });
     }
 
-    // ✅ Calcular pagado y pendiente según si hay recibo
-    const pagadoInicial = folio_recibo ? 500.00 : 0;
-    const pendienteInicial = folio_recibo ? 0 : 500.00;
-
-    // Crear orden médica ✅ CON folio_recibo si existe
-    const result = await client.query(`
+    // ✅ Crear orden médica SIEMPRE con pagado = 0
+    const result = await pool.query(`
       INSERT INTO ordenes_medicas (
         consulta_id,
         expediente_id,
@@ -3074,30 +3064,20 @@ app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
     `, [
       consultaId,
       c.expediente_id,
-      folio_recibo || null,  // ✅ Vincularlo si existe
+      folio_recibo || null,
       c.medico,
       'Consulta General',
       'OD',
       'Consulta Oftalmológica',
-      folio_recibo ? 'Pagado' : 'Pendiente',
+      'Pendiente',           // ✅ SIEMPRE Pendiente
       500.00,
-      pagadoInicial,
-      pendienteInicial,
+      0,                     // ✅ SIEMPRE pagado = 0
+      500.00,                // ✅ SIEMPRE pendiente = precio
       'CONSULTA',
       'Consulta',
       c.fecha,
       depto
     ]);
-
-    // ✅ Si hay recibo, registrar el pago
-    if (folio_recibo) {
-      await client.query(`
-        INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
-        VALUES ($1, $2, $3, $4, $5, $6)
-      `, [result.rows[0].id, c.expediente_id, 500.00, 'Efectivo', fechaLocalMX(), depto]);
-    }
-
-    await client.query('COMMIT');
 
     console.log('✅ Orden médica creada exitosamente:', result.rows[0].id);
 
@@ -3108,22 +3088,11 @@ app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
     });
 
   } catch (err) {
-    await client.query('ROLLBACK');
     console.error('❌ Error en POST /api/ordenes_medicas_consulta:', err);
-
-    if (err.code === '23503') {
-      return res.status(400).json({
-        error: 'Error de referencia: Verifica que la consulta y el expediente existan',
-        detalle: err.detail
-      });
-    }
-
     res.status(500).json({
       error: 'Error al crear la orden médica',
       detalle: err.message
     });
-  } finally {
-    client.release();
   }
 });
 
