@@ -513,479 +513,485 @@
 
 
   <script>
+  let userRole = 'usuario'; // ✅ Se cargará del backend
+  let pacienteId = null;
+  let catalogo = [];
+  let rangoFechasActual = { desde: null, hasta: null }; // ✅ Guardar rango actual
 
-    let userRole = localStorage.getItem("rol") || "usuario"; 
-    let pacienteId = null;
-    let catalogo = [];
-
-    // Cargar catálogo de procedimientos
-    async function cargarCatalogo() {
-      try {
-        const res = await fetch("/api/procedimientos");
-        catalogo = await res.json();
-
-        // Rellenar el select de procedimiento con los valores de la BD
-        const procSelect = document.getElementById("procedimiento");
-        procSelect.innerHTML = catalogo.map(c =>
-          `<option value="${c.nombre}">${c.nombre}</option>`
-        ).join("");
-
-        actualizarPrecios();
-      } catch (err) {
-        console.error("Error cargando catálogo:", err);
-      }
+  // ==================== VERIFICAR ROL AL CARGAR ====================
+  async function verificarRol() {
+    try {
+      const res = await fetch('/api/user/role');
+      const data = await res.json();
+      userRole = data.isAdmin ? 'admin' : 'usuario';
+      console.log('👤 Rol del usuario:', userRole);
+    } catch (err) {
+      console.error('Error verificando rol:', err);
+      userRole = 'usuario';
     }
+  }
 
-    // Actualizar opciones de precios según el procedimiento elegido
-    function actualizarPrecios() {
-      const proc = document.getElementById("procedimiento").value;
-      const select = document.getElementById("precio");
-      const elegido = catalogo.find(c => c.nombre === proc);
-      select.innerHTML = elegido 
-        ? `<option value="${elegido.precio}">${elegido.nombre} — $${elegido.precio}</option>`
-        : "";
+  // Cargar catálogo de procedimientos
+  async function cargarCatalogo() {
+    try {
+      const res = await fetch("/api/procedimientos");
+      catalogo = await res.json();
+
+      const procSelect = document.getElementById("procedimiento");
+      procSelect.innerHTML = catalogo.map(c =>
+        `<option value="${c.nombre}">${c.nombre}</option>`
+      ).join("");
+
+      actualizarPrecios();
+    } catch (err) {
+      console.error("Error cargando catálogo:", err);
     }
+  }
 
-    // Escuchar cambio de procedimiento
-    document.getElementById("procedimiento").addEventListener("change", actualizarPrecios);
+  function actualizarPrecios() {
+    const proc = document.getElementById("procedimiento").value;
+    const select = document.getElementById("precio");
+    const elegido = catalogo.find(c => c.nombre === proc);
+    select.innerHTML = elegido 
+      ? `<option value="${elegido.precio}">${elegido.nombre} — $${elegido.precio}</option>`
+      : "";
+  }
 
-    cargarCatalogo();
+  document.getElementById("procedimiento").addEventListener("change", actualizarPrecios);
 
-    // Autocompletar paciente por folio
-    document.getElementById("folio").addEventListener("input", async () => {
-      const folio = document.getElementById("folio").value;
-      if (!folio) {
-        document.getElementById("nombrePaciente").value = "";
+  // Autocompletar paciente por folio
+  document.getElementById("folio").addEventListener("input", async () => {
+    const folio = document.getElementById("folio").value;
+    if (!folio) {
+      document.getElementById("nombrePaciente").value = "";
+      pacienteId = null;
+      return;
+    }
+    try {
+      const res = await fetch(`/api/recibos/paciente/${folio}`);
+      if (!res.ok) {
+        document.getElementById("nombrePaciente").value = "No encontrado";
         pacienteId = null;
         return;
       }
-      try {
-        const res = await fetch(`/api/recibos/paciente/${folio}`);
-        if (!res.ok) {
-          document.getElementById("nombrePaciente").value = "No encontrado";
-          pacienteId = null;
-          return;
-        }
-        const data = await res.json();
-        document.getElementById("nombrePaciente").value = data.nombre_completo;
-        pacienteId = data.id;
-      } catch (err) {
-        console.error("Error buscando paciente:", err);
-      }
-    });
-
-// ==================== Guardar recibo ====================
-document.getElementById("formRecibo").addEventListener("submit", async function(e) {
-  e.preventDefault();
-
-  const btn = this.querySelector("button[type=submit]");
-  btn.disabled = true; // Bloquea el botón mientras se guarda
-
-  try {
-    //  Obtener fecha local sin desfase UTC
-    const hoy = new Date();
-    const fechaLocal = new Date(hoy.getTime() - hoy.getTimezoneOffset() * 60000)
-      .toISOString()
-      .split("T")[0];
-
-    const datos = {
-      fecha: fechaLocal, // ✅ Fecha local corregida
-      paciente_id: pacienteId,
-      procedimiento: this.procedimiento.value,
-      precio: this.precio.value,
-      forma_pago: this.forma_pago.value,
-      monto_pagado: this.monto_pagado.value,
-      tipo: this.tipoRecibo.value
-    };
-
-    const res = await fetch('/api/recibos', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(datos)
-    });
-
-    const data = await res.json();
-
-    if (res.ok) {
-      mostrarExito("¡Éxito!", "Recibo guardado correctamente");
-
-      // Resetear formulario
-      this.reset();
-      document.getElementById("nombrePaciente").value = "";
-
-      // Volver a poner la fecha actual en el campo (sin desfase)
-      document.getElementById("fecha").value = fechaLocal;
-
-      // Recargar datos del día actual
-      cargarRecibosRango(fechaLocal, fechaLocal);
-
-      actualizarPrecios();
-    } else {
-      mostrarError("Error", data.error || 'No se pudo guardar el recibo');
+      const data = await res.json();
+      document.getElementById("nombrePaciente").value = data.nombre_completo;
+      pacienteId = data.id;
+    } catch (err) {
+      console.error("Error buscando paciente:", err);
     }
-  } catch (err) {
-    console.error("Error guardando recibo:", err);
-    mostrarError("Error", "No se pudo guardar el recibo");
-  } finally {
-    btn.disabled = false; //  Reactiva el botón cuando termina
-  }
-});
-
-
-    // Eliminar recibo
-async function eliminarRecibo(id) {
-  const confirmacion = await Swal.fire({
-    title: '¿Estás seguro?',
-    text: "No podrás revertir esta acción",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#e74c3c',
-    cancelButtonColor: '#6c757d',
-    confirmButtonText: 'Sí, eliminar',
-    cancelButtonText: 'Cancelar'
   });
 
-  if (!confirmacion.isConfirmed) return;
+  // ==================== Guardar recibo ====================
+  document.getElementById("formRecibo").addEventListener("submit", async function(e) {
+    e.preventDefault();
 
-  try {
-    const res = await fetch(`/api/recibos/${id}`, { method: "DELETE" });
-    const data = await res.json();
-    
-    if (res.ok) {
-      mostrarExito("Eliminado", "El recibo fue eliminado correctamente");
-      const hoyStr = moment().format("YYYY-MM-DD");
-      cargarRecibosRango(hoyStr, hoyStr);
-    } else {
-      mostrarError("Error", data.error || 'No se pudo eliminar el recibo');
-    }
-  } catch (err) {
-    console.error("Error al eliminar recibo:", err);
-    mostrarError("Error", "Ocurrió un error eliminando el recibo");
-  }
-}
-
-    // Generar vista previa del recibo y confirmar impresión
-    async function imprimirRecibo(id) {
-      try {
-        const res = await fetch(`/api/recibos/${id}`);
-        if (!res.ok) {
-          mostrarError("Error", "No se encontró el recibo");
-          return;
-        }
-        const recibo = await res.json();
-
-        // Plantilla formal de recibo
-        const contenido = `
-          <div class="recibo-preview">
-            <div class="recibo-header">
-              <img src="/uploads/logo-oftavision.png" alt="Logo" class="recibo-logo">
-              <h2 style="margin:5px 0;">CLÍNICA OFTAVISION</h2>
-              <h4 style="margin:0; color:#444;">RECIBO DE PAGO</h4>
-              <hr>
-            </div>
-
-            <div class="recibo-details">
-              <table style="width:100%; margin-bottom:15px; font-size:14px;">
-                <tr>
-                  <td><b>Fecha:</b> ${new Date(recibo.fecha).toISOString().split("T")[0].split("-").reverse().join("/")}</td>
-                  <td style="text-align:right;"><b>Recibo N°:</b> ${recibo.numero_recibo}</td>
-                </tr>
-                <tr>
-                  <td><b>Folio Expediente:</b> ${recibo.folio}</td>
-                  <td style="text-align:right;"><b>Tipo:</b> ${recibo.tipo}</td>
-                </tr>
-                <tr>
-                  <td colspan="2"><b>Paciente:</b> ${recibo.paciente}</td>
-                </tr>
-                <tr>
-                  <td colspan="2"><b>Forma de Pago:</b> ${recibo.forma_pago}</td>
-                </tr>
-              </table>
-            </div>
-
-            <table class="recibo-table">
-              <thead>
-                <tr>
-                  <th>Concepto</th>
-                  <th>Precio</th>
-                  <th>Pagado</th>
-                  <th>Pendiente</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>${recibo.procedimiento}</td>
-                  <td style="text-align:right;">$${parseFloat(recibo.precio).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-                  <td style="text-align:right;">$${parseFloat(recibo.monto_pagado).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-                  <td style="text-align:right;">$${parseFloat(recibo.pendiente).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-
-                </tr>
-              </tbody>
-            </table>
-
-            <div class="recibo-footer">
-              <p><b>CLÍNICA OFTAVISION</b> - Este recibo no es un comprobante fiscal.</p>
-            </div>
-          </div>
-        `;
-
-        // Mostrar modal de confirmación con el recibo
-        Swal.fire({
-          title: 'Vista previa del recibo',
-          html: contenido,
-          width: 800,
-          showCancelButton: true,
-          confirmButtonText: 'Descargar',
-          cancelButtonText: 'Cancelar',
-          customClass: {
-            popup: 'swal-wide'
-          },
-          preConfirm: () => {
-            // Generar el PDF solo si el usuario confirma
-            const opt = {
-              margin: 10,
-              filename: `recibo_${recibo.id}.pdf`,
-              image: { type: 'jpeg', quality: 0.98 },
-              html2canvas: { scale: 2 },
-              jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            html2pdf().from(contenido).set(opt).save();
-          }
-        });
-
-      } catch (err) {
-        console.error("Error imprimiendo recibo:", err);
-        mostrarError("Error", "No se pudo generar el PDF");
-      }
-    }
-// Cargar recibos
-async function cargarRecibosRango(desde, hasta) {
-  try {
-    const res = await fetch(`/api/recibos?desde=${desde}&hasta=${hasta}`);
-    let recibos = await res.json();
-
-    // 👇 Ordenar siempre de menor a mayor por ID
-recibos.sort((a, b) => a.id - b.id);
-
-document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
-  <tr>
-    <td>${r.fecha.split("T")[0]}</td>
-    <td>${r.folio}</td>
-    <td>${r.paciente}</td>
-    <td>${r.procedimiento}</td>
-    <td><span class="badge bg-info">${r.tipo}</span></td>
-    <td>${r.forma_pago}</td>
-    <td>
-      <span class="badge bg-info">
-        $${parseFloat(r.monto_pagado).toLocaleString("es-MX", {minimumFractionDigits: 2})}
-      </span>
-    </td>
-    <td>
-      <span class="badge bg-success">
-        $${parseFloat(r.precio).toLocaleString("es-MX", {minimumFractionDigits: 2})}
-      </span>
-    </td>
-    <td>
-      <span class="badge bg-warning abonar-btn" 
-            style="cursor:pointer;" 
-            data-id="${r.id}" 
-            data-pendiente="${r.precio - r.monto_pagado}">
-        $${parseFloat(r.precio - r.monto_pagado).toLocaleString("es-MX", {minimumFractionDigits: 2})}
-      </span>
-    </td>
-    <td>
-      <button class="btn btn-primary btn-sm" onclick="imprimirRecibo(${r.id})">
-        <i class="fas fa-receipt"></i> Comprobante
-      </button>
-      ${userRole === "admin" ? `
-        <button class="btn btn-danger btn-sm" onclick="eliminarRecibo(${r.id})">
-          <i class="fas fa-trash"></i> Eliminar
-        </button>` : ""}
-    </td>
-  </tr>
-`).join('');
-
-    // 📊 actualizar estadísticas
-    actualizarStats(recibos);
-
-  } catch (err) {
-    console.error("Error cargando recibos:", err);
-    mostrarError("Error", "No se pudieron cargar los recibos");
-  }
-}
-
-    // Mostrar mensaje de éxito
-    function mostrarExito(titulo, mensaje) {
-      document.getElementById('successMessage').textContent = mensaje;
-      document.getElementById('successAlert').style.display = 'block';
-      
-      // Ocultar después de 5 segundos
-      setTimeout(() => {
-        document.getElementById('successAlert').style.display = 'none';
-      }, 5000);
-      
-      Swal.fire({
-        icon: 'success',
-        title: titulo,
-        text: mensaje,
-        timer: 3000,
-        showConfirmButton: false
-      });
-    }
-
-    // Mostrar error
-    function mostrarError(titulo, mensaje) {
-      Swal.fire({
-        icon: 'error',
-        title: titulo,
-        text: mensaje
-      });
-    }
-
-    // Delegación de eventos: clic en el pendiente para abonar
-document.addEventListener("click", async (e) => {
-  if (e.target.classList.contains("abonar-btn")) {
-    const reciboId = e.target.dataset.id;
-    const pendiente = e.target.dataset.pendiente;
-
-    // Mostrar modal para ingresar monto a abonar
-    const { value: formValues } = await Swal.fire({
-      title: '<i class="fas fa-cash-register text-primary"></i> Abonar a Recibo',
-      html: `
-        <div style="text-align:center; margin-bottom:20px;">
-          <span style="font-size:1.1rem; color:#2c3e50;">Pendiente actual:</span><br>
-          <b style="color:#e74c3c; font-size:1.5rem;">$${parseFloat(pendiente).toFixed(2)}</b>
-        </div>
-
-        <div class="form-group" style="margin-bottom:15px; text-align:left;">
-          <label style="font-weight:600; color:#34495e;">Monto a abonar</label>
-          <input id="monto" class="swal2-input" type="number" min="1" placeholder="Ingrese monto" style="margin-top:5px;">
-        </div>
-
-        <div class="form-group" style="text-align:left;">
-          <label style="font-weight:600; color:#34495e;">Forma de Pago</label>
-          <select id="formaPago" class="form-select" style="width:100%;">
-            <option value="Efectivo">Efectivo</option>
-            <option value="Tarjeta Débito">Tarjeta Débito</option>
-            <option value="Tarjeta Crédito">Tarjeta Crédito</option>
-            <option value="Transferencia">Transferencia</option>
-          </select>
-        </div>
-      `,
-      confirmButtonText: '<i class="fas fa-save"></i> Registrar Abono',
-      confirmButtonColor: '#27ae60',
-      cancelButtonText: 'Cancelar',
-      showCancelButton: true,
-      cancelButtonColor: '#7f8c8d',
-      background: '#fdfdfd',
-      width: 500,
-      customClass: {
-        popup: 'swal2-shadow'
-      },
-      preConfirm: () => {
-        return {
-          monto: document.getElementById('monto').value,
-          forma_pago: document.getElementById('formaPago').value
-        }
-      }
-    });
-
-    // Si el usuario canceló
-    if (!formValues) return;
+    const btn = this.querySelector("button[type=submit]");
+    btn.disabled = true;
 
     try {
-      const res = await fetch(`/api/recibos/${reciboId}/abonos`, {
+      const hoy = new Date();
+      const fechaLocal = new Date(hoy.getTime() - hoy.getTimezoneOffset() * 60000)
+        .toISOString()
+        .split("T")[0];
+
+      const datos = {
+        fecha: fechaLocal,
+        paciente_id: pacienteId,
+        procedimiento: this.procedimiento.value,
+        precio: this.precio.value,
+        forma_pago: this.forma_pago.value,
+        monto_pagado: this.monto_pagado.value,
+        tipo: this.tipoRecibo.value
+      };
+
+      const res = await fetch('/api/recibos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formValues)
+        body: JSON.stringify(datos)
       });
 
       const data = await res.json();
+
       if (res.ok) {
-        Swal.fire('✅ Éxito', 'Abono registrado correctamente', 'success');
-        const hoyStr = moment().format("YYYY-MM-DD");
-        cargarRecibosRango(hoyStr, hoyStr); // recargar lista
+        mostrarExito("¡Éxito!", "Recibo guardado correctamente");
+        this.reset();
+        document.getElementById("nombrePaciente").value = "";
+        document.getElementById("fecha").value = fechaLocal;
+        
+        // ✅ Recargar con el rango actual
+        if (rangoFechasActual.desde && rangoFechasActual.hasta) {
+          cargarRecibosRango(rangoFechasActual.desde, rangoFechasActual.hasta);
+        } else {
+          cargarRecibosRango(fechaLocal, fechaLocal);
+        }
+
+        actualizarPrecios();
       } else {
-        Swal.fire('❌ Error', data.error || 'No se pudo registrar el abono', 'error');
+        mostrarError("Error", data.error || 'No se pudo guardar el recibo');
       }
     } catch (err) {
-      console.error(err);
-      Swal.fire('❌ Error', 'Ocurrió un error en el servidor', 'error');
+      console.error("Error guardando recibo:", err);
+      mostrarError("Error", "No se pudo guardar el recibo");
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // Eliminar recibo
+  async function eliminarRecibo(id) {
+    const confirmacion = await Swal.fire({
+      title: '¿Estás seguro?',
+      text: "No podrás revertir esta acción",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#e74c3c',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (!confirmacion.isConfirmed) return;
+
+    try {
+      const res = await fetch(`/api/recibos/${id}`, { method: "DELETE" });
+      const data = await res.json();
+      
+      if (res.ok) {
+        mostrarExito("Eliminado", "El recibo fue eliminado correctamente");
+        
+        // ✅ Recargar con el rango actual
+        if (rangoFechasActual.desde && rangoFechasActual.hasta) {
+          cargarRecibosRango(rangoFechasActual.desde, rangoFechasActual.hasta);
+        } else {
+          const hoyStr = moment().format("YYYY-MM-DD");
+          cargarRecibosRango(hoyStr, hoyStr);
+        }
+      } else {
+        mostrarError("Error", data.error || 'No se pudo eliminar el recibo');
+      }
+    } catch (err) {
+      console.error("Error al eliminar recibo:", err);
+      mostrarError("Error", "Ocurrió un error eliminando el recibo");
     }
   }
-});
 
-    // Poner fecha actual automáticamente en el formulario
-document.addEventListener("DOMContentLoaded", () => {
-  const hoy = moment().format("YYYY-MM-DD");
+  // Generar vista previa del recibo
+  async function imprimirRecibo(id) {
+    try {
+      const res = await fetch(`/api/recibos/${id}`);
+      if (!res.ok) {
+        mostrarError("Error", "No se encontró el recibo");
+        return;
+      }
+      const recibo = await res.json();
 
-  // Fecha del formulario (recibo nuevo)
-  document.getElementById("fecha").value = hoy;
+      const contenido = `
+        <div class="recibo-preview">
+          <div class="recibo-header">
+            <img src="/uploads/logo-oftavision.png" alt="Logo" class="recibo-logo">
+            <h2 style="margin:5px 0;">CLÍNICA OFTAVISION</h2>
+            <h4 style="margin:0; color:#444;">RECIBO DE PAGO</h4>
+            <hr>
+          </div>
 
-// Inicializar date range picker
-$('#filtroRango').daterangepicker({
-  autoUpdateInput: false, // no escribir hasta aplicar
-  locale: {
-    format: 'DD/MM/YYYY',
-    separator: " - ",
-    applyLabel: "Aplicar",
-    cancelLabel: "Cancelar",
-    fromLabel: "Desde",
-    toLabel: "Hasta",
-    customRangeLabel: "Rango personalizado",
-    weekLabel: "S",
-    daysOfWeek: ["Do","Lu","Ma","Mi","Ju","Vi","Sa"],
-    monthNames: [
-      "Enero","Febrero","Marzo","Abril","Mayo","Junio",
-      "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
-    ],
-    firstDay: 1
-  },
-  startDate: moment(),
-  endDate: moment(),
-  ranges: {
-    'Hoy': [moment(), moment()],
-    'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-    'Últimos 7 Días': [moment().subtract(6, 'days'), moment()],
-    'Últimos 30 Días': [moment().subtract(29, 'days'), moment()],
-    'Este Mes': [moment().startOf('month'), moment().endOf('month')],
-    'Mes Pasado': [
-      moment().subtract(1, 'month').startOf('month'),
-      moment().subtract(1, 'month').endOf('month')
-    ]
-  }
-});
+          <div class="recibo-details">
+            <table style="width:100%; margin-bottom:15px; font-size:14px;">
+              <tr>
+                <td><b>Fecha:</b> ${new Date(recibo.fecha).toISOString().split("T")[0].split("-").reverse().join("/")}</td>
+                <td style="text-align:right;"><b>Recibo N°:</b> ${recibo.numero_recibo}</td>
+              </tr>
+              <tr>
+                <td><b>Folio Expediente:</b> ${recibo.folio}</td>
+                <td style="text-align:right;"><b>Tipo:</b> ${recibo.tipo}</td>
+              </tr>
+              <tr>
+                <td colspan="2"><b>Paciente:</b> ${recibo.paciente}</td>
+              </tr>
+              <tr>
+                <td colspan="2"><b>Forma de Pago:</b> ${recibo.forma_pago}</td>
+              </tr>
+            </table>
+          </div>
 
-// Cuando el usuario aplica
-$('#filtroRango').on('apply.daterangepicker', function(ev, picker) {
-  $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
-  cargarRecibosRango(picker.startDate.format("YYYY-MM-DD"), picker.endDate.format("YYYY-MM-DD"));
-});
+          <table class="recibo-table">
+            <thead>
+              <tr>
+                <th>Concepto</th>
+                <th>Precio</th>
+                <th>Pagado</th>
+                <th>Pendiente</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>${recibo.procedimiento}</td>
+                <td style="text-align:right;">$${parseFloat(recibo.precio).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+                <td style="text-align:right;">$${parseFloat(recibo.monto_pagado).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+                <td style="text-align:right;">$${parseFloat(recibo.pendiente).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+              </tr>
+            </tbody>
+          </table>
 
-// Cuando cancela
-$('#filtroRango').on('cancel.daterangepicker', function(ev, picker) {
-  $(this).val('');
-  let hoy = moment().format("YYYY-MM-DD");
-  cargarRecibosRango(hoy, hoy);
-});
+          <div class="recibo-footer">
+            <p><b>CLÍNICA OFTAVISION</b> - Este recibo no es un comprobante fiscal.</p>
+          </div>
+        </div>
+      `;
 
+      Swal.fire({
+        title: 'Vista previa del recibo',
+        html: contenido,
+        width: 800,
+        showCancelButton: true,
+        confirmButtonText: 'Descargar',
+        cancelButtonText: 'Cancelar',
+        customClass: {
+          popup: 'swal-wide'
+        },
+        preConfirm: () => {
+          const opt = {
+            margin: 10,
+            filename: `recibo_${recibo.id}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+          };
+          html2pdf().from(contenido).set(opt).save();
+        }
+      });
 
-  // Cargar recibos de hoy por defecto
-  cargarRecibosRango(hoy, hoy);
-});
-
-// 👉 Actualizar estadísticas
-function actualizarStats(recibos) {
-  const totalRecibos = recibos.length;
-  const totalPagado = recibos.reduce((sum, r) => sum + parseFloat(r.monto_pagado || 0), 0);
-  const totalPendiente = recibos.reduce((sum, r) => sum + (parseFloat(r.precio || 0) - parseFloat(r.monto_pagado || 0)), 0);
-
-  document.getElementById("totalReceipts").textContent = totalRecibos;
-  document.getElementById("totalPaid").textContent = `$${totalPagado.toLocaleString("es-MX", {minimumFractionDigits: 2})}`;
-  document.getElementById("totalPending").textContent = `$${totalPendiente.toLocaleString("es-MX", {minimumFractionDigits: 2})}`;
-
+    } catch (err) {
+      console.error("Error imprimiendo recibo:", err);
+      mostrarError("Error", "No se pudo generar el PDF");
     }
+  }
 
-  </script>
+  // ==================== Cargar recibos (CORREGIDO) ====================
+  async function cargarRecibosRango(desde, hasta) {
+    try {
+      // ✅ Guardar rango actual
+      rangoFechasActual = { desde, hasta };
+
+      const res = await fetch(`/api/recibos?desde=${desde}&hasta=${hasta}`);
+      let recibos = await res.json();
+
+      recibos.sort((a, b) => a.id - b.id);
+
+      document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
+        <tr>
+          <td>${r.fecha.split("T")[0]}</td>
+          <td>${r.folio}</td>
+          <td>${r.paciente}</td>
+          <td>${r.procedimiento}</td>
+          <td><span class="badge bg-info">${r.tipo}</span></td>
+          <td>${r.forma_pago}</td>
+          <td>
+            <span class="badge bg-info">
+              $${parseFloat(r.monto_pagado).toLocaleString("es-MX", {minimumFractionDigits: 2})}
+            </span>
+          </td>
+          <td>
+            <span class="badge bg-success">
+              $${parseFloat(r.precio).toLocaleString("es-MX", {minimumFractionDigits: 2})}
+            </span>
+          </td>
+          <td>
+            <span class="badge bg-warning abonar-btn" 
+                  style="cursor:pointer;" 
+                  data-id="${r.id}" 
+                  data-pendiente="${r.precio - r.monto_pagado}">
+              $${parseFloat(r.precio - r.monto_pagado).toLocaleString("es-MX", {minimumFractionDigits: 2})}
+            </span>
+          </td>
+          <td>
+            <button class="btn btn-primary btn-sm" onclick="imprimirRecibo(${r.id})">
+              <i class="fas fa-receipt"></i> Comprobante
+            </button>
+            ${userRole === "admin" ? `
+              <button class="btn btn-danger btn-sm" onclick="eliminarRecibo(${r.id})">
+                <i class="fas fa-trash"></i> Eliminar
+              </button>` : ""}
+          </td>
+        </tr>
+      `).join('');
+
+      actualizarStats(recibos);
+
+    } catch (err) {
+      console.error("Error cargando recibos:", err);
+      mostrarError("Error", "No se pudieron cargar los recibos");
+    }
+  }
+
+  function mostrarExito(titulo, mensaje) {
+    document.getElementById('successMessage').textContent = mensaje;
+    document.getElementById('successAlert').style.display = 'block';
+    
+    setTimeout(() => {
+      document.getElementById('successAlert').style.display = 'none';
+    }, 5000);
+    
+    Swal.fire({
+      icon: 'success',
+      title: titulo,
+      text: mensaje,
+      timer: 3000,
+      showConfirmButton: false
+    });
+  }
+
+  function mostrarError(titulo, mensaje) {
+    Swal.fire({
+      icon: 'error',
+      title: titulo,
+      text: mensaje
+    });
+  }
+
+  // ==================== Delegación de eventos: ABONOS (CORREGIDO) ====================
+  document.addEventListener("click", async (e) => {
+    if (e.target.classList.contains("abonar-btn")) {
+      const reciboId = e.target.dataset.id;
+      const pendiente = e.target.dataset.pendiente;
+
+      const { value: formValues } = await Swal.fire({
+        title: '<i class="fas fa-cash-register text-primary"></i> Abonar a Recibo',
+        html: `
+          <div style="text-align:center; margin-bottom:20px;">
+            <span style="font-size:1.1rem; color:#2c3e50;">Pendiente actual:</span><br>
+            <b style="color:#e74c3c; font-size:1.5rem;">$${parseFloat(pendiente).toFixed(2)}</b>
+          </div>
+
+          <div class="form-group" style="margin-bottom:15px; text-align:left;">
+            <label style="font-weight:600; color:#34495e;">Monto a abonar</label>
+            <input id="monto" class="swal2-input" type="number" min="1" placeholder="Ingrese monto" style="margin-top:5px;">
+          </div>
+
+          <div class="form-group" style="text-align:left;">
+            <label style="font-weight:600; color:#34495e;">Forma de Pago</label>
+            <select id="formaPago" class="form-select" style="width:100%;">
+              <option value="Efectivo">Efectivo</option>
+              <option value="Tarjeta Débito">Tarjeta Débito</option>
+              <option value="Tarjeta Crédito">Tarjeta Crédito</option>
+              <option value="Transferencia">Transferencia</option>
+            </select>
+          </div>
+        `,
+        confirmButtonText: '<i class="fas fa-save"></i> Registrar Abono',
+        confirmButtonColor: '#27ae60',
+        cancelButtonText: 'Cancelar',
+        showCancelButton: true,
+        cancelButtonColor: '#7f8c8d',
+        background: '#fdfdfd',
+        width: 500,
+        customClass: {
+          popup: 'swal2-shadow'
+        },
+        preConfirm: () => {
+          return {
+            monto: document.getElementById('monto').value,
+            forma_pago: document.getElementById('formaPago').value
+          }
+        }
+      });
+
+      if (!formValues) return;
+
+      try {
+        const res = await fetch(`/api/recibos/${reciboId}/abonos`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formValues)
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          Swal.fire('✅ Éxito', 'Abono registrado correctamente', 'success');
+          
+          // ✅ Recargar con el rango actual guardado
+          if (rangoFechasActual.desde && rangoFechasActual.hasta) {
+            cargarRecibosRango(rangoFechasActual.desde, rangoFechasActual.hasta);
+          } else {
+            const hoyStr = moment().format("YYYY-MM-DD");
+            cargarRecibosRango(hoyStr, hoyStr);
+          }
+        } else {
+          Swal.fire('❌ Error', data.error || 'No se pudo registrar el abono', 'error');
+        }
+      } catch (err) {
+        console.error(err);
+        Swal.fire('❌ Error', 'Ocurrió un error en el servidor', 'error');
+      }
+    }
+  });
+
+  // ==================== INICIALIZACIÓN (CORREGIDO) ====================
+  document.addEventListener("DOMContentLoaded", async () => {
+    // ✅ Verificar rol del usuario
+    await verificarRol();
+    await cargarCatalogo();
+
+    const hoy = moment().format("YYYY-MM-DD");
+    document.getElementById("fecha").value = hoy;
+
+    // Inicializar date range picker
+    $('#filtroRango').daterangepicker({
+      autoUpdateInput: false,
+      locale: {
+        format: 'DD/MM/YYYY',
+        separator: " - ",
+        applyLabel: "Aplicar",
+        cancelLabel: "Cancelar",
+        fromLabel: "Desde",
+        toLabel: "Hasta",
+        customRangeLabel: "Rango personalizado",
+        weekLabel: "S",
+        daysOfWeek: ["Do","Lu","Ma","Mi","Ju","Vi","Sa"],
+        monthNames: [
+          "Enero","Febrero","Marzo","Abril","Mayo","Junio",
+          "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
+        ],
+        firstDay: 1
+      },
+      startDate: moment(),
+      endDate: moment(),
+      ranges: {
+        'Hoy': [moment(), moment()],
+        'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+        'Últimos 7 Días': [moment().subtract(6, 'days'), moment()],
+        'Últimos 30 Días': [moment().subtract(29, 'days'), moment()],
+        'Este Mes': [moment().startOf('month'), moment().endOf('month')],
+        'Mes Pasado': [
+          moment().subtract(1, 'month').startOf('month'),
+          moment().subtract(1, 'month').endOf('month')
+        ]
+      }
+    });
+
+    $('#filtroRango').on('apply.daterangepicker', function(ev, picker) {
+      $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+      cargarRecibosRango(picker.startDate.format("YYYY-MM-DD"), picker.endDate.format("YYYY-MM-DD"));
+    });
+
+    $('#filtroRango').on('cancel.daterangepicker', function(ev, picker) {
+      $(this).val('');
+      cargarRecibosRango(hoy, hoy);
+    });
+
+    // Cargar recibos de hoy por defecto
+    cargarRecibosRango(hoy, hoy);
+  });
+
+  function actualizarStats(recibos) {
+    const totalRecibos = recibos.length;
+    const totalPagado = recibos.reduce((sum, r) => sum + parseFloat(r.monto_pagado || 0), 0);
+    const totalPendiente = recibos.reduce((sum, r) => sum + (parseFloat(r.precio || 0) - parseFloat(r.monto_pagado || 0)), 0);
+
+    document.getElementById("totalReceipts").textContent = totalRecibos;
+    document.getElementById("totalPaid").textContent = `$${totalPagado.toLocaleString("es-MX", {minimumFractionDigits: 2})}`;
+    document.getElementById("totalPending").textContent = `$${totalPendiente.toLocaleString("es-MX", {minimumFractionDigits: 2})}`;
+  }
+</script>
 </body>
 </html>
