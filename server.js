@@ -1076,13 +1076,13 @@ app.get('/api/recibos/paciente/:folio', verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== PACIENTES PENDIENTES PARA MÓDULO MÉDICO ====================
+// ==================== PACIENTES PENDIENTES PARA MÓDULO MÉDICO (CORREGIDO) ====================
 app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
   try {
     const depto = getDepartamento(req);
 
     const result = await pool.query(`
-      -- 1️⃣ Recibos sin orden médica
+      -- 1️⃣ Recibos sin orden médica (excluyendo los que tienen consulta asociada)
       SELECT 
         r.id AS recibo_id,
         e.numero_expediente AS expediente_id,
@@ -1091,7 +1091,7 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
         e.padecimientos,
         r.procedimiento,
         NULL AS consulta_id,
-        r.id AS folio_recibo_real,  -- ID real del recibo
+        r.id AS folio_recibo_real,
         'RECIBO' AS origen
       FROM recibos r
       JOIN expedientes e 
@@ -1103,8 +1103,15 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
           WHERE o.folio_recibo = r.id 
             AND o.departamento = r.departamento
         )
+        -- ✅ EXCLUIR recibos creados desde consultas
+        AND NOT EXISTS (
+          SELECT 1 FROM consultas c
+          WHERE c.numero_expediente = r.paciente_id
+            AND c.departamento = r.departamento
+            AND c.estado IN ('Pendiente', 'En Módulo Médico')
+        )
 
-      UNION ALL
+      UNION
 
       -- 2️⃣ Consultas en módulo médico (con o sin orden de pago)
       SELECT 
@@ -1122,7 +1129,7 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
             AND o.departamento = c.departamento
             AND o.origen = 'CONSULTA'
           LIMIT 1
-        ) AS folio_recibo_real,  -- Buscar si ya tiene orden de pago
+        ) AS folio_recibo_real,
         'CONSULTA' AS origen
       FROM consultas c
       LEFT JOIN expedientes e 
