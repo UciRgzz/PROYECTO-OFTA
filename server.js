@@ -1765,7 +1765,7 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
 
     const query = `
       WITH resumen AS (
-        -- Recibos tipo "Normal" (consulta inicial, se suma completo)
+        -- ✅ SOLO Recibos tipo "Normal" QUE NO TIENEN ORDEN MÉDICA (evita duplicados)
         SELECT 
           r.forma_pago AS pago,
           r.procedimiento AS procedimiento,
@@ -1773,11 +1773,16 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
         FROM recibos r
         WHERE ${whereRecibos}
           AND (r.tipo = 'Normal' OR r.tipo IS NULL OR r.tipo = '')
+          AND NOT EXISTS (
+            SELECT 1 FROM ordenes_medicas o 
+            WHERE o.folio_recibo = r.id 
+              AND o.departamento = r.departamento
+          )
         GROUP BY r.forma_pago, r.procedimiento
 
         UNION ALL
 
-        -- Recibos tipo "OrdenCirugia" que NO tienen orden médica aún (evitar duplicados)
+        -- ✅ Recibos tipo "OrdenCirugia" que NO tienen orden médica aún (evitar duplicados)
         SELECT 
           r.forma_pago AS pago,
           r.procedimiento AS procedimiento,
@@ -1787,19 +1792,22 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
           AND r.tipo = 'OrdenCirugia'
           AND NOT EXISTS (
             SELECT 1 FROM ordenes_medicas o 
-            WHERE o.folio_recibo = r.id AND o.departamento = r.departamento
+            WHERE o.folio_recibo = r.id 
+              AND o.departamento = r.departamento
           )
         GROUP BY r.forma_pago, r.procedimiento
 
         UNION ALL
 
-        -- Pagos de órdenes médicas (cirugías programadas desde módulo médico)
+        -- ✅ Pagos de órdenes médicas (desde tabla pagos - la fuente correcta)
         SELECT 
           p.forma_pago AS pago,
           o.procedimiento AS procedimiento,
           SUM(p.monto) AS total
         FROM pagos p
-        JOIN ordenes_medicas o ON o.id = p.orden_id AND o.departamento = p.departamento
+        JOIN ordenes_medicas o 
+          ON o.id = p.orden_id 
+          AND o.departamento = p.departamento
         WHERE ${wherePagos}
         GROUP BY p.forma_pago, o.procedimiento
       )
@@ -1809,10 +1817,13 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
       ORDER BY pago, procedimiento;
     `;
 
+    console.log('📊 Ejecutando cierre de caja con params:', params);
     const result = await pool.query(query, params);
+    console.log('✅ Resumen generado con', result.rows.length, 'registros');
+    
     res.json(result.rows);
   } catch (err) {
-    console.error("Error en /api/cierre-caja:", err);
+    console.error("❌ Error en /api/cierre-caja:", err);
     res.status(500).json({ error: err.message });
   }
 });
