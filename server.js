@@ -1817,38 +1817,44 @@ app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== LISTADO DE PACIENTES (SALDO INDIVIDUAL CORRECTO) ====================
+// ==================== LISTADO DE PACIENTES (CORREGIDO) ====================
 app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
   try {
     const { fecha, desde, hasta } = req.query;
     const depto = getDepartamento(req);
+    
+    let whereRecibos = "r.departamento = $1";
+    let whereOrdenes = "o.departamento = $1";
+    let wherePagos = "p.departamento = $1";
     const params = [depto];
 
-    // --- Filtros dinámicos ---
-    let whereRecibos = "r.departamento = $1";
-    let wherePagos = "p.departamento = $1";
-
+    // --- Construir filtros de fecha ---
     if (fecha) {
       params.push(fecha);
       whereRecibos += ` AND DATE(r.fecha) = $${params.length}`;
+      whereOrdenes += ` AND DATE(o.fecha) = $${params.length}`;
       wherePagos += ` AND DATE(p.fecha) = $${params.length}`;
     } else if (desde && hasta) {
+      const desdeIdx = params.length + 1;
+      const hastaIdx = params.length + 2;
       params.push(desde, hasta);
-      whereRecibos += ` AND DATE(r.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
-      wherePagos += ` AND DATE(p.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
+      whereRecibos += ` AND DATE(r.fecha) BETWEEN $${desdeIdx} AND $${hastaIdx}`;
+      whereOrdenes += ` AND DATE(o.fecha) BETWEEN $${desdeIdx} AND $${hastaIdx}`;
+      wherePagos += ` AND DATE(p.fecha) BETWEEN $${desdeIdx} AND $${hastaIdx}`;
     } else {
       whereRecibos += " AND DATE(r.fecha) = CURRENT_DATE";
+      whereOrdenes += " AND DATE(o.fecha) = CURRENT_DATE";
       wherePagos += " AND DATE(p.fecha) = CURRENT_DATE";
     }
 
-    // --- Consulta SQL FINAL CORREGIDA CON N.ORDEN Y N.FOLIO ---
+    // --- Consulta SQL FINAL CORREGIDA ---
     const query = `
       WITH datos_completos AS (
         -- 1️⃣ Recibos tipo NORMAL
         SELECT 
           r.paciente_id AS numero_expediente,
           r.numero_recibo AS n_folio,
-          NULL AS n_orden,
+          NULL::integer AS n_orden,
           r.fecha,
           r.procedimiento,
           CASE 
@@ -1869,7 +1875,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
         SELECT 
           r.paciente_id AS numero_expediente,
           r.numero_recibo AS n_folio,
-          NULL AS n_orden,
+          NULL::integer AS n_orden,
           r.fecha,
           r.procedimiento,
           CASE 
@@ -1891,7 +1897,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
 
         UNION ALL
 
-        -- 3️⃣ Órdenes médicas con pagos (CON N.ORDEN Y N.FOLIO)
+        -- 3️⃣ Órdenes médicas con pagos
         SELECT 
           o.expediente_id AS numero_expediente,
           COALESCE(r.numero_recibo, 0) AS n_folio,
@@ -1906,20 +1912,11 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
         FROM ordenes_medicas o
         LEFT JOIN pagos p 
           ON p.orden_id = o.id 
-         AND p.departamento = o.departamento
+         AND ${wherePagos}
         LEFT JOIN recibos r
           ON r.id = o.folio_recibo
          AND r.departamento = o.departamento
-        WHERE o.departamento = $1
-          AND (
-            (${params.length === 1 ? 'DATE(o.fecha) = CURRENT_DATE' : 
-               params.length === 2 ? `DATE(o.fecha) = $2` : 
-               `DATE(o.fecha) BETWEEN $2 AND $3`})
-            OR 
-            (${params.length === 1 ? 'DATE(p.fecha) = CURRENT_DATE' : 
-               params.length === 2 ? `DATE(p.fecha) = $2` : 
-               `DATE(p.fecha) BETWEEN $2 AND $3`})
-          )
+        WHERE ${whereOrdenes}
         GROUP BY o.id, o.expediente_id, o.fecha, o.fecha_cirugia, 
                  o.procedimiento, o.estatus, o.precio, o.pagado, o.pendiente,
                  o.numero_orden, r.numero_recibo
@@ -1943,7 +1940,9 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
       ORDER BY d.fecha DESC, COALESCE(d.n_orden, 0) DESC;
     `;
 
+    console.log('📊 Ejecutando query con params:', params);
     const result = await pool.query(query, params);
+    console.log('✅ Registros obtenidos:', result.rows.length);
     res.json(result.rows);
 
   } catch (err) {
