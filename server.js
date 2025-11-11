@@ -2877,53 +2877,84 @@ app.delete('/api/consultas/:id', verificarSesion, async (req, res) => {
 
     await client.query('BEGIN');
 
-    // 1️⃣ Buscar orden médica asociada
-    const orden = await client.query(
-      'SELECT id FROM ordenes_medicas WHERE consulta_id = $1 AND departamento = $2',
+    // 1️⃣ Buscar TODAS las órdenes médicas asociadas a la consulta
+    const ordenes = await client.query(
+      'SELECT id, folio_recibo FROM ordenes_medicas WHERE consulta_id = $1 AND departamento = $2',
       [id, depto]
     );
 
-    if (orden.rowCount > 0) {
-      const ordenId = orden.rows[0].id;
+    console.log(`📋 Órdenes encontradas: ${ordenes.rowCount}`);
 
-      // 2️⃣ Revisar si tiene pagos
-      const pagos = await client.query(
-        'SELECT COUNT(*) AS total FROM pagos WHERE orden_id = $1 AND departamento = $2',
-        [ordenId, depto]
-      );
-      const tienePagos = parseInt(pagos.rows[0].total) > 0;
+    if (ordenes.rowCount > 0) {
+      // 2️⃣ Revisar si alguna orden tiene pagos
+      let tienePagos = false;
+      for (const orden of ordenes.rows) {
+        const pagos = await client.query(
+          'SELECT COUNT(*) AS total FROM pagos WHERE orden_id = $1 AND departamento = $2',
+          [orden.id, depto]
+        );
+        if (parseInt(pagos.rows[0].total) > 0) {
+          tienePagos = true;
+          break;
+        }
+      }
 
+      // 3️⃣ Si tiene pagos y NO se confirmó, pedir confirmación
       if (tienePagos && forzar !== 'true') {
         await client.query('ROLLBACK');
         return res.status(409).json({
           requiereConfirmacion: true,
-          mensaje: 'La orden médica asociada a esta consulta tiene pagos registrados. ¿Deseas eliminarla de todos modos?',
+          mensaje: 'Esta consulta tiene órdenes con pagos registrados. ¿Deseas eliminar todo de todos modos?',
         });
       }
 
-      // 3️⃣ Si el usuario confirmó (forzar=true), eliminar pagos y orden
-      if (tienePagos && forzar === 'true') {
+      // 4️⃣ Eliminar TODO (el usuario confirmó o no tiene pagos)
+      for (const orden of ordenes.rows) {
+        console.log(`🔄 Procesando orden ${orden.id}...`);
+
+        // A) Eliminar pagos de la orden
         await client.query(
           'DELETE FROM pagos WHERE orden_id = $1 AND departamento = $2',
-          [ordenId, depto]
+          [orden.id, depto]
         );
-        console.log(`🧾 Pagos de la orden ${ordenId} eliminados`);
-      }
+        console.log(`  ✅ Pagos de orden ${orden.id} eliminados`);
 
-      await client.query(
-        'DELETE FROM ordenes_medicas WHERE id = $1 AND departamento = $2',
-        [ordenId, depto]
-      );
-      console.log(`✅ Orden médica ${ordenId} eliminada`);
+        // B) Si la orden tiene recibo vinculado, eliminar el recibo y sus abonos
+        if (orden.folio_recibo) {
+          console.log(`  💵 Orden tiene recibo vinculado: ${orden.folio_recibo}`);
+
+          // B1) Eliminar abonos del recibo
+          await client.query(
+            'DELETE FROM abonos_recibos WHERE recibo_id = $1 AND departamento = $2',
+            [orden.folio_recibo, depto]
+          );
+          console.log(`  ✅ Abonos del recibo ${orden.folio_recibo} eliminados`);
+
+          // B2) Eliminar el recibo
+          await client.query(
+            'DELETE FROM recibos WHERE id = $1 AND departamento = $2',
+            [orden.folio_recibo, depto]
+          );
+          console.log(`  ✅ Recibo ${orden.folio_recibo} eliminado`);
+        }
+
+        // C) Eliminar la orden médica
+        await client.query(
+          'DELETE FROM ordenes_medicas WHERE id = $1 AND departamento = $2',
+          [orden.id, depto]
+        );
+        console.log(`  ✅ Orden médica ${orden.id} eliminada`);
+      }
     }
 
-    // 4️⃣ Eliminar atención médica (si existe)
+    // 5️⃣ Eliminar atención médica (si existe)
     await client.query(
       'DELETE FROM atencion_consultas WHERE consulta_id = $1 AND departamento = $2',
       [id, depto]
     );
+    console.log(`✅ Atención médica eliminada`);
 
-    // 5️⃣ Eliminar la consulta
+    // 6️⃣ Finalmente eliminar la consulta
     const result = await client.query(
       'DELETE FROM consultas WHERE id = $1 AND departamento = $2 RETURNING *',
       [id, depto]
@@ -2935,7 +2966,12 @@ app.delete('/api/consultas/:id', verificarSesion, async (req, res) => {
     }
 
     await client.query('COMMIT');
-    res.json({ mensaje: 'Consulta y orden médica eliminadas correctamente' });
+    
+    console.log(`✅ Consulta ${id} y todos sus registros eliminados correctamente`);
+    res.json({ 
+      mensaje: '🗑️ Consulta, órdenes médicas, recibos y pagos eliminados correctamente',
+      detalle: `Se eliminaron ${ordenes.rowCount} orden(es) médica(s) asociada(s)`
+    });
 
   } catch (err) {
     await client.query('ROLLBACK');
@@ -2945,7 +2981,6 @@ app.delete('/api/consultas/:id', verificarSesion, async (req, res) => {
     client.release();
   }
 });
-
 
 // ==================== GUARDAR ATENCIÓN MÉDICA ====================
 app.post('/api/atencion_consultas', verificarSesion, async (req, res) => {
