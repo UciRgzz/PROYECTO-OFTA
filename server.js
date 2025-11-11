@@ -1850,7 +1850,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
     // --- Consulta SQL FINAL CORREGIDA ---
     const query = `
       WITH datos_completos AS (
-        -- 1️⃣ Recibos tipo NORMAL
+        -- 1️⃣ Recibos tipo NORMAL (✅ EXCLUIR si tienen orden médica)
         SELECT 
           r.paciente_id AS numero_expediente,
           r.numero_recibo AS n_folio,
@@ -1868,6 +1868,11 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
         FROM recibos r
         WHERE ${whereRecibos}
           AND (r.tipo = 'Normal' OR r.tipo IS NULL OR r.tipo = '')
+          AND NOT EXISTS (
+            SELECT 1 FROM ordenes_medicas o 
+            WHERE o.folio_recibo = r.id 
+              AND o.departamento = r.departamento
+          )
 
         UNION ALL
 
@@ -1950,7 +1955,6 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // ==================== ADMIN: Selección de sucursal ====================
 app.post("/api/seleccionar-sucursal", verificarSesion, (req, res) => {
