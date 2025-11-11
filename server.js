@@ -1553,7 +1553,6 @@ app.put("/api/ordenes_medicas/:id", verificarSesion, async (req, res) => {
 
 
 // ==================== PAGOS ====================
-// Registrar un pago para una orden (usando orden_id del frontend)
 app.post("/api/pagos", verificarSesion, async (req, res) => {
   const client = await pool.connect();
   const depto = getDepartamento(req);
@@ -1586,12 +1585,11 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 
     // 2️⃣ Registrar el pago
     const pagoResult = await client.query(
-  `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
-   VALUES ($1, $2, $3, $4, $5, $6)
-   RETURNING *`,
-  [orden.id, orden.expediente_id, monto, forma_pago, fechaLocalMX(), depto]
-);
-
+      `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *`,
+      [orden.id, orden.expediente_id, monto, forma_pago, fechaLocalMX(), depto]
+    );
 
     // 3️⃣ Calcular nuevos totales de la orden
     const nuevoPagado = Number(orden.pagado || 0) + monto;
@@ -1606,14 +1604,15 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
       [nuevoPagado, nuevoPendiente, nuevoEstatus, orden.id, depto]
     );
 
-    // 5️⃣ Sincronizar solo si es tipo "OrdenCirugia"
-    if (orden.tipo === "OrdenCirugia") {
+    // 5️⃣ ✅ CORREGIDO: Actualizar recibo si está vinculado (independiente del tipo)
+    if (orden.folio_recibo) {
       await client.query(
         `UPDATE recibos
          SET monto_pagado = monto_pagado + $1
          WHERE id = $2 AND departamento = $3`,
         [monto, orden.folio_recibo, depto]
       );
+      console.log(`✅ Recibo ${orden.folio_recibo} actualizado con $${monto}`);
     }
 
     await client.query("COMMIT");
@@ -1633,6 +1632,7 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
     client.release();
   }
 });
+
 // ==================== VINCULAR RECIBO A ORDEN MÉDICA ====================
 app.put('/api/ordenes_medicas/:id/vincular-recibo', verificarSesion, async (req, res) => {
   const client = await pool.connect();
