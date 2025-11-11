@@ -17,6 +17,9 @@
       --success-color: #27ae60;
       --light-color: #f8f9fa;
       --dark-color: #343a40;
+      --border-radius: 12px;
+      --box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      --transition: all 0.3s ease;
     }
     
     body {
@@ -39,8 +42,8 @@
       padding: 20px;
       background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
       color: white;
-      border-radius: 10px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
     }
     
     h1 {
@@ -56,11 +59,16 @@
     
     .card {
       background: white;
-      border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
       margin-bottom: 30px;
       overflow: hidden;
       border: none;
+      transition: var(--transition);
+    }
+    
+    .card:hover {
+      box-shadow: 0 8px 25px rgba(0,0,0,0.12);
     }
     
     .card-header {
@@ -85,6 +93,7 @@
     .table-container {
       width: 100%;
       overflow-x: auto;
+      border-radius: 8px;
     }
     
     .table {
@@ -94,7 +103,7 @@
       background: white;
       border-radius: 8px;
       overflow: hidden;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      box-shadow: var(--box-shadow);
       table-layout: auto;
     }
     
@@ -114,6 +123,7 @@
       text-align: center;
       font-size: 0.9rem;
       vertical-align: middle;
+      transition: var(--transition);
     }
     
     .table tr:last-child td {
@@ -128,6 +138,10 @@
       background-color: #eef6ff;
     }
     
+    .table tr:hover td {
+      transform: translateY(-1px);
+    }
+    
     .success-alert {
       display: none;
       padding: 15px;
@@ -136,6 +150,7 @@
       border-radius: 8px;
       margin-bottom: 20px;
       border: 1px solid #c3e6cb;
+      animation: fadeIn 0.5s ease;
     }
     
     .footer {
@@ -171,7 +186,7 @@
     }
     
     .modal-content {
-      border-radius: 12px;
+      border-radius: var(--border-radius);
       box-shadow: 0 6px 20px rgba(0,0,0,0.15);
       border: none;
     }
@@ -179,7 +194,7 @@
     .modal-header {
       background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
       color: white;
-      border-radius: 12px 12px 0 0;
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
       padding: 18px 25px;
     }
     
@@ -260,6 +275,11 @@
       padding: 6px 12px;
       font-size: 0.85rem;
       margin: 2px;
+      transition: var(--transition);
+    }
+    
+    .btn-icon:hover {
+      transform: translateY(-2px);
     }
 
     .info-link {
@@ -267,10 +287,63 @@
       cursor: pointer;
       text-decoration: underline;
       font-weight: 600;
+      transition: var(--transition);
     }
 
     .info-link:hover {
       color: #2c80b9;
+      text-decoration: none;
+    }
+    
+    .filter-container {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    
+    .filter-label {
+      font-weight: 600;
+      margin-bottom: 0;
+    }
+    
+    .loading-container {
+      display: none;
+      text-align: center;
+      padding: 20px;
+    }
+    
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid var(--secondary-color);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #6c757d;
+    }
+    
+    .empty-state i {
+      font-size: 3rem;
+      margin-bottom: 15px;
+      color: #dee2e6;
     }
     
     @media (max-width: 1200px) {
@@ -293,6 +366,11 @@
       .card-body {
         padding: 15px;
       }
+      
+      .filter-container {
+        flex-direction: column;
+        align-items: flex-start;
+      }
     }
     
     @media (max-width: 768px) {
@@ -308,6 +386,11 @@
       .table th, .table td {
         font-size: 0.8rem;
         padding: 8px 5px;
+      }
+      
+      .btn-icon {
+        padding: 4px 8px;
+        font-size: 0.75rem;
       }
     }
   </style>
@@ -326,12 +409,17 @@
     <div class="card">
       <div class="card-header"><i class="fas fa-clipboard-list"></i> Lista de Órdenes</div>
       <div class="card-body">
-        <div class="mb-3">
-          <label for="filtroRango" class="form-label">Filtrar por fecha:</label>
+        <div class="filter-container">
+          <label for="filtroRango" class="filter-label">Filtrar por fecha:</label>
           <input type="text" id="filtroRango" class="form-control" style="max-width:300px;" placeholder="Selecciona un rango de fechas" readonly>
         </div>
 
-        <div class="table-container">
+        <div class="loading-container" id="loadingContainer">
+          <div class="loading-spinner"></div>
+          <p>Cargando órdenes médicas...</p>
+        </div>
+
+        <div class="table-container" id="tableContainer">
           <table class="table text-center align-middle">
             <thead>
               <tr>
@@ -466,8 +554,73 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
   
   <script>
+    // Variables globales
     let ordenesData = [];
+    let modalDetalles = null;
+    let modalPago = null;
+    
+    // Inicialización cuando el DOM está listo
+    document.addEventListener("DOMContentLoaded", function() {
+      // Inicializar modales de Bootstrap
+      modalDetalles = new bootstrap.Modal(document.getElementById('modalDetalles'));
+      modalPago = new bootstrap.Modal(document.getElementById('modalPago'));
+      
+      // Configurar datepicker
+      inicializarDatePicker();
+      
+      // Cargar órdenes iniciales
+      cargarOrdenes();
+    });
+    
+    // Configuración del datepicker
+    function inicializarDatePicker() {
+      const hoy = moment();
+      
+      $('#filtroRango').daterangepicker({
+        autoUpdateInput: true,
+        startDate: hoy,
+        endDate: hoy,
+        locale: {
+          format: 'DD/MM/YYYY',
+          separator: ' - ',
+          applyLabel: 'Aplicar',
+          cancelLabel: 'Cancelar',
+          fromLabel: 'Desde',
+          toLabel: 'Hasta',
+          daysOfWeek: ['Do','Lu','Ma','Mi','Ju','Vi','Sa'],
+          monthNames: [
+            'Enero','Febrero','Marzo','Abril','Mayo','Junio',
+            'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'
+          ],
+          firstDay: 1
+        },
+        ranges: {
+          'Hoy': [moment(), moment()],
+          'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+          'Últimos 7 días': [moment().subtract(6, 'days'), moment()],
+          'Últimos 30 días': [moment().subtract(29, 'days'), moment()],
+          'Este mes': [moment().startOf('month'), moment().endOf('month')],
+          'Mes pasado': [
+            moment().subtract(1, 'month').startOf('month'),
+            moment().subtract(1, 'month').endOf('month')
+          ]
+        }
+      });
 
+      $('#filtroRango').val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
+
+      $('#filtroRango').on('apply.daterangepicker', function (ev, picker) {
+        $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+        cargarOrdenesRango(picker.startDate.format('YYYY-MM-DD'), picker.endDate.format('YYYY-MM-DD'));
+      });
+
+      $('#filtroRango').on('cancel.daterangepicker', function () {
+        $(this).val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
+        cargarOrdenesRango(hoy.format('YYYY-MM-DD'), hoy.format('YYYY-MM-DD'));
+      });
+    }
+    
+    // Función principal para cargar órdenes
     async function cargarOrdenes() {
       try {
         const valor = $('#filtroRango').val();
@@ -487,68 +640,110 @@
       }
     }
 
+    // Cargar órdenes por rango de fechas
     async function cargarOrdenesRango(desde, hasta) {
       try {
+        mostrarCargando(true);
+        
         const res = await fetch(`/api/ordenes_medicas?desde=${desde}&hasta=${hasta}`);
         const data = await res.json();
         ordenesData = data;
 
         console.log("📊 Datos recibidos:", ordenesData);
-
-        document.getElementById("tablaOrdenes").innerHTML = ordenesData.map((o, i) => {
-          const numeroOrden = o.n_orden || o.numero_orden || 'N/A';
-          const numeroFolio = o.n_folio || 'Sin Recibo';
-          const numeroExpediente = o.expediente_numero || o.numero_expediente || 'N/A';
-          const nombrePaciente = o.paciente || 'Sin nombre';
-          const procedimiento = o.procedimiento || 'N/A';
-          const precio = parseFloat(o.precio || 0).toFixed(2);
-          const pagado = parseFloat(o.pagado || 0).toFixed(2);
-          const pendiente = parseFloat(o.pendiente || 0).toFixed(2);
-          const estatus = o.estatus || 'Pendiente';
-          
-          let fecha = 'N/A';
-          if (o.fecha) {
-            const soloFecha = o.fecha.split("T")[0];
-            const [anio, mes, dia] = soloFecha.split("-");
-            fecha = `${dia}/${mes}/${anio}`;
-          }
-
-          return `
-            <tr>
-              <td><strong>${numeroOrden}</strong></td>
-              <td>${numeroFolio === 'Sin Recibo' ? '<span class="badge bg-secondary">Sin Recibo</span>' : `<strong>${numeroFolio}</strong>`}</td>
-              <td><strong>${numeroExpediente}</strong></td>
-              <td>
-                <span class="info-link" onclick="verDetalles(${i})" title="Ver detalles">
-                  ${nombrePaciente}
-                </span>
-              </td>
-              <td style="max-width: 200px; white-space: normal; word-wrap: break-word;">${procedimiento}</td>
-              <td><strong>$${precio}</strong></td>
-              <td><span class="badge bg-info">$${pagado}</span></td>
-              <td><span class="badge bg-warning">$${pendiente}</span></td>
-              <td>
-                <span class="badge ${estatus === "Pagado" ? 'bg-success' : 'bg-warning'}">${estatus}</span>
-                <br>
-                <button class="btn btn-primary btn-icon mt-1" onclick="imprimirReciboOrden(${i})" title="Imprimir recibo">
-                  <i class="fas fa-print"></i>
-                </button>
-              </td>
-              <td>${fecha}</td>
-              <td>
-                ${estatus === "Pagado"
-                  ? `<button class="btn btn-secondary btn-sm" disabled><i class="fas fa-check"></i> Pagado</button>`
-                  : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})"><i class="fas fa-dollar-sign"></i> Pagar</button>`
-                }
-              </td>
-            </tr>
-          `;
-        }).join('');
+        renderizarTablaOrdenes();
       } catch (err) {
         console.error("❌ Error cargando órdenes por rango:", err);
+        mostrarError("Error", "No se pudieron cargar las órdenes médicas");
+      } finally {
+        mostrarCargando(false);
+      }
+    }
+    
+    // Renderizar la tabla de órdenes
+    function renderizarTablaOrdenes() {
+      const tablaOrdenes = document.getElementById("tablaOrdenes");
+      
+      if (ordenesData.length === 0) {
+        tablaOrdenes.innerHTML = `
+          <tr>
+            <td colspan="11">
+              <div class="empty-state">
+                <i class="fas fa-clipboard-list"></i>
+                <h4>No hay órdenes médicas</h4>
+                <p>No se encontraron órdenes médicas en el rango de fechas seleccionado.</p>
+              </div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+      
+      tablaOrdenes.innerHTML = ordenesData.map((o, i) => {
+        const numeroOrden = o.n_orden || o.numero_orden || 'N/A';
+        const numeroFolio = o.n_folio || 'Sin Recibo';
+        const numeroExpediente = o.expediente_numero || o.numero_expediente || 'N/A';
+        const nombrePaciente = o.paciente || 'Sin nombre';
+        const procedimiento = o.procedimiento || 'N/A';
+        const precio = parseFloat(o.precio || 0).toFixed(2);
+        const pagado = parseFloat(o.pagado || 0).toFixed(2);
+        const pendiente = parseFloat(o.pendiente || 0).toFixed(2);
+        const estatus = o.estatus || 'Pendiente';
+        
+        let fecha = 'N/A';
+        if (o.fecha) {
+          const soloFecha = o.fecha.split("T")[0];
+          const [anio, mes, dia] = soloFecha.split("-");
+          fecha = `${dia}/${mes}/${anio}`;
+        }
+
+        return `
+          <tr>
+            <td><strong>${numeroOrden}</strong></td>
+            <td>${numeroFolio === 'Sin Recibo' ? '<span class="badge bg-secondary">Sin Recibo</span>' : `<strong>${numeroFolio}</strong>`}</td>
+            <td><strong>${numeroExpediente}</strong></td>
+            <td>
+              <span class="info-link" onclick="verDetalles(${i})" title="Ver detalles">
+                ${nombrePaciente}
+              </span>
+            </td>
+            <td style="max-width: 200px; white-space: normal; word-wrap: break-word;">${procedimiento}</td>
+            <td><strong>$${precio}</strong></td>
+            <td><span class="badge bg-info">$${pagado}</span></td>
+            <td><span class="badge bg-warning">$${pendiente}</span></td>
+            <td>
+              <span class="badge ${estatus === "Pagado" ? 'bg-success' : 'bg-warning'}">${estatus}</span>
+              <br>
+              <button class="btn btn-primary btn-icon mt-1" onclick="imprimirReciboOrden(${i})" title="Imprimir recibo">
+                <i class="fas fa-print"></i>
+              </button>
+            </td>
+            <td>${fecha}</td>
+            <td>
+              ${estatus === "Pagado"
+                ? `<button class="btn btn-secondary btn-sm" disabled><i class="fas fa-check"></i> Pagado</button>`
+                : `<button class="btn btn-success btn-sm" onclick="abrirPago(${i})"><i class="fas fa-dollar-sign"></i> Pagar</button>`
+              }
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+    
+    // Mostrar/ocultar indicador de carga
+    function mostrarCargando(mostrar) {
+      const loadingContainer = document.getElementById("loadingContainer");
+      const tableContainer = document.getElementById("tableContainer");
+      
+      if (mostrar) {
+        loadingContainer.style.display = 'block';
+        tableContainer.style.display = 'none';
+      } else {
+        loadingContainer.style.display = 'none';
+        tableContainer.style.display = 'block';
       }
     }
 
+    // Ver detalles de una orden
     function verDetalles(index) {
       const o = ordenesData[index];
       document.getElementById("detalleOrdenId").value = o.orden_id;
@@ -556,9 +751,10 @@
       document.getElementById("detalleDiagnostico").value = o.diagnostico || '';
       document.getElementById("detalleLado").value = o.lado || '';
       
-      new bootstrap.Modal(document.getElementById("modalDetalles")).show();
+      modalDetalles.show();
     }
 
+    // Guardar detalles de una orden
     async function guardarDetalles() {
       const ordenId = document.getElementById("detalleOrdenId").value;
       const medico = document.getElementById("detalleMedico").value;
@@ -574,7 +770,7 @@
 
         if (res.ok) {
           mostrarExito("¡Actualizado!", "Detalles guardados correctamente");
-          bootstrap.Modal.getInstance(document.getElementById("modalDetalles")).hide();
+          modalDetalles.hide();
           cargarOrdenes();
         } else {
           const data = await res.json();
@@ -586,6 +782,7 @@
       }
     }
 
+    // Abrir modal de pago
     function abrirPago(index) {
       const o = ordenesData[index];
       document.getElementById("formPago").reset();
@@ -598,9 +795,10 @@
       document.getElementById("montoLiquidar").setAttribute("max", o.pendiente || 0);
       document.getElementById("montoLiquidar").value = "";
       
-      new bootstrap.Modal(document.getElementById("modalPago")).show();
+      modalPago.show();
     }
 
+    // Imprimir recibo de una orden
     async function imprimirReciboOrden(index) {
       const orden = ordenesData[index];
       
@@ -694,6 +892,7 @@
       });
     }
 
+    // Manejar el envío del formulario de pago
     document.getElementById("formPago").addEventListener("submit", async (e) => {
       e.preventDefault();
       
@@ -737,7 +936,7 @@
           mostrarExito("¡Éxito!", "Pago registrado con éxito");
           
           document.getElementById("formPago").reset();
-          bootstrap.Modal.getInstance(document.getElementById("modalPago")).hide();
+          modalPago.hide();
           cargarOrdenes();
         } else {
           const errorData = await res.json();
@@ -749,6 +948,7 @@
       }
     });
 
+    // Mostrar mensaje de éxito
     function mostrarExito(titulo, mensaje) {
       document.getElementById('successMessage').textContent = mensaje;
       document.getElementById('successAlert').style.display = 'block';
@@ -766,6 +966,7 @@
       });
     }
 
+    // Mostrar mensaje de error
     function mostrarError(titulo, mensaje) {
       Swal.fire({
         icon: 'error',
@@ -773,58 +974,6 @@
         text: mensaje
       });
     }
-
-    document.addEventListener("DOMContentLoaded", function() {
-      cargarOrdenes();
-    });
-
-    $(document).ready(function () {
-      const hoy = moment();
-
-      $('#filtroRango').daterangepicker({
-        autoUpdateInput: true,
-        startDate: hoy,
-        endDate: hoy,
-        locale: {
-          format: 'DD/MM/YYYY',
-          separator: ' - ',
-          applyLabel: 'Aplicar',
-          cancelLabel: 'Cancelar',
-          fromLabel: 'Desde',
-          toLabel: 'Hasta',
-          daysOfWeek: ['Do','Lu','Ma','Mi','Ju','Vi','Sa'],
-          monthNames: [
-            'Enero','Febrero','Marzo','Abril','Mayo','Junio',
-            'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'
-          ],
-          firstDay: 1
-        },
-        ranges: {
-          'Hoy': [moment(), moment()],
-          'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-          'Últimos 7 días': [moment().subtract(6, 'days'), moment()],
-          'Últimos 30 días': [moment().subtract(29, 'days'), moment()],
-          'Este mes': [moment().startOf('month'), moment().endOf('month')],
-          'Mes pasado': [
-            moment().subtract(1, 'month').startOf('month'),
-            moment().subtract(1, 'month').endOf('month')
-          ]
-        }
-      });
-
-      $('#filtroRango').val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
-      cargarOrdenesRango(hoy.format('YYYY-MM-DD'), hoy.format('YYYY-MM-DD'));
-
-      $('#filtroRango').on('apply.daterangepicker', function (ev, picker) {
-        $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
-        cargarOrdenesRango(picker.startDate.format('YYYY-MM-DD'), picker.endDate.format('YYYY-MM-DD'));
-      });
-
-      $('#filtroRango').on('cancel.daterangepicker', function () {
-        $(this).val(hoy.format('DD/MM/YYYY') + ' - ' + hoy.format('DD/MM/YYYY'));
-        cargarOrdenesRango(hoy.format('YYYY-MM-DD'), hoy.format('YYYY-MM-DD'));
-      });
-    });
   </script>
 </body>
 </html>
