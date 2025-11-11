@@ -1633,6 +1633,54 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
     client.release();
   }
 });
+// ==================== VINCULAR RECIBO A ORDEN MÉDICA ====================
+app.put('/api/ordenes_medicas/:id/vincular-recibo', verificarSesion, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { id } = req.params;
+    const { folio_recibo, monto_pagado, forma_pago } = req.body;
+    const depto = getDepartamento(req);
+
+    await client.query('BEGIN');
+
+    // 1️⃣ Actualizar la orden con el folio_recibo y el pago
+    const result = await client.query(`
+      UPDATE ordenes_medicas
+      SET folio_recibo = $1,
+          pagado = $2,
+          pendiente = precio - $2,
+          estatus = CASE WHEN precio - $2 <= 0 THEN 'Pagado' ELSE 'Pendiente' END
+      WHERE id = $3 AND departamento = $4
+      RETURNING *
+    `, [folio_recibo, monto_pagado, id, depto]);
+
+    if (result.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Orden no encontrada' });
+    }
+
+    // 2️⃣ Registrar el pago en la tabla pagos
+    const orden = result.rows[0];
+    await client.query(`
+      INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
+      VALUES ($1, $2, $3, $4, $5, $6)
+    `, [orden.id, orden.expediente_id, monto_pagado, forma_pago, fechaLocalMX(), depto]);
+
+    await client.query('COMMIT');
+    
+    res.json({ 
+      mensaje: 'Recibo vinculado correctamente',
+      orden: result.rows[0]
+    });
+
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('❌ Error vinculando recibo:', err);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+});
 
 // ==================== MODULO DE CIERRE DE CAJA ====================
 app.get("/api/cierre-caja", verificarSesion, async (req, res) => {
@@ -2954,37 +3002,43 @@ app.delete('/api/atencion_consultas/:consulta_id', verificarSesion, async (req, 
   }
 });
 
-// ==================== CREAR ORDEN MÉDICA DESDE CONSULTA ====================
+// ==================== CREAR ORDEN MÉDICA DESDE CONSULTA (CORREGIDO) ====================
 app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
+  const client = await pool.connect();
   try {
-    const { consultaId } = req.body;
+    const { consultaId, folio_recibo } = req.body;  // ✅ Agregar folio_recibo
     const depto = getDepartamento(req);
 
     console.log('📋 Creando orden médica para consulta:', consultaId);
+    console.log('📋 Folio recibo:', folio_recibo);
 
     if (!consultaId) {
       return res.status(400).json({ error: 'Se requiere el ID de la consulta' });
     }
 
+    await client.query('BEGIN');
+
     // Obtener datos de la consulta
-    const consulta = await pool.query(
+    const consulta = await client.query(
       'SELECT * FROM consultas WHERE id = $1 AND departamento = $2',
       [consultaId, depto]
     );
 
     if (consulta.rows.length === 0) {
+      await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Consulta no encontrada' });
     }
 
     const c = consulta.rows[0];
 
     // Verificar si ya existe una orden para esta consulta
-    const ordenExistente = await pool.query(
+    const ordenExistente = await client.query(
       'SELECT * FROM ordenes_medicas WHERE consulta_id = $1 AND departamento = $2',
       [consultaId, depto]
     );
 
     if (ordenExistente.rows.length > 0) {
+      await client.query('ROLLBACK');
       console.log('⚠️ Ya existe orden para esta consulta');
       return res.status(200).json({
         mensaje: 'Ya existe una orden médica para esta consulta',
@@ -2993,21 +3047,16 @@ app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
       });
     }
 
-    // Obtener información del paciente
-    const expediente = await pool.query(
-      'SELECT nombre_completo FROM expedientes WHERE numero_expediente = $1 AND departamento = $2',
-      [c.expediente_id, depto]
-    );
+    // ✅ Calcular pagado y pendiente según si hay recibo
+    const pagadoInicial = folio_recibo ? 500.00 : 0;
+    const pendienteInicial = folio_recibo ? 0 : 500.00;
 
-    const pacienteNombre = expediente.rows.length > 0
-      ? expediente.rows[0].nombre_completo
-      : 'Paciente Desconocido';
-
-    // Crear orden médica
-    const result = await pool.query(`
+    // Crear orden médica ✅ CON folio_recibo si existe
+    const result = await client.query(`
       INSERT INTO ordenes_medicas (
         consulta_id,
         expediente_id,
+        folio_recibo,
         medico,
         diagnostico,
         lado,
@@ -3020,24 +3069,35 @@ app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
         tipo,
         fecha,
         departamento
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
       RETURNING *
     `, [
       consultaId,
       c.expediente_id,
+      folio_recibo || null,  // ✅ Vincularlo si existe
       c.medico,
       'Consulta General',
       'OD',
       'Consulta Oftalmológica',
-      'Pendiente',
+      folio_recibo ? 'Pagado' : 'Pendiente',
       500.00,
-      0,
-      500.00,
+      pagadoInicial,
+      pendienteInicial,
       'CONSULTA',
       'Consulta',
       c.fecha,
       depto
     ]);
+
+    // ✅ Si hay recibo, registrar el pago
+    if (folio_recibo) {
+      await client.query(`
+        INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
+        VALUES ($1, $2, $3, $4, $5, $6)
+      `, [result.rows[0].id, c.expediente_id, 500.00, 'Efectivo', fechaLocalMX(), depto]);
+    }
+
+    await client.query('COMMIT');
 
     console.log('✅ Orden médica creada exitosamente:', result.rows[0].id);
 
@@ -3048,6 +3108,7 @@ app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
     });
 
   } catch (err) {
+    await client.query('ROLLBACK');
     console.error('❌ Error en POST /api/ordenes_medicas_consulta:', err);
 
     if (err.code === '23503') {
@@ -3061,6 +3122,8 @@ app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
       error: 'Error al crear la orden médica',
       detalle: err.message
     });
+  } finally {
+    client.release();
   }
 });
 
