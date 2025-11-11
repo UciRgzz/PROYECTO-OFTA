@@ -2236,7 +2236,7 @@ app.get("/api/insumos", verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== 3. Subir Excel (CORREGIDO MONTOS) ====================
+// ==================== 3. Subir Excel (FLEXIBLE Y CORREGIDO) ====================
 app.post(
   "/api/insumos/upload",
   verificarSesion,
@@ -2253,11 +2253,10 @@ app.post(
       const workbook = xlsx.readFile(req.file.path);
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       
-      // 🔹 IMPORTANTE: raw: true mantiene los números como están en Excel
+      // ✅ FLEXIBLE: Acepta cualquier formato
       const data = xlsx.utils.sheet_to_json(sheet, { defval: "", raw: true });
 
       let insertados = 0;
-      let actualizados = 0;
       let omitidos = 0;
       let errores = [];
 
@@ -2266,8 +2265,40 @@ app.post(
         const numFila = index + 2;
         
         try {
+          // ✅ BUSCAR columnas de forma FLEXIBLE (no importa mayúsculas/minúsculas)
+          const keys = Object.keys(row).map(k => k.toLowerCase().trim());
+          
+          // Buscar FECHA
+          const fechaKey = Object.keys(row).find(k => 
+            k.toLowerCase().trim().includes('fecha')
+          );
+          
+          // Buscar FOLIO
+          const folioKey = Object.keys(row).find(k => 
+            k.toLowerCase().trim().includes('folio')
+          );
+          
+          // Buscar CONCEPTO
+          const conceptoKey = Object.keys(row).find(k => 
+            k.toLowerCase().trim().includes('concepto') || 
+            k.toLowerCase().trim().includes('descripcion')
+          );
+          
+          // Buscar MONTO
+          const montoKey = Object.keys(row).find(k => 
+            k.toLowerCase().trim().includes('monto') || 
+            k.toLowerCase().trim().includes('precio') ||
+            k.toLowerCase().trim().includes('importe')
+          );
+
+          if (!fechaKey || !folioKey || !conceptoKey || !montoKey) {
+            errores.push(`Fila ${numFila}: Faltan columnas requeridas (Fecha, Folio, Concepto, Monto)`);
+            omitidos++;
+            continue;
+          }
+
           // === FECHA ===
-          let fecha = row.FECHA || row.Fecha || row.fecha || "";
+          let fecha = row[fechaKey] || "";
           
           if (!fecha || fecha.toString().trim() === "") {
             errores.push(`Fila ${numFila}: Fecha vacía`);
@@ -2301,7 +2332,7 @@ app.post(
           }
 
           // === FOLIO ===
-          let folio = (row.FOLIO || row.Folio || row.folio || "").toString().trim();
+          let folio = (row[folioKey] || "").toString().trim();
           
           if (!folio) {
             errores.push(`Fila ${numFila}: Folio vacío`);
@@ -2310,7 +2341,7 @@ app.post(
           }
 
           // === CONCEPTO ===
-          const concepto = (row.CONCEPTO || row.Concepto || row.concepto || "").toString().trim();
+          const concepto = (row[conceptoKey] || "").toString().trim();
           
           if (!concepto) {
             errores.push(`Fila ${numFila}: Concepto vacío`);
@@ -2318,21 +2349,19 @@ app.post(
             continue;
           }
 
-          // === MONTO (CORREGIDO) ===
-          let montoRaw = row.MONTO || row.Monto || row.monto || "";
+          // === MONTO ===
+          let montoRaw = row[montoKey] || "";
           let monto;
 
-          // Si ya es un número (Excel lo leyó como número)
           if (typeof montoRaw === "number") {
             monto = montoRaw;
           } else {
-            // Si es string, limpiar y convertir
             let montoTexto = montoRaw
               .toString()
               .trim()
-              .replace(/\s+/g, "")       // Quitar espacios
-              .replace(/[$]/g, "")        // Quitar símbolo $
-              .replace(/,/g, "");         // 🔹 QUITAR TODAS LAS COMAS (separadores de miles)
+              .replace(/\s+/g, "")
+              .replace(/[$]/g, "")
+              .replace(/,/g, "");
 
             monto = parseFloat(montoTexto);
           }
@@ -2343,34 +2372,23 @@ app.post(
             continue;
           }
 
-          // === VERIFICAR SI EXISTE ===
-          const existe = await pool.query(
-            "SELECT id FROM insumos WHERE folio = $1 AND departamento = $2",
-            [folio, depto]
+          // ✅ SOLO INSERTAR (no actualizar registros existentes)
+          await pool.query(
+            `INSERT INTO insumos (fecha, folio, concepto, monto, archivo, departamento)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [fecha, folio, concepto, monto, req.file.filename, depto]
           );
-          
-          if (existe.rowCount > 0) {
-            // Actualizar registro existente
-            await pool.query(
-              `UPDATE insumos 
-               SET fecha = $1, concepto = $2, monto = $3, archivo = $4
-               WHERE folio = $5 AND departamento = $6`,
-              [fecha, concepto, monto, req.file.filename, folio, depto]
-            );
-            actualizados++;
-          } else {
-            // Insertar nuevo registro
-            await pool.query(
-              `INSERT INTO insumos (fecha, folio, concepto, monto, archivo, departamento)
-               VALUES ($1, $2, $3, $4, $5, $6)`,
-              [fecha, folio, concepto, monto, req.file.filename, depto]
-            );
-            insertados++;
-          }
+          insertados++;
 
         } catch (rowError) {
-          errores.push(`Fila ${numFila}: ${rowError.message}`);
-          omitidos++;
+          // ✅ Si hay error de folio duplicado, seguir adelante
+          if (rowError.code === '23505') { // Código de error de PostgreSQL para duplicate key
+            errores.push(`Fila ${numFila}: Folio duplicado - omitido`);
+            omitidos++;
+          } else {
+            errores.push(`Fila ${numFila}: ${rowError.message}`);
+            omitidos++;
+          }
         }
       }
 
@@ -2379,21 +2397,21 @@ app.post(
         `SELECT setval('insumos_id_seq', (SELECT COALESCE(MAX(id),0) FROM insumos) + 1)`
       );
 
-      let mensaje = `Excel procesado: ${insertados} nuevos`;
-      if (actualizados > 0) mensaje += `, ${actualizados} actualizados`;
+      let mensaje = `Excel procesado: ${insertados} nuevos registros agregados`;
       if (omitidos > 0) mensaje += `, ${omitidos} omitidos`;
 
       res.json({
         mensaje,
         insertados,
-        actualizados,
         omitidos,
-        errores: errores.length > 0 ? errores.slice(0, 5) : []
+        errores: errores.length > 0 ? errores.slice(0, 10) : []
       });
 
     } catch (err) {
+      console.error("❌ Error procesando Excel:", err);
       res.status(500).json({ 
-        error: "Error procesando Excel"
+        error: "Error procesando Excel",
+        detalle: err.message
       });
     }
   }
@@ -2445,6 +2463,53 @@ app.get('/api/user/role', verificarSesion, (req, res) => {
     res.status(500).json({ error: "Error verificando rol de usuario" });
   }
 })
+
+// ==================== NOTAS DE INSUMOS ====================
+// Obtener notas del usuario
+app.get('/api/notas-insumos', verificarSesion, async (req, res) => {
+  try {
+    const depto = getDepartamento(req);
+    const usuario = req.session.usuario?.username || 'desconocido';
+
+    const result = await pool.query(
+      'SELECT fecha, nota FROM notas_insumos WHERE usuario = $1 AND departamento = $2',
+      [usuario, depto]
+    );
+
+    const notas = {};
+    result.rows.forEach(r => {
+      const fechaStr = r.fecha.toISOString().split('T')[0];
+      notas[fechaStr] = r.nota;
+    });
+
+    res.json(notas);
+  } catch (err) {
+    console.error('Error obteniendo notas:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Guardar nota
+app.post('/api/notas-insumos', verificarSesion, async (req, res) => {
+  try {
+    const { fecha, nota } = req.body;
+    const depto = getDepartamento(req);
+    const usuario = req.session.usuario?.username || 'desconocido';
+
+    await pool.query(
+      `INSERT INTO notas_insumos (fecha, nota, usuario, departamento)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (fecha, usuario, departamento)
+       DO UPDATE SET nota = $2, updated_at = CURRENT_TIMESTAMP`,
+      [fecha, nota, usuario, depto]
+    );
+
+    res.json({ mensaje: 'Nota guardada' });
+  } catch (err) {
+    console.error('Error guardando nota:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 
 //==================== MÓDULO CREAR USUARIO ADMIN ====================//

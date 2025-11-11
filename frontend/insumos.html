@@ -431,6 +431,41 @@ function guardarNota(fecha, texto) {
 }
 
 
+// === Cargar notas desde el servidor ===
+async function cargarNotas() {
+  try {
+    const res = await fetch('/api/notas-insumos');
+    if (res.ok) {
+      notas = await res.json();
+    }
+  } catch (err) {
+    console.error('Error cargando notas:', err);
+  }
+}
+
+// === Guardar nota en el servidor ===
+async function guardarNota(fecha, texto) {
+  notas[fecha] = texto;
+  
+  try {
+    await fetch('/api/notas-insumos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fecha, nota: texto })
+    });
+  } catch (err) {
+    console.error('Error guardando nota:', err);
+  }
+}
+
+// === Actualizar el DOMContentLoaded ===
+document.addEventListener("DOMContentLoaded", async () => {
+  await verificarRolUsuario();
+  await cargarNotas(); // ✅ Cargar notas desde servidor
+  renderCalendar();
+});
+
+
 // ==================== CALENDARIO CON COLORES POR ROL ====================
 async function renderCalendar() {
   const calendario = document.getElementById("calendario");
@@ -516,6 +551,8 @@ async function renderCalendar() {
     calendario.innerHTML += contenido;
   }
 }
+
+
 
   </script>
 </body>
