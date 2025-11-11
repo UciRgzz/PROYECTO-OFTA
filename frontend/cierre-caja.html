@@ -136,7 +136,6 @@
                   <tr><td colspan="5">Sin datos</td></tr>
                 </tbody>
               </table>
-
         </div>
     </div>
 
@@ -149,13 +148,15 @@
             <table id="tablaPacientesWrap" class="table table-striped table-bordered text-center align-middle">
                 <thead>
                     <tr>
-                        <th>Fecha</th>
-                        <th>Folio</th>
+                        <th>N.Orden</th>
+                        <th>N.Folio</th>
+                        <th>Expediente</th>
                         <th>Paciente</th>
+                        <th>Fecha</th>
                         <th>Procedimiento</th>
                         <th>Status</th>
                         <th>Pago</th>
-                        <th>Total Folio</th>
+                        <th>Total</th>
                         <th>Saldo</th>
                     </tr>
                 </thead>
@@ -178,7 +179,6 @@
 <!-- ExcelJS -->
 <script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/file-saver"></script>
-
 
 <script>
 $(document).ready(() => {
@@ -225,7 +225,6 @@ $(document).ready(() => {
   $('#filtroRango').val(moment().format('DD/MM/YYYY') + " - " + moment().format('DD/MM/YYYY'));
 });
 
-
 // Formateador global para todo el sistema y Excel (estilo español: 1.234,56)
 const formato = new Intl.NumberFormat('en-US', {
   style: 'decimal',
@@ -233,8 +232,7 @@ const formato = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 2
 });
 
-
-// función de cierre de caja corregida
+// ==================== FUNCIÓN DE CIERRE DE CAJA CORREGIDA ====================
 async function cargarCierre() {
     const rango = document.getElementById("filtroRango").dataset;
     const desde = rango.desde;
@@ -250,7 +248,7 @@ async function cargarCierre() {
             }
         });
 
-        // limpiar tablas antes de recargar
+        // Limpiar tablas antes de recargar
         document.getElementById("tbodyResumen").innerHTML = "<tr><td colspan='5'>Sin datos</td></tr>";
         document.getElementById("tablaPacientes").innerHTML = "";
 
@@ -300,25 +298,27 @@ async function cargarCierre() {
             document.getElementById("tbodyResumen").innerHTML = tbody;
         }
 
-        // ====== PACIENTES ======
+        // ====== PACIENTES CON N.ORDEN Y N.FOLIO ======
         const resPacientes = await fetch(`/api/listado-pacientes?desde=${desde}&hasta=${hasta}`);
         const pacientes = await resPacientes.json();
 
         if (Array.isArray(pacientes) && pacientes.length > 0) {
             document.getElementById("tablaPacientes").innerHTML = pacientes.map(p => `
                 <tr>
-                    <td>${p.fecha}</td>
-                    <td>${p.folio}</td>
+                    <td><strong>${p.n_orden || '-'}</strong></td>
+                    <td><strong>${p.n_folio || '-'}</strong></td>
+                    <td><strong>${p.expediente}</strong></td>
                     <td>${p.nombre}</td>
+                    <td>${p.fecha}</td>
                     <td>${p.procedimiento}</td>
-                    <td>${p.status}</td>
-                    <td>${p.pago}</td>
+                    <td><span class="badge ${p.status === 'Pagado' ? 'bg-success' : 'bg-warning'}">${p.status}</span></td>
+                    <td>${p.pago || 'N/A'}</td>
                     <td><span class="badge bg-primary">$${formato.format(p.total)}</span></td>
-                    <td><span class="badge bg-warning text-dark">$${formato.format(p.saldo)}</span></td>
+                    <td><span class="badge ${p.saldo < 0 ? 'bg-danger' : 'bg-success'}">$${formato.format(Math.abs(p.saldo))}</span></td>
                 </tr>
             `).join('');
         } else {
-            document.getElementById("tablaPacientes").innerHTML = "<tr><td colspan='8'>Sin datos</td></tr>";
+            document.getElementById("tablaPacientes").innerHTML = "<tr><td colspan='10'>Sin datos</td></tr>";
         }
 
         Swal.close();
@@ -333,9 +333,7 @@ async function cargarCierre() {
     }
 }
 
-
-// funcion de exportar excel
-// exportar en una sola hoja (Resumen + Pacientes juntos)
+// ==================== FUNCIÓN DE EXPORTAR EXCEL ====================
 async function exportarExcel() {
     const rangoTexto = document.getElementById("filtroRango").value || "sin_rango";
 
@@ -366,16 +364,15 @@ async function exportarExcel() {
             } else {
                 cell.alignment = { horizontal:"center" };
             }
-            // formato numérico
+            // Formato numérico
             if (!isNaN(cell.value) && idx > 0) {
                 cell.numFmt = '#,##0.00';
             }
-
         });
         rowIndex++;
     });
 
-    rowIndex += 2; // dejar 2 filas en blanco
+    rowIndex += 2; // Dejar 2 filas en blanco
 
     // ====== PACIENTES ======
     ws.addRow(["Listado de Pacientes"]);
@@ -396,11 +393,10 @@ async function exportarExcel() {
             } else {
                 cell.alignment = { horizontal:"center" };
             }
-            // formato numérico
+            // Formato numérico
             if (!isNaN(cell.value) && idx > 0) {
                 cell.numFmt = '#,##0.00';
             }
-
         });
         rowIndex++;
     });
@@ -420,13 +416,11 @@ async function exportarExcel() {
     saveAs(new Blob([buffer]), `cierre_${rangoTexto.replace(/\//g,"-")}.xlsx`);
 
     Swal.fire({
-      icon: 'success',
-      title: 'Exportación completada',
-      confirmButtonColor: '#27ae60'
-  });
-
+        icon: 'success',
+        title: 'Exportación completada',
+        confirmButtonColor: '#27ae60'
+    });
 }
-
 </script>
 </body>
 </html>

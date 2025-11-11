@@ -1841,12 +1841,14 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
       wherePagos += " AND DATE(p.fecha) = CURRENT_DATE";
     }
 
-    // --- Consulta SQL FINAL CORREGIDA ---
+    // --- Consulta SQL FINAL CORREGIDA CON N.ORDEN Y N.FOLIO ---
     const query = `
       WITH datos_completos AS (
         -- 1️⃣ Recibos tipo NORMAL
         SELECT 
           r.paciente_id AS numero_expediente,
+          r.numero_recibo AS n_folio,
+          NULL AS n_orden,
           r.fecha,
           r.procedimiento,
           CASE 
@@ -1866,6 +1868,8 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
         -- 2️⃣ Recibos tipo "OrdenCirugia" sin orden médica
         SELECT 
           r.paciente_id AS numero_expediente,
+          r.numero_recibo AS n_folio,
+          NULL AS n_orden,
           r.fecha,
           r.procedimiento,
           CASE 
@@ -1887,9 +1891,11 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
 
         UNION ALL
 
-        -- 3️⃣ Órdenes médicas con pagos
+        -- 3️⃣ Órdenes médicas con pagos (CON N.ORDEN Y N.FOLIO)
         SELECT 
           o.expediente_id AS numero_expediente,
+          COALESCE(r.numero_recibo, 0) AS n_folio,
+          o.numero_orden AS n_orden,
           COALESCE(o.fecha_cirugia, o.fecha) AS fecha,
           o.procedimiento,
           o.estatus AS status,
@@ -1901,6 +1907,9 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
         LEFT JOIN pagos p 
           ON p.orden_id = o.id 
          AND p.departamento = o.departamento
+        LEFT JOIN recibos r
+          ON r.id = o.folio_recibo
+         AND r.departamento = o.departamento
         WHERE o.departamento = $1
           AND (
             (${params.length === 1 ? 'DATE(o.fecha) = CURRENT_DATE' : 
@@ -1912,23 +1921,26 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
                `DATE(p.fecha) BETWEEN $2 AND $3`})
           )
         GROUP BY o.id, o.expediente_id, o.fecha, o.fecha_cirugia, 
-                 o.procedimiento, o.estatus, o.precio, o.pagado, o.pendiente
+                 o.procedimiento, o.estatus, o.precio, o.pagado, o.pendiente,
+                 o.numero_orden, r.numero_recibo
       )
 
       SELECT 
-        e.numero_expediente AS folio,
+        COALESCE(d.n_orden, 0) AS n_orden,
+        COALESCE(d.n_folio, 0) AS n_folio,
+        e.numero_expediente AS expediente,
         e.nombre_completo AS nombre,
         TO_CHAR(d.fecha, 'YYYY-MM-DD') AS fecha,
         d.procedimiento,
         d.status,
         d.pago,
         d.pagado AS total,
-        -d.pendiente AS saldo  -- ✅ Negativo cuando debe dinero
+        -d.pendiente AS saldo
       FROM datos_completos d
       JOIN expedientes e 
         ON e.numero_expediente = d.numero_expediente 
        AND e.departamento = $1
-      ORDER BY d.fecha DESC, e.nombre_completo;
+      ORDER BY d.fecha DESC, COALESCE(d.n_orden, 0) DESC;
     `;
 
     const result = await pool.query(query, params);
