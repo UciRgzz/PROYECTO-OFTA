@@ -808,76 +808,96 @@
       }
     }
 
-    // ====================== ENVIAR A MÓDULO MÉDICO ======================
-    async function enviarAModuloMedico(consultaId) {
-      try {
-        const confirmacion = await Swal.fire({
-          title: '¿Enviar al módulo médico?',
-          html: `
-            <p>El paciente será enviado para atención médica.</p>
-            <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-top: 15px;">
-              <i class="fas fa-info-circle" style="color: #2196F3;"></i>
-              <strong>El paciente aparecerá en el Módulo Médico</strong>
-            </div>
-          `,
-          icon: 'question',
-          showCancelButton: true,
-          confirmButtonColor: '#27ae60',
-          cancelButtonColor: '#95a5a6',
-          confirmButtonText: '<i class="fas fa-check"></i> Sí, enviar',
-          cancelButtonText: 'Cancelar'
-        });
-
-        if (!confirmacion.isConfirmed) return;
-
-        Swal.fire({
-          title: 'Procesando...',
-          html: '<i class="fas fa-spinner fa-spin fa-3x text-success"></i><br><br>Enviando al módulo médico...',
-          allowOutsideClick: false,
-          showConfirmButton: false,
-          didOpen: () => Swal.showLoading()
-        });
-
-        const resp = await fetch(`/api/consultas/${consultaId}/modulo_medico`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' }
-        });
-
-        if (!resp.ok) {
-          const errorData = await resp.json();
-          throw new Error(errorData.error || 'No se pudo actualizar la consulta');
-        }
-
-        const resultado = await resp.json();
-        console.log('✅ Consulta actualizada:', resultado);
-
-        await Swal.fire({
-          icon: 'success',
-          title: '¡Consulta Lista!',
-          html: `
-            <p><strong>${resultado.paciente}</strong> ha sido enviado correctamente.</p>
-            <div style="background: #d4edda; padding: 12px; border-radius: 8px; margin-top: 10px;">
-              <i class="fas fa-check-circle" style="color: #27ae60;"></i>
-              <strong>El paciente ya está disponible en el Módulo Médico</strong>
-            </div>
-          `,
-          confirmButtonColor: '#27ae60',
-          timer: 3000
-        });
-
-        cargarConsultas();
-
-      } catch (err) {
-        console.error('❌ Error enviando a módulo médico:', err);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: err.message || 'No se pudo enviar al módulo médico',
-          confirmButtonColor: '#e74c3c'
-        });
-      }
+    // ====================== ENVIAR A MÓDULO MÉDICO (CORREGIDO) ======================
+async function enviarAModuloMedico(consultaId) {
+  try {
+    // 🔒 Verificar si ya está en módulo médico
+    const consultaActual = consultasFiltradas.find(c => c.id === consultaId);
+    if (consultaActual && consultaActual.estado === 'En Módulo Médico') {
+      await Swal.fire({
+        icon: 'info',
+        title: 'Paciente ya enviado',
+        text: 'Este paciente ya está en el módulo médico',
+        confirmButtonColor: '#3498db'
+      });
+      return;
     }
 
+    const confirmacion = await Swal.fire({
+      title: '¿Enviar al módulo médico?',
+      html: `
+        <p>El paciente será enviado para atención médica.</p>
+        <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-top: 15px;">
+          <i class="fas fa-info-circle" style="color: #2196F3;"></i>
+          <strong>El paciente aparecerá en el Módulo Médico</strong>
+        </div>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#27ae60',
+      cancelButtonColor: '#95a5a6',
+      confirmButtonText: '<i class="fas fa-check"></i> Sí, enviar',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (!confirmacion.isConfirmed) return;
+
+    // 🔒 Deshabilitar TODOS los botones de "Atender" temporalmente
+    const botonesAtender = document.querySelectorAll('button[onclick^="enviarAModuloMedico"]');
+    botonesAtender.forEach(btn => btn.disabled = true);
+
+    Swal.fire({
+      title: 'Procesando...',
+      html: '<i class="fas fa-spinner fa-spin fa-3x text-success"></i><br><br>Enviando al módulo médico...',
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      didOpen: () => Swal.showLoading()
+    });
+
+    const resp = await fetch(`/api/consultas/${consultaId}/modulo_medico`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (!resp.ok) {
+      const errorData = await resp.json();
+      throw new Error(errorData.error || 'No se pudo actualizar la consulta');
+    }
+
+    const resultado = await resp.json();
+    console.log('✅ Consulta actualizada:', resultado);
+
+    await Swal.fire({
+      icon: 'success',
+      title: '¡Consulta Lista!',
+      html: `
+        <p><strong>${resultado.paciente}</strong> ha sido enviado correctamente.</p>
+        <div style="background: #d4edda; padding: 12px; border-radius: 8px; margin-top: 10px;">
+          <i class="fas fa-check-circle" style="color: #27ae60;"></i>
+          <strong>El paciente ya está disponible en el Módulo Médico</strong>
+        </div>
+      `,
+      confirmButtonColor: '#27ae60',
+      timer: 3000
+    });
+
+    // 🔄 Recargar consultas para actualizar la tabla
+    await cargarConsultas();
+
+  } catch (err) {
+    console.error('❌ Error enviando a módulo médico:', err);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: err.message || 'No se pudo enviar al módulo médico',
+      confirmButtonColor: '#e74c3c'
+    });
+    
+    // Rehabilitar botones en caso de error
+    const botonesAtender = document.querySelectorAll('button[onclick^="enviarAModuloMedico"]');
+    botonesAtender.forEach(btn => btn.disabled = false);
+  }
+}
     // ====================== VER DATOS DE CONSULTA ======================
     async function verDatosConsulta(consultaId) {
       try {

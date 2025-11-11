@@ -2531,7 +2531,6 @@ app.get("/api/cirugias", verificarSesion, async (req, res) => {
 });
 
 // ==================== MODULO DE AGENDA DE CONSULTAS MÉDICAS ====================
-
 // ==================== BÚSQUEDA DE EXPEDIENTES ====================
 app.get('/api/expedientes/buscar', verificarSesion, async (req, res) => {
   try {
@@ -3137,17 +3136,17 @@ app.get("/api/ordenes_medicas/consulta/:consultaId", verificarSesion, async (req
 });
 
 
-// ==================== ENVIAR CONSULTA AL MÓDULO MÉDICO ====================
+// ==================== ENVIAR CONSULTA AL MÓDULO MÉDICO (MEJORADO) ====================
 app.put('/api/consultas/:id/modulo_medico', verificarSesion, async (req, res) => {
   try {
     const { id } = req.params;
     const depto = getDepartamento(req);
 
-    console.log('\n🔍 ===== DEBUGGING ENVÍO A MÓDULO MÉDICO =====');
+    console.log('\n🔍 ===== ENVIANDO A MÓDULO MÉDICO =====');
     console.log('📋 Consulta ID:', id);
     console.log('🏢 Departamento:', depto);
 
-    // Verificar que la consulta existe ANTES de actualizar
+    // 🔒 Verificar que la consulta existe y obtener su estado actual
     const verificar = await pool.query(
       'SELECT * FROM consultas WHERE id = $1 AND departamento = $2',
       [id, depto]
@@ -3158,25 +3157,40 @@ app.put('/api/consultas/:id/modulo_medico', verificarSesion, async (req, res) =>
       return res.status(404).json({ error: 'Consulta no encontrada' });
     }
 
-    console.log('✅ Consulta encontrada:', verificar.rows[0].paciente);
-    console.log('📊 Estado actual:', verificar.rows[0].estado);
+    const consultaActual = verificar.rows[0];
+    console.log('✅ Consulta encontrada:', consultaActual.paciente);
+    console.log('📊 Estado actual:', consultaActual.estado);
 
-    // Actualizar el estado
+    // 🔒 PREVENIR DUPLICADOS: Si ya está en Módulo Médico, no hacer nada
+    if (consultaActual.estado === 'En Módulo Médico') {
+      console.log('⚠️ La consulta ya está en Módulo Médico');
+      return res.status(200).json({
+        ...consultaActual,
+        mensaje: 'La consulta ya está en el Módulo Médico',
+        yaEnModulo: true
+      });
+    }
+
+    // Actualizar el estado solo si no está ya en módulo médico
     const result = await pool.query(`
       UPDATE consultas
       SET estado = 'En Módulo Médico'
-      WHERE id = $1 AND departamento = $2
+      WHERE id = $1 AND departamento = $2 AND estado != 'En Módulo Médico'
       RETURNING *
     `, [id, depto]);
 
     if (result.rows.length === 0) {
-      console.log('❌ ERROR: No se pudo actualizar la consulta');
-      return res.status(404).json({ error: 'No se pudo actualizar la consulta' });
+      console.log('⚠️ La consulta ya fue actualizada por otra solicitud');
+      return res.status(200).json({
+        ...consultaActual,
+        mensaje: 'La consulta ya está en proceso',
+        yaEnModulo: true
+      });
     }
 
     console.log('✅ Estado actualizado a:', result.rows[0].estado);
-    console.log('✅ Consulta actualizada exitosamente');
-    console.log('🔍 ===== FIN DEBUGGING =====\n');
+    console.log('✅ Consulta enviada exitosamente');
+    console.log('🔍 ===== FIN =====\n');
 
     res.json(result.rows[0]);
 
@@ -3186,7 +3200,6 @@ app.put('/api/consultas/:id/modulo_medico', verificarSesion, async (req, res) =>
     res.status(500).json({ error: err.message });
   }
 });
-
 
 
 // ==================== MODULO DE GESTIÓN DE PERMISOS ====================
