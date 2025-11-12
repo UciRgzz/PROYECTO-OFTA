@@ -216,7 +216,7 @@ $(document).ready(() => {
     $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
     document.getElementById('filtroRango').dataset.desde = picker.startDate.format("YYYY-MM-DD");
     document.getElementById('filtroRango').dataset.hasta = picker.endDate.format("YYYY-MM-DD");
-    cargarCierre();
+    cargarCierre(true); // ✅ Mostrar loading solo cuando se cambia manualmente
   });
 
   // ✅ Inicializar valores por defecto (hoy)
@@ -224,8 +224,8 @@ $(document).ready(() => {
   document.getElementById('filtroRango').dataset.hasta = hoy;
   $('#filtroRango').val(moment().format('DD/MM/YYYY') + " - " + moment().format('DD/MM/YYYY'));
   
-  // ✅ CARGAR DATOS DEL DÍA AUTOMÁTICAMENTE
-  cargarCierre();
+  // ✅ CARGAR DATOS DEL DÍA AUTOMÁTICAMENTE (sin loading)
+  cargarCierre(false);
 });
 
 // Formateador global para todo el sistema y Excel (estilo español: 1.234,56)
@@ -236,7 +236,7 @@ const formato = new Intl.NumberFormat('en-US', {
 });
 
 // ==================== FUNCIÓN DE CIERRE DE CAJA CORREGIDA ====================
-async function cargarCierre() {
+async function cargarCierre(showLoading = false) {
     const rango = document.getElementById("filtroRango").dataset;
     const desde = rango.desde;
     const hasta = rango.hasta;
@@ -244,14 +244,17 @@ async function cargarCierre() {
     console.log('📊 Cargando cierre de caja desde:', desde, 'hasta:', hasta);
 
     try {
-        Swal.fire({
-            title: 'Generando cierre...',
-            text: 'Por favor espera',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
+        // ✅ Mostrar loading solo si se solicita explícitamente (cambio manual)
+        if (showLoading) {
+            Swal.fire({
+                title: 'Generando cierre...',
+                text: 'Por favor espera',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+        }
 
         // Limpiar tablas antes de recargar
         document.getElementById("tbodyResumen").innerHTML = "<tr><td colspan='5'>Sin datos</td></tr>";
@@ -329,7 +332,10 @@ async function cargarCierre() {
             console.log('⚠️ No se encontraron pacientes para el rango seleccionado');
         }
 
-        Swal.close();
+        // ✅ Cerrar loading solo si se mostró
+        if (showLoading) {
+            Swal.close();
+        }
     } catch (error) {
         console.error("❌ Error cargando cierre de caja:", error);
         Swal.fire({
