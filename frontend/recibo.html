@@ -779,42 +779,46 @@
       recibos.sort((a, b) => a.id - b.id);
 
       document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
-        <tr>
-          <td>${r.fecha.split("T")[0]}</td>
-          <td>${r.folio}</td>
-          <td>${r.paciente}</td>
-          <td>${r.procedimiento}</td>
-          <td><span class="badge bg-info">${r.tipo}</span></td>
-          <td>${r.forma_pago}</td>
-          <td>
-            <span class="badge bg-info">
-              $${parseFloat(r.monto_pagado).toLocaleString("es-MX", {minimumFractionDigits: 2})}
-            </span>
-          </td>
-          <td>
-            <span class="badge bg-success">
-              $${parseFloat(r.precio).toLocaleString("es-MX", {minimumFractionDigits: 2})}
-            </span>
-          </td>
-          <td>
-            <span class="badge bg-warning abonar-btn" 
-                  style="cursor:pointer;" 
-                  data-id="${r.id}" 
-                  data-pendiente="${r.precio - r.monto_pagado}">
-              $${parseFloat(r.precio - r.monto_pagado).toLocaleString("es-MX", {minimumFractionDigits: 2})}
-            </span>
-          </td>
-          <td>
-            <button class="btn btn-primary btn-sm" onclick="imprimirRecibo(${r.id})">
-              <i class="fas fa-receipt"></i> Comprobante
-            </button>
-            ${userRole === "admin" ? `
-              <button class="btn btn-danger btn-sm" onclick="eliminarRecibo(${r.id})">
-                <i class="fas fa-trash"></i> Eliminar
-              </button>` : ""}
-          </td>
-        </tr>
-      `).join('');
+  <tr>
+    <td>${r.fecha.split("T")[0]}</td>
+    <td>${r.folio}</td>
+    <td>${r.paciente}</td>
+    <td>${r.procedimiento}</td>
+    <td><span class="badge bg-info">${r.tipo}</span></td>
+    <td>${r.forma_pago}</td>
+    <td>
+      <span class="badge bg-info">
+        $${parseFloat(r.monto_pagado).toLocaleString("es-MX", {minimumFractionDigits: 2})}
+      </span>
+    </td>
+    <td>
+      <span class="badge bg-success">
+        $${parseFloat(r.precio).toLocaleString("es-MX", {minimumFractionDigits: 2})}
+      </span>
+    </td>
+    <td>
+      <span class="badge bg-warning abonar-btn" 
+            style="cursor:pointer;" 
+            data-id="${r.id}" 
+            data-pendiente="${r.precio - r.monto_pagado}">
+        $${parseFloat(r.precio - r.monto_pagado).toLocaleString("es-MX", {minimumFractionDigits: 2})}
+      </span>
+    </td>
+    <td>
+      <button class="btn btn-primary btn-sm" 
+              onclick="imprimirRecibo(${r.id})" 
+              title="Imprimir Comprobante">
+        <i class="fas fa-receipt"></i>
+      </button>
+      ${userRole === "admin" ? `
+        <button class="btn btn-danger btn-sm" 
+                onclick="eliminarRecibo(${r.id})" 
+                title="Eliminar Recibo">
+          <i class="fas fa-trash"></i>
+        </button>` : ""}
+    </td>
+  </tr>
+`).join('');
 
       actualizarStats(recibos);
 
