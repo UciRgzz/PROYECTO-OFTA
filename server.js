@@ -776,32 +776,36 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
     );
 
     const recibo = result.rows[0];
+    const fechaLocal = fechaLocalMX();
 
-    // ✅ Solo crear orden médica si es OrdenCirugia
+    // ✅ SIEMPRE crear orden médica (tanto Normal como OrdenCirugia)
+    const tipoOrden = tipo === "OrdenCirugia" ? "Cirugia" : "Consulta";
+    const origenOrden = tipo === "OrdenCirugia" ? "CIRUGIA" : "CONSULTA";
+    
+    const orden = await pool.query(
+      `INSERT INTO ordenes_medicas (
+         expediente_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, fecha_cirugia, departamento, medico, origen
+       )
+       VALUES (
+         $1, $2, $3, $4, $5::numeric, $6::numeric, ($5::numeric - $6::numeric),
+         CASE WHEN $6::numeric >= $5::numeric THEN 'Pagado' ELSE 'Pendiente' END,
+         $7::date, NULL, $8, 'Pendiente', $9
+       )
+       RETURNING id`,
+      [paciente_id, recibo.id, procedimiento, tipoOrden, precio, monto_pagado, fechaLocal, depto, origenOrden]
+    );
+
+    const ordenId = orden.rows[0].id;
+
+    // Registrar pago inicial
+    await pool.query(
+      `INSERT INTO pagos (orden_id, monto, forma_pago, fecha, departamento)
+       VALUES ($1, $2::numeric, $3, $4::date, $5)`,
+      [ordenId, monto_pagado, forma_pago, fechaLocal, depto]
+    );
+
+    // Solo insertar en agenda quirúrgica si es OrdenCirugia
     if (tipo === "OrdenCirugia") {
-      const fechaLocal = fechaLocalMX();
-
-      const orden = await pool.query(
-        `INSERT INTO ordenes_medicas (
-           expediente_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, fecha_cirugia, departamento, medico, origen
-         )
-         VALUES (
-           $1, $2, $3, $4, $5::numeric, $6::numeric, ($5::numeric - $6::numeric),
-           CASE WHEN $6::numeric >= $5::numeric THEN 'Pagado' ELSE 'Pendiente' END,
-           $7::date, NULL, $8, 'Pendiente', 'CIRUGIA'
-         )
-         RETURNING id`,
-        [paciente_id, recibo.id, procedimiento, "Cirugia", precio, monto_pagado, fechaLocal, depto]
-      );
-
-      const ordenId = orden.rows[0].id;
-
-      await pool.query(
-        `INSERT INTO pagos (orden_id, monto, forma_pago, fecha, departamento)
-         VALUES ($1, $2::numeric, $3, $4::date, $5)`,
-        [ordenId, monto_pagado, forma_pago, fechaLocal, depto]
-      );
-
       await pool.query(
         `INSERT INTO agenda_quirurgica (paciente_id, procedimiento, fecha, departamento, recibo_id, orden_id)
          VALUES ($1, $2, $3::date, $4, $5, $6)`,
@@ -1068,13 +1072,13 @@ app.get('/api/recibos/paciente/:folio', verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== PACIENTES PENDIENTES PARA MÓDULO MÉDICO (CORREGIDO) ====================
+// ==================== PACIENTES PENDIENTES PARA MÓDULO MÉDICO ====================
 app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
   try {
     const depto = getDepartamento(req);
 
     const result = await pool.query(`
-      -- 1️⃣ Recibos sin orden médica (excluyendo los que tienen consulta asociada)
+      -- 1️⃣ Recibos tipo "Normal" (aunque tengan orden de consulta inicial)
       SELECT 
         r.id AS recibo_id,
         e.numero_expediente AS expediente_id,
@@ -1090,22 +1094,18 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
         ON r.paciente_id = e.numero_expediente 
         AND r.departamento = e.departamento
       WHERE r.departamento = $1
+        AND r.tipo = 'Normal'
+        -- ✅ PERMITIR que tengan orden de consulta inicial
         AND NOT EXISTS (
           SELECT 1 FROM ordenes_medicas o 
           WHERE o.folio_recibo = r.id 
             AND o.departamento = r.departamento
-        )
-        -- ✅ EXCLUIR recibos creados desde consultas
-        AND NOT EXISTS (
-          SELECT 1 FROM consultas c
-          WHERE c.numero_expediente = r.paciente_id
-            AND c.departamento = r.departamento
-            AND c.estado IN ('Pendiente', 'En Módulo Médico')
+            AND o.tipo != 'Consulta'
         )
 
       UNION
 
-      -- 2️⃣ Consultas en módulo médico (con o sin orden de pago)
+      -- 2️⃣ Consultas en módulo médico
       SELECT 
         c.id AS recibo_id,
         c.numero_expediente AS expediente_id,
