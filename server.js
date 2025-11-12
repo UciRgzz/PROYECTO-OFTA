@@ -745,7 +745,7 @@
   // ==================== MODULO DE RECIBOS ====================
   // ==================== Guardar recibo (CORREGIDO) ====================
 app.post('/api/recibos', verificarSesion, async (req, res) => {
-  const { fecha, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, crear_orden } = req.body;
+  const { fecha, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, crear_orden } = req.body; // ← Agregar crear_orden
   const depto = getDepartamento(req);
 
   try {
@@ -777,9 +777,9 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 
     const recibo = result.rows[0];
 
-    // ✅ Crear orden SI:
-    // - tipo === "OrdenCirugia", O
-    // - crear_orden !== false (por defecto crea orden, solo NO crea si viene false explícito)
+    // ✅ SOLO crear orden si:
+    // - crear_orden !== false (por defecto crea), O
+    // - tipo === "OrdenCirugia"
     const debeCrearOrden = tipo === "OrdenCirugia" || crear_orden !== false;
 
     if (debeCrearOrden) {
@@ -799,14 +799,12 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 
       const ordenId = orden.rows[0].id;
 
-      // Registrar pago inicial
       await pool.query(
         `INSERT INTO pagos (orden_id, monto, forma_pago, fecha, departamento)
          VALUES ($1, $2::numeric, $3, $4::date, $5)`,
         [ordenId, monto_pagado, forma_pago, fechaLocal, depto]
       );
 
-      // Solo insertar en agenda quirúrgica si es OrdenCirugia
       if (tipo === "OrdenCirugia") {
         await pool.query(
           `INSERT INTO agenda_quirurgica (paciente_id, procedimiento, fecha, departamento, recibo_id, orden_id)

@@ -671,10 +671,9 @@
     }
 
 // ====================== IR A PAGAR (CREAR RECIBO + ORDEN) ✅ CORREGIDO ======================
-let procesandoPago = false; // 🔒 Variable global para prevenir doble clic
+let procesandoPago = false;
 
 async function irAPagar(consultaId, numeroExpediente, nombrePaciente) {
-  // 🔒 Prevenir doble clic
   if (procesandoPago) {
     console.log('⚠️ Ya hay un pago en proceso');
     return;
@@ -698,7 +697,7 @@ async function irAPagar(consultaId, numeroExpediente, nombrePaciente) {
             <input type="text" class="form-control" value="$500.00" disabled>
           </div>
           <div class="alert alert-info">
-            <i class="fas fa-info-circle"></i> <strong>Nota:</strong> El recibo se creará como pendiente. Podrás liquidarlo desde el módulo de Órdenes.
+            <i class="fas fa-info-circle"></i> <strong>Nota:</strong> El recibo se creará como pendiente.
           </div>
         </div>
       `,
@@ -711,7 +710,6 @@ async function irAPagar(consultaId, numeroExpediente, nombrePaciente) {
 
     if (!resultado.isConfirmed) return;
 
-    // 🔒 Activar bandera de procesamiento
     procesandoPago = true;
 
     Swal.fire({
@@ -722,7 +720,6 @@ async function irAPagar(consultaId, numeroExpediente, nombrePaciente) {
       didOpen: () => Swal.showLoading()
     });
 
-    // 1️⃣ Crear el RECIBO primero (tipo Normal, SIN orden médica automática)
     const fechaLocal = new Date().toISOString().split('T')[0];
 
     const datosRecibo = {
@@ -731,8 +728,9 @@ async function irAPagar(consultaId, numeroExpediente, nombrePaciente) {
       procedimiento: 'Consulta Oftalmológica',
       precio: 500.00,
       forma_pago: 'Efectivo',
-      monto_pagado: 0,  // ✅ Se crea en $0
-      tipo: 'Normal'    // ✅ NO crea orden automáticamente
+      monto_pagado: 0,
+      tipo: 'Normal',
+      crear_orden: false  // ✅ NO crear orden desde /api/recibos
     };
 
     const respRecibo = await fetch('/api/recibos', {
@@ -749,13 +747,12 @@ async function irAPagar(consultaId, numeroExpediente, nombrePaciente) {
     const reciboCreado = await respRecibo.json();
     console.log('✅ Recibo creado:', reciboCreado);
 
-    // 2️⃣ Crear la ORDEN MÉDICA vinculada al recibo
     const respOrden = await fetch("/api/ordenes_medicas_consulta", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ 
         consultaId,
-        folio_recibo: reciboCreado.recibo.id  // ✅ VINCULAR RECIBO
+        folio_recibo: reciboCreado.recibo.id
       })
     });
 
@@ -774,7 +771,6 @@ async function irAPagar(consultaId, numeroExpediente, nombrePaciente) {
         <p>✅ Recibo N° ${reciboCreado.recibo.numero_recibo} creado</p>
         <p>✅ Orden médica #${resultado2.id} creada</p>
         <p class="text-muted mt-3"><strong>Estado:</strong> Pendiente de pago ($500.00)</p>
-        <p class="text-info">💡 Ve al módulo de Órdenes para liquidar el pago</p>
       `,
       confirmButtonColor: '#27ae60',
       timer: 4000
@@ -791,15 +787,13 @@ async function irAPagar(consultaId, numeroExpediente, nombrePaciente) {
       confirmButtonColor: '#e74c3c'
     });
   } finally {
-    // 🔒 Liberar bandera de procesamiento
     procesandoPago = false;
   }
 }
 
-    // ====================== ENVIAR A MÓDULO MÉDICO (CORREGIDO) ======================
+    // ====================== ENVIAR A MÓDULO MÉDICO ======================
 async function enviarAModuloMedico(consultaId) {
   try {
-    // 🔒 Verificar si ya está en módulo médico
     const consultaActual = consultasFiltradas.find(c => c.id === consultaId);
     if (consultaActual && consultaActual.estado === 'En Módulo Médico') {
       await Swal.fire({
@@ -830,7 +824,6 @@ async function enviarAModuloMedico(consultaId) {
 
     if (!confirmacion.isConfirmed) return;
 
-    // 🔒 Deshabilitar TODOS los botones de "Atender" temporalmente
     const botonesAtender = document.querySelectorAll('button[onclick^="enviarAModuloMedico"]');
     botonesAtender.forEach(btn => btn.disabled = true);
 
@@ -869,7 +862,6 @@ async function enviarAModuloMedico(consultaId) {
       timer: 3000
     });
 
-    // 🔄 Recargar consultas para actualizar la tabla
     await cargarConsultas();
 
   } catch (err) {
@@ -881,11 +873,11 @@ async function enviarAModuloMedico(consultaId) {
       confirmButtonColor: '#e74c3c'
     });
     
-    // Rehabilitar botones en caso de error
     const botonesAtender = document.querySelectorAll('button[onclick^="enviarAModuloMedico"]');
     botonesAtender.forEach(btn => btn.disabled = false);
   }
 }
+
     // ====================== VER DATOS DE CONSULTA ======================
     async function verDatosConsulta(consultaId) {
       try {
@@ -917,7 +909,6 @@ async function enviarAModuloMedico(consultaId) {
           html: `
             <div class="text-start" style="max-height: 600px; overflow-y: auto;">
               
-              <!-- Información General -->
               <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                 <h5 style="color: #1976d2; margin-bottom: 10px;">
                   <i class="fas fa-info-circle"></i> Información General
@@ -928,7 +919,6 @@ async function enviarAModuloMedico(consultaId) {
                 <p><strong>Expediente:</strong> ${orden.expediente_id || 'No registrado'}</p>
               </div>
 
-              <!-- Diagnóstico -->
               <div class="mb-3">
                 <h6 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
                   <i class="fas fa-diagnoses"></i> Diagnóstico
@@ -938,7 +928,6 @@ async function enviarAModuloMedico(consultaId) {
                 </p>
               </div>
 
-              <!-- Lado -->
               <div class="mb-3">
                 <h6 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
                   <i class="fas fa-eye"></i> Ojo Afectado
@@ -948,7 +937,6 @@ async function enviarAModuloMedico(consultaId) {
                 </p>
               </div>
 
-              <!-- Exploración Clínica -->
               <div class="mb-3">
                 <h6 style="color: #2c3e50; border-bottom: 2px solid #27ae60; padding-bottom: 5px;">
                   <i class="fas fa-stethoscope"></i> Exploración Clínica
@@ -1030,7 +1018,6 @@ async function enviarAModuloMedico(consultaId) {
 // ====================== ELIMINAR CONSULTA ======================
 async function eliminarConsulta(id) {
   try {
-    // ✅ PRIMERO: Pedir confirmación SIEMPRE
     const confirmacion = await Swal.fire({
       title: '⚠️ ¿Eliminar consulta?',
       text: "Esta acción eliminará la consulta y sus registros asociados",
@@ -1044,13 +1031,11 @@ async function eliminarConsulta(id) {
 
     if (!confirmacion.isConfirmed) return;
 
-    // SEGUNDO: Hacer la petición DELETE
     const resp = await fetch(`/api/consultas/${id}`, {
       method: "DELETE",
       credentials: "include"
     });
 
-    // Si tiene pagos, pedirá confirmación adicional
     if (resp.status === 409) {
       const data = await resp.json();
 
@@ -1112,6 +1097,7 @@ async function eliminarConsulta(id) {
     });
   }
 }
+
     // ====================== FORMATEAR FECHA ======================
     function formatearFecha(fecha) {
       if (!fecha) return 'Sin fecha';
