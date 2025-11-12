@@ -776,35 +776,32 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
     );
 
     const recibo = result.rows[0];
-    const fechaLocal = fechaLocalMX();
 
-    // ✅ CREAR ORDEN MÉDICA SIEMPRE (sin importar el tipo)
-    const tipoOrden = tipo === "OrdenCirugia" ? "Cirugia" : "Consulta";
-    
-    const orden = await pool.query(
-      `INSERT INTO ordenes_medicas (
-         expediente_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, fecha_cirugia, departamento, medico, origen
-       )
-       VALUES (
-         $1, $2, $3, $4, $5::numeric, $6::numeric, ($5::numeric - $6::numeric),
-         CASE WHEN $6::numeric >= $5::numeric THEN 'Pagado' ELSE 'Pendiente' END,
-         $7::date, NULL, $8, 'Pendiente', 'CIRUGIA'
-       )
-       RETURNING id`,
-      [paciente_id, recibo.id, procedimiento, tipoOrden, precio, monto_pagado, fechaLocal, depto]
-    );
-
-    const ordenId = orden.rows[0].id;
-
-    // Registrar pago inicial
-    await pool.query(
-      `INSERT INTO pagos (orden_id, monto, forma_pago, fecha, departamento)
-       VALUES ($1, $2::numeric, $3, $4::date, $5)`,
-      [ordenId, monto_pagado, forma_pago, fechaLocal, depto]
-    );
-
-    // Solo insertar en agenda quirúrgica si es OrdenCirugia
+    // ✅ Solo crear orden médica si es OrdenCirugia
     if (tipo === "OrdenCirugia") {
+      const fechaLocal = fechaLocalMX();
+
+      const orden = await pool.query(
+        `INSERT INTO ordenes_medicas (
+           expediente_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, fecha_cirugia, departamento, medico, origen
+         )
+         VALUES (
+           $1, $2, $3, $4, $5::numeric, $6::numeric, ($5::numeric - $6::numeric),
+           CASE WHEN $6::numeric >= $5::numeric THEN 'Pagado' ELSE 'Pendiente' END,
+           $7::date, NULL, $8, 'Pendiente', 'CIRUGIA'
+         )
+         RETURNING id`,
+        [paciente_id, recibo.id, procedimiento, "Cirugia", precio, monto_pagado, fechaLocal, depto]
+      );
+
+      const ordenId = orden.rows[0].id;
+
+      await pool.query(
+        `INSERT INTO pagos (orden_id, monto, forma_pago, fecha, departamento)
+         VALUES ($1, $2::numeric, $3, $4::date, $5)`,
+        [ordenId, monto_pagado, forma_pago, fechaLocal, depto]
+      );
+
       await pool.query(
         `INSERT INTO agenda_quirurgica (paciente_id, procedimiento, fecha, departamento, recibo_id, orden_id)
          VALUES ($1, $2, $3::date, $4, $5, $6)`,
@@ -818,8 +815,6 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
     res.status(500).json({ error: "Error al guardar recibo", detalle: err.message });
   }
 });
-
-
 // ==================== Listar recibos ====================
 app.get('/api/recibos', verificarSesion, async (req, res) => {
   try {
