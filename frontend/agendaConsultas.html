@@ -671,9 +671,17 @@
     }
 
 // ====================== IR A PAGAR (CREAR RECIBO + ORDEN) ✅ CORREGIDO ======================
+let procesandoPago = false; // 🔒 Variable global para prevenir doble clic
+
 async function irAPagar(consultaId, numeroExpediente, nombrePaciente) {
+  // 🔒 Prevenir doble clic
+  if (procesandoPago) {
+    console.log('⚠️ Ya hay un pago en proceso');
+    return;
+  }
+
   try {
-    Swal.fire({
+    const resultado = await Swal.fire({
       title: '💵 Crear Orden de Pago',
       html: `
         <div class="text-start">
@@ -699,77 +707,80 @@ async function irAPagar(consultaId, numeroExpediente, nombrePaciente) {
       cancelButtonText: 'Cancelar',
       confirmButtonColor: '#27ae60',
       cancelButtonColor: '#95a5a6'
-    }).then(async (result) => {
-      if (!result.isConfirmed) return;
-
-      Swal.fire({
-        title: 'Creando orden de pago...',
-        html: '<i class="fas fa-spinner fa-spin fa-3x text-primary"></i><br><br>Generando recibo y orden médica...',
-        allowOutsideClick: false,
-        showConfirmButton: false,
-        didOpen: () => Swal.showLoading()
-      });
-
-      // 1️⃣ Crear el RECIBO primero (SIN PAGO INICIAL)
-      const fechaLocal = new Date().toISOString().split('T')[0];
-
-      const datosRecibo = {
-        fecha: fechaLocal,
-        paciente_id: numeroExpediente,
-        procedimiento: 'Consulta Oftalmológica',
-        precio: 500.00,
-        forma_pago: 'Efectivo',
-        monto_pagado: 0,  // ✅ CORREGIDO: Se crea en $0
-        tipo: 'Normal'
-      };
-
-      const respRecibo = await fetch('/api/recibos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(datosRecibo)
-      });
-
-      if (!respRecibo.ok) {
-        const errorData = await respRecibo.json();
-        throw new Error(errorData.error || 'No se pudo crear el recibo');
-      }
-
-      const reciboCreado = await respRecibo.json();
-      console.log('✅ Recibo creado:', reciboCreado);
-
-      // 2️⃣ Crear la ORDEN MÉDICA vinculada al recibo
-      const respOrden = await fetch("/api/ordenes_medicas_consulta", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          consultaId,
-          folio_recibo: reciboCreado.recibo.id  // ✅ VINCULAR RECIBO
-        })
-      });
-
-      if (!respOrden.ok) {
-        const errorData = await respOrden.json();
-        throw new Error(errorData.error || "No se pudo crear la orden");
-      }
-
-      const resultado = await respOrden.json();
-      console.log('✅ Orden médica creada:', resultado);
-
-      await Swal.fire({
-        icon: 'success',
-        title: '¡Orden Creada!',
-        html: `
-          <p>✅ Recibo N° ${reciboCreado.recibo.numero_recibo} creado</p>
-          <p>✅ Orden médica #${resultado.id} creada</p>
-          <p class="text-muted mt-3"><strong>Estado:</strong> Pendiente de pago ($500.00)</p>
-          <p class="text-info">💡 Ve al módulo de Órdenes para liquidar el pago</p>
-        `,
-        confirmButtonColor: '#27ae60',
-        timer: 4000
-      });
-
-      cargarConsultas();
     });
+
+    if (!resultado.isConfirmed) return;
+
+    // 🔒 Activar bandera de procesamiento
+    procesandoPago = true;
+
+    Swal.fire({
+      title: 'Creando orden de pago...',
+      html: '<i class="fas fa-spinner fa-spin fa-3x text-primary"></i><br><br>Generando recibo y orden médica...',
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      didOpen: () => Swal.showLoading()
+    });
+
+    // 1️⃣ Crear el RECIBO primero (tipo Normal, SIN orden médica automática)
+    const fechaLocal = new Date().toISOString().split('T')[0];
+
+    const datosRecibo = {
+      fecha: fechaLocal,
+      paciente_id: numeroExpediente,
+      procedimiento: 'Consulta Oftalmológica',
+      precio: 500.00,
+      forma_pago: 'Efectivo',
+      monto_pagado: 0,  // ✅ Se crea en $0
+      tipo: 'Normal'    // ✅ NO crea orden automáticamente
+    };
+
+    const respRecibo = await fetch('/api/recibos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(datosRecibo)
+    });
+
+    if (!respRecibo.ok) {
+      const errorData = await respRecibo.json();
+      throw new Error(errorData.error || 'No se pudo crear el recibo');
+    }
+
+    const reciboCreado = await respRecibo.json();
+    console.log('✅ Recibo creado:', reciboCreado);
+
+    // 2️⃣ Crear la ORDEN MÉDICA vinculada al recibo
+    const respOrden = await fetch("/api/ordenes_medicas_consulta", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        consultaId,
+        folio_recibo: reciboCreado.recibo.id  // ✅ VINCULAR RECIBO
+      })
+    });
+
+    if (!respOrden.ok) {
+      const errorData = await respOrden.json();
+      throw new Error(errorData.error || "No se pudo crear la orden");
+    }
+
+    const resultado2 = await respOrden.json();
+    console.log('✅ Orden médica creada:', resultado2);
+
+    await Swal.fire({
+      icon: 'success',
+      title: '¡Orden Creada!',
+      html: `
+        <p>✅ Recibo N° ${reciboCreado.recibo.numero_recibo} creado</p>
+        <p>✅ Orden médica #${resultado2.id} creada</p>
+        <p class="text-muted mt-3"><strong>Estado:</strong> Pendiente de pago ($500.00)</p>
+        <p class="text-info">💡 Ve al módulo de Órdenes para liquidar el pago</p>
+      `,
+      confirmButtonColor: '#27ae60',
+      timer: 4000
+    });
+
+    cargarConsultas();
 
   } catch (err) {
     console.error("❌ Error creando orden:", err);
@@ -779,6 +790,9 @@ async function irAPagar(consultaId, numeroExpediente, nombrePaciente) {
       text: err.message || 'No se pudo crear la orden',
       confirmButtonColor: '#e74c3c'
     });
+  } finally {
+    // 🔒 Liberar bandera de procesamiento
+    procesandoPago = false;
   }
 }
 
