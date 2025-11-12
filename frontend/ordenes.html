@@ -230,7 +230,7 @@
       width: 100%;
       border-collapse: collapse;
       margin-bottom: 20px;
-      font-size: 14px;
+      font-size: 13px;
     }
     
     .recibo-table th, .recibo-table td {
@@ -251,8 +251,8 @@
     }
 
     .swal-wide {
-      width: 800px !important;
-      max-width: 90vw;
+      width: 900px !important;
+      max-width: 95vw;
     }
 
     .btn-icon {
@@ -669,6 +669,13 @@
             return;
           }
 
+          // Calcular totales
+          const precioTotal = parseFloat(orden.precio || 0);
+          const totalPagado = parseFloat(orden.pagado || 0);
+          const totalPendiente = parseFloat(orden.pendiente || 0);
+          const montoPago = parseFloat(pago.monto);
+          const estadoPago = totalPendiente <= 0 ? 'PAGADO' : 'PENDIENTE';
+
           const contenido = `
             <div class="recibo-preview">
               <div class="recibo-header">
@@ -694,7 +701,7 @@
                   </tr>
                   <tr>
                     <td><b>Expediente:</b> ${orden.expediente_numero || 'N/A'}</td>
-                    <td style="text-align:right;"><b>Forma de Pago:</b> ${pago.forma_pago}</td>
+                    <td style="text-align:right;"><b>Dr. ${orden.medico || 'No especificado'}</b></td>
                   </tr>
                   <tr>
                     <td colspan="2"><b>Paciente:</b> ${orden.paciente || 'Sin nombre'}</td>
@@ -705,20 +712,56 @@
               <table class="recibo-table">
                 <thead>
                   <tr>
-                    <th>Concepto</th>
-                    <th>Monto Pagado</th>
+                    <th style="text-align:left;">Concepto</th>
+                    <th style="text-align:center;">Dr. Atendió</th>
+                    <th style="text-align:right;">Total a Pagar</th>
+                    <th style="text-align:right;">Monto Pagado</th>
+                    <th style="text-align:right;">Pendiente</th>
+                    <th style="text-align:center;">Forma de Pago</th>
+                    <th style="text-align:center;">Estado</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td>${orden.procedimiento || 'N/A'}</td>
-                    <td style="text-align:right;">$${parseFloat(pago.monto).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+                    <td style="text-align:left;">${orden.procedimiento || 'N/A'}</td>
+                    <td style="text-align:center;">${orden.medico || 'N/A'}</td>
+                    <td style="text-align:right;"><b>$${precioTotal.toLocaleString("es-MX", {minimumFractionDigits: 2})}</b></td>
+                    <td style="text-align:right; color:#27ae60;"><b>$${montoPago.toLocaleString("es-MX", {minimumFractionDigits: 2})}</b></td>
+                    <td style="text-align:right; color:#e67e22;"><b>$${totalPendiente.toLocaleString("es-MX", {minimumFractionDigits: 2})}</b></td>
+                    <td style="text-align:center;">${pago.forma_pago}</td>
+                    <td style="text-align:center;">
+                      <span style="padding:4px 8px; background:${estadoPago === 'PAGADO' ? '#27ae60' : '#f39c12'}; color:white; border-radius:4px; font-size:12px;">
+                        ${estadoPago}
+                      </span>
+                    </td>
                   </tr>
                 </tbody>
               </table>
 
+              <div style="margin-top:20px; padding:15px; background:#f0f0f0; border-radius:8px; font-size:14px;">
+                <table style="width:100%;">
+                  <tr>
+                    <td><b>Total del Procedimiento:</b></td>
+                    <td style="text-align:right;"><b>$${precioTotal.toLocaleString("es-MX", {minimumFractionDigits: 2})}</b></td>
+                  </tr>
+                  <tr>
+                    <td><b>Total Pagado (Acumulado):</b></td>
+                    <td style="text-align:right; color:#27ae60;"><b>$${totalPagado.toLocaleString("es-MX", {minimumFractionDigits: 2})}</b></td>
+                  </tr>
+                  <tr>
+                    <td><b>Saldo Pendiente:</b></td>
+                    <td style="text-align:right; color:#e67e22;"><b>$${totalPendiente.toLocaleString("es-MX", {minimumFractionDigits: 2})}</b></td>
+                  </tr>
+                  <tr style="border-top:2px solid #333;">
+                    <td><b>Monto de Este Pago:</b></td>
+                    <td style="text-align:right; font-size:16px;"><b>$${montoPago.toLocaleString("es-MX", {minimumFractionDigits: 2})}</b></td>
+                  </tr>
+                </table>
+              </div>
+
               <div class="recibo-footer">
                 <p><b>CLÍNICA OFTAVISION</b> - Este recibo es un comprobante de pago.</p>
+                <p style="font-size:11px; color:#666;">Conserve este documento para cualquier aclaración.</p>
               </div>
             </div>
           `;
@@ -726,10 +769,10 @@
           Swal.fire({
             title: `Vista previa - Recibo #${numeroRecibo}`,
             html: contenido,
-            width: 800,
+            width: 900,
             showCancelButton: true,
-            confirmButtonText: 'Descargar PDF',
-            cancelButtonText: 'Cancelar',
+            confirmButtonText: '<i class="fas fa-download"></i> Descargar PDF',
+            cancelButtonText: 'Cerrar',
             customClass: {
               popup: 'swal-wide'
             },
