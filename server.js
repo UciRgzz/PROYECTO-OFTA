@@ -2617,7 +2617,7 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
         ON p.orden_id = o.id 
        AND p.departamento = o.departamento
       WHERE o.departamento = $1
-        AND o.origen != 'CONSULTA'
+        AND o.tipo != 'Consulta'
     `;
 
     const params = [depto];
@@ -2723,7 +2723,7 @@ app.get("/api/cirugias", verificarSesion, async (req, res) => {
        AND e.departamento = o.departamento
       WHERE o.departamento = $1
         AND o.fecha_cirugia IS NOT NULL
-        AND o.origen != 'CONSULTA'
+        AND o.tipo != 'Consulta'
       ORDER BY o.fecha_cirugia, o.hora_cirugia ASC
     `, [depto]);
 
@@ -2733,7 +2733,6 @@ app.get("/api/cirugias", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // ==================== MODULO DE AGENDA DE CONSULTAS MÉDICAS ====================
 // ==================== BÚSQUEDA DE EXPEDIENTES ====================
