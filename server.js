@@ -1096,75 +1096,82 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
     }
   });
 
-  // ==================== PACIENTES PENDIENTES PARA MÓDULO MÉDICO ====================
-  app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
-    try {
-      const depto = getDepartamento(req);
+ // ==================== PACIENTES PENDIENTES PARA MÓDULO MÉDICO ====================
+app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
+  try {
+    const depto = getDepartamento(req);
 
-      const result = await pool.query(`
-        -- 1️⃣ Recibos tipo "Normal" (aunque tengan orden de consulta inicial)
-        SELECT 
-          r.id AS recibo_id,
-          e.numero_expediente AS expediente_id,
-          e.nombre_completo,
-          e.edad,
-          e.padecimientos,
-          r.procedimiento,
-          NULL AS consulta_id,
-          r.id AS folio_recibo_real,
-          'RECIBO' AS origen
-        FROM recibos r
-        JOIN expedientes e 
-          ON r.paciente_id = e.numero_expediente 
-          AND r.departamento = e.departamento
-        WHERE r.departamento = $1
-          AND r.tipo = 'Normal'
-          -- ✅ PERMITIR que tengan orden de consulta inicial
-          AND NOT EXISTS (
-            SELECT 1 FROM ordenes_medicas o 
-            WHERE o.folio_recibo = r.id 
-              AND o.departamento = r.departamento
-              AND o.tipo != 'Consulta'
-          )
+    const result = await pool.query(`
+      -- 1️⃣ Recibos tipo "Normal" que NO provienen de Agenda de Consultas
+      SELECT 
+        r.id AS recibo_id,
+        e.numero_expediente AS expediente_id,
+        e.nombre_completo,
+        e.edad,
+        e.padecimientos,
+        r.procedimiento,
+        NULL AS consulta_id,
+        r.id AS folio_recibo_real,
+        'RECIBO' AS origen
+      FROM recibos r
+      JOIN expedientes e 
+        ON r.paciente_id = e.numero_expediente 
+        AND r.departamento = e.departamento
+      WHERE r.departamento = $1
+        AND r.tipo = 'Normal'
+        -- ✅ EXCLUIR recibos vinculados a consultas (provienen de Agenda de Consultas)
+        AND NOT EXISTS (
+          SELECT 1 FROM ordenes_medicas o 
+          WHERE o.folio_recibo = r.id 
+            AND o.departamento = r.departamento
+            AND o.consulta_id IS NOT NULL
+        )
+        -- ✅ EXCLUIR si tiene órdenes de cirugía
+        AND NOT EXISTS (
+          SELECT 1 FROM ordenes_medicas o 
+          WHERE o.folio_recibo = r.id 
+            AND o.departamento = r.departamento
+            AND o.tipo != 'Consulta'
+        )
 
-        UNION
+      UNION
 
-        -- 2️⃣ Consultas en módulo médico
-        SELECT 
-          c.id AS recibo_id,
-          c.numero_expediente AS expediente_id,
-          COALESCE(e.nombre_completo, c.paciente) AS nombre_completo,
-          COALESCE(e.edad, c.edad) AS edad,
-          COALESCE(e.padecimientos, 'NINGUNO') AS padecimientos,
-          'Consulta Oftalmológica' AS procedimiento,
-          c.id AS consulta_id,
-          (
-            SELECT o.folio_recibo 
-            FROM ordenes_medicas o 
-            WHERE o.consulta_id = c.id 
-              AND o.departamento = c.departamento
-              AND o.origen = 'CONSULTA'
-            LIMIT 1
-          ) AS folio_recibo_real,
-          'CONSULTA' AS origen
-        FROM consultas c
-        LEFT JOIN expedientes e 
-          ON c.numero_expediente = e.numero_expediente 
-          AND c.departamento = e.departamento
-        WHERE c.departamento = $1
-          AND c.estado = 'En Módulo Médico'
+      -- 2️⃣ SOLO Consultas que fueron ENVIADAS al módulo médico (estado = 'En Módulo Médico')
+      SELECT 
+        c.id AS recibo_id,
+        c.numero_expediente AS expediente_id,
+        COALESCE(e.nombre_completo, c.paciente) AS nombre_completo,
+        COALESCE(e.edad, c.edad) AS edad,
+        COALESCE(e.padecimientos, 'NINGUNO') AS padecimientos,
+        'Consulta Oftalmológica' AS procedimiento,
+        c.id AS consulta_id,
+        (
+          SELECT o.folio_recibo 
+          FROM ordenes_medicas o 
+          WHERE o.consulta_id = c.id 
+            AND o.departamento = c.departamento
+            AND o.origen = 'CONSULTA'
+          LIMIT 1
+        ) AS folio_recibo_real,
+        'CONSULTA' AS origen
+      FROM consultas c
+      LEFT JOIN expedientes e 
+        ON c.numero_expediente = e.numero_expediente 
+        AND c.departamento = e.departamento
+      WHERE c.departamento = $1
+        AND c.estado = 'En Módulo Médico'
 
-        ORDER BY nombre_completo ASC
-      `, [depto]);
+      ORDER BY nombre_completo ASC
+    `, [depto]);
 
-      console.log(`✅ Módulo Médico: ${result.rows.length} pacientes pendientes`);
-      res.json(result.rows);
+    console.log(`✅ Módulo Médico: ${result.rows.length} pacientes pendientes`);
+    res.json(result.rows);
 
-    } catch (err) {
-      console.error('❌ Error en /api/pendientes-medico:', err);
-      res.status(500).json({ error: err.message });
-    }
-  });
+  } catch (err) {
+    console.error('❌ Error en /api/pendientes-medico:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
   // ==================== GUARDAR O ACTUALIZAR ORDEN MÉDICA ====================
   app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
