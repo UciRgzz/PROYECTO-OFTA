@@ -1027,76 +1027,91 @@ async function enviarAModuloMedico(consultaId) {
       }
     }
 
-    // ====================== ELIMINAR CONSULTA ======================
-    async function eliminarConsulta(id) {
-      try {
-        const resp = await fetch(`/api/consultas/${id}`, {
+// ====================== ELIMINAR CONSULTA ======================
+async function eliminarConsulta(id) {
+  try {
+    // ✅ PRIMERO: Pedir confirmación SIEMPRE
+    const confirmacion = await Swal.fire({
+      title: '⚠️ ¿Eliminar consulta?',
+      text: "Esta acción eliminará la consulta y sus registros asociados",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6'
+    });
+
+    if (!confirmacion.isConfirmed) return;
+
+    // SEGUNDO: Hacer la petición DELETE
+    const resp = await fetch(`/api/consultas/${id}`, {
+      method: "DELETE",
+      credentials: "include"
+    });
+
+    // Si tiene pagos, pedirá confirmación adicional
+    if (resp.status === 409) {
+      const data = await resp.json();
+
+      const result = await Swal.fire({
+        title: 'Atención',
+        text: data.mensaje,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar todo',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6'
+      });
+
+      if (result.isConfirmed) {
+        const resp2 = await fetch(`/api/consultas/${id}?forzar=true`, {
           method: "DELETE",
           credentials: "include"
         });
-
-        if (resp.status === 409) {
-          const data = await resp.json();
-
-          const result = await Swal.fire({
-            title: 'Atención',
-            text: data.mensaje,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Sí, eliminar',
-            cancelButtonText: 'Cancelar',
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6'
-          });
-
-          if (result.isConfirmed) {
-            const resp2 = await fetch(`/api/consultas/${id}?forzar=true`, {
-              method: "DELETE",
-              credentials: "include"
-            });
-            const data2 = await resp2.json();
-
-            await Swal.fire({
-              icon: 'success',
-              title: 'Eliminada',
-              text: data2.mensaje || 'Consulta eliminada correctamente',
-              confirmButtonColor: '#3085d6'
-            });
-            location.reload();
-          } else {
-            await Swal.fire({
-              icon: 'info',
-              title: 'Cancelado',
-              text: 'La consulta no fue eliminada',
-              confirmButtonColor: '#3085d6'
-            });
-          }
-          return;
-        }
-
-        if (!resp.ok) throw new Error("Error al eliminar la consulta");
-        const data = await resp.json();
+        const data2 = await resp2.json();
 
         await Swal.fire({
           icon: 'success',
           title: 'Eliminada',
-          text: data.mensaje || 'Consulta eliminada correctamente',
+          text: data2.mensaje || 'Consulta eliminada correctamente',
           confirmButtonColor: '#3085d6'
         });
-
         location.reload();
-
-      } catch (err) {
-        console.error(err);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Ocurrió un problema al eliminar la consulta',
-          confirmButtonColor: '#d33'
+      } else {
+        await Swal.fire({
+          icon: 'info',
+          title: 'Cancelado',
+          text: 'La consulta no fue eliminada',
+          confirmButtonColor: '#3085d6'
         });
       }
+      return;
     }
 
+    if (!resp.ok) throw new Error("Error al eliminar la consulta");
+    const data = await resp.json();
+
+    await Swal.fire({
+      icon: 'success',
+      title: 'Eliminada',
+      text: data.mensaje || 'Consulta eliminada correctamente',
+      confirmButtonColor: '#3085d6'
+    });
+
+    location.reload();
+
+  } catch (err) {
+    console.error(err);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Ocurrió un problema al eliminar la consulta',
+      confirmButtonColor: '#d33'
+    });
+  }
+}
     // ====================== FORMATEAR FECHA ======================
     function formatearFecha(fecha) {
       if (!fecha) return 'Sin fecha';
