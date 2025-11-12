@@ -2972,7 +2972,7 @@ app.put('/api/consultas/:id/atender', verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== ELIMINAR CONSULTA (CORREGIDO) ====================
+// ==================== ELIMINAR CONSULTA (SIN DESACTIVAR TRIGGERS) ====================
 app.delete('/api/consultas/:id', verificarSesion, async (req, res) => {
   const client = await pool.connect();
   try {
@@ -2991,6 +2991,8 @@ app.delete('/api/consultas/:id', verificarSesion, async (req, res) => {
     );
 
     console.log(`📋 Órdenes encontradas: ${ordenes.rowCount}`);
+
+    let recibosParaRenumerar = [];
 
     if (ordenes.rowCount > 0) {
       // 2️⃣ Revisar si alguna orden tiene pagos
@@ -3015,10 +3017,7 @@ app.delete('/api/consultas/:id', verificarSesion, async (req, res) => {
         });
       }
 
-      // ✅ 4️⃣ DESACTIVAR TRIGGERS temporalmente
-      await client.query('SET session_replication_role = replica;');
-
-      // 5️⃣ Eliminar TODO (el usuario confirmó o no tiene pagos)
+      // 4️⃣ Eliminar TODO
       for (const orden of ordenes.rows) {
         console.log(`🔄 Procesando orden ${orden.id}...`);
 
@@ -3027,25 +3026,27 @@ app.delete('/api/consultas/:id', verificarSesion, async (req, res) => {
           'DELETE FROM pagos WHERE orden_id = $1 AND departamento = $2',
           [orden.id, depto]
         );
-        console.log(`  ✅ Pagos de orden ${orden.id} eliminados`);
+        console.log(`  ✅ Pagos eliminados`);
 
-        // B) Si la orden tiene recibo vinculado, eliminar el recibo y sus abonos
+        // B) Si tiene recibo vinculado, eliminarlo
         if (orden.folio_recibo) {
-          console.log(`  💵 Orden tiene recibo vinculado: ${orden.folio_recibo}`);
+          console.log(`  💵 Eliminando recibo: ${orden.folio_recibo}`);
 
           // B1) Eliminar abonos del recibo
           await client.query(
             'DELETE FROM abonos_recibos WHERE recibo_id = $1 AND departamento = $2',
             [orden.folio_recibo, depto]
           );
-          console.log(`  ✅ Abonos del recibo ${orden.folio_recibo} eliminados`);
 
-          // B2) Eliminar el recibo (sin trigger)
+          // B2) Guardar el número de recibo para renumerar después
+          recibosParaRenumerar.push(orden.folio_recibo);
+
+          // B3) Eliminar el recibo (el trigger renumerará automáticamente)
           await client.query(
             'DELETE FROM recibos WHERE id = $1 AND departamento = $2',
             [orden.folio_recibo, depto]
           );
-          console.log(`  ✅ Recibo ${orden.folio_recibo} eliminado`);
+          console.log(`  ✅ Recibo eliminado`);
         }
 
         // C) Eliminar la orden médica
@@ -3053,21 +3054,17 @@ app.delete('/api/consultas/:id', verificarSesion, async (req, res) => {
           'DELETE FROM ordenes_medicas WHERE id = $1 AND departamento = $2',
           [orden.id, depto]
         );
-        console.log(`  ✅ Orden médica ${orden.id} eliminada`);
+        console.log(`  ✅ Orden médica eliminada`);
       }
-
-      // ✅ 6️⃣ REACTIVAR TRIGGERS
-      await client.query('SET session_replication_role = DEFAULT;');
     }
 
-    // 7️⃣ Eliminar atención médica (si existe)
+    // 5️⃣ Eliminar atención médica (si existe)
     await client.query(
       'DELETE FROM atencion_consultas WHERE consulta_id = $1 AND departamento = $2',
       [id, depto]
     );
-    console.log(`✅ Atención médica eliminada`);
 
-    // 8️⃣ Finalmente eliminar la consulta
+    // 6️⃣ Eliminar la consulta
     const result = await client.query(
       'DELETE FROM consultas WHERE id = $1 AND departamento = $2 RETURNING *',
       [id, depto]
@@ -3080,26 +3077,10 @@ app.delete('/api/consultas/:id', verificarSesion, async (req, res) => {
 
     await client.query('COMMIT');
     
-    // ✅ 9️⃣ Renumerar recibos DESPUÉS de hacer commit (fuera de la transacción)
-    if (ordenes.rowCount > 0) {
-      await pool.query(`
-        WITH numerados AS (
-          SELECT id, ROW_NUMBER() OVER (ORDER BY id ASC) as nuevo_numero
-          FROM recibos
-          WHERE departamento = $1
-        )
-        UPDATE recibos r
-        SET numero_recibo = n.nuevo_numero
-        FROM numerados n
-        WHERE r.id = n.id AND r.departamento = $1
-      `, [depto]);
-      console.log(`✅ Recibos renumerados después de la eliminación`);
-    }
-    
-    console.log(`✅ Consulta ${id} y todos sus registros eliminados correctamente`);
+    console.log(`✅ Consulta ${id} eliminada correctamente`);
     res.json({ 
-      mensaje: '🗑️ Consulta, órdenes médicas, recibos y pagos eliminados correctamente',
-      detalle: `Se eliminaron ${ordenes.rowCount} orden(es) médica(s) asociada(s)`
+      mensaje: '🗑️ Consulta eliminada correctamente',
+      detalle: `Se eliminaron ${ordenes.rowCount} orden(es) médica(s)`
     });
 
   } catch (err) {
