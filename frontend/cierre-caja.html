@@ -214,15 +214,18 @@ $(document).ready(() => {
 
   $('#filtroRango').on('apply.daterangepicker', function(ev, picker) {
     $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
-    this.dataset.desde = picker.startDate.format("YYYY-MM-DD");
-    this.dataset.hasta = picker.endDate.format("YYYY-MM-DD");
+    document.getElementById('filtroRango').dataset.desde = picker.startDate.format("YYYY-MM-DD");
+    document.getElementById('filtroRango').dataset.hasta = picker.endDate.format("YYYY-MM-DD");
     cargarCierre();
   });
 
-  // Inicializar valores por defecto (hoy), pero NO ejecutar aún
-  $('#filtroRango').data('desde', hoy);
-  $('#filtroRango').data('hasta', hoy);
+  // ✅ Inicializar valores por defecto (hoy)
+  document.getElementById('filtroRango').dataset.desde = hoy;
+  document.getElementById('filtroRango').dataset.hasta = hoy;
   $('#filtroRango').val(moment().format('DD/MM/YYYY') + " - " + moment().format('DD/MM/YYYY'));
+  
+  // ✅ CARGAR DATOS DEL DÍA AUTOMÁTICAMENTE
+  cargarCierre();
 });
 
 // Formateador global para todo el sistema y Excel (estilo español: 1.234,56)
@@ -237,6 +240,8 @@ async function cargarCierre() {
     const rango = document.getElementById("filtroRango").dataset;
     const desde = rango.desde;
     const hasta = rango.hasta;
+
+    console.log('📊 Cargando cierre de caja desde:', desde, 'hasta:', hasta);
 
     try {
         Swal.fire({
@@ -296,6 +301,7 @@ async function cargarCierre() {
             tbody += filaTotal;
 
             document.getElementById("tbodyResumen").innerHTML = tbody;
+            console.log('✅ Resumen cargado correctamente');
         }
 
         // ====== PACIENTES CON N.ORDEN Y N.FOLIO ======
@@ -317,13 +323,15 @@ async function cargarCierre() {
                     <td><span class="badge ${p.saldo < 0 ? 'bg-danger' : 'bg-success'}">$${formato.format(Math.abs(p.saldo))}</span></td>
                 </tr>
             `).join('');
+            console.log('✅ Listado de pacientes cargado:', pacientes.length, 'registros');
         } else {
             document.getElementById("tablaPacientes").innerHTML = "<tr><td colspan='10'>Sin datos</td></tr>";
+            console.log('⚠️ No se encontraron pacientes para el rango seleccionado');
         }
 
         Swal.close();
     } catch (error) {
-        console.error("Error cargando cierre de caja:", error);
+        console.error("❌ Error cargando cierre de caja:", error);
         Swal.fire({
             icon: 'error',
             title: 'Error',
