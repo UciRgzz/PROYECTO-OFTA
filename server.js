@@ -2585,7 +2585,7 @@ app.post('/api/set-departamento', isAdmin, (req, res) => {
 
 
 // ==================== MODULO DE AGENDA QUIRÚRGICA ====================
-// Obtener órdenes médicas
+// Obtener órdenes médicas (SOLO CIRUGÍAS)
 app.get("/api/ordenes", verificarSesion, async (req, res) => {
   try {
     let depto = getDepartamento(req);
@@ -2617,6 +2617,7 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
         ON p.orden_id = o.id 
        AND p.departamento = o.departamento
       WHERE o.departamento = $1
+        AND o.origen != 'CONSULTA'
     `;
 
     const params = [depto];
@@ -2643,7 +2644,6 @@ app.get("/api/ordenes", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // ==================== ASIGNAR O ELIMINAR FECHA DE CIRUGÍA ====================
 app.put("/api/ordenes/:id/agendar", verificarSesion, async (req, res) => {
@@ -2703,7 +2703,7 @@ app.put("/api/ordenes/:id/lente", verificarSesion, async (req, res) => {
 });
 
 
-// ==================== LISTAR CIRUGÍAS (para calendario) ====================
+// ==================== LISTAR CIRUGÍAS (para calendario) - SOLO CIRUGÍAS ====================
 app.get("/api/cirugias", verificarSesion, async (req, res) => {
   try {
     let depto = getDepartamento(req);
@@ -2723,6 +2723,7 @@ app.get("/api/cirugias", verificarSesion, async (req, res) => {
        AND e.departamento = o.departamento
       WHERE o.departamento = $1
         AND o.fecha_cirugia IS NOT NULL
+        AND o.origen != 'CONSULTA'
       ORDER BY o.fecha_cirugia, o.hora_cirugia ASC
     `, [depto]);
 
@@ -2732,6 +2733,7 @@ app.get("/api/cirugias", verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // ==================== MODULO DE AGENDA DE CONSULTAS MÉDICAS ====================
 // ==================== BÚSQUEDA DE EXPEDIENTES ====================
