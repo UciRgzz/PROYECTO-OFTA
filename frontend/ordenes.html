@@ -273,6 +273,56 @@
       color: #2c80b9;
     }
     
+    /* Estilos para la lista de recibos */
+    .recibo-item {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+      background-color: #f9f9f9;
+      transition: all 0.3s ease;
+    }
+    
+    .recibo-item:hover {
+      background-color: #f0f8ff;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .recibo-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .recibo-item-title {
+      font-weight: bold;
+      color: var(--primary-color);
+    }
+    
+    .recibo-item-monto {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: var(--success-color);
+    }
+    
+    .recibo-item-details {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      color: #666;
+    }
+    
+    .recibo-item-actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+    }
+    
+    .recibo-reciente {
+      border-left: 4px solid var(--success-color);
+    }
+    
     @media (max-width: 1200px) {
       .table th, .table td {
         font-size: 0.85rem;
@@ -308,6 +358,15 @@
       .table th, .table td {
         font-size: 0.8rem;
         padding: 8px 5px;
+      }
+      
+      .recibo-item-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .recibo-item-details {
+        flex-direction: column;
       }
     }
   </style>
@@ -458,6 +517,29 @@
     </div>
   </div>
 
+  <!-- Modal Lista de Recibos -->
+  <div class="modal fade" id="modalRecibos" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="fas fa-receipt"></i> Recibos del Paciente</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="recibosLista" class="mb-4">
+            <!-- Aquí se cargarán los recibos -->
+          </div>
+          <div class="d-flex justify-content-between">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            <button type="button" class="btn btn-primary" onclick="imprimirReciboReciente()">
+              <i class="fas fa-print"></i> Imprimir Recibo Más Reciente
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
@@ -467,6 +549,8 @@
   
   <script>
     let ordenesData = [];
+    let recibosData = [];
+    let reciboReciente = null;
 
     async function cargarOrdenes() {
       try {
@@ -530,8 +614,8 @@
               <td>
                 <span class="badge ${estatus === "Pagado" ? 'bg-success' : 'bg-warning'}">${estatus}</span>
                 <br>
-                <button class="btn btn-primary btn-icon mt-1" onclick="imprimirReciboOrden(${i})" title="Imprimir recibo">
-                  <i class="fas fa-print"></i>
+                <button class="btn btn-primary btn-icon mt-1" onclick="mostrarRecibosPaciente(${i})" title="Ver recibos">
+                  <i class="fas fa-receipt"></i>
                 </button>
               </td>
               <td>${fecha}</td>
@@ -547,6 +631,260 @@
       } catch (err) {
         console.error("❌ Error cargando órdenes por rango:", err);
       }
+    }
+
+    // Función para mostrar la lista de recibos del paciente
+    async function mostrarRecibosPaciente(index) {
+      const orden = ordenesData[index];
+      const pacienteId = orden.paciente_id || orden.id_paciente;
+      
+      if (!pacienteId) {
+        mostrarError("Error", "No se pudo identificar al paciente");
+        return;
+      }
+      
+      try {
+        // Simulamos la carga de recibos (reemplaza con tu API real)
+        recibosData = await cargarRecibosPaciente(pacienteId);
+        reciboReciente = recibosData.length > 0 ? recibosData[0] : null;
+        
+        // Mostrar la lista de recibos
+        mostrarListaRecibos(orden);
+      } catch (err) {
+        console.error("Error cargando recibos:", err);
+        mostrarError("Error", "No se pudieron cargar los recibos del paciente");
+      }
+    }
+
+    // Función para cargar recibos del paciente (simulada)
+    async function cargarRecibosPaciente(pacienteId) {
+      // En una implementación real, esto haría una llamada a tu API
+      // Ejemplo: const res = await fetch(`/api/recibos/paciente/${pacienteId}`);
+      // return await res.json();
+      
+      // Simulación de datos de recibos
+      return [
+        {
+          id: 1,
+          folio: "R-2025-001",
+          fecha: "2025-11-12T10:30:00",
+          monto: 56000.00,
+          concepto: "Abono inicial - Cirugía de Catania",
+          forma_pago: "Transferencia",
+          orden_id: 1
+        },
+        {
+          id: 2,
+          folio: "R-2025-002",
+          fecha: "2025-10-25T14:15:00",
+          monto: 2000.00,
+          concepto: "Abono - Cirugía de Catania",
+          forma_pago: "Efectivo",
+          orden_id: 1
+        },
+        {
+          id: 3,
+          folio: "R-2025-003",
+          fecha: "2025-09-10T09:45:00",
+          monto: 5000.00,
+          concepto: "Primer abono - Cirugía de Catania",
+          forma_pago: "Tarjeta Crédito",
+          orden_id: 1
+        }
+      ];
+    }
+
+    // Función para mostrar la lista de recibos en el modal
+    function mostrarListaRecibos(orden) {
+      const recibosLista = document.getElementById("recibosLista");
+      
+      if (recibosData.length === 0) {
+        recibosLista.innerHTML = `
+          <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle"></i> No hay recibos registrados para este paciente.
+          </div>
+        `;
+      } else {
+        recibosLista.innerHTML = `
+          <div class="mb-3">
+            <h6><i class="fas fa-user"></i> Paciente: ${orden.paciente || 'Sin nombre'}</h6>
+            <p class="mb-0"><i class="fas fa-file-medical"></i> Orden: ${orden.n_orden || orden.numero_orden || 'N/A'}</p>
+          </div>
+          <h6 class="mb-3">Recibos registrados:</h6>
+          ${recibosData.map((recibo, index) => {
+            const fecha = moment(recibo.fecha).format('DD/MM/YYYY HH:mm');
+            const esReciente = index === 0;
+            
+            return `
+              <div class="recibo-item ${esReciente ? 'recibo-reciente' : ''}">
+                <div class="recibo-item-header">
+                  <div class="recibo-item-title">
+                    ${esReciente ? '<span class="badge bg-success me-2">Más Reciente</span>' : ''}
+                    Recibo ${recibo.folio}
+                  </div>
+                  <div class="recibo-item-monto">$${recibo.monto.toLocaleString("es-MX", {minimumFractionDigits: 2})}</div>
+                </div>
+                <div class="recibo-item-details">
+                  <div>
+                    <strong>Fecha:</strong> ${fecha}<br>
+                    <strong>Concepto:</strong> ${recibo.concepto}
+                  </div>
+                  <div>
+                    <strong>Forma de pago:</strong> ${recibo.forma_pago}
+                  </div>
+                </div>
+                <div class="recibo-item-actions">
+                  <button class="btn btn-sm btn-outline-primary" onclick="imprimirReciboEspecifico(${recibo.id})">
+                    <i class="fas fa-print"></i> Imprimir
+                  </button>
+                  <button class="btn btn-sm btn-outline-secondary" onclick="verDetallesRecibo(${recibo.id})">
+                    <i class="fas fa-eye"></i> Ver Detalles
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        `;
+      }
+      
+      // Mostrar el modal
+      new bootstrap.Modal(document.getElementById("modalRecibos")).show();
+    }
+
+    // Función para imprimir el recibo más reciente
+    function imprimirReciboReciente() {
+      if (!reciboReciente) {
+        mostrarError("Error", "No hay recibos disponibles para imprimir");
+        return;
+      }
+      
+      imprimirReciboEspecifico(reciboReciente.id);
+    }
+
+    // Función para imprimir un recibo específico
+    function imprimirReciboEspecifico(reciboId) {
+      const recibo = recibosData.find(r => r.id === reciboId);
+      if (!recibo) {
+        mostrarError("Error", "No se encontró el recibo solicitado");
+        return;
+      }
+      
+      // Buscar la orden asociada al recibo
+      const orden = ordenesData.find(o => o.orden_id === recibo.orden_id) || {};
+      
+      const contenido = generarContenidoRecibo(recibo, orden);
+      
+      Swal.fire({
+        title: 'Vista previa del recibo',
+        html: contenido,
+        width: 800,
+        showCancelButton: true,
+        confirmButtonText: 'Descargar PDF',
+        cancelButtonText: 'Cancelar',
+        customClass: {
+          popup: 'swal-wide'
+        },
+        preConfirm: () => {
+          const opt = {
+            margin: 10,
+            filename: `recibo_${recibo.folio}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+          };
+          html2pdf().from(contenido).set(opt).save();
+        }
+      });
+    }
+
+    // Función para generar el contenido HTML del recibo
+    function generarContenidoRecibo(recibo, orden) {
+      const fecha = moment(recibo.fecha).format('DD/MM/YYYY HH:mm');
+      
+      return `
+        <div class="recibo-preview">
+          <div class="recibo-header">
+            <img src="/uploads/logo-oftavision.png" alt="Logo" class="recibo-logo">
+            <h2 style="margin:5px 0;">CLÍNICA OFTAVISION</h2>
+            <h4 style="margin:0; color:#444;">RECIBO DE PAGO</h4>
+            <hr>
+          </div>
+
+          <div class="recibo-details">
+            <table style="width:100%; margin-bottom:15px; font-size:14px;">
+              <tr>
+                <td><b>Fecha:</b> ${fecha}</td>
+                <td style="text-align:right;"><b>N.Folio:</b> ${recibo.folio}</td>
+              </tr>
+              <tr>
+                <td><b>N.Orden:</b> ${orden.n_orden || orden.numero_orden || 'N/A'}</td>
+                <td style="text-align:right;"><b>Expediente:</b> ${orden.expediente_numero || orden.numero_expediente || 'N/A'}</td>
+              </tr>
+              <tr>
+                <td colspan="2"><b>Paciente:</b> ${orden.paciente || 'Sin nombre'}</td>
+              </tr>
+              <tr>
+                <td><b>Médico:</b> ${orden.medico || 'N/A'}</td>
+                <td style="text-align:right;"><b>Diagnóstico:</b> ${orden.diagnostico || 'N/A'}</td>
+              </tr>
+            </table>
+          </div>
+
+          <table class="recibo-table">
+            <thead>
+              <tr>
+                <th>Concepto</th>
+                <th>Forma de Pago</th>
+                <th>Monto</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>${recibo.concepto}</td>
+                <td>${recibo.forma_pago}</td>
+                <td style="text-align:right;">$${recibo.monto.toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="text-align:right;"><b>Total:</b></td>
+                <td style="text-align:right;"><b>$${recibo.monto.toLocaleString("es-MX", {minimumFractionDigits: 2})}</b></td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <div class="recibo-footer">
+            <p><b>CLÍNICA OFTAVISION</b> - Este recibo es un comprobante de pago.</p>
+            <p>Gracias por su preferencia.</p>
+          </div>
+        </div>
+      `;
+    }
+
+    // Función para ver detalles de un recibo específico
+    function verDetallesRecibo(reciboId) {
+      const recibo = recibosData.find(r => r.id === reciboId);
+      if (!recibo) {
+        mostrarError("Error", "No se encontró el recibo solicitado");
+        return;
+      }
+      
+      const fecha = moment(recibo.fecha).format('DD/MM/YYYY HH:mm');
+      
+      Swal.fire({
+        title: `Detalles del Recibo ${recibo.folio}`,
+        html: `
+          <div class="text-start">
+            <p><strong>Folio:</strong> ${recibo.folio}</p>
+            <p><strong>Fecha:</strong> ${fecha}</p>
+            <p><strong>Concepto:</strong> ${recibo.concepto}</p>
+            <p><strong>Forma de Pago:</strong> ${recibo.forma_pago}</p>
+            <p><strong>Monto:</strong> $${recibo.monto.toLocaleString("es-MX", {minimumFractionDigits: 2})}</p>
+          </div>
+        `,
+        icon: 'info',
+        confirmButtonText: 'Cerrar'
+      });
     }
 
     function verDetalles(index) {
@@ -599,99 +937,6 @@
       document.getElementById("montoLiquidar").value = "";
       
       new bootstrap.Modal(document.getElementById("modalPago")).show();
-    }
-
-    async function imprimirReciboOrden(index) {
-      const orden = ordenesData[index];
-      
-      let numeroRecibo = orden.n_folio || 'Sin Recibo';
-      let numeroOrden = orden.n_orden || orden.numero_orden || 'N/A';
-      let numeroExpediente = orden.expediente_numero || orden.numero_expediente || 'N/A';
-      let nombrePaciente = orden.paciente || 'Sin nombre';
-      
-      const contenido = `
-        <div class="recibo-preview">
-          <div class="recibo-header">
-            <img src="/uploads/logo-oftavision.png" alt="Logo" class="recibo-logo">
-            <h2 style="margin:5px 0;">CLÍNICA OFTAVISION</h2>
-            <h4 style="margin:0; color:#444;">RECIBO DE ORDEN MÉDICA</h4>
-            <hr>
-          </div>
-
-          <div class="recibo-details">
-            <table style="width:100%; margin-bottom:15px; font-size:14px;">
-              <tr>
-                <td><b>Fecha:</b> ${(() => {
-                  if (!orden.fecha) return "N/A";
-                  const soloFecha = orden.fecha.split("T")[0];
-                  const [anio, mes, dia] = soloFecha.split("-");
-                  return `${dia}/${mes}/${anio}`;
-                })()}</td>
-                <td style="text-align:right;"><b>N.Folio:</b> ${numeroRecibo}</td>
-              </tr>
-              <tr>
-                <td><b>N.Orden:</b> ${numeroOrden}</td>
-                <td style="text-align:right;"><b>Expediente:</b> ${numeroExpediente}</td>
-              </tr>
-              <tr>
-                <td colspan="2"><b>Paciente:</b> ${nombrePaciente}</td>
-              </tr>
-              <tr>
-                <td><b>Médico:</b> ${orden.medico || 'N/A'}</td>
-                <td style="text-align:right;"><b>Diagnóstico:</b> ${orden.diagnostico || 'N/A'}</td>
-              </tr>
-              <tr>
-                <td colspan="2"><b>Lado:</b> ${orden.lado || 'N/A'}</td>
-              </tr>
-            </table>
-          </div>
-
-          <table class="recibo-table">
-            <thead>
-              <tr>
-                <th>Procedimiento</th>
-                <th>Precio</th>
-                <th>Pagado</th>
-                <th>Pendiente</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>${orden.procedimiento || 'N/A'}</td>
-                <td style="text-align:right;">$${parseFloat(orden.precio || 0).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-                <td style="text-align:right;">$${parseFloat(orden.pagado || 0).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-                <td style="text-align:right;">$${parseFloat(orden.pendiente || 0).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div class="recibo-footer">
-            <p><b>CLÍNICA OFTAVISION</b> - Este recibo es un comprobante de orden médica.</p>
-          </div>
-        </div>
-      `;
-
-      Swal.fire({
-        title: 'Vista previa del recibo',
-        html: contenido,
-        width: 800,
-        showCancelButton: true,
-        confirmButtonText: 'Descargar PDF',
-        cancelButtonText: 'Cancelar',
-        customClass: {
-          popup: 'swal-wide'
-        },
-        preConfirm: () => {
-          const opt = {
-            margin: 10,
-            filename: `recibo_orden_${numeroOrden}_folio_${numeroRecibo}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-          };
-          html2pdf().from(contenido).set(opt).save();
-        }
-      });
     }
 
     document.getElementById("formPago").addEventListener("submit", async (e) => {
