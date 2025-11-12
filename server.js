@@ -1037,7 +1037,30 @@ app.get('/api/procedimientos', verificarSesion, async (req, res) => {
     res.status(500).json({ error: "Error consultando procedimientos" });
   }
 });
+// ==================== OBTENER PAGOS/ABONOS DE UNA ORDEN ====================
+app.get("/api/ordenes/:id/pagos", verificarSesion, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const depto = getDepartamento(req);
 
+    const result = await pool.query(`
+      SELECT 
+        p.id,
+        p.monto,
+        p.forma_pago,
+        p.fecha,
+        ROW_NUMBER() OVER (ORDER BY p.fecha ASC, p.id ASC) AS numero_recibo
+      FROM pagos p
+      WHERE p.orden_id = $1 AND p.departamento = $2
+      ORDER BY p.fecha ASC, p.id ASC
+    `, [id, depto]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error obteniendo pagos de orden:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 
 // ==================== MODULO MÉDICO ====================
@@ -1257,6 +1280,7 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
             actualizada: true
           });
         }
+        
       } else {
         // 🆕 ES UNA CIRUGÍA U OTRO PROCEDIMIENTO - SIEMPRE CREAR ORDEN NUEVA
         console.log(`🆕 Detectada solicitud de cirugía/procedimiento: ${procedimientoNombre}`);

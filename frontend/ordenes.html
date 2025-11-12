@@ -198,7 +198,6 @@
       filter: invert(1);
     }
 
-    /* Estilos para el recibo */
     .recibo-preview {
       font-family: Arial, sans-serif;
       padding: 20px;
@@ -271,6 +270,47 @@
 
     .info-link:hover {
       color: #2c80b9;
+    }
+
+    .recibo-item {
+      padding: 12px;
+      margin-bottom: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #f9f9f9;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .recibo-item:hover {
+      background: #e3f2fd;
+      border-color: var(--secondary-color);
+      transform: translateY(-2px);
+    }
+
+    .recibo-item-info {
+      flex: 1;
+    }
+
+    .recibo-item-numero {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 5px;
+    }
+
+    .recibo-item-detalles {
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    .recibo-item-monto {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--success-color);
     }
     
     @media (max-width: 1200px) {
@@ -458,6 +498,28 @@
     </div>
   </div>
 
+  <!-- Modal Lista de Recibos -->
+  <div class="modal fade" id="modalRecibos" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="fas fa-receipt"></i> Recibos de Pago</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <strong>Paciente:</strong> <span id="reciboPaciente"></span>
+          </div>
+          <div class="mb-3">
+            <strong>Procedimiento:</strong> <span id="reciboProcedimiento"></span>
+          </div>
+          <hr>
+          <div id="listaRecibos"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
@@ -530,7 +592,7 @@
               <td>
                 <span class="badge ${estatus === "Pagado" ? 'bg-success' : 'bg-warning'}">${estatus}</span>
                 <br>
-                <button class="btn btn-primary btn-icon mt-1" onclick="imprimirReciboOrden(${i})" title="Imprimir recibo">
+                <button class="btn btn-primary btn-icon mt-1" onclick="abrirListaRecibos(${i})" title="Ver recibos">
                   <i class="fas fa-print"></i>
                 </button>
               </td>
@@ -547,6 +609,142 @@
       } catch (err) {
         console.error("❌ Error cargando órdenes por rango:", err);
       }
+    }
+
+    async function abrirListaRecibos(index) {
+      const orden = ordenesData[index];
+      
+      document.getElementById("reciboPaciente").textContent = orden.paciente || 'Sin nombre';
+      document.getElementById("reciboProcedimiento").textContent = orden.procedimiento || 'N/A';
+
+      try {
+        const res = await fetch(`/api/ordenes/${orden.orden_id}/pagos`);
+        const pagos = await res.json();
+
+        if (pagos.length === 0) {
+          document.getElementById("listaRecibos").innerHTML = `
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle"></i> No hay recibos de pago registrados para esta orden.
+            </div>
+          `;
+        } else {
+          document.getElementById("listaRecibos").innerHTML = pagos.map(pago => `
+            <div class="recibo-item" onclick="imprimirReciboIndividual(${index}, ${pago.numero_recibo}, ${pago.id})">
+              <div class="recibo-item-info">
+                <div class="recibo-item-numero">
+                  <i class="fas fa-receipt"></i> Recibo #${pago.numero_recibo}
+                </div>
+                <div class="recibo-item-detalles">
+                  Fecha: ${(() => {
+                    const soloFecha = pago.fecha.split("T")[0];
+                    const [anio, mes, dia] = soloFecha.split("-");
+                    return `${dia}/${mes}/${anio}`;
+                  })()} | Forma de Pago: ${pago.forma_pago}
+                </div>
+              </div>
+              <div class="recibo-item-monto">
+                $${parseFloat(pago.monto).toLocaleString("es-MX", {minimumFractionDigits: 2})}
+              </div>
+            </div>
+          `).join('');
+        }
+
+        new bootstrap.Modal(document.getElementById("modalRecibos")).show();
+      } catch (err) {
+        console.error("Error cargando recibos:", err);
+        mostrarError("Error", "No se pudieron cargar los recibos");
+      }
+    }
+
+    function imprimirReciboIndividual(ordenIndex, numeroRecibo, pagoId) {
+      const orden = ordenesData[ordenIndex];
+      
+      fetch(`/api/ordenes/${orden.orden_id}/pagos`)
+        .then(res => res.json())
+        .then(pagos => {
+          const pago = pagos.find(p => p.id === pagoId);
+          
+          if (!pago) {
+            mostrarError("Error", "No se encontró el recibo");
+            return;
+          }
+
+          const contenido = `
+            <div class="recibo-preview">
+              <div class="recibo-header">
+                <img src="/uploads/logo-oftavision.png" alt="Logo" class="recibo-logo">
+                <h2 style="margin:5px 0;">CLÍNICA OFTAVISION</h2>
+                <h4 style="margin:0; color:#444;">RECIBO DE PAGO</h4>
+                <hr>
+              </div>
+
+              <div class="recibo-details">
+                <table style="width:100%; margin-bottom:15px; font-size:14px;">
+                  <tr>
+                    <td><b>Fecha:</b> ${(() => {
+                      const soloFecha = pago.fecha.split("T")[0];
+                      const [anio, mes, dia] = soloFecha.split("-");
+                      return `${dia}/${mes}/${anio}`;
+                    })()}</td>
+                    <td style="text-align:right;"><b>Recibo N°:</b> ${numeroRecibo}</td>
+                  </tr>
+                  <tr>
+                    <td><b>N.Orden:</b> ${orden.n_orden || orden.numero_orden || 'N/A'}</td>
+                    <td style="text-align:right;"><b>N.Folio:</b> ${orden.n_folio || 'Sin Recibo'}</td>
+                  </tr>
+                  <tr>
+                    <td><b>Expediente:</b> ${orden.expediente_numero || 'N/A'}</td>
+                    <td style="text-align:right;"><b>Forma de Pago:</b> ${pago.forma_pago}</td>
+                  </tr>
+                  <tr>
+                    <td colspan="2"><b>Paciente:</b> ${orden.paciente || 'Sin nombre'}</td>
+                  </tr>
+                </table>
+              </div>
+
+              <table class="recibo-table">
+                <thead>
+                  <tr>
+                    <th>Concepto</th>
+                    <th>Monto Pagado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>${orden.procedimiento || 'N/A'}</td>
+                    <td style="text-align:right;">$${parseFloat(pago.monto).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div class="recibo-footer">
+                <p><b>CLÍNICA OFTAVISION</b> - Este recibo es un comprobante de pago.</p>
+              </div>
+            </div>
+          `;
+
+          Swal.fire({
+            title: `Vista previa - Recibo #${numeroRecibo}`,
+            html: contenido,
+            width: 800,
+            showCancelButton: true,
+            confirmButtonText: 'Descargar PDF',
+            cancelButtonText: 'Cancelar',
+            customClass: {
+              popup: 'swal-wide'
+            },
+            preConfirm: () => {
+              const opt = {
+                margin: 10,
+                filename: `recibo_${numeroRecibo}_orden_${orden.n_orden || orden.numero_orden}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+              };
+              html2pdf().from(contenido).set(opt).save();
+            }
+          });
+        });
     }
 
     function verDetalles(index) {
@@ -599,99 +797,6 @@
       document.getElementById("montoLiquidar").value = "";
       
       new bootstrap.Modal(document.getElementById("modalPago")).show();
-    }
-
-    async function imprimirReciboOrden(index) {
-      const orden = ordenesData[index];
-      
-      let numeroRecibo = orden.n_folio || 'Sin Recibo';
-      let numeroOrden = orden.n_orden || orden.numero_orden || 'N/A';
-      let numeroExpediente = orden.expediente_numero || orden.numero_expediente || 'N/A';
-      let nombrePaciente = orden.paciente || 'Sin nombre';
-      
-      const contenido = `
-        <div class="recibo-preview">
-          <div class="recibo-header">
-            <img src="/uploads/logo-oftavision.png" alt="Logo" class="recibo-logo">
-            <h2 style="margin:5px 0;">CLÍNICA OFTAVISION</h2>
-            <h4 style="margin:0; color:#444;">RECIBO DE ORDEN MÉDICA</h4>
-            <hr>
-          </div>
-
-          <div class="recibo-details">
-            <table style="width:100%; margin-bottom:15px; font-size:14px;">
-              <tr>
-                <td><b>Fecha:</b> ${(() => {
-                  if (!orden.fecha) return "N/A";
-                  const soloFecha = orden.fecha.split("T")[0];
-                  const [anio, mes, dia] = soloFecha.split("-");
-                  return `${dia}/${mes}/${anio}`;
-                })()}</td>
-                <td style="text-align:right;"><b>N.Folio:</b> ${numeroRecibo}</td>
-              </tr>
-              <tr>
-                <td><b>N.Orden:</b> ${numeroOrden}</td>
-                <td style="text-align:right;"><b>Expediente:</b> ${numeroExpediente}</td>
-              </tr>
-              <tr>
-                <td colspan="2"><b>Paciente:</b> ${nombrePaciente}</td>
-              </tr>
-              <tr>
-                <td><b>Médico:</b> ${orden.medico || 'N/A'}</td>
-                <td style="text-align:right;"><b>Diagnóstico:</b> ${orden.diagnostico || 'N/A'}</td>
-              </tr>
-              <tr>
-                <td colspan="2"><b>Lado:</b> ${orden.lado || 'N/A'}</td>
-              </tr>
-            </table>
-          </div>
-
-          <table class="recibo-table">
-            <thead>
-              <tr>
-                <th>Procedimiento</th>
-                <th>Precio</th>
-                <th>Pagado</th>
-                <th>Pendiente</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>${orden.procedimiento || 'N/A'}</td>
-                <td style="text-align:right;">$${parseFloat(orden.precio || 0).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-                <td style="text-align:right;">$${parseFloat(orden.pagado || 0).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-                <td style="text-align:right;">$${parseFloat(orden.pendiente || 0).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div class="recibo-footer">
-            <p><b>CLÍNICA OFTAVISION</b> - Este recibo es un comprobante de orden médica.</p>
-          </div>
-        </div>
-      `;
-
-      Swal.fire({
-        title: 'Vista previa del recibo',
-        html: contenido,
-        width: 800,
-        showCancelButton: true,
-        confirmButtonText: 'Descargar PDF',
-        cancelButtonText: 'Cancelar',
-        customClass: {
-          popup: 'swal-wide'
-        },
-        preConfirm: () => {
-          const opt = {
-            margin: 10,
-            filename: `recibo_orden_${numeroOrden}_folio_${numeroRecibo}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-          };
-          html2pdf().from(contenido).set(opt).save();
-        }
-      });
     }
 
     document.getElementById("formPago").addEventListener("submit", async (e) => {
