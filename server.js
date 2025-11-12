@@ -749,7 +749,6 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
   const depto = getDepartamento(req);
 
   try {
-    // Verificar que el paciente exista en el departamento
     const expediente = await pool.query(
       "SELECT numero_expediente FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
       [paciente_id, depto]
@@ -761,14 +760,12 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 
     const folio = expediente.rows[0].numero_expediente;
 
-    // 🔹 Obtener el siguiente número de recibo consecutivo para este departamento
     const ultimoNumero = await pool.query(
       "SELECT COALESCE(MAX(numero_recibo), 0) + 1 AS siguiente FROM recibos WHERE departamento = $1",
       [depto]
     );
     const siguienteNumero = ultimoNumero.rows[0].siguiente;
 
-    // Insertar recibo con numero_recibo calculado
     const result = await pool.query(
       `INSERT INTO recibos 
          (numero_recibo, fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, departamento)
@@ -779,36 +776,35 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
     );
 
     const recibo = result.rows[0];
+    const fechaLocal = fechaLocalMX();
 
-    // Si es una orden de cirugía, crear orden médica y agenda
+    // ✅ CREAR ORDEN MÉDICA SIEMPRE (sin importar el tipo)
+    const tipoOrden = tipo === "OrdenCirugia" ? "Cirugia" : "Consulta";
+    
+    const orden = await pool.query(
+      `INSERT INTO ordenes_medicas (
+         expediente_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, fecha_cirugia, departamento, medico, origen
+       )
+       VALUES (
+         $1, $2, $3, $4, $5::numeric, $6::numeric, ($5::numeric - $6::numeric),
+         CASE WHEN $6::numeric >= $5::numeric THEN 'Pagado' ELSE 'Pendiente' END,
+         $7::date, NULL, $8, 'Pendiente', 'CIRUGIA'
+       )
+       RETURNING id`,
+      [paciente_id, recibo.id, procedimiento, tipoOrden, precio, monto_pagado, fechaLocal, depto]
+    );
+
+    const ordenId = orden.rows[0].id;
+
+    // Registrar pago inicial
+    await pool.query(
+      `INSERT INTO pagos (orden_id, monto, forma_pago, fecha, departamento)
+       VALUES ($1, $2::numeric, $3, $4::date, $5)`,
+      [ordenId, monto_pagado, forma_pago, fechaLocal, depto]
+    );
+
+    // Solo insertar en agenda quirúrgica si es OrdenCirugia
     if (tipo === "OrdenCirugia") {
-      // 📅 Obtener fecha local exacta sin desfase (México)
-      const fechaLocal = fechaLocalMX();
-
-      // Crear orden médica y reflejar el pago
-      const orden = await pool.query(
-        `INSERT INTO ordenes_medicas (
-           expediente_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, fecha_cirugia, departamento, medico
-         )
-         VALUES (
-           $1, $2, $3, $4, $5::numeric, $6::numeric, ($5::numeric - $6::numeric),
-           CASE WHEN $6::numeric >= $5::numeric THEN 'Pagado' ELSE 'Pendiente' END,
-           $7::date, NULL, $8, 'Pendiente'
-         )
-         RETURNING id`,
-        [paciente_id, recibo.id, procedimiento, tipo, precio, monto_pagado, fechaLocal, depto]
-      );
-
-      const ordenId = orden.rows[0].id;
-
-      // Registrar pago inicial
-      await pool.query(
-        `INSERT INTO pagos (orden_id, monto, forma_pago, fecha, departamento)
-         VALUES ($1, $2::numeric, $3, $4::date, $5)`,
-        [ordenId, monto_pagado, forma_pago, fechaLocal, depto]
-      );
-
-      // Insertar en agenda quirúrgica (sin nombre_paciente)
       await pool.query(
         `INSERT INTO agenda_quirurgica (paciente_id, procedimiento, fecha, departamento, recibo_id, orden_id)
          VALUES ($1, $2, $3::date, $4, $5, $6)`,
@@ -822,6 +818,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
     res.status(500).json({ error: "Error al guardar recibo", detalle: err.message });
   }
 });
+
 
 // ==================== Listar recibos ====================
 app.get('/api/recibos', verificarSesion, async (req, res) => {
