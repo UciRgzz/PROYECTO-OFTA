@@ -2972,12 +2972,12 @@ app.put('/api/consultas/:id/atender', verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== ELIMINAR CONSULTA ====================
+// ==================== ELIMINAR CONSULTA (CORREGIDO) ====================
 app.delete('/api/consultas/:id', verificarSesion, async (req, res) => {
   const client = await pool.connect();
   try {
     const { id } = req.params;
-    const { forzar } = req.query; // 👈 viene del frontend, true o false
+    const { forzar } = req.query;
     const depto = getDepartamento(req);
 
     console.log(`🗑️ Eliminando consulta ${id} en ${depto} (forzar = ${forzar})`);
@@ -3015,7 +3015,10 @@ app.delete('/api/consultas/:id', verificarSesion, async (req, res) => {
         });
       }
 
-      // 4️⃣ Eliminar TODO (el usuario confirmó o no tiene pagos)
+      // ✅ 4️⃣ DESACTIVAR TRIGGERS temporalmente
+      await client.query('SET session_replication_role = replica;');
+
+      // 5️⃣ Eliminar TODO (el usuario confirmó o no tiene pagos)
       for (const orden of ordenes.rows) {
         console.log(`🔄 Procesando orden ${orden.id}...`);
 
@@ -3037,7 +3040,7 @@ app.delete('/api/consultas/:id', verificarSesion, async (req, res) => {
           );
           console.log(`  ✅ Abonos del recibo ${orden.folio_recibo} eliminados`);
 
-          // B2) Eliminar el recibo
+          // B2) Eliminar el recibo (sin trigger)
           await client.query(
             'DELETE FROM recibos WHERE id = $1 AND departamento = $2',
             [orden.folio_recibo, depto]
@@ -3052,16 +3055,19 @@ app.delete('/api/consultas/:id', verificarSesion, async (req, res) => {
         );
         console.log(`  ✅ Orden médica ${orden.id} eliminada`);
       }
+
+      // ✅ 6️⃣ REACTIVAR TRIGGERS
+      await client.query('SET session_replication_role = DEFAULT;');
     }
 
-    // 5️⃣ Eliminar atención médica (si existe)
+    // 7️⃣ Eliminar atención médica (si existe)
     await client.query(
       'DELETE FROM atencion_consultas WHERE consulta_id = $1 AND departamento = $2',
       [id, depto]
     );
     console.log(`✅ Atención médica eliminada`);
 
-    // 6️⃣ Finalmente eliminar la consulta
+    // 8️⃣ Finalmente eliminar la consulta
     const result = await client.query(
       'DELETE FROM consultas WHERE id = $1 AND departamento = $2 RETURNING *',
       [id, depto]
@@ -3073,6 +3079,22 @@ app.delete('/api/consultas/:id', verificarSesion, async (req, res) => {
     }
 
     await client.query('COMMIT');
+    
+    // ✅ 9️⃣ Renumerar recibos DESPUÉS de hacer commit (fuera de la transacción)
+    if (ordenes.rowCount > 0) {
+      await pool.query(`
+        WITH numerados AS (
+          SELECT id, ROW_NUMBER() OVER (ORDER BY id ASC) as nuevo_numero
+          FROM recibos
+          WHERE departamento = $1
+        )
+        UPDATE recibos r
+        SET numero_recibo = n.nuevo_numero
+        FROM numerados n
+        WHERE r.id = n.id AND r.departamento = $1
+      `, [depto]);
+      console.log(`✅ Recibos renumerados después de la eliminación`);
+    }
     
     console.log(`✅ Consulta ${id} y todos sus registros eliminados correctamente`);
     res.json({ 
