@@ -157,9 +157,21 @@
       box-shadow: 0 6px 15px rgba(231, 76, 60, 0.4);
     }
     
+    /* ✅ BOTONES EN LÍNEA HORIZONTAL */
     .btn-sm {
-      padding: 8px 15px;
-      font-size: 0.9rem;
+      padding: 8px 12px;
+      font-size: 1rem;
+      margin: 0 3px;
+      display: inline-block;
+    }
+    
+    .btn-sm i {
+      margin: 0;
+    }
+    
+    /* ✅ Asegurar que los botones no hagan salto de línea */
+    .table td:last-child {
+      white-space: nowrap;
     }
     
     .table {
@@ -317,8 +329,9 @@
       color: #555;
       margin-top: 30px;
     }
-  /* para el mostrar pago*/
-        .swal2-shadow {
+    
+    /* para el mostrar pago*/
+    .swal2-shadow {
       border-radius: 15px !important;
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
       padding: 25px !important;
@@ -336,6 +349,7 @@
       padding: 12px !important;
       font-size: 1rem !important;
     }
+    
     /* Corrige el ancho del select en SweetAlert2 */
     .swal2-popup .swal2-input[type="select"],
     .swal2-popup select.swal2-input {
@@ -345,18 +359,17 @@
       font-size: 1rem !important;
       border-radius: 10px !important;
     }
+    
     /* Select de SweetAlert2 con estilo Bootstrap */
-      .swal2-popup .form-select {
-        display: block;
-        width: 100% !important;
-        font-size: 1rem;
-        padding: 12px 15px;
-        border: 1px solid #dcdde1;
-        border-radius: 10px;
-        box-sizing: border-box;
-      }
-
-
+    .swal2-popup .form-select {
+      display: block;
+      width: 100% !important;
+      font-size: 1rem;
+      padding: 12px 15px;
+      border: 1px solid #dcdde1;
+      border-radius: 10px;
+      box-sizing: border-box;
+    }
   </style>
 </head>
 <body>
@@ -370,24 +383,24 @@
       <i class="fas fa-check-circle"></i> <span id="successMessage">Recibo guardado correctamente.</span>
     </div>
 
-      <!-- Formulario -->
-      <div class="card">
-        <div class="card-header"><i class="fas fa-file-invoice-dollar"></i> Nuevo Recibo</div>
-        <div class="card-body">
-          <form id="formRecibo" class="row g-3">
-            <div class="col-md-3">
-              <label class="form-label">Fecha:</label>
-              <input type="date" id="fecha" name="fecha" class="form-control" required readonly>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">Número de Expediente:</label>
-              <input type="number" id="folio" name="folio" class="form-control" required>
-            </div>
+    <!-- Formulario -->
+    <div class="card">
+      <div class="card-header"><i class="fas fa-file-invoice-dollar"></i> Nuevo Recibo</div>
+      <div class="card-body">
+        <form id="formRecibo" class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label">Fecha:</label>
+            <input type="date" id="fecha" name="fecha" class="form-control" required readonly>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Número de Expediente:</label>
+            <input type="number" id="folio" name="folio" class="form-control" required>
+          </div>
 
-            <div class="col-md-6">
-              <label class="form-label">Nombre del Paciente:</label>
-              <input type="text" id="nombrePaciente" class="form-control" readonly>
-            </div>
+          <div class="col-md-6">
+            <label class="form-label">Nombre del Paciente:</label>
+            <input type="text" id="nombrePaciente" class="form-control" readonly>
+          </div>
 
           <!-- Tipo de Recibo -->
           <div class="col-md-4">
@@ -427,8 +440,6 @@
         </form>
       </div>
     </div>
-
-        </div>
   </div>
 
   <!--Estadísticas -->
@@ -456,45 +467,40 @@
     </div>
   </div>
 
-    <!-- Lista -->
-    <div class="card">
-      <div class="card-header"><i class="fas fa-list"></i> Lista de Recibos</div>
-      <div class="card-body">
-        <!-- 🔎 Filtro de fecha -->
-  <div class="mb-3">
-    <label for="filtroRango" class="form-label">Filtrar por fecha:</label>
-    <input type="text" id="filtroRango" class="form-control" style="max-width:300px;" placeholder="Selecciona un rango de fechas" readonly>
-  </div>
+  <!-- Lista -->
+  <div class="card">
+    <div class="card-header"><i class="fas fa-list"></i> Lista de Recibos</div>
+    <div class="card-body">
+      <!-- 🔎 Filtro de fecha -->
+      <div class="mb-3">
+        <label for="filtroRango" class="form-label">Filtrar por fecha:</label>
+        <input type="text" id="filtroRango" class="form-control" style="max-width:300px;" placeholder="Selecciona un rango de fechas" readonly>
+      </div>
 
-
-<div class="table-responsive">
-  <table class="table table-striped table-bordered text-center align-middle">
-    <thead>
-      <tr>
-        <th>Fecha</th>
-        <th>Folio</th>
-        <th>Paciente</th>
-        <th>Procedimiento</th>
-        <th>Tipo</th>
-        <th>Forma de Pago</th>
-        <th>Monto Pagado</th>
-        <th>Precio</th>
-        <th>Pendiente</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody id="tablaRecibos"></tbody>
-  </table>
-</div>
-
-
-
+      <div class="table-responsive">
+        <table class="table table-striped table-bordered text-center align-middle">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Folio</th>
+              <th>Paciente</th>
+              <th>Procedimiento</th>
+              <th>Tipo</th>
+              <th>Forma de Pago</th>
+              <th>Monto Pagado</th>
+              <th>Precio</th>
+              <th>Pendiente</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tablaRecibos"></tbody>
+        </table>
       </div>
     </div>
+  </div>
     
-    <div class="footer">
-      <p>Sistema de Gestión Oftavisión &copy; 2025</p>
-    </div>
+  <div class="footer">
+    <p>Sistema de Gestión Oftavisión &copy; 2025</p>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -502,15 +508,14 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
 
   <!-- Daterangepicker CSS -->
-<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 
-<!-- jQuery (requerido por daterangepicker) -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- jQuery (requerido por daterangepicker) -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<!-- Moment.js + Daterangepicker JS -->
-<script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-
+  <!-- Moment.js + Daterangepicker JS -->
+  <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 
   <script>
   let userRole = 'usuario'; // ✅ Se cargará del backend
@@ -767,7 +772,7 @@
     }
   }
 
-  // ==================== Cargar recibos (CORREGIDO) ====================
+  // ==================== Cargar recibos ====================
   async function cargarRecibosRango(desde, hasta) {
     try {
       // ✅ Guardar rango actual
@@ -779,46 +784,46 @@
       recibos.sort((a, b) => a.id - b.id);
 
       document.getElementById("tablaRecibos").innerHTML = recibos.map(r => `
-  <tr>
-    <td>${r.fecha.split("T")[0]}</td>
-    <td>${r.folio}</td>
-    <td>${r.paciente}</td>
-    <td>${r.procedimiento}</td>
-    <td><span class="badge bg-info">${r.tipo}</span></td>
-    <td>${r.forma_pago}</td>
-    <td>
-      <span class="badge bg-info">
-        $${parseFloat(r.monto_pagado).toLocaleString("es-MX", {minimumFractionDigits: 2})}
-      </span>
-    </td>
-    <td>
-      <span class="badge bg-success">
-        $${parseFloat(r.precio).toLocaleString("es-MX", {minimumFractionDigits: 2})}
-      </span>
-    </td>
-    <td>
-      <span class="badge bg-warning abonar-btn" 
-            style="cursor:pointer;" 
-            data-id="${r.id}" 
-            data-pendiente="${r.precio - r.monto_pagado}">
-        $${parseFloat(r.precio - r.monto_pagado).toLocaleString("es-MX", {minimumFractionDigits: 2})}
-      </span>
-    </td>
-    <td>
-      <button class="btn btn-primary btn-sm" 
-              onclick="imprimirRecibo(${r.id})" 
-              title="Imprimir Comprobante">
-        <i class="fas fa-receipt"></i>
-      </button>
-      ${userRole === "admin" ? `
-        <button class="btn btn-danger btn-sm" 
-                onclick="eliminarRecibo(${r.id})" 
-                title="Eliminar Recibo">
-          <i class="fas fa-trash"></i>
-        </button>` : ""}
-    </td>
-  </tr>
-`).join('');
+        <tr>
+          <td>${r.fecha.split("T")[0]}</td>
+          <td>${r.folio}</td>
+          <td>${r.paciente}</td>
+          <td>${r.procedimiento}</td>
+          <td><span class="badge bg-info">${r.tipo}</span></td>
+          <td>${r.forma_pago}</td>
+          <td>
+            <span class="badge bg-info">
+              $${parseFloat(r.monto_pagado).toLocaleString("es-MX", {minimumFractionDigits: 2})}
+            </span>
+          </td>
+          <td>
+            <span class="badge bg-success">
+              $${parseFloat(r.precio).toLocaleString("es-MX", {minimumFractionDigits: 2})}
+            </span>
+          </td>
+          <td>
+            <span class="badge bg-warning abonar-btn" 
+                  style="cursor:pointer;" 
+                  data-id="${r.id}" 
+                  data-pendiente="${r.precio - r.monto_pagado}">
+              $${parseFloat(r.precio - r.monto_pagado).toLocaleString("es-MX", {minimumFractionDigits: 2})}
+            </span>
+          </td>
+          <td>
+            <button class="btn btn-primary btn-sm" 
+                    onclick="imprimirRecibo(${r.id})" 
+                    title="Imprimir Comprobante">
+              <i class="fas fa-receipt"></i>
+            </button>
+            ${userRole === "admin" ? `
+              <button class="btn btn-danger btn-sm" 
+                      onclick="eliminarRecibo(${r.id})" 
+                      title="Eliminar Recibo">
+                <i class="fas fa-trash"></i>
+              </button>` : ""}
+          </td>
+        </tr>
+      `).join('');
 
       actualizarStats(recibos);
 
@@ -853,7 +858,7 @@
     });
   }
 
-  // ==================== Delegación de eventos: ABONOS (CORREGIDO) ====================
+  // ==================== Delegación de eventos: ABONOS ====================
   document.addEventListener("click", async (e) => {
     if (e.target.classList.contains("abonar-btn")) {
       const reciboId = e.target.dataset.id;
@@ -930,7 +935,7 @@
     }
   });
 
-  // ==================== INICIALIZACIÓN (CORREGIDO) ====================
+  // ==================== INICIALIZACIÓN ====================
   document.addEventListener("DOMContentLoaded", async () => {
     // ✅ Verificar rol del usuario
     await verificarRol();
@@ -996,6 +1001,6 @@
     document.getElementById("totalPaid").textContent = `$${totalPagado.toLocaleString("es-MX", {minimumFractionDigits: 2})}`;
     document.getElementById("totalPending").textContent = `$${totalPendiente.toLocaleString("es-MX", {minimumFractionDigits: 2})}`;
   }
-</script>
+  </script>
 </body>
 </html>
