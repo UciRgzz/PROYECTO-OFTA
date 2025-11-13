@@ -1653,86 +1653,89 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
   });
 
 
-  // ==================== PAGOS ====================
-  app.post("/api/pagos", verificarSesion, async (req, res) => {
-    const client = await pool.connect();
-    const depto = getDepartamento(req);
+// ==================== PAGOS (CORREGIDO - SINCRONIZA CON RECIBOS) ====================
+app.post("/api/pagos", verificarSesion, async (req, res) => {
+  const client = await pool.connect();
+  const depto = getDepartamento(req);
 
-    try {
-      let { orden_id, monto, forma_pago } = req.body;
-      orden_id = parseInt(orden_id, 10);
-      monto = parseFloat(monto);
+  try {
+    let { orden_id, monto, forma_pago } = req.body;
+    orden_id = parseInt(orden_id, 10);
+    monto = parseFloat(monto);
 
-      if (isNaN(orden_id) || isNaN(monto) || monto <= 0) {
-        return res.status(400).json({ error: "Datos de pago inválidos" });
-      }
-
-      await client.query("BEGIN");
-
-      // 1️⃣ Obtener la orden médica
-      const ordenResult = await client.query(
-        `SELECT id, expediente_id, tipo, precio, pagado, pendiente, folio_recibo
-        FROM ordenes_medicas
-        WHERE id = $1 AND departamento = $2`,
-        [orden_id, depto]
-      );
-
-      if (ordenResult.rows.length === 0) {
-        await client.query("ROLLBACK");
-        return res.status(404).json({ error: "Orden no encontrada" });
-      }
-
-      const orden = ordenResult.rows[0];
-
-      // 2️⃣ Registrar el pago
-      const pagoResult = await client.query(
-        `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
-        VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING *`,
-        [orden.id, orden.expediente_id, monto, forma_pago, fechaLocalMX(), depto]
-      );
-
-      // 3️⃣ Calcular nuevos totales de la orden
-      const nuevoPagado = Number(orden.pagado || 0) + monto;
-      const nuevoPendiente = Math.max(0, Number(orden.precio || 0) - nuevoPagado);
-      const nuevoEstatus = nuevoPendiente <= 0 ? "Pagado" : "Pendiente";
-
-      // 4️⃣ Actualizar orden médica
-      await client.query(
-        `UPDATE ordenes_medicas
-        SET pagado = $1, pendiente = $2, estatus = $3
-        WHERE id = $4 AND departamento = $5`,
-        [nuevoPagado, nuevoPendiente, nuevoEstatus, orden.id, depto]
-      );
-
-      // 5️⃣ ✅ CORREGIDO: Actualizar recibo si está vinculado (independiente del tipo)
-      if (orden.folio_recibo) {
-        await client.query(
-          `UPDATE recibos
-          SET monto_pagado = monto_pagado + $1
-          WHERE id = $2 AND departamento = $3`,
-          [monto, orden.folio_recibo, depto]
-        );
-        console.log(`✅ Recibo ${orden.folio_recibo} actualizado con $${monto}`);
-      }
-
-      await client.query("COMMIT");
-
-      res.json({
-        mensaje: "✅ Pago registrado correctamente",
-        pago: pagoResult.rows[0],
-        totalPagado: nuevoPagado,
-        pendiente: nuevoPendiente
-      });
-
-    } catch (err) {
-      await client.query("ROLLBACK");
-      console.error("❌ Error en /api/pagos:", err);
-      res.status(500).json({ error: err.message });
-    } finally {
-      client.release();
+    if (isNaN(orden_id) || isNaN(monto) || monto <= 0) {
+      return res.status(400).json({ error: "Datos de pago inválidos" });
     }
-  });
+
+    await client.query("BEGIN");
+
+    // 1️⃣ Obtener la orden médica
+    const ordenResult = await client.query(
+      `SELECT id, expediente_id, tipo, precio, pagado, pendiente, folio_recibo
+      FROM ordenes_medicas
+      WHERE id = $1 AND departamento = $2`,
+      [orden_id, depto]
+    );
+
+    if (ordenResult.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Orden no encontrada" });
+    }
+
+    const orden = ordenResult.rows[0];
+
+    // 2️⃣ Registrar el pago
+    const pagoResult = await client.query(
+      `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *`,
+      [orden.id, orden.expediente_id, monto, forma_pago, fechaLocalMX(), depto]
+    );
+
+    // 3️⃣ Calcular nuevos totales de la orden
+    const nuevoPagado = Number(orden.pagado || 0) + monto;
+    const nuevoPendiente = Math.max(0, Number(orden.precio || 0) - nuevoPagado);
+    const nuevoEstatus = nuevoPendiente <= 0 ? "Pagado" : "Pendiente";
+
+    // 4️⃣ Actualizar orden médica
+    await client.query(
+      `UPDATE ordenes_medicas
+      SET pagado = $1, pendiente = $2, estatus = $3
+      WHERE id = $4 AND departamento = $5`,
+      [nuevoPagado, nuevoPendiente, nuevoEstatus, orden.id, depto]
+    );
+
+    // 5️⃣ ✅ CORREGIDO: Registrar abono en abonos_recibos si hay recibo vinculado
+    if (orden.folio_recibo) {
+      console.log(`✅ Registrando abono en recibo ${orden.folio_recibo} por $${monto}`);
+      
+      // Registrar abono en abonos_recibos
+      await client.query(
+        `INSERT INTO abonos_recibos (recibo_id, monto, forma_pago, fecha, departamento)
+        VALUES ($1, $2, $3, $4, $5)`,
+        [orden.folio_recibo, monto, forma_pago, fechaLocalMX(), depto]
+      );
+      
+      console.log(`✅ Abono registrado en abonos_recibos para recibo ${orden.folio_recibo}`);
+    }
+
+    await client.query("COMMIT");
+
+    res.json({
+      mensaje: "✅ Pago registrado correctamente",
+      pago: pagoResult.rows[0],
+      totalPagado: nuevoPagado,
+      pendiente: nuevoPendiente
+    });
+
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("❌ Error en /api/pagos:", err);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+});
 
   // ==================== VINCULAR RECIBO A ORDEN MÉDICA ====================
   app.put('/api/ordenes_medicas/:id/vincular-recibo', verificarSesion, async (req, res) => {
