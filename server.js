@@ -917,126 +917,136 @@ app.delete('/api/recibos/:id', isAdmin, async (req, res) => {
   }
 });
 
-  // ==================== Obtener un recibo por ID ====================
-  app.get('/api/recibos/:id', verificarSesion, async (req, res) => {
-    try {
-      const { id } = req.params;
-      let depto = getDepartamento(req);
-
-      const result = await pool.query(`
-        SELECT 
-          r.id, 
-          r.numero_recibo,
-          r.fecha, 
-          r.folio, 
-          e.nombre_completo AS paciente,
-          r.procedimiento, 
-          r.tipo, 
-          r.forma_pago, 
-          r.monto_pagado, 
-          r.precio,
-          (r.precio - r.monto_pagado) AS pendiente
-        FROM recibos r
-        JOIN expedientes e 
-          ON r.paciente_id = e.numero_expediente 
-        AND r.departamento = e.departamento
-        WHERE r.id = $1 AND r.departamento = $2
-        LIMIT 1
-      `, [id, depto]);
-
-      if (result.rows.length === 0) {
-        return res.status(404).json({ error: "Recibo no encontrado" });
-      }
-
-      res.json(result.rows[0]);
-    } catch (err) {
-      console.error("Error al obtener recibo:", err);
-      res.status(500).json({ error: "Error al obtener recibo" });
-    }
-  });
-
-  // ==================== Abonar a un recibo ====================
-  app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
+// ==================== Obtener un recibo por ID (CORREGIDO) ====================
+app.get('/api/recibos/:id', verificarSesion, async (req, res) => {
+  try {
     const { id } = req.params;
-    const { monto, forma_pago } = req.body;
-    const depto = getDepartamento(req);
-    const client = await pool.connect();
+    let depto = getDepartamento(req);
 
-    try {
-      await client.query("BEGIN");
+    const result = await pool.query(`
+      SELECT 
+        r.id, 
+        r.numero_recibo,
+        r.fecha, 
+        r.folio, 
+        e.nombre_completo AS paciente,
+        r.procedimiento, 
+        r.tipo, 
+        r.forma_pago, 
+        r.precio,
+        -- ✅ CALCULAR monto_pagado desde abonos_recibos
+        COALESCE(
+          (SELECT SUM(a.monto) FROM abonos_recibos a 
+           WHERE a.recibo_id = r.id AND a.departamento = r.departamento),
+          0
+        ) AS monto_pagado,
+        -- ✅ CALCULAR pendiente correctamente
+        (r.precio - COALESCE(
+          (SELECT SUM(a.monto) FROM abonos_recibos a 
+           WHERE a.recibo_id = r.id AND a.departamento = r.departamento),
+          0
+        )) AS pendiente
+      FROM recibos r
+      JOIN expedientes e 
+        ON r.paciente_id = e.numero_expediente 
+      AND r.departamento = e.departamento
+      WHERE r.id = $1 AND r.departamento = $2
+      LIMIT 1
+    `, [id, depto]);
 
-      // 1️⃣ Insertar el abono en abonos_recibos
-      await client.query(
-        `INSERT INTO abonos_recibos (recibo_id, monto, forma_pago, fecha, departamento)
-        VALUES ($1, $2, $3, $4, $5)`,
-        [id, monto, forma_pago, fechaLocalMX(), depto]
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Recibo no encontrado" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Error al obtener recibo:", err);
+    res.status(500).json({ error: "Error al obtener recibo" });
+  }
+});
+
+// ==================== Abonar a un recibo (VERIFICAR) ====================
+app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
+  const { id } = req.params;
+  const { monto, forma_pago } = req.body;
+  const depto = getDepartamento(req);
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    // 1️⃣ Insertar el abono en abonos_recibos
+    await client.query(
+      `INSERT INTO abonos_recibos (recibo_id, monto, forma_pago, fecha, departamento)
+      VALUES ($1, $2, $3, $4, $5)`,
+      [id, monto, forma_pago, fechaLocalMX(), depto]
+    );
+
+    // 2️⃣ Actualizar monto_pagado en el recibo
+    const result = await client.query(
+      `UPDATE recibos
+      SET monto_pagado = monto_pagado + $1
+      WHERE id = $2 AND departamento = $3
+      RETURNING *`,
+      [monto, id, depto]
+    );
+
+    if (result.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Recibo no encontrado" });
+    }
+
+    const recibo = result.rows[0];
+
+    // 3️⃣ Si el recibo es de tipo OrdenCirugia → actualizar orden y registrar pago
+    if (recibo.tipo && recibo.tipo.toLowerCase().includes("orden")) {
+      const ordenResult = await client.query(
+        `SELECT id, expediente_id, precio, pagado, pendiente
+        FROM ordenes_medicas
+        WHERE folio_recibo = $1 AND departamento = $2`,
+        [id, depto]
       );
 
-      // 2️⃣ Actualizar monto_pagado en el recibo
-      const result = await client.query(
-        `UPDATE recibos
-        SET monto_pagado = monto_pagado + $1
-        WHERE id = $2 AND departamento = $3
-        RETURNING *`,
-        [monto, id, depto]
-      );
+      if (ordenResult.rows.length > 0) {
+        const orden = ordenResult.rows[0];
 
-      if (result.rows.length === 0) {
-        await client.query("ROLLBACK");
-        return res.status(404).json({ error: "Recibo no encontrado" });
-      }
+        const nuevoPagado = Number(orden.pagado || 0) + Number(monto);
+        const nuevoPendiente = Math.max(0, Number(orden.precio) - nuevoPagado);
+        const nuevoEstatus = nuevoPendiente <= 0 ? "Pagado" : "Pendiente";
 
-      const recibo = result.rows[0];
-
-      // 3️⃣ Si el recibo es de tipo OrdenCirugia → actualizar orden y registrar pago
-      if (recibo.tipo && recibo.tipo.toLowerCase().includes("orden")) {
-        const ordenResult = await client.query(
-          `SELECT id, expediente_id, precio, pagado, pendiente
-          FROM ordenes_medicas
-          WHERE folio_recibo = $1 AND departamento = $2`,
-          [id, depto]
+        // Actualiza totales de la orden médica
+        await client.query(
+          `UPDATE ordenes_medicas
+          SET pagado = $1, pendiente = $2, estatus = $3
+          WHERE id = $4 AND departamento = $5`,
+          [nuevoPagado, nuevoPendiente, nuevoEstatus, orden.id, depto]
         );
 
-        if (ordenResult.rows.length > 0) {
-          const orden = ordenResult.rows[0];
-
-          const nuevoPagado = Number(orden.pagado || 0) + Number(monto);
-          const nuevoPendiente = Math.max(0, Number(orden.precio) - nuevoPagado);
-          const nuevoEstatus = nuevoPendiente <= 0 ? "Pagado" : "Pendiente";
-
-          // Actualiza totales de la orden médica
-          await client.query(
-            `UPDATE ordenes_medicas
-            SET pagado = $1, pendiente = $2, estatus = $3
-            WHERE id = $4 AND departamento = $5`,
-            [nuevoPagado, nuevoPendiente, nuevoEstatus, orden.id, depto]
-          );
-
-          // Registrar el pago también en la tabla pagos (para el historial y cierre de caja)
-          await client.query(
-            `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
-            VALUES ($1, $2, $3, $4, $5, $6)`,
-            [orden.id, orden.expediente_id, monto, forma_pago, fechaLocalMX(), depto]
-          );
-        }
+        // Registrar el pago también en la tabla pagos (para el historial y cierre de caja)
+        await client.query(
+          `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
+          VALUES ($1, $2, $3, $4, $5, $6)`,
+          [orden.id, orden.expediente_id, monto, forma_pago, fechaLocalMX(), depto]
+        );
       }
-
-      await client.query("COMMIT");
-      res.json({ mensaje: "✅ Abono registrado correctamente" });
-
-    } catch (err) {
-      await client.query("ROLLBACK");
-      console.error("❌ Error al registrar abono:", err.message);
-      res.status(500).json({
-        error: "Error al registrar abono",
-        detalle: err.message
-      });
-    } finally {
-      client.release();
     }
-  });
 
-  // ==================== CATÁLOGO DE PROCEDIMIENTOS ====================
+    await client.query("COMMIT");
+    res.json({ mensaje: "✅ Abono registrado correctamente" });
+
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("❌ Error al registrar abono:", err.message);
+    res.status(500).json({
+      error: "Error al registrar abono",
+      detalle: err.message
+    });
+  } finally {
+    client.release();
+  }
+});
+
+// ==================== CATÁLOGO DE PROCEDIMIENTOS ====================
   app.get('/api/procedimientos', verificarSesion, async (req, res) => {
     try {
       const result = await pool.query(
