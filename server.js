@@ -1218,6 +1218,8 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
 
 // ==================== GUARDAR O ACTUALIZAR ORDEN MÉDICA ====================
 app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
+  const client = await pool.connect();
+  
   try {
     const {
       folio_recibo,
@@ -1243,17 +1245,20 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
     let depto = getDepartamento(req);
     let expediente_id, tipo_orden, folio_recibo_final;
 
+    await client.query("BEGIN");
+
     // ========== DETERMINAR ORIGEN: RECIBO O CONSULTA ==========
     if (consulta_id) {
       // ✅ FLUJO DE CONSULTAS (viene de Agenda Consultas o Módulo Médico)
       console.log('📋 Procesando orden desde CONSULTA ID:', consulta_id);
 
-      const consultaResult = await pool.query(
+      const consultaResult = await client.query(
         `SELECT expediente_id, numero_expediente FROM consultas WHERE id = $1 AND departamento = $2`,
         [consulta_id, depto]
       );
 
       if (consultaResult.rows.length === 0) {
+        await client.query("ROLLBACK");
         return res.status(404).json({ error: "No se encontró la consulta" });
       }
 
@@ -1261,12 +1266,13 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
       tipo_orden = 'Consulta';
 
       // 🔍 Buscar el procedimiento solicitado
-      const procResult = await pool.query(
+      const procResult = await client.query(
         `SELECT nombre, precio FROM catalogo_procedimientos WHERE id = $1`,
         [procedimiento_id]
       );
 
       if (procResult.rows.length === 0) {
+        await client.query("ROLLBACK");
         return res.status(404).json({ error: "No se encontró el procedimiento en el catálogo" });
       }
 
@@ -1285,7 +1291,7 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         folio_recibo_final = folio_recibo || null;
         
         // Verificar si ya existe una orden de consulta inicial
-        const ordenExistente = await pool.query(
+        const ordenExistente = await client.query(
           `SELECT id FROM ordenes_medicas 
           WHERE consulta_id = $1 
             AND departamento = $2 
@@ -1300,7 +1306,7 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
           const ordenId = ordenExistente.rows[0].id;
           console.log(`🔄 Actualizando orden de consulta inicial ID: ${ordenId}`);
 
-          const result = await pool.query(
+          const result = await client.query(
             `UPDATE ordenes_medicas 
             SET medico = $1, diagnostico = $2, lado = $3,
                 anexos = $4, conjuntiva = $5, cornea = $6, 
@@ -1320,10 +1326,12 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
           );
 
           // Actualizar estado de consulta
-          await pool.query(
+          await client.query(
             `UPDATE consultas SET estado = 'Atendida' WHERE id = $1 AND departamento = $2`,
             [consulta_id, depto]
           );
+
+          await client.query("COMMIT");
 
           console.log(`✅ Orden de consulta actualizada - Consulta marcada como Atendida`);
 
@@ -1336,19 +1344,38 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         
       } else {
         // 🆕 ES UNA CIRUGÍA U OTRO PROCEDIMIENTO
-        // ✅ CORRECCIÓN: Las cirugías NO heredan el folio_recibo de la consulta
-        // Deben tener su propio recibo cuando se cobren
-        folio_recibo_final = null;  // <-- CAMBIO CLAVE
-        
+        // ✅ CORRECCIÓN: Crear un NUEVO RECIBO para la cirugía
         console.log(`🆕 Detectada solicitud de cirugía/procedimiento: ${procedimientoNombre}`);
         console.log(`💰 Precio: $${procedimientoPrecio}`);
-        console.log(`✅ Se creará una NUEVA orden médica SIN recibo asociado (se creará al cobrar)`);
+        console.log(`✅ Se creará un NUEVO RECIBO para esta cirugía`);
+
+        const fechaLocal = fechaLocalMX();
+
+        // Obtener siguiente número de recibo
+        const ultimoNumero = await client.query(
+          "SELECT COALESCE(MAX(numero_recibo), 0) + 1 AS siguiente FROM recibos WHERE departamento = $1",
+          [depto]
+        );
+        const siguienteNumero = ultimoNumero.rows[0].siguiente;
+
+        // Crear el recibo para la cirugía
+        const nuevoRecibo = await client.query(
+          `INSERT INTO recibos 
+            (numero_recibo, fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, departamento)
+          VALUES 
+            ($1, $2::date, $3, $4, $5, $6::numeric, 'Pendiente', 0, 'OrdenCirugia', $7)
+          RETURNING *`,
+          [siguienteNumero, fechaLocal, expediente_id, expediente_id, procedimientoNombre, procedimientoPrecio, depto]
+        );
+
+        folio_recibo_final = nuevoRecibo.rows[0].id;
+        console.log(`📄 Nuevo recibo creado: ID ${folio_recibo_final}, Número ${siguienteNumero}`);
       }
 
       // Continuar para crear nueva orden (consulta inicial o cirugía nueva)
       const fechaLocal = fechaLocalMX();
 
-      const result = await pool.query(
+      const result = await client.query(
         `INSERT INTO ordenes_medicas (
           expediente_id, folio_recibo, consulta_id, medico, diagnostico, lado, 
           procedimiento, tipo, precio,
@@ -1366,7 +1393,7 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         RETURNING *`,
         [
           expediente_id,
-          folio_recibo_final,  // NULL para cirugías, folio_recibo para consultas
+          folio_recibo_final,
           consulta_id,
           medico, diagnostico, lado,
           procedimientoNombre,
@@ -1382,14 +1409,16 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
       );
 
       // Actualizar estado de consulta a "Atendida"
-      await pool.query(
+      await client.query(
         `UPDATE consultas SET estado = 'Atendida' WHERE id = $1 AND departamento = $2`,
         [consulta_id, depto]
       );
 
+      await client.query("COMMIT");
+
       console.log(`✅ Nueva orden médica creada - ID: ${result.rows[0].id}`);
       console.log(`📋 Tipo: ${esConsultaInicial ? 'Consulta Inicial' : 'Cirugía/Procedimiento'}`);
-      console.log(`📄 Folio Recibo: ${folio_recibo_final || 'Sin recibo (se creará al cobrar)'}`);
+      console.log(`📄 Folio Recibo: ${folio_recibo_final}`);
 
       return res.json({ 
         mensaje: esConsultaInicial 
@@ -1403,12 +1432,13 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
       // ✅ FLUJO DE RECIBOS (funcionalidad original de cirugías programadas)
       console.log('💵 Procesando orden desde RECIBO ID:', folio_recibo);
 
-      const reciboResult = await pool.query(
+      const reciboResult = await client.query(
         `SELECT id, paciente_id, tipo FROM recibos WHERE id = $1 AND departamento = $2`,
         [folio_recibo, depto]
       );
 
       if (reciboResult.rows.length === 0) {
+        await client.query("ROLLBACK");
         return res.status(404).json({ error: "No se encontró el recibo en esta sucursal" });
       }
 
@@ -1418,12 +1448,13 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
       folio_recibo_final = recibo.id;
 
       // Buscar procedimiento
-      const procResult = await pool.query(
+      const procResult = await client.query(
         `SELECT nombre, precio FROM catalogo_procedimientos WHERE id = $1`,
         [procedimiento_id]
       );
 
       if (procResult.rows.length === 0) {
+        await client.query("ROLLBACK");
         return res.status(404).json({ error: "No se encontró el procedimiento en el catálogo" });
       }
 
@@ -1431,7 +1462,7 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
       const fechaLocal = fechaLocalMX();
 
       // Crear orden médica desde recibo
-      const result = await pool.query(
+      const result = await client.query(
         `INSERT INTO ordenes_medicas (
           expediente_id, folio_recibo, consulta_id, medico, diagnostico, lado, 
           procedimiento, tipo, precio,
@@ -1462,6 +1493,8 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         ]
       );
 
+      await client.query("COMMIT");
+
       console.log(`✅ Orden médica desde recibo creada - ID: ${result.rows[0].id}`);
 
       return res.json({ 
@@ -1471,12 +1504,16 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
       });
 
     } else {
+      await client.query("ROLLBACK");
       return res.status(400).json({ error: "Debe proporcionar folio_recibo o consulta_id" });
     }
 
   } catch (err) {
+    await client.query("ROLLBACK");
     console.error("❌ Error al guardar orden médica:", err);
     res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
   }
 });
 
