@@ -794,7 +794,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
     }
 
     // 3️⃣ Crear orden si es necesario
-    const debeCrearOrden = tipo === "OrdenCirugia" || crear_orden !== false;
+const debeCrearOrden = tipo === "OrdenCirugia";
 
     if (debeCrearOrden) {
       const fechaLocal = fechaLocalMX();
