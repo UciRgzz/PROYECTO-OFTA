@@ -782,7 +782,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 
     const recibo = result.rows[0];
 
-    // 2️⃣ ✅ NUEVO: Si hay monto_pagado inicial, registrarlo en abonos_recibos
+    // 2️⃣ Si hay monto_pagado inicial, registrarlo en abonos_recibos
     if (monto_pagado > 0) {
       console.log(`✅ Registrando pago inicial de $${monto_pagado} en abonos_recibos para recibo ${recibo.id}`);
       
@@ -793,42 +793,40 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
       );
     }
 
-    // 3️⃣ Crear orden si es necesario
-const debeCrearOrden = tipo === "OrdenCirugia";
+    // 3️⃣ Crear orden para TODOS los recibos (Normal y OrdenCirugia)
+    // Esto hace que aparezcan en Órdenes Y en Módulo Médico
+    const fechaLocal = fechaLocalMX();
+    const tipoOrden = tipo === "OrdenCirugia" ? "Cirugia" : "Consulta";
+    const origenOrden = tipo === "OrdenCirugia" ? "CIRUGIA" : "CIRUGIA";
+    
+    const orden = await client.query(
+      `INSERT INTO ordenes_medicas (
+         expediente_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, departamento, medico, origen
+       ) VALUES ($1, $2, $3, $4, $5::numeric, $6::numeric, ($5::numeric - $6::numeric),
+         CASE WHEN $6::numeric >= $5::numeric THEN 'Pagado' ELSE 'Pendiente' END,
+         $7::date, $8, 'Pendiente', $9)
+       RETURNING id`,
+      [paciente_id, recibo.id, procedimiento, tipoOrden, precio, monto_pagado, fechaLocal, depto, origenOrden]
+    );
 
-    if (debeCrearOrden) {
-      const fechaLocal = fechaLocalMX();
-      const tipoOrden = tipo === "OrdenCirugia" ? "Cirugia" : "Consulta";
-      const origenOrden = tipo === "OrdenCirugia" ? "CIRUGIA" : "CONSULTA";
-      
-      const orden = await client.query(
-        `INSERT INTO ordenes_medicas (
-           expediente_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, departamento, medico, origen
-         ) VALUES ($1, $2, $3, $4, $5::numeric, $6::numeric, ($5::numeric - $6::numeric),
-           CASE WHEN $6::numeric >= $5::numeric THEN 'Pagado' ELSE 'Pendiente' END,
-           $7::date, $8, 'Pendiente', $9)
-         RETURNING id`,
-        [paciente_id, recibo.id, procedimiento, tipoOrden, precio, monto_pagado, fechaLocal, depto, origenOrden]
+    const ordenId = orden.rows[0].id;
+
+    // 4️⃣ Si hay pago inicial, registrarlo también en la tabla pagos
+    if (monto_pagado > 0) {
+      await client.query(
+        `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
+         VALUES ($1, $2, $3::numeric, $4, $5::date, $6)`,
+        [ordenId, paciente_id, monto_pagado, forma_pago, fechaLocal, depto]
       );
+    }
 
-      const ordenId = orden.rows[0].id;
-
-      // 4️⃣ Si hay pago inicial, registrarlo también en la tabla pagos
-      if (monto_pagado > 0) {
-        await client.query(
-          `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
-           VALUES ($1, $2, $3::numeric, $4, $5::date, $6)`,
-          [ordenId, paciente_id, monto_pagado, forma_pago, fechaLocal, depto]
-        );
-      }
-
-      if (tipo === "OrdenCirugia") {
-        await client.query(
-          `INSERT INTO agenda_quirurgica (paciente_id, procedimiento, fecha, departamento, recibo_id, orden_id)
-           VALUES ($1, $2, $3::date, $4, $5, $6)`,
-          [paciente_id, procedimiento, fechaLocal, depto, recibo.id, ordenId]
-        );
-      }
+    // 5️⃣ Si es cirugía, agregar a agenda quirúrgica
+    if (tipo === "OrdenCirugia") {
+      await client.query(
+        `INSERT INTO agenda_quirurgica (paciente_id, procedimiento, fecha, departamento, recibo_id, orden_id)
+         VALUES ($1, $2, $3::date, $4, $5, $6)`,
+        [paciente_id, procedimiento, fechaLocal, depto, recibo.id, ordenId]
+      );
     }
 
     await client.query("COMMIT");
@@ -1145,7 +1143,7 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
     const depto = getDepartamento(req);
 
     const result = await pool.query(`
-      -- 1️⃣ Recibos tipo "Normal" que NO tienen ninguna orden médica
+      -- 1️⃣ Recibos tipo "Normal" con orden médica SIN ATENDER (medico = 'Pendiente')
       SELECT 
         r.id AS recibo_id,
         e.numero_expediente AS expediente_id,
@@ -1160,18 +1158,16 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
       JOIN expedientes e 
         ON r.paciente_id = e.numero_expediente 
         AND r.departamento = e.departamento
+      JOIN ordenes_medicas o
+        ON o.folio_recibo = r.id
+        AND o.departamento = r.departamento
       WHERE r.departamento = $1
         AND r.tipo = 'Normal'
-        -- ✅ SIMPLIFICADO: Excluir si tiene CUALQUIER orden médica
-        AND NOT EXISTS (
-          SELECT 1 FROM ordenes_medicas o 
-          WHERE o.folio_recibo = r.id 
-            AND o.departamento = r.departamento
-        )
+        AND (o.medico IS NULL OR o.medico = '' OR o.medico = 'Pendiente')
 
       UNION
 
-      -- 2️⃣ SOLO Consultas que fueron ENVIADAS al módulo médico (estado = 'En Módulo Médico')
+      -- 2️⃣ Consultas enviadas al módulo médico (estado = 'En Módulo Médico')
       SELECT 
         c.id AS recibo_id,
         c.numero_expediente AS expediente_id,
@@ -1207,6 +1203,7 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 // ==================== GUARDAR O ACTUALIZAR ORDEN MÉDICA ====================
 app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
   const client = await pool.connect();
