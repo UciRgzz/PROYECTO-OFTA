@@ -770,7 +770,6 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
     );
     const siguienteNumero = ultimoNumero.rows[0].siguiente;
 
-    // 1️⃣ Insertar el recibo
     const result = await client.query(
       `INSERT INTO recibos 
          (numero_recibo, fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, departamento)
@@ -782,7 +781,6 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 
     const recibo = result.rows[0];
 
-    // 2️⃣ Si hay monto_pagado inicial, registrarlo en abonos_recibos
     if (monto_pagado > 0) {
       console.log(`✅ Registrando pago inicial de $${monto_pagado} en abonos_recibos para recibo ${recibo.id}`);
       
@@ -793,40 +791,42 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
       );
     }
 
-    // 3️⃣ Crear orden para TODOS los recibos (Normal y OrdenCirugia)
-    // Esto hace que aparezcan en Órdenes Y en Módulo Médico
-    const fechaLocal = fechaLocalMX();
-    const tipoOrden = tipo === "OrdenCirugia" ? "Cirugia" : "Consulta";
-    const origenOrden = tipo === "OrdenCirugia" ? "CIRUGIA" : "CIRUGIA";
-    
-    const orden = await client.query(
-      `INSERT INTO ordenes_medicas (
-         expediente_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, departamento, medico, origen
-       ) VALUES ($1, $2, $3, $4, $5::numeric, $6::numeric, ($5::numeric - $6::numeric),
-         CASE WHEN $6::numeric >= $5::numeric THEN 'Pagado' ELSE 'Pendiente' END,
-         $7::date, $8, 'Pendiente', $9)
-       RETURNING id`,
-      [paciente_id, recibo.id, procedimiento, tipoOrden, precio, monto_pagado, fechaLocal, depto, origenOrden]
-    );
+    // ✅ CORREGIDO: Crear orden SOLO si crear_orden no es false
+    // Si viene de Agenda Consultas con crear_orden: false, NO crear orden aquí
+    const debeCrearOrden = crear_orden !== false && (tipo === "OrdenCirugia" || tipo === "Normal");
 
-    const ordenId = orden.rows[0].id;
-
-    // 4️⃣ Si hay pago inicial, registrarlo también en la tabla pagos
-    if (monto_pagado > 0) {
-      await client.query(
-        `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
-         VALUES ($1, $2, $3::numeric, $4, $5::date, $6)`,
-        [ordenId, paciente_id, monto_pagado, forma_pago, fechaLocal, depto]
+    if (debeCrearOrden) {
+      const fechaLocal = fechaLocalMX();
+      const tipoOrden = tipo === "OrdenCirugia" ? "Cirugia" : "Consulta";
+      const origenOrden = tipo === "OrdenCirugia" ? "CIRUGIA" : "CIRUGIA";
+      
+      const orden = await client.query(
+        `INSERT INTO ordenes_medicas (
+           expediente_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, departamento, medico, origen
+         ) VALUES ($1, $2, $3, $4, $5::numeric, $6::numeric, ($5::numeric - $6::numeric),
+           CASE WHEN $6::numeric >= $5::numeric THEN 'Pagado' ELSE 'Pendiente' END,
+           $7::date, $8, 'Pendiente', $9)
+         RETURNING id`,
+        [paciente_id, recibo.id, procedimiento, tipoOrden, precio, monto_pagado, fechaLocal, depto, origenOrden]
       );
-    }
 
-    // 5️⃣ Si es cirugía, agregar a agenda quirúrgica
-    if (tipo === "OrdenCirugia") {
-      await client.query(
-        `INSERT INTO agenda_quirurgica (paciente_id, procedimiento, fecha, departamento, recibo_id, orden_id)
-         VALUES ($1, $2, $3::date, $4, $5, $6)`,
-        [paciente_id, procedimiento, fechaLocal, depto, recibo.id, ordenId]
-      );
+      const ordenId = orden.rows[0].id;
+
+      if (monto_pagado > 0) {
+        await client.query(
+          `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
+           VALUES ($1, $2, $3::numeric, $4, $5::date, $6)`,
+          [ordenId, paciente_id, monto_pagado, forma_pago, fechaLocal, depto]
+        );
+      }
+
+      if (tipo === "OrdenCirugia") {
+        await client.query(
+          `INSERT INTO agenda_quirurgica (paciente_id, procedimiento, fecha, departamento, recibo_id, orden_id)
+           VALUES ($1, $2, $3::date, $4, $5, $6)`,
+          [paciente_id, procedimiento, fechaLocal, depto, recibo.id, ordenId]
+        );
+      }
     }
 
     await client.query("COMMIT");
@@ -840,6 +840,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
     client.release();
   }
 });
+
 
 // ==================== Listar recibos (CORREGIDO - SOLO CAMBIO EN SELECT) ====================
 app.get('/api/recibos', verificarSesion, async (req, res) => {
