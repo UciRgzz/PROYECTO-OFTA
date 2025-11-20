@@ -1139,13 +1139,13 @@ app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
     }
   });
 
- // ==================== PACIENTES PENDIENTES PARA MÓDULO MÉDICO ====================
+// ==================== PACIENTES PENDIENTES PARA MÓDULO MÉDICO ====================
 app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
   try {
     const depto = getDepartamento(req);
 
     const result = await pool.query(`
-      -- 1️⃣ Recibos tipo "Normal" que NO provienen de Agenda de Consultas
+      -- 1️⃣ Recibos tipo "Normal" que NO tienen ninguna orden médica
       SELECT 
         r.id AS recibo_id,
         e.numero_expediente AS expediente_id,
@@ -1162,19 +1162,11 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
         AND r.departamento = e.departamento
       WHERE r.departamento = $1
         AND r.tipo = 'Normal'
-        -- ✅ EXCLUIR recibos vinculados a consultas (provienen de Agenda de Consultas)
+        -- ✅ SIMPLIFICADO: Excluir si tiene CUALQUIER orden médica
         AND NOT EXISTS (
           SELECT 1 FROM ordenes_medicas o 
           WHERE o.folio_recibo = r.id 
             AND o.departamento = r.departamento
-            AND o.consulta_id IS NOT NULL
-        )
-        -- ✅ EXCLUIR si tiene órdenes de cirugía
-        AND NOT EXISTS (
-          SELECT 1 FROM ordenes_medicas o 
-          WHERE o.folio_recibo = r.id 
-            AND o.departamento = r.departamento
-            AND o.tipo != 'Consulta'
         )
 
       UNION
@@ -1215,7 +1207,6 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 // ==================== GUARDAR O ACTUALIZAR ORDEN MÉDICA ====================
 app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
   const client = await pool.connect();
@@ -1494,47 +1485,9 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
       // ✅ Si el recibo es de consulta pero el médico selecciona cirugía → CREAR NUEVO RECIBO
       if (reciboEsConsulta && !esConsultaInicial) {
         console.log(`🆕 Detectada cirugía desde RECIBO de consulta: ${procedimientoNombre}`);
-        console.log(`✅ Se crearán órdenes para consulta y cirugía`);
+        console.log(`✅ Se creará un NUEVO RECIBO para esta cirugía`);
 
-        // 1️⃣ PRIMERO: Crear orden de CONSULTA para el recibo original (para que desaparezca de pendientes)
-        const reciboOriginalMontoPagado = await client.query(
-          `SELECT COALESCE(SUM(monto), 0) AS total FROM abonos_recibos WHERE recibo_id = $1 AND departamento = $2`,
-          [folio_recibo, depto]
-        );
-        const pagadoConsulta = parseFloat(reciboOriginalMontoPagado.rows[0].total) || 0;
-        const precioConsulta = 500; // Precio estándar de consulta
-        const pendienteConsulta = Math.max(0, precioConsulta - pagadoConsulta);
-        const estatusConsulta = pendienteConsulta <= 0 ? 'Pagado' : 'Pendiente';
-
-        console.log(`📋 Creando orden de consulta para recibo original ID: ${folio_recibo}`);
-        
-        await client.query(
-          `INSERT INTO ordenes_medicas (
-            expediente_id, folio_recibo, consulta_id, medico, diagnostico, lado, 
-            procedimiento, tipo, precio,
-            anexos, conjuntiva, cornea, camara_anterior, cristalino,
-            retina, macula, nervio_optico, ciclopejia, hora_tp,
-            problemas, plan, estatus, fecha, departamento, origen, pagado, pendiente
-          )
-          VALUES (
-            $1, $2, NULL, $3, $4, $5,
-            'Consulta Oftalmológica', 'Consulta', $6,
-            $7, $8, $9, $10, $11,
-            $12, $13, $14, $15, $16,
-            $17, $18, $19, $20::date, $21, 'CIRUGIA', $22, $23
-          )`,
-          [
-            expediente_id, folio_recibo,
-            medico, diagnostico, lado,
-            precioConsulta,
-            anexos, conjuntiva, cornea, camara_anterior, cristalino,
-            retina, macula, nervio_optico, ciclopejia, hora_tp,
-            problemas, plan, estatusConsulta, fechaLocal, depto, pagadoConsulta, pendienteConsulta
-          ]
-        );
-        console.log(`✅ Orden de consulta creada para recibo original`);
-
-        // 2️⃣ SEGUNDO: Crear nuevo recibo para la cirugía
+        // Crear nuevo recibo para la cirugía
         const ultimoNumero = await client.query(
           "SELECT COALESCE(MAX(numero_recibo), 0) + 1 AS siguiente FROM recibos WHERE departamento = $1",
           [depto]
@@ -1553,7 +1506,7 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         folio_recibo_final = nuevoRecibo.rows[0].id;
         console.log(`📄 Nuevo recibo de cirugía creado: ID ${folio_recibo_final}, Número ${siguienteNumero}`);
 
-        // 3️⃣ TERCERO: Crear orden médica de cirugía con el nuevo recibo
+        // Crear orden médica de cirugía con el nuevo recibo
         const result = await client.query(
           `INSERT INTO ordenes_medicas (
             expediente_id, folio_recibo, consulta_id, medico, diagnostico, lado, 
