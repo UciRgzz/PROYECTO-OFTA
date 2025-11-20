@@ -1341,6 +1341,57 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
             actualizada: true
           });
         }
+
+        // ✅ CREAR NUEVA ORDEN DE CONSULTA INICIAL
+        const fechaLocalConsulta = fechaLocalMX();
+
+        const resultConsulta = await client.query(
+          `INSERT INTO ordenes_medicas (
+            expediente_id, folio_recibo, consulta_id, medico, diagnostico, lado, 
+            procedimiento, tipo, precio,
+            anexos, conjuntiva, cornea, camara_anterior, cristalino,
+            retina, macula, nervio_optico, ciclopejia, hora_tp,
+            problemas, plan, estatus, fecha, departamento, origen, pagado, pendiente
+          )
+          VALUES (
+            $1, $2, $3, $4, $5, $6,
+            $7, 'Consulta', $8,
+            $9, $10, $11, $12, $13,
+            $14, $15, $16, $17, $18,
+            $19, $20, 'Pendiente', $21::date, $22, 'CONSULTA', 0, $8
+          )
+          RETURNING *`,
+          [
+            expediente_id,
+            folio_recibo_final,
+            consulta_id,
+            medico, diagnostico, lado,
+            procedimientoNombre,
+            procedimientoPrecio,
+            anexos, conjuntiva, cornea, camara_anterior, cristalino,
+            retina, macula, nervio_optico, ciclopejia, hora_tp,
+            problemas, plan,
+            fechaLocalConsulta,
+            depto
+          ]
+        );
+
+        // Actualizar estado de consulta a "Atendida"
+        await client.query(
+          `UPDATE consultas SET estado = 'Atendida' WHERE id = $1 AND departamento = $2`,
+          [consulta_id, depto]
+        );
+
+        await client.query("COMMIT");
+
+        console.log(`✅ Nueva orden de consulta creada - ID: ${resultConsulta.rows[0].id}`);
+        console.log(`📄 Folio Recibo: ${folio_recibo_final}`);
+
+        return res.json({ 
+          mensaje: "Orden médica de consulta creada correctamente", 
+          orden: resultConsulta.rows[0],
+          actualizada: false
+        });
         
       } else {
         // 🆕 ES UNA CIRUGÍA U OTRO PROCEDIMIENTO
@@ -1349,7 +1400,7 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         console.log(`💰 Precio: $${procedimientoPrecio}`);
         console.log(`✅ Se creará un NUEVO RECIBO para esta cirugía`);
 
-        const fechaLocal = fechaLocalMX();
+        const fechaLocalCirugia = fechaLocalMX();
 
         // Obtener siguiente número de recibo
         const ultimoNumero = await client.query(
@@ -1365,68 +1416,61 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
           VALUES 
             ($1, $2::date, $3, $4, $5, $6::numeric, 'Pendiente', 0, 'OrdenCirugia', $7)
           RETURNING *`,
-          [siguienteNumero, fechaLocal, expediente_id, expediente_id, procedimientoNombre, procedimientoPrecio, depto]
+          [siguienteNumero, fechaLocalCirugia, expediente_id, expediente_id, procedimientoNombre, procedimientoPrecio, depto]
         );
 
         folio_recibo_final = nuevoRecibo.rows[0].id;
-        console.log(`📄 Nuevo recibo creado: ID ${folio_recibo_final}, Número ${siguienteNumero}`);
+        console.log(`📄 Nuevo recibo de cirugía creado: ID ${folio_recibo_final}, Número ${siguienteNumero}`);
+
+        // ✅ CREAR LA ORDEN DE CIRUGÍA
+        const resultCirugia = await client.query(
+          `INSERT INTO ordenes_medicas (
+            expediente_id, folio_recibo, consulta_id, medico, diagnostico, lado, 
+            procedimiento, tipo, precio,
+            anexos, conjuntiva, cornea, camara_anterior, cristalino,
+            retina, macula, nervio_optico, ciclopejia, hora_tp,
+            problemas, plan, estatus, fecha, departamento, origen, pagado, pendiente
+          )
+          VALUES (
+            $1, $2, $3, $4, $5, $6,
+            $7, 'Cirugia', $8,
+            $9, $10, $11, $12, $13,
+            $14, $15, $16, $17, $18,
+            $19, $20, 'Pendiente', $21::date, $22, 'CONSULTA', 0, $8
+          )
+          RETURNING *`,
+          [
+            expediente_id,
+            folio_recibo_final,  // ✅ Usa el nuevo recibo de cirugía
+            consulta_id,
+            medico, diagnostico, lado,
+            procedimientoNombre,
+            procedimientoPrecio,
+            anexos, conjuntiva, cornea, camara_anterior, cristalino,
+            retina, macula, nervio_optico, ciclopejia, hora_tp,
+            problemas, plan,
+            fechaLocalCirugia,
+            depto
+          ]
+        );
+
+        // Actualizar estado de consulta a "Atendida"
+        await client.query(
+          `UPDATE consultas SET estado = 'Atendida' WHERE id = $1 AND departamento = $2`,
+          [consulta_id, depto]
+        );
+
+        await client.query("COMMIT");
+
+        console.log(`✅ Nueva orden de cirugía creada - ID: ${resultCirugia.rows[0].id}`);
+        console.log(`📄 Folio Recibo de Cirugía: ${folio_recibo_final}`);
+
+        return res.json({ 
+          mensaje: "Nueva orden médica de cirugía creada correctamente", 
+          orden: resultCirugia.rows[0],
+          actualizada: false
+        });
       }
-
-      // Continuar para crear nueva orden (consulta inicial o cirugía nueva)
-      const fechaLocal = fechaLocalMX();
-
-      const result = await client.query(
-        `INSERT INTO ordenes_medicas (
-          expediente_id, folio_recibo, consulta_id, medico, diagnostico, lado, 
-          procedimiento, tipo, precio,
-          anexos, conjuntiva, cornea, camara_anterior, cristalino,
-          retina, macula, nervio_optico, ciclopejia, hora_tp,
-          problemas, plan, estatus, fecha, departamento, origen, pagado, pendiente
-        )
-        VALUES (
-          $1, $2, $3, $4, $5, $6,
-          $7, $8, $9,
-          $10, $11, $12, $13, $14,
-          $15, $16, $17, $18, $19,
-          $20, $21, 'Pendiente', $22::date, $23, $24, 0, $9
-        )
-        RETURNING *`,
-        [
-          expediente_id,
-          folio_recibo_final,
-          consulta_id,
-          medico, diagnostico, lado,
-          procedimientoNombre,
-          esConsultaInicial ? 'Consulta' : 'Cirugia',
-          procedimientoPrecio,
-          anexos, conjuntiva, cornea, camara_anterior, cristalino,
-          retina, macula, nervio_optico, ciclopejia, hora_tp,
-          problemas, plan,
-          fechaLocal,
-          depto,
-          'CONSULTA'
-        ]
-      );
-
-      // Actualizar estado de consulta a "Atendida"
-      await client.query(
-        `UPDATE consultas SET estado = 'Atendida' WHERE id = $1 AND departamento = $2`,
-        [consulta_id, depto]
-      );
-
-      await client.query("COMMIT");
-
-      console.log(`✅ Nueva orden médica creada - ID: ${result.rows[0].id}`);
-      console.log(`📋 Tipo: ${esConsultaInicial ? 'Consulta Inicial' : 'Cirugía/Procedimiento'}`);
-      console.log(`📄 Folio Recibo: ${folio_recibo_final}`);
-
-      return res.json({ 
-        mensaje: esConsultaInicial 
-          ? "Orden médica de consulta creada correctamente" 
-          : "Nueva orden médica de cirugía creada correctamente", 
-        orden: result.rows[0],
-        actualizada: false
-      });
 
     } else if (folio_recibo) {
       // ✅ FLUJO DE RECIBOS (funcionalidad original de cirugías programadas)
@@ -1517,7 +1561,7 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
   }
 });
 
-  // ==================== ÓRDENES POR EXPEDIENTE ====================
+// ==================== ÓRDENES POR EXPEDIENTE ====================
   app.get("/api/expedientes/:id/ordenes", verificarSesion, async (req, res) => {
     try {
       const { id } = req.params;
