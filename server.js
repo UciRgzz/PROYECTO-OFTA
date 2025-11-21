@@ -2287,6 +2287,26 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
   });
 
   // ==================== MODULO DE OPTOMETRÍA ====================
+  // ==================== OBTENER USUARIO ACTUAL ====================
+app.get("/api/usuario-actual", verificarSesion, async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    
+    const result = await pool.query(
+      "SELECT id, username, rol, departamento FROM usuarios WHERE id = $1",
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Error al obtener usuario actual:", err);
+    res.status(500).json({ error: "Error al obtener información del usuario" });
+  }
+});
   // Guardar nueva evaluación de optometría
   app.post("/api/optometria", verificarSesion, async (req, res) => {
     try {
