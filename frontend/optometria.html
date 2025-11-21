@@ -277,22 +277,6 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-// ==================== VERIFICAR SI EL USUARIO ES ADMIN ====================
-let esAdmin = false;
-
-async function verificarRolUsuario() {
-  try {
-    const res = await fetch("/api/usuario-actual");
-    if (res.ok) {
-      const data = await res.json();
-      esAdmin = data.rol === "admin";
-    }
-  } catch (err) {
-    console.error("Error al verificar rol:", err);
-    esAdmin = false;
-  }
-}
-
 async function cargarOptometrias(desde, hasta) {
   let url = "/api/optometria";
   if (desde && hasta) {
@@ -338,14 +322,14 @@ async function cargarOptometrias(desde, hasta) {
               <th>Cicloplejia</th>
               <th>Hora T.P.</th>
               <th>Fecha</th>
-              ${esAdmin ? '<th>Acciones</th>' : ''}
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
   `;
 
   if (data.length === 0) {
-    html += `<tr><td colspan="${esAdmin ? '31' : '30'}">Sin registros</td></tr>`;
+    html += `<tr><td colspan="31">Sin registros</td></tr>`;
   } else {
     data.forEach(o => {
       let horaFormateada = "";
@@ -389,11 +373,11 @@ async function cargarOptometrias(desde, hasta) {
           <td>${o.cicloplejia || ""}</td>
           <td>${horaFormateada}</td>
           <td>${o.fecha.split('T')[0].split('-').reverse().join('/')}</td>
-          ${esAdmin ? `<td>
+          <td>
             <button class="btn btn-danger btn-sm" onclick="borrarOpto(${o.id})">
               <i class="fas fa-trash"></i>
             </button>
-          </td>` : ''}
+          </td>
         </tr>
       `;
     });
@@ -403,10 +387,7 @@ async function cargarOptometrias(desde, hasta) {
   document.getElementById("tablaOpto").innerHTML = html;
 }
 
-document.addEventListener("DOMContentLoaded", async function() {
-  // ✅ Primero verificar el rol del usuario
-  await verificarRolUsuario();
-  
+document.addEventListener("DOMContentLoaded", function() {
   const hoy = moment().format("YYYY-MM-DD");
   
   $('#filtroRangoOpto').daterangepicker({
