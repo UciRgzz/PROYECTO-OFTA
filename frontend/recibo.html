@@ -157,7 +157,6 @@
       box-shadow: 0 6px 15px rgba(231, 76, 60, 0.4);
     }
     
-    /* ✅ BOTONES EN LÍNEA HORIZONTAL */
     .btn-sm {
       padding: 8px 12px;
       font-size: 1rem;
@@ -169,7 +168,6 @@
       margin: 0;
     }
     
-    /* ✅ Asegurar que los botones no hagan salto de línea */
     .table td:last-child {
       white-space: nowrap;
     }
@@ -272,7 +270,6 @@
       }
     }
     
-    /* Estilos para el modal de vista previa del recibo */
     .swal-wide {
       width: 800px !important;
       max-width: 90vw;
@@ -330,7 +327,6 @@
       margin-top: 30px;
     }
     
-    /* para el mostrar pago*/
     .swal2-shadow {
       border-radius: 15px !important;
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
@@ -350,7 +346,6 @@
       font-size: 1rem !important;
     }
     
-    /* Corrige el ancho del select en SweetAlert2 */
     .swal2-popup .swal2-input[type="select"],
     .swal2-popup select.swal2-input {
       width: 100% !important;
@@ -360,7 +355,6 @@
       border-radius: 10px !important;
     }
     
-    /* Select de SweetAlert2 con estilo Bootstrap */
     .swal2-popup .form-select {
       display: block;
       width: 100% !important;
@@ -383,7 +377,6 @@
       <i class="fas fa-check-circle"></i> <span id="successMessage">Recibo guardado correctamente.</span>
     </div>
 
-    <!-- Formulario -->
     <div class="card">
       <div class="card-header"><i class="fas fa-file-invoice-dollar"></i> Nuevo Recibo</div>
       <div class="card-body">
@@ -402,7 +395,6 @@
             <input type="text" id="nombrePaciente" class="form-control" readonly>
           </div>
 
-          <!-- Tipo de Recibo -->
           <div class="col-md-4">
             <label class="form-label">Tipo de Recibo:</label>
             <select id="tipoRecibo" class="form-select" required>
@@ -442,7 +434,6 @@
     </div>
   </div>
 
-  <!--Estadísticas -->
   <div class="row text-center mb-4" id="statsContainer">
     <div class="col-md-4">
       <div class="card p-3 shadow-sm">
@@ -467,11 +458,9 @@
     </div>
   </div>
 
-  <!-- Lista -->
   <div class="card">
     <div class="card-header"><i class="fas fa-list"></i> Lista de Recibos</div>
     <div class="card-body">
-      <!-- 🔎 Filtro de fecha -->
       <div class="mb-3">
         <label for="filtroRango" class="form-label">Filtrar por fecha:</label>
         <input type="text" id="filtroRango" class="form-control" style="max-width:300px;" placeholder="Selecciona un rango de fechas" readonly>
@@ -507,23 +496,17 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
 
-  <!-- Daterangepicker CSS -->
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
-
-  <!-- jQuery (requerido por daterangepicker) -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-  <!-- Moment.js + Daterangepicker JS -->
   <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 
   <script>
-  let userRole = 'usuario'; // ✅ Se cargará del backend
+  let userRole = 'usuario';
   let pacienteId = null;
   let catalogo = [];
-  let rangoFechasActual = { desde: null, hasta: null }; // ✅ Guardar rango actual
+  let rangoFechasActual = { desde: null, hasta: null };
 
-  // ==================== VERIFICAR ROL AL CARGAR ====================
   async function verificarRol() {
     try {
       const res = await fetch('/api/user/role');
@@ -536,7 +519,6 @@
     }
   }
 
-  // Cargar catálogo de procedimientos
   async function cargarCatalogo() {
     try {
       const res = await fetch("/api/procedimientos");
@@ -564,7 +546,6 @@
 
   document.getElementById("procedimiento").addEventListener("change", actualizarPrecios);
 
-  // Autocompletar paciente por folio
   document.getElementById("folio").addEventListener("input", async () => {
     const folio = document.getElementById("folio").value;
     if (!folio) {
@@ -587,7 +568,6 @@
     }
   });
 
-  // ==================== Guardar recibo ====================
   document.getElementById("formRecibo").addEventListener("submit", async function(e) {
     e.preventDefault();
 
@@ -624,7 +604,6 @@
         document.getElementById("nombrePaciente").value = "";
         document.getElementById("fecha").value = fechaLocal;
         
-        // ✅ Recargar con el rango actual
         if (rangoFechasActual.desde && rangoFechasActual.hasta) {
           cargarRecibosRango(rangoFechasActual.desde, rangoFechasActual.hasta);
         } else {
@@ -643,7 +622,6 @@
     }
   });
 
-  // Eliminar recibo
   async function eliminarRecibo(id) {
     const confirmacion = await Swal.fire({
       title: '¿Estás seguro?',
@@ -665,7 +643,6 @@
       if (res.ok) {
         mostrarExito("Eliminado", "El recibo fue eliminado correctamente");
         
-        // ✅ Recargar con el rango actual
         if (rangoFechasActual.desde && rangoFechasActual.hasta) {
           cargarRecibosRango(rangoFechasActual.desde, rangoFechasActual.hasta);
         } else {
@@ -681,7 +658,6 @@
     }
   }
 
-  // Generar vista previa del recibo
   async function imprimirRecibo(id) {
     try {
       const res = await fetch(`/api/recibos/${id}`);
@@ -690,6 +666,18 @@
         return;
       }
       const recibo = await res.json();
+
+      let ordenInfo = null;
+      try {
+        const resOrden = await fetch(`/api/ordenes_medicas/recibo/${id}`);
+        if (resOrden.ok) {
+          ordenInfo = await resOrden.json();
+        }
+      } catch (err) {
+        console.log('No se encontró orden médica asociada');
+      }
+
+      const fechaFormateada = new Date(recibo.fecha).toISOString().split("T")[0].split("-").reverse().join("/");
 
       const contenido = `
         <div class="recibo-preview">
@@ -701,20 +689,28 @@
           </div>
 
           <div class="recibo-details">
-            <table style="width:100%; margin-bottom:15px; font-size:14px;">
+            <table style="width:100%; margin-bottom:15px; font-size:14px; border:none;">
               <tr>
-                <td><b>Fecha:</b> ${new Date(recibo.fecha).toISOString().split("T")[0].split("-").reverse().join("/")}</td>
-                <td style="text-align:right;"><b>Recibo N°:</b> ${recibo.numero_recibo}</td>
+                <td style="border:none;"><b>Fecha:</b> ${fechaFormateada}</td>
+                <td style="text-align:right; border:none;"><b>Recibo N°:</b> ${recibo.numero_recibo}</td>
               </tr>
+              ${ordenInfo ? `
               <tr>
-                <td><b>Folio Expediente:</b> ${recibo.folio}</td>
-                <td style="text-align:right;"><b>Tipo:</b> ${recibo.tipo}</td>
+                <td style="border:none;"><b>N.Orden:</b> ${ordenInfo.id}</td>
+                <td style="text-align:right; border:none;"><b>N.Folio:</b> ${ordenInfo.folio_recibo}</td>
               </tr>
+              ` : ''}
               <tr>
-                <td colspan="2"><b>Paciente:</b> ${recibo.paciente}</td>
+                <td style="border:none;"><b>Expediente:</b> ${recibo.folio}</td>
+                <td style="text-align:right; border:none;"></td>
               </tr>
+              ${ordenInfo && ordenInfo.medico ? `
               <tr>
-                <td colspan="2"><b>Forma de Pago:</b> ${recibo.forma_pago}</td>
+                <td colspan="2" style="border:none;"><b>Dr. Atendió:</b> ${ordenInfo.medico}</td>
+              </tr>
+              ` : ''}
+              <tr>
+                <td colspan="2" style="border:none;"><b>Paciente:</b> ${recibo.paciente}</td>
               </tr>
             </table>
           </div>
@@ -723,23 +719,42 @@
             <thead>
               <tr>
                 <th>Concepto</th>
-                <th>Precio</th>
-                <th>Pagado</th>
+                ${ordenInfo && ordenInfo.medico ? '<th>Dr. Atendió</th>' : ''}
+                <th>Total a Pagar</th>
+                <th>Monto Pagado</th>
                 <th>Pendiente</th>
+                <th>Forma de Pago</th>
+                <th>Estado</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td>${recibo.procedimiento}</td>
+                ${ordenInfo && ordenInfo.medico ? `<td style="text-align:center;">${ordenInfo.medico}</td>` : ''}
                 <td style="text-align:right;">$${parseFloat(recibo.precio).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
                 <td style="text-align:right;">$${parseFloat(recibo.monto_pagado).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
                 <td style="text-align:right;">$${parseFloat(recibo.pendiente).toLocaleString("es-MX", {minimumFractionDigits: 2})}</td>
+                <td style="text-align:center;">${recibo.forma_pago}</td>
+                <td style="text-align:center;">
+                  <span style="background: ${recibo.pendiente <= 0 ? '#27ae60' : '#f39c12'}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+                    ${recibo.pendiente <= 0 ? 'PAGADO' : 'PENDIENTE'}
+                  </span>
+                </td>
               </tr>
             </tbody>
           </table>
 
+          <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+            <p style="margin: 0; font-size: 14px;"><b>Total del Procedimiento:</b> <span style="float:right;">$${parseFloat(recibo.precio).toLocaleString("es-MX", {minimumFractionDigits: 2})}</span></p>
+            <p style="margin: 5px 0; font-size: 14px;"><b>Total Pagado (Acumulado):</b> <span style="float:right; color: #27ae60;">$${parseFloat(recibo.monto_pagado).toLocaleString("es-MX", {minimumFractionDigits: 2})}</span></p>
+            <hr style="margin: 10px 0;">
+            <p style="margin: 0; font-size: 16px; font-weight: bold;"><b>Saldo Pendiente:</b> <span style="float:right; color: #e74c3c;">$${parseFloat(recibo.pendiente).toLocaleString("es-MX", {minimumFractionDigits: 2})}</span></p>
+            <p style="margin: 10px 0 0 0; font-size: 14px;"><b>Monto de Este Pago:</b> <span style="float:right; color: #3498db; font-weight:bold;">$${parseFloat(recibo.monto_pagado).toLocaleString("es-MX", {minimumFractionDigits: 2})}</span></p>
+          </div>
+
           <div class="recibo-footer">
-            <p><b>CLÍNICA OFTAVISION</b> - Este recibo no es un comprobante fiscal.</p>
+            <p><b>CLÍNICA OFTAVISION</b> - Este recibo es un comprobante de pago.</p>
+            <p style="margin-top:5px;">Conserve este documento para cualquier aclaración.</p>
           </div>
         </div>
       `;
@@ -757,7 +772,7 @@
         preConfirm: () => {
           const opt = {
             margin: 10,
-            filename: `recibo_${recibo.id}.pdf`,
+            filename: `recibo_${recibo.numero_recibo}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2 },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -772,10 +787,8 @@
     }
   }
 
-  // ==================== Cargar recibos ====================
   async function cargarRecibosRango(desde, hasta) {
     try {
-      // ✅ Guardar rango actual
       rangoFechasActual = { desde, hasta };
 
       const res = await fetch(`/api/recibos?desde=${desde}&hasta=${hasta}`);
@@ -858,7 +871,6 @@
     });
   }
 
-  // ==================== Delegación de eventos: ABONOS ====================
   document.addEventListener("click", async (e) => {
     if (e.target.classList.contains("abonar-btn")) {
       const reciboId = e.target.dataset.id;
@@ -918,7 +930,6 @@
         if (res.ok) {
           Swal.fire('✅ Éxito', 'Abono registrado correctamente', 'success');
           
-          // ✅ Recargar con el rango actual guardado
           if (rangoFechasActual.desde && rangoFechasActual.hasta) {
             cargarRecibosRango(rangoFechasActual.desde, rangoFechasActual.hasta);
           } else {
@@ -935,16 +946,13 @@
     }
   });
 
-  // ==================== INICIALIZACIÓN ====================
   document.addEventListener("DOMContentLoaded", async () => {
-    // ✅ Verificar rol del usuario
     await verificarRol();
     await cargarCatalogo();
 
     const hoy = moment().format("YYYY-MM-DD");
     document.getElementById("fecha").value = hoy;
 
-    // Inicializar date range picker
     $('#filtroRango').daterangepicker({
       autoUpdateInput: false,
       locale: {
@@ -988,7 +996,6 @@
       cargarRecibosRango(hoy, hoy);
     });
 
-    // Cargar recibos de hoy por defecto
     cargarRecibosRango(hoy, hoy);
   });
 

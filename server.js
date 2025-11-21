@@ -743,6 +743,33 @@
   });
 
   // ==================== MODULO DE RECIBOS ====================
+// ==================== OBTENER ORDEN MÉDICA POR RECIBO ====================
+app.get('/api/ordenes_medicas/recibo/:recibo_id', verificarSesion, async (req, res) => {
+  try {
+    const { recibo_id } = req.params;
+    const depto = getDepartamento(req);
+
+    const result = await pool.query(
+      `SELECT o.*, e.nombre_completo as paciente_nombre
+       FROM ordenes_medicas o
+       LEFT JOIN expedientes e ON o.expediente_id = e.numero_expediente 
+         AND o.departamento = e.departamento
+       WHERE o.folio_recibo = $1 AND o.departamento = $2
+       LIMIT 1`,
+      [recibo_id, depto]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'No se encontró orden asociada' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error obteniendo orden por recibo:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ==================== Guardar recibo (CORREGIDO CON ABONOS) ====================
 app.post('/api/recibos', verificarSesion, async (req, res) => {
   const { fecha, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, crear_orden } = req.body;
