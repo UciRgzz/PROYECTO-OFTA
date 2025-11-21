@@ -695,11 +695,11 @@
                 <td style="text-align:right; border:none;"><b>Recibo N°:</b> ${recibo.numero_recibo}</td>
               </tr>
               ${ordenInfo ? `
-              <tr>
-                <td style="border:none;"><b>N.Orden:</b> ${ordenInfo.id}</td>
-                <td style="text-align:right; border:none;"><b>N.Folio:</b> ${ordenInfo.folio_recibo}</td>
-              </tr>
-              ` : ''}
+                  <tr>
+                    <td style="border:none;"><b>N.Orden:</b> ${ordenInfo.numero_orden || 'N/A'}</td>
+                    <td style="text-align:right; border:none;"><b>N.Folio:</b> ${recibo.numero_recibo}</td>
+                  </tr>
+                  ` : ''}
               <tr>
                 <td style="border:none;"><b>Expediente:</b> ${recibo.folio}</td>
                 <td style="text-align:right; border:none;"></td>
