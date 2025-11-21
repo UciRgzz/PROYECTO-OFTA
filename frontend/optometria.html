@@ -432,6 +432,37 @@ document.addEventListener("DOMContentLoaded", function() {
   cargarOptometrias(hoy, hoy);
 });
 
+// ==================== FUNCIÓN PARA BUSCAR NOMBRE DEL PACIENTE ====================
+async function buscarNombrePaciente(expedienteId) {
+  const nombreInput = document.getElementById("nombrePaciente");
+  
+  if (!expedienteId || expedienteId.trim() === "") {
+    nombreInput.value = "";
+    nombreInput.style.backgroundColor = "#e9ecef";
+    return;
+  }
+
+  try {
+    nombreInput.value = "Buscando...";
+    nombreInput.style.backgroundColor = "#fff3cd";
+
+    const res = await fetch(`/api/expedientes/${expedienteId}/nombre`);
+    const data = await res.json();
+
+    if (res.ok) {
+      nombreInput.value = data.nombre;
+      nombreInput.style.backgroundColor = "#d4edda"; // Verde claro
+    } else {
+      nombreInput.value = "❌ No encontrado";
+      nombreInput.style.backgroundColor = "#f8d7da"; // Rojo claro
+    }
+  } catch (err) {
+    nombreInput.value = "❌ Error al buscar";
+    nombreInput.style.backgroundColor = "#f8d7da";
+    console.error("Error al buscar nombre:", err);
+  }
+}
+
 document.getElementById("btnNuevo").addEventListener("click", async function() {
   const filtro = document.getElementById("filtroFechaContainer");
   filtro.style.display = "none";
@@ -445,7 +476,11 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
           <div class="row">
             <div class="col-md-6 form-group">
               <label>Número de Expediente *</label>
-              <input type="number" name="expediente_id" class="form-control" required>
+              <input type="number" name="expediente_id" id="expedienteInput" class="form-control" required>
+            </div>
+            <div class="col-md-6 form-group">
+              <label>Nombre del Paciente</label>
+              <input type="text" id="nombrePaciente" class="form-control" readonly style="background-color: #e9ecef; cursor: not-allowed;" placeholder="Se cargará automáticamente">
             </div>
           </div>
 
@@ -519,6 +554,12 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
   const formDiv = document.getElementById("formularioOpto");
   formDiv.innerHTML = html;
   formDiv.style.display = "block";
+
+  // ==================== EVENTO PARA BUSCAR NOMBRE AL ESCRIBIR EXPEDIENTE ====================
+  document.getElementById("expedienteInput").addEventListener("input", function(e) {
+    const expedienteId = e.target.value;
+    buscarNombrePaciente(expedienteId);
+  });
 
   document.getElementById("cancelarOpto").onclick = () => {
     formDiv.style.display = "none";
