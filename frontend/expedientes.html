@@ -228,19 +228,28 @@ input:focus, select:focus {
   display: flex;
   gap: 10px;
   align-items: center;
+  position: relative;
 }
 .search-section input {
-  padding: 12px 15px;
+  padding: 12px 15px 12px 45px;
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 1rem;
-  width: 300px;
+  flex: 1;
   transition: all 0.3s;
 }
 .search-section input:focus {
   border-color: var(--secondary-color);
   box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
   outline: none;
+}
+.search-section i.fa-search {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  font-size: 1.1rem;
 }
 
 .top-bar {
@@ -356,10 +365,8 @@ input:focus, select:focus {
 
         <div class="top-bar">
             <div class="search-section">
+                <i class="fas fa-search"></i>
                 <input type="text" id="buscarInput" placeholder="Buscar por número de expediente o nombre...">
-                <button class="btn btn-primary" onclick="buscarExpediente()">
-                    <i class="fas fa-search"></i> Buscar
-                </button>
             </div>
             <button class="btn btn-success" onclick="nuevoExpediente()">
                 <i class="fas fa-plus"></i> Nuevo Expediente
@@ -496,16 +503,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     const inputBuscar = document.getElementById('buscarInput');
     
     if (inputBuscar) {
-        inputBuscar.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                buscarExpediente();
-            }
-        });
-        
+        // ✅ BÚSQUEDA AUTOMÁTICA mientras escribe
         inputBuscar.addEventListener('input', function(e) {
             const valor = e.target.value.trim();
             if (valor === '') {
                 cargarExpedientes();
+            } else {
+                buscarExpediente();
             }
         });
     }
@@ -725,7 +729,7 @@ async function guardarExpediente(e) {
         if (res.ok) {
             await Swal.fire({
                 icon: 'success',
-                title: numero ? ' Expediente actualizado' : ' Expediente creado',
+                title: numero ? '✅ Expediente actualizado' : '✅ Expediente creado',
                 text: numero ? `Número: ${numero}` : `Número: ${data.expediente?.numero_expediente}`,
                 timer: 2000,
                 showConfirmButton: false
@@ -750,7 +754,7 @@ async function guardarExpediente(e) {
     }
 }
 
-// Función para buscar expediente
+// Función para buscar expediente (AUTOMÁTICA)
 async function buscarExpediente() {
     const busqueda = document.getElementById('buscarInput').value.trim();
     
@@ -764,11 +768,6 @@ async function buscarExpediente() {
         });
         
         if (!res.ok) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'No encontrado',
-                text: 'No se encontraron expedientes con ese criterio'
-            });
             document.getElementById('listaExpedientes').innerHTML = 
                 `<tr><td colspan="9">No se encontraron resultados</td></tr>`;
             return;
@@ -780,11 +779,6 @@ async function buscarExpediente() {
 
         if (data.length === 0) {
             tbody.innerHTML = `<tr><td colspan="9">No se encontraron expedientes</td></tr>`;
-            Swal.fire({
-                icon: 'info',
-                title: 'Sin resultados',
-                text: 'No se encontraron expedientes que coincidan con la búsqueda'
-            });
             return;
         }
 
@@ -827,28 +821,14 @@ async function buscarExpediente() {
             `;
         });
 
-        if (data.length > 1) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Búsqueda completada',
-                text: `Se encontraron ${data.length} expedientes`,
-                timer: 1500,
-                showConfirmButton: false
-            });
-        }
-
     } catch (err) {
         console.error("Error en búsqueda:", err);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Error al realizar la búsqueda'
-        });
+        document.getElementById('listaExpedientes').innerHTML = 
+            `<tr><td colspan="9">Error al realizar la búsqueda</td></tr>`;
     }
 }
 
 
-// Función para ver órdenes médicas
 // Función para ver órdenes médicas
 async function verMedico(expedienteId, nombre) {
   try {
@@ -1026,28 +1006,6 @@ async function eliminarExpediente(numero, departamento) {
         }
     }
 }
-
-// Inicializar al cargar la página
-document.addEventListener('DOMContentLoaded', function() {
-    cargarExpedientes();
-    
-    const inputBuscar = document.getElementById('buscarInput');
-    
-    if (inputBuscar) {
-        inputBuscar.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                buscarExpediente();
-            }
-        });
-        
-        inputBuscar.addEventListener('input', function(e) {
-            const valor = e.target.value.trim();
-            if (valor === '') {
-                cargarExpedientes();
-            }
-        });
-    }
-});
 </script>
 
 </body>
