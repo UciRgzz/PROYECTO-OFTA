@@ -489,7 +489,7 @@ async function obtenerRolUsuario() {
     if (res.ok) {
       const data = await res.json();
       window.usuarioRol = data.usuario?.rol || "usuario";
-      console.log("✅ ROL DETECTADO:", window.usuarioRol);
+      console.log(" ROL DETECTADO:", window.usuarioRol);
     }
   } catch (err) {
     console.error("Error obteniendo rol:", err);
@@ -499,7 +499,7 @@ async function obtenerRolUsuario() {
 
 // Llamar esta función antes de cargar expedientes
 document.addEventListener('DOMContentLoaded', async function() {
-    await obtenerRolUsuario(); // 👈 Obtener rol primero
+    await obtenerRolUsuario(); 
     cargarExpedientes();
     
     const inputBuscar = document.getElementById('buscarInput');
@@ -627,7 +627,7 @@ function calcularEdad() {
 // Función para editar expediente
 async function editarExpediente(numero, departamento) {
     try {
-        console.log("🔍 Editando expediente:", numero, "Departamento:", departamento);
+        console.log(" Editando expediente:", numero, "Departamento:", departamento);
         
         const res = await fetch(`/api/expedientes/${numero}?departamento=${encodeURIComponent(departamento)}`, {
             method: 'GET',
@@ -648,7 +648,7 @@ async function editarExpediente(numero, departamento) {
         }
 
         const data = await res.json();
-        console.log("✅ Datos recibidos:", data);
+        console.log(" Datos recibidos:", data);
 
         const inputNumero = document.getElementById('numero_expediente');
         inputNumero.value = data.numero_expediente || '';
@@ -716,7 +716,7 @@ async function guardarExpediente(e) {
     const url = numero ? `/api/expedientes/${numero}` : '/api/expedientes';
     const method = numero ? 'PUT' : 'POST';
 
-    console.log(`📤 ${method} a ${url}`, expediente);
+    console.log(` ${method} a ${url}`, expediente);
 
     try {
         const res = await fetch(url, {
@@ -731,7 +731,7 @@ async function guardarExpediente(e) {
         if (res.ok) {
             await Swal.fire({
                 icon: 'success',
-                title: numero ? '✅ Expediente actualizado' : '✅ Expediente creado',
+                title: numero ? ' Expediente actualizado' : ' Expediente creado',
                 text: numero ? `Número: ${numero}` : `Número: ${data.expediente?.numero_expediente}`,
                 timer: 2000,
                 showConfirmButton: false
