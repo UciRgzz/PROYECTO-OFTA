@@ -1095,18 +1095,35 @@ app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== CATÁLOGO DE PROCEDIMIENTOS ====================
-  app.get('/api/procedimientos', verificarSesion, async (req, res) => {
-    try {
-      const result = await pool.query(
-        "SELECT id, nombre, precio FROM catalogo_procedimientos ORDER BY nombre"
-      );
-      res.json(result.rows);
-    } catch (err) {
-      console.error("Error consultando procedimientos:", err);
-      res.status(500).json({ error: "Error consultando procedimientos" });
-    }
-  });
+// ==================== CATÁLOGO DE PROCEDIMIENTOS (CORREGIDO - CON PRECIOS POR SUCURSAL) ====================
+app.get('/api/procedimientos', verificarSesion, async (req, res) => {
+  try {
+    const depto = getDepartamento(req);
+    
+    console.log('🔍 Consultando procedimientos para:', depto);
+
+    const result = await pool.query(`
+      SELECT 
+        cp.id,
+        cp.nombre,
+        COALESCE(ps.precio, cp.precio) AS precio
+      FROM catalogo_procedimientos cp
+      LEFT JOIN precios_sucursal ps 
+        ON ps.procedimiento_id = cp.id 
+        AND ps.sucursal = $1
+      ORDER BY cp.nombre
+    `, [depto]);
+
+    console.log('✅ Procedimientos encontrados:', result.rows.length);
+    console.log('📋 Primeros 3:', result.rows.slice(0, 3));
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ Error consultando procedimientos:", err);
+    res.status(500).json({ error: "Error consultando procedimientos" });
+  }
+});
+
   // ==================== OBTENER PAGOS/ABONOS DE UNA ORDEN ====================
   app.get("/api/ordenes/:id/pagos", verificarSesion, async (req, res) => {
     try {
@@ -2472,8 +2489,6 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
       res.status(500).json({ error: "Error al obtener nombre del paciente" });
     }
   });
-
-
 
   // ==================== MODULO DE INSUMOS ====================
   // Configuración de multer para guardar con nombre único
