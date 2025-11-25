@@ -57,6 +57,7 @@
       font-weight: 600;
       display: flex;
       align-items: center;
+      justify-content: space-between;
     }
     .card-header i { margin-right: 12px; font-size: 1.5rem; }
     .card-body { padding: 25px; }
@@ -263,6 +264,55 @@
       display: block;
     }
 
+    .nuevo-expediente-badge {
+      background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+
+    .modal-nuevo-paciente .modal-content {
+      border-radius: 12px;
+      overflow: hidden;
+      border: none;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .modal-nuevo-paciente .modal-header {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      color: white;
+      padding: 20px;
+    }
+
+    .modal-nuevo-paciente .modal-body {
+      padding: 25px;
+    }
+
+    .modal-nuevo-paciente .form-label {
+      font-weight: 600;
+      color: var(--primary-color);
+      margin-bottom: 8px;
+    }
+
+    .modal-nuevo-paciente .form-control {
+      border-radius: 8px;
+      padding: 10px 15px;
+      border: 1px solid #dee2e6;
+      transition: all 0.3s ease;
+    }
+
+    .modal-nuevo-paciente .form-control:focus {
+      border-color: var(--secondary-color);
+      box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+    }
+
+    .required-field::after {
+      content: " *";
+      color: var(--accent-color);
+    }
   </style>
 </head>
 <body>
@@ -278,7 +328,14 @@
 
     <!-- SECCIÓN DE BÚSQUEDA DE EXPEDIENTE -->
     <div class="card">
-      <div class="card-header"><i class="fas fa-search"></i> Buscar Paciente para Agendar</div>
+      <div class="card-header">
+        <div>
+          <i class="fas fa-search"></i> Buscar Paciente para Agendar
+        </div>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalNuevoPaciente">
+          <i class="fas fa-user-plus"></i> Nuevo Paciente
+        </button>
+      </div>
       <div class="card-body">
         <div class="busqueda-expediente">
           <div class="position-relative">
@@ -346,6 +403,78 @@
     </div>
   </div>
 
+  <!-- Modal para nuevo paciente -->
+  <div class="modal fade modal-nuevo-paciente" id="modalNuevoPaciente" tabindex="-1" aria-labelledby="modalNuevoPacienteLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalNuevoPacienteLabel">
+            <i class="fas fa-user-plus"></i> Crear Nuevo Paciente
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="formNuevoPaciente">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="nuevoNombre" class="form-label required-field">Nombre(s)</label>
+                <input type="text" class="form-control" id="nuevoNombre" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="nuevoApellido" class="form-label required-field">Apellido(s)</label>
+                <input type="text" class="form-control" id="nuevoApellido" required>
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="nuevoTelefono" class="form-label required-field">Teléfono</label>
+                <input type="tel" class="form-control" id="nuevoTelefono" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="nuevoEmail" class="form-label">Correo Electrónico</label>
+                <input type="email" class="form-control" id="nuevoEmail">
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="nuevaFechaNacimiento" class="form-label">Fecha de Nacimiento</label>
+                <input type="date" class="form-control" id="nuevaFechaNacimiento">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="nuevoGenero" class="form-label">Género</label>
+                <select class="form-control" id="nuevoGenero">
+                  <option value="">Seleccionar</option>
+                  <option value="Masculino">Masculino</option>
+                  <option value="Femenino">Femenino</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="nuevaDireccion" class="form-label">Dirección</label>
+              <textarea class="form-control" id="nuevaDireccion" rows="2"></textarea>
+            </div>
+            
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle"></i> 
+              <strong>Nota:</strong> El sistema generará automáticamente un número de expediente. 
+              Después de crear el paciente, podrás agendar una consulta inmediatamente.
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="btnCrearPaciente">
+            <i class="fas fa-save"></i> Crear Paciente y Agendar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Librerías -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
@@ -357,6 +486,7 @@
     let rolUsuario = null;
     let consultasOriginales = [];
     let consultasFiltradas = [];
+    let nuevoExpedienteCreado = null;
 
     //======================= OBTENER ROL DE USUARIO ======================
     async function obtenerRolUsuario() {
@@ -394,6 +524,186 @@
         title: titulo,
         text: mensaje
       });
+    }
+
+    // ====================== CREAR NUEVO PACIENTE ======================
+    async function crearNuevoPaciente() {
+      const nombre = document.getElementById('nuevoNombre').value.trim();
+      const apellido = document.getElementById('nuevoApellido').value.trim();
+      const telefono = document.getElementById('nuevoTelefono').value.trim();
+      const email = document.getElementById('nuevoEmail').value.trim();
+      const fechaNacimiento = document.getElementById('nuevaFechaNacimiento').value;
+      const genero = document.getElementById('nuevoGenero').value;
+      const direccion = document.getElementById('nuevaDireccion').value.trim();
+
+      // Validaciones básicas
+      if (!nombre || !apellido || !telefono) {
+        mostrarError('Campos requeridos', 'Por favor completa los campos obligatorios: Nombre, Apellido y Teléfono');
+        return;
+      }
+
+      try {
+        // Mostrar carga
+        Swal.fire({
+          title: 'Creando paciente...',
+          html: '<i class="fas fa-spinner fa-spin fa-3x text-primary"></i><br><br>Generando expediente...',
+          allowOutsideClick: false,
+          showConfirmButton: false,
+          didOpen: () => Swal.showLoading()
+        });
+
+        const datosPaciente = {
+          nombre: nombre,
+          apellido: apellido,
+          telefono1: telefono,
+          email: email,
+          fecha_nacimiento: fechaNacimiento,
+          genero: genero,
+          direccion: direccion,
+          ciudad: 'No especificada',
+          estado: 'Activo'
+        };
+
+        const resp = await fetch('/api/expedientes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(datosPaciente)
+        });
+
+        if (!resp.ok) {
+          const errorData = await resp.json();
+          throw new Error(errorData.error || 'No se pudo crear el expediente');
+        }
+
+        const expedienteCreado = await resp.json();
+        console.log('✅ Expediente creado:', expedienteCreado);
+        
+        // Guardar el expediente creado para usarlo después
+        nuevoExpedienteCreado = expedienteCreado;
+
+        // Cerrar modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('modalNuevoPaciente'));
+        modal.hide();
+
+        // Limpiar formulario
+        document.getElementById('formNuevoPaciente').reset();
+
+        // Mostrar éxito y proceder a agendar consulta
+        await Swal.fire({
+          icon: 'success',
+          title: '¡Paciente Creado!',
+          html: `
+            <p>✅ Expediente #${expedienteCreado.numero_expediente} creado exitosamente</p>
+            <p><strong>Paciente:</strong> ${expedienteCreado.nombre_completo}</p>
+            <div style="background: #e3f2fd; padding: 12px; border-radius: 8px; margin-top: 10px;">
+              <i class="fas fa-info-circle" style="color: #2196F3;"></i>
+              <strong>Ahora puedes agendar una consulta para este paciente</strong>
+            </div>
+          `,
+          confirmButtonColor: '#27ae60',
+          timer: 4000
+        });
+
+        // Proceder a agendar consulta automáticamente
+        await agendarConsultaNuevoPaciente(expedienteCreado);
+
+      } catch (err) {
+        console.error('❌ Error creando paciente:', err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: err.message || 'No se pudo crear el expediente',
+          confirmButtonColor: '#e74c3c'
+        });
+      }
+    }
+
+    // ====================== AGENDAR CONSULTA PARA NUEVO PACIENTE ======================
+    async function agendarConsultaNuevoPaciente(expediente) {
+      try {
+        const { value: formValues } = await Swal.fire({
+          title: 'Agendar Consulta',
+          width: '600px',
+          html: `
+            <div class="text-start">
+              <div class="mb-3">
+                <label class="form-label"><strong>Paciente:</strong></label>
+                <input type="text" class="form-control" value="${expediente.nombre_completo || 'Sin nombre'}" disabled>
+              </div>
+              <div class="mb-3">
+                <label class="form-label"><strong>Expediente:</strong></label>
+                <input type="text" class="form-control" value="${expediente.numero_expediente || 'Sin número'}" disabled>
+              </div>
+              <div class="mb-3">
+                <label class="form-label"><strong>Fecha de Consulta:</strong></label>
+                <input type="date" id="swal-fecha" class="form-control" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label"><strong>Hora:</strong></label>
+                <input type="time" id="swal-hora" class="form-control" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label"><strong>Médico:</strong></label>
+                <input type="text" id="swal-medico" class="form-control" placeholder="Nombre del médico" required>
+              </div>
+            </div>
+          `,
+          focusConfirm: false,
+          showCancelButton: true,
+          confirmButtonText: '<i class="fas fa-check"></i> Agendar',
+          cancelButtonText: 'Cancelar',
+          preConfirm: () => {
+            const fecha = document.getElementById('swal-fecha').value;
+            const hora = document.getElementById('swal-hora').value;
+            const medico = document.getElementById('swal-medico').value;
+
+            if (!fecha || !hora || !medico) {
+              Swal.showValidationMessage('Por favor completa todos los campos');
+              return false;
+            }
+
+            return { fecha, hora, medico };
+          }
+        });
+
+        if (formValues) {
+          const fechaLocal = formValues.fecha;
+
+          const nuevaConsulta = {
+            expediente_id: parseInt(expediente.numero_expediente),
+            paciente: expediente.nombre_completo || 'Sin nombre',
+            numero_expediente: parseInt(expediente.numero_expediente),
+            telefono1: expediente.telefono1 || '',
+            telefono2: expediente.telefono2 || '',
+            edad: expediente.edad || null,
+            ciudad: expediente.ciudad || '',
+            fecha: fechaLocal,
+            hora: formValues.hora,
+            medico: formValues.medico,
+            estado: 'Pendiente'
+          };
+
+          console.log('📤 Enviando nueva consulta:', nuevaConsulta);
+
+          const respPost = await fetch('/api/consultas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(nuevaConsulta)
+          });
+
+          if (respPost.ok) {
+            mostrarExito('¡Éxito!', 'Consulta agendada correctamente');
+            cargarConsultas();
+          } else {
+            const errorData = await respPost.json();
+            console.error('❌ Error del servidor:', errorData);
+            mostrarError('Error', errorData.error || 'No se pudo agendar la consulta');
+          }
+        }
+      } catch (err) {
+        console.error('❌ Error agendando consulta:', err);
+        mostrarError('Error', 'Ocurrió un error al agendar la consulta: ' + err.message);
+      }
     }
 
     // ====================== BUSCAR EXPEDIENTE ======================
@@ -1125,6 +1435,9 @@ async function eliminarConsulta(id) {
       await obtenerRolUsuario();
       inicializarDateRangePicker();
       inicializarBusquedaEnTiempoReal();
+      
+      // Event listener para el botón de crear paciente
+      document.getElementById('btnCrearPaciente').addEventListener('click', crearNuevoPaciente);
     });
 
     // ====================== BÚSQUEDA EN TIEMPO REAL ======================
