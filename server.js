@@ -770,6 +770,214 @@ app.get('/api/ordenes_medicas/recibo/:recibo_id', verificarSesion, async (req, r
   }
 });
 
+// ==================== MÓDULO DE PACIENTES AGENDA (REGISTROS RÁPIDOS) ====================
+
+// Crear paciente rápido desde Agenda Consultas
+app.post('/api/pacientes-agenda', verificarSesion, async (req, res) => {
+  try {
+    const {
+      nombre,
+      apellido,
+      telefono,
+      email,
+      fecha_nacimiento,
+      genero,
+      direccion
+    } = req.body;
+
+    const depto = getDepartamento(req);
+
+    if (!nombre || !apellido || !telefono) {
+      return res.status(400).json({ error: 'Nombre, apellido y teléfono son requeridos' });
+    }
+
+    // Calcular edad si hay fecha de nacimiento
+    let edad = null;
+    if (fecha_nacimiento) {
+      const hoy = new Date();
+      const nacimiento = new Date(fecha_nacimiento);
+      edad = hoy.getFullYear() - nacimiento.getFullYear();
+      const m = hoy.getMonth() - nacimiento.getMonth();
+      if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) {
+        edad--;
+      }
+    }
+
+    const result = await pool.query(
+      `INSERT INTO pacientes_agenda 
+        (nombre, apellido, telefono, email, fecha_nacimiento, edad, genero, direccion, departamento)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING *, nombre || ' ' || apellido AS nombre_completo`,
+      [nombre, apellido, telefono, email, fecha_nacimiento, edad, genero, direccion, depto]
+    );
+
+    res.json({ 
+      mensaje: 'Paciente creado correctamente',
+      paciente: result.rows[0]
+    });
+
+  } catch (err) {
+    console.error('Error creando paciente agenda:', err);
+    
+    // Error de teléfono duplicado
+    if (err.code === '23505') {
+      return res.status(400).json({ 
+        error: 'Ya existe un paciente con ese teléfono en este departamento' 
+      });
+    }
+    
+    res.status(500).json({ error: 'Error al crear paciente' });
+  }
+});
+
+// Buscar pacientes de agenda
+app.get('/api/pacientes-agenda/buscar', verificarSesion, async (req, res) => {
+  try {
+    const { q } = req.query;
+    const depto = getDepartamento(req);
+
+    if (!q || q.trim() === '') {
+      return res.status(400).json({ error: 'Parámetro de búsqueda vacío' });
+    }
+
+    const busqueda = q.trim();
+
+    const query = `
+      SELECT 
+        id,
+        nombre,
+        apellido,
+        nombre_completo,
+        telefono,
+        email,
+        edad,
+        fecha_nacimiento,
+        genero,
+        direccion
+      FROM pacientes_agenda
+      WHERE departamento = $1
+        AND (
+          LOWER(nombre_completo) LIKE LOWER($2) 
+          OR telefono LIKE $2
+        )
+      ORDER BY nombre_completo ASC
+      LIMIT 20
+    `;
+
+    const result = await pool.query(query, [depto, `%${busqueda}%`]);
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error('Error buscando pacientes agenda:', err);
+    res.status(500).json({ error: 'Error al buscar pacientes' });
+  }
+});
+
+// Obtener un paciente de agenda por ID
+app.get('/api/pacientes-agenda/:id', verificarSesion, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const depto = getDepartamento(req);
+
+    const result = await pool.query(
+      `SELECT *, nombre || ' ' || apellido AS nombre_completo 
+       FROM pacientes_agenda 
+       WHERE id = $1 AND departamento = $2`,
+      [id, depto]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Paciente no encontrado' });
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error('Error obteniendo paciente agenda:', err);
+    res.status(500).json({ error: 'Error al obtener paciente' });
+  }
+});
+
+// Listar todos los pacientes de agenda
+app.get('/api/pacientes-agenda', verificarSesion, async (req, res) => {
+  try {
+    const depto = getDepartamento(req);
+
+    const result = await pool.query(
+      `SELECT id, nombre_completo, telefono, edad, created_at
+       FROM pacientes_agenda 
+       WHERE departamento = $1 
+       ORDER BY nombre_completo ASC`,
+      [depto]
+    );
+
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error('Error listando pacientes agenda:', err);
+    res.status(500).json({ error: 'Error al listar pacientes' });
+  }
+});
+
+// Migrar paciente de agenda a expedientes (opcional)
+app.post('/api/pacientes-agenda/:id/migrar', verificarSesion, isAdmin, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { id } = req.params;
+    const depto = getDepartamento(req);
+
+    await client.query('BEGIN');
+
+    // Obtener paciente de agenda
+    const paciente = await client.query(
+      'SELECT * FROM pacientes_agenda WHERE id = $1 AND departamento = $2',
+      [id, depto]
+    );
+
+    if (paciente.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Paciente no encontrado' });
+    }
+
+    const p = paciente.rows[0];
+
+    // Crear expediente completo
+    const expediente = await client.query(
+      `INSERT INTO expedientes 
+        (nombre_completo, fecha_nacimiento, edad, padecimientos, colonia, ciudad, telefono1, departamento)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *`,
+      [
+        p.nombre_completo,
+        p.fecha_nacimiento,
+        p.edad,
+        'Ninguno',
+        p.direccion || 'No especificada',
+        'No especificada',
+        p.telefono,
+        depto
+      ]
+    );
+
+    // Opcional: Eliminar de pacientes_agenda después de migrar
+    // await client.query('DELETE FROM pacientes_agenda WHERE id = $1', [id]);
+
+    await client.query('COMMIT');
+
+    res.json({
+      mensaje: 'Paciente migrado correctamente a expedientes',
+      expediente: expediente.rows[0]
+    });
+
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Error migrando paciente:', err);
+    res.status(500).json({ error: 'Error al migrar paciente' });
+  } finally {
+    client.release();
+  }
+});
+
 // ==================== Guardar recibo (CORREGIDO CON ABONOS) ====================
 app.post('/api/recibos', verificarSesion, async (req, res) => {
   const { fecha, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, crear_orden } = req.body;

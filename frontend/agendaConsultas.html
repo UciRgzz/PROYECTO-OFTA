@@ -564,7 +564,7 @@
           estado: 'Activo'
         };
 
-        const resp = await fetch('/api/expedientes', {
+        const resp = await fetch('/api/pacientes-agenda', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(datosPaciente)
