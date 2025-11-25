@@ -136,7 +136,7 @@
     
     .form-control {
       padding: 12px 15px;
-      border: 1px solid #ddd;
+      border: 2px solid #e0e0e0;
       border-radius: 8px;
       font-size: 1rem;
       width: 100%;
@@ -149,6 +149,98 @@
       box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
       outline: none;
       background-color: white;
+    }
+
+    /* ========== ESTILOS MEJORADOS PARA SELECT ========== */
+    .custom-select-wrapper {
+      position: relative;
+    }
+
+    .custom-select-wrapper select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      padding: 12px 45px 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 1rem;
+      width: 100%;
+      background-color: #fdfdfd;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+
+    .custom-select-wrapper select:hover {
+      border-color: var(--secondary-color);
+      background-color: white;
+    }
+
+    .custom-select-wrapper select:focus {
+      border-color: var(--secondary-color);
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+      outline: none;
+      background-color: white;
+    }
+
+    /* Icono de flecha personalizado */
+    .custom-select-wrapper::after {
+      content: '\f078';
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--secondary-color);
+      pointer-events: none;
+      font-size: 0.9rem;
+      transition: transform 0.3s ease;
+    }
+
+    .custom-select-wrapper select:focus + .custom-select-wrapper::after,
+    .custom-select-wrapper:has(select:focus)::after {
+      transform: translateY(-50%) rotate(180deg);
+    }
+
+    /* Estilos para las opciones del dropdown */
+    .custom-select-wrapper select option {
+      padding: 12px 15px;
+      font-size: 1rem;
+      background-color: white;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .custom-select-wrapper select option:hover {
+      background-color: #f0f5ff;
+    }
+
+    .custom-select-wrapper select option:first-child {
+      color: #999;
+      font-style: italic;
+    }
+
+    /* Animación suave al seleccionar */
+    .custom-select-wrapper select option:checked {
+      background: linear-gradient(to right, var(--secondary-color), #2c80b9);
+      color: white;
+      font-weight: 600;
+    }
+
+    /* Icono indicador */
+    .custom-select-wrapper .select-icon {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--secondary-color);
+      pointer-events: none;
+      font-size: 1.1rem;
+    }
+
+    .custom-select-wrapper select {
+      padding-left: 45px;
     }
     
     .btn {
@@ -381,14 +473,18 @@
           <div class="row">
             <div class="col-md-6">
               <div class="form-group">
-                <label for="nomina" class="form-label">Nómina</label>
-                <input type="text" class="form-control" id="nomina" required>
+                <label for="nomina" class="form-label">
+                  <i class="fas fa-id-card"></i> Nómina
+                </label>
+                <input type="text" class="form-control" id="nomina" required placeholder="Ingrese la nómina">
               </div>
             </div>
             <div class="col-md-6">
               <div class="form-group">
-                <label for="username" class="form-label">Usuario</label>
-                <input type="text" class="form-control" id="username" required>
+                <label for="username" class="form-label">
+                  <i class="fas fa-user"></i> Usuario
+                </label>
+                <input type="text" class="form-control" id="username" required placeholder="Ingrese el nombre de usuario">
               </div>
             </div>
           </div>
@@ -396,35 +492,47 @@
           <div class="row">
             <div class="col-md-6">
               <div class="form-group">
-                <label for="password" class="form-label">Contraseña</label>
-                <input type="password" class="form-control" id="password" required>
+                <label for="password" class="form-label">
+                  <i class="fas fa-lock"></i> Contraseña
+                </label>
+                <input type="password" class="form-control" id="password" required placeholder="Ingrese la contraseña">
               </div>
             </div>
             <div class="col-md-6">
               <div class="form-group">
-                <label for="rol" class="form-label">Rol</label>
-                <select class="form-control" id="rol" required>
-                  <option value="usuario">Usuario</option>
-                  <option value="admin">Administrador</option>
-                </select>
+                <label for="rol" class="form-label">
+                  <i class="fas fa-user-shield"></i> Rol
+                </label>
+                <div class="custom-select-wrapper">
+                  <i class="fas fa-shield-halved select-icon"></i>
+                  <select class="form-control" id="rol" required>
+                    <option value="usuario">Usuario</option>
+                    <option value="admin">Administrador</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
           
           <div class="form-group">
-            <label for="departamento" class="form-label">Departamento</label>
-            <select class="form-control" id="departamento" required>
-              <option value="">Selecciona un departamento</option>
-              <option value="Puebla">Puebla</option>
-              <option value="Oaxaca">Oaxaca</option>
-              <option value="Tlaxcala">Tlaxcala</option>
-              <option value="CDMX">CDMX</option>
-              <option value="Aguascalientes">Aguascalientes</option>
-              <option value="Villahermosa">Villahermosa</option>
-              <option value="Guerrero">Guerrero</option>
-              <option value="Matamoros">Matamoros</option>
-              <option value="Cozumel">Cozumel</option>
-            </select>
+            <label for="departamento" class="form-label">
+              <i class="fas fa-building"></i> Departamento / Sucursal
+            </label>
+            <div class="custom-select-wrapper">
+              <i class="fas fa-map-marker-alt select-icon"></i>
+              <select class="form-control" id="departamento" required>
+                <option value="" disabled selected>Selecciona un departamento</option>
+                <option value="Puebla">🏛️ Puebla</option>
+                <option value="Oaxaca">🌄 Oaxaca</option>
+                <option value="Tlaxcala">🏔️ Tlaxcala</option>
+                <option value="CDMX">🏙️ CDMX</option>
+                <option value="Aguascalientes">💧 Aguascalientes</option>
+                <option value="Villahermosa">🌴 Villahermosa</option>
+                <option value="Guerrero">🌊 Guerrero</option>
+                <option value="Matamoros">🌵 Matamoros</option>
+                <option value="Cozumel">🏖️ Cozumel</option>
+              </select>
+            </div>
           </div>
           
           <button type="submit" class="btn btn-primary">
@@ -444,11 +552,11 @@
             <table class="table">
               <thead>
                 <tr>
-                  <th>Nómina</th>
-                  <th>Usuario</th>
-                  <th>Rol</th>
-                  <th>Departamento</th>
-                  <th>Acciones</th>
+                  <th><i class="fas fa-id-badge"></i> Nómina</th>
+                  <th><i class="fas fa-user"></i> Usuario</th>
+                  <th><i class="fas fa-user-tag"></i> Rol</th>
+                  <th><i class="fas fa-building"></i> Departamento</th>
+                  <th><i class="fas fa-cog"></i> Acciones</th>
                 </tr>
               </thead>
               <tbody id="usersTable">
@@ -466,7 +574,7 @@
     </div>
     
     <div class="footer">
-      <p>Sistema de Gestión Oftavisión &copy; 2025</p>
+      <p><i class="fas fa-copyright"></i> Sistema de Gestión Oftavisión 2025</p>
     </div>
   </div>
 
@@ -519,10 +627,10 @@
             emptyState.style.display = 'none';
             tableBody.innerHTML = users.map(u => `
               <tr>
-                <td>${u.nomina}</td>
-                <td>${u.username}</td>
-                <td><span class="badge ${u.rol === 'admin' ? 'badge-admin' : 'badge-user'}">${u.rol}</span></td>
-                <td>${u.departamento || ''}</td>
+                <td><strong>${u.nomina}</strong></td>
+                <td><i class="fas fa-user-circle"></i> ${u.username}</td>
+                <td><span class="badge ${u.rol === 'admin' ? 'badge-admin' : 'badge-user'}">${u.rol === 'admin' ? 'Administrador' : 'Usuario'}</span></td>
+                <td><i class="fas fa-map-marker-alt"></i> ${u.departamento || 'N/A'}</td>
                 <td>
                   <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.nomina}')">
                     <i class="fas fa-trash-alt"></i> Eliminar
