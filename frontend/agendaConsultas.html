@@ -460,7 +460,7 @@
             
             <div class="alert alert-info">
               <i class="fas fa-info-circle"></i> 
-              <strong>Nota:</strong> El sistema generará automáticamente un número de expediente. 
+              <strong>Nota:</strong> El sistema generará automáticamente un ID interno. 
               Después de crear el paciente, podrás agendar una consulta inmediatamente.
             </div>
           </form>
@@ -486,7 +486,6 @@
     let rolUsuario = null;
     let consultasOriginales = [];
     let consultasFiltradas = [];
-    let nuevoExpedienteCreado = null;
 
     //======================= OBTENER ROL DE USUARIO ======================
     async function obtenerRolUsuario() {
@@ -546,7 +545,7 @@
         // Mostrar carga
         Swal.fire({
           title: 'Creando paciente...',
-          html: '<i class="fas fa-spinner fa-spin fa-3x text-primary"></i><br><br>Generando expediente...',
+          html: '<i class="fas fa-spinner fa-spin fa-3x text-primary"></i><br><br>Generando registro...',
           allowOutsideClick: false,
           showConfirmButton: false,
           didOpen: () => Swal.showLoading()
@@ -555,14 +554,14 @@
         const datosPaciente = {
           nombre: nombre,
           apellido: apellido,
-          telefono1: telefono,
-          email: email,
-          fecha_nacimiento: fechaNacimiento,
-          genero: genero,
-          direccion: direccion,
-          ciudad: 'No especificada',
-          estado: 'Activo'
+          telefono: telefono,
+          email: email || null,
+          fecha_nacimiento: fechaNacimiento || null,
+          genero: genero || null,
+          direccion: direccion || null
         };
+
+        console.log('📤 Enviando datos del paciente:', datosPaciente);
 
         const resp = await fetch('/api/pacientes-agenda', {
           method: 'POST',
@@ -572,14 +571,11 @@
 
         if (!resp.ok) {
           const errorData = await resp.json();
-          throw new Error(errorData.error || 'No se pudo crear el expediente');
+          throw new Error(errorData.error || 'No se pudo crear el paciente');
         }
 
-        const expedienteCreado = await resp.json();
-        console.log('✅ Expediente creado:', expedienteCreado);
-        
-        // Guardar el expediente creado para usarlo después
-        nuevoExpedienteCreado = expedienteCreado;
+        const pacienteCreado = await resp.json();
+        console.log('✅ Paciente creado:', pacienteCreado);
 
         // Cerrar modal
         const modal = bootstrap.Modal.getInstance(document.getElementById('modalNuevoPaciente'));
@@ -588,13 +584,14 @@
         // Limpiar formulario
         document.getElementById('formNuevoPaciente').reset();
 
-        // Mostrar éxito y proceder a agendar consulta
+        // Mostrar éxito
         await Swal.fire({
           icon: 'success',
           title: '¡Paciente Creado!',
           html: `
-            <p>✅ Expediente #${expedienteCreado.numero_expediente} creado exitosamente</p>
-            <p><strong>Paciente:</strong> ${expedienteCreado.nombre_completo}</p>
+            <p>✅ Paciente registrado exitosamente</p>
+            <p><strong>Nombre:</strong> ${pacienteCreado.nombre_completo}</p>
+            <p><strong>ID:</strong> ${pacienteCreado.id}</p>
             <div style="background: #e3f2fd; padding: 12px; border-radius: 8px; margin-top: 10px;">
               <i class="fas fa-info-circle" style="color: #2196F3;"></i>
               <strong>Ahora puedes agendar una consulta para este paciente</strong>
@@ -605,21 +602,21 @@
         });
 
         // Proceder a agendar consulta automáticamente
-        await agendarConsultaNuevoPaciente(expedienteCreado);
+        await agendarConsultaNuevoPaciente(pacienteCreado);
 
       } catch (err) {
         console.error('❌ Error creando paciente:', err);
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: err.message || 'No se pudo crear el expediente',
+          text: err.message || 'No se pudo crear el paciente',
           confirmButtonColor: '#e74c3c'
         });
       }
     }
 
     // ====================== AGENDAR CONSULTA PARA NUEVO PACIENTE ======================
-    async function agendarConsultaNuevoPaciente(expediente) {
+    async function agendarConsultaNuevoPaciente(paciente) {
       try {
         const { value: formValues } = await Swal.fire({
           title: 'Agendar Consulta',
@@ -628,11 +625,11 @@
             <div class="text-start">
               <div class="mb-3">
                 <label class="form-label"><strong>Paciente:</strong></label>
-                <input type="text" class="form-control" value="${expediente.nombre_completo || 'Sin nombre'}" disabled>
+                <input type="text" class="form-control" value="${paciente.nombre_completo || 'Sin nombre'}" disabled>
               </div>
               <div class="mb-3">
-                <label class="form-label"><strong>Expediente:</strong></label>
-                <input type="text" class="form-control" value="${expediente.numero_expediente || 'Sin número'}" disabled>
+                <label class="form-label"><strong>ID:</strong></label>
+                <input type="text" class="form-control" value="${paciente.id || 'Sin ID'}" disabled>
               </div>
               <div class="mb-3">
                 <label class="form-label"><strong>Fecha de Consulta:</strong></label>
@@ -667,17 +664,15 @@
         });
 
         if (formValues) {
-          const fechaLocal = formValues.fecha;
-
           const nuevaConsulta = {
-            expediente_id: parseInt(expediente.numero_expediente),
-            paciente: expediente.nombre_completo || 'Sin nombre',
-            numero_expediente: parseInt(expediente.numero_expediente),
-            telefono1: expediente.telefono1 || '',
-            telefono2: expediente.telefono2 || '',
-            edad: expediente.edad || null,
-            ciudad: expediente.ciudad || '',
-            fecha: fechaLocal,
+            expediente_id: parseInt(paciente.id),
+            paciente: paciente.nombre_completo || 'Sin nombre',
+            numero_expediente: parseInt(paciente.id),
+            telefono1: paciente.telefono || '',
+            telefono2: '',
+            edad: paciente.edad || null,
+            ciudad: 'No especificada',
+            fecha: formValues.fecha,
             hora: formValues.hora,
             medico: formValues.medico,
             estado: 'Pendiente'
@@ -706,7 +701,7 @@
       }
     }
 
-    // ====================== BUSCAR EXPEDIENTE ======================
+    // ====================== BUSCAR EXPEDIENTE (PACIENTES AGENDA Y EXPEDIENTES) ======================
     async function buscarExpediente() {
       const query = document.getElementById('buscarExpediente').value.trim();
       
@@ -716,26 +711,34 @@
       }
 
       try {
-        const resp = await fetch(`/api/expedientes/buscar?q=${encodeURIComponent(query)}`);
-        const expedientes = await resp.json();
+        // Buscar PRIMERO en pacientes_agenda
+        const respAgenda = await fetch(`/api/pacientes-agenda/buscar?q=${encodeURIComponent(query)}`);
+        const pacientesAgenda = respAgenda.ok ? await respAgenda.json() : [];
+
+        // Buscar TAMBIÉN en expedientes tradicionales
+        const respExp = await fetch(`/api/expedientes/buscar?q=${encodeURIComponent(query)}`);
+        const expedientes = respExp.ok ? await respExp.json() : [];
+
+        // Combinar resultados
+        const todosLosPacientes = [...pacientesAgenda, ...expedientes];
         
         const contenedor = document.getElementById('resultadosBusqueda');
         
-        if (expedientes.length === 0) {
+        if (todosLosPacientes.length === 0) {
           contenedor.innerHTML = `
             <div class="alert alert-warning mt-3">
-              <i class="fas fa-exclamation-triangle"></i> No se encontraron expedientes con ese criterio
+              <i class="fas fa-exclamation-triangle"></i> No se encontraron pacientes con ese criterio
             </div>
           `;
           return;
         }
 
-        contenedor.innerHTML = expedientes.map(exp => `
+        contenedor.innerHTML = todosLosPacientes.map(exp => `
           <div class="expediente-item" onclick="seleccionarExpediente(${exp.numero_expediente})">
             <div class="expediente-info">
               <strong>${exp.nombre_completo}</strong>
               <small>
-                <i class="fas fa-id-card"></i> Expediente: ${exp.numero_expediente} | 
+                <i class="fas fa-id-card"></i> ID: ${exp.numero_expediente} | 
                 <i class="fas fa-phone"></i> ${exp.telefono1 || 'Sin teléfono'} | 
                 <i class="fas fa-birthday-cake"></i> ${exp.edad || 'Sin edad'} años
               </small>
@@ -747,27 +750,28 @@
         `).join('');
 
       } catch (err) {
-        console.error('Error buscando expediente:', err);
+        console.error('Error buscando paciente:', err);
         mostrarError('Error', 'No se pudo realizar la búsqueda');
       }
     }
 
-    document.getElementById('buscarExpediente')?.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        buscarExpediente();
-      }
-    });
-
     // ====================== SELECCIONAR EXPEDIENTE Y AGENDAR ======================
     async function seleccionarExpediente(numeroExpediente) {
       try {
-        console.log('📞 Solicitando expediente:', numeroExpediente);
+        console.log('📞 Solicitando paciente ID:', numeroExpediente);
 
-        const resp = await fetch(`/api/expedientes/detalle/${numeroExpediente}`);
-        if (!resp.ok) throw new Error('No se pudo obtener el expediente');
+        // Intentar obtener de pacientes_agenda primero
+        let resp = await fetch(`/api/pacientes-agenda/${numeroExpediente}`);
+        
+        // Si no existe en pacientes_agenda, buscar en expedientes
+        if (!resp.ok) {
+          resp = await fetch(`/api/expedientes/detalle/${numeroExpediente}`);
+        }
 
-        const expediente = await resp.json();
-        console.log('📋 Expediente recibido:', expediente);
+        if (!resp.ok) throw new Error('No se pudo obtener el paciente');
+
+        const paciente = await resp.json();
+        console.log('📋 Paciente recibido:', paciente);
 
         const { value: formValues } = await Swal.fire({
           title: 'Agendar Consulta',
@@ -776,11 +780,11 @@
             <div class="text-start">
               <div class="mb-3">
                 <label class="form-label"><strong>Paciente:</strong></label>
-                <input type="text" class="form-control" value="${expediente.nombre_completo || 'Sin nombre'}" disabled>
+                <input type="text" class="form-control" value="${paciente.nombre_completo || 'Sin nombre'}" disabled>
               </div>
               <div class="mb-3">
-                <label class="form-label"><strong>Expediente:</strong></label>
-                <input type="text" class="form-control" value="${expediente.numero_expediente || 'Sin número'}" disabled>
+                <label class="form-label"><strong>ID:</strong></label>
+                <input type="text" class="form-control" value="${paciente.numero_expediente || paciente.id || 'Sin ID'}" disabled>
               </div>
               <div class="mb-3">
                 <label class="form-label"><strong>Fecha de Consulta:</strong></label>
@@ -815,17 +819,15 @@
         });
 
         if (formValues) {
-          const fechaLocal = formValues.fecha;
-
           const nuevaConsulta = {
-            expediente_id: parseInt(expediente.numero_expediente),
-            paciente: expediente.nombre_completo || 'Sin nombre',
-            numero_expediente: parseInt(expediente.numero_expediente),
-            telefono1: expediente.telefono1 || '',
-            telefono2: expediente.telefono2 || '',
-            edad: expediente.edad || null,
-            ciudad: expediente.ciudad || '',
-            fecha: fechaLocal,
+            expediente_id: parseInt(paciente.numero_expediente || paciente.id),
+            paciente: paciente.nombre_completo || 'Sin nombre',
+            numero_expediente: parseInt(paciente.numero_expediente || paciente.id),
+            telefono1: paciente.telefono1 || paciente.telefono || '',
+            telefono2: paciente.telefono2 || '',
+            edad: paciente.edad || null,
+            ciudad: paciente.ciudad || 'No especificada',
+            fecha: formValues.fecha,
             hora: formValues.hora,
             medico: formValues.medico,
             estado: 'Pendiente'
@@ -1040,7 +1042,7 @@ async function irAPagar(consultaId, numeroExpediente, nombrePaciente) {
       forma_pago: 'Efectivo',
       monto_pagado: 0,
       tipo: 'Normal',
-      crear_orden: false  // ✅ NO crear orden desde /api/recibos
+      crear_orden: false
     };
 
     const respRecibo = await fetch('/api/recibos', {
