@@ -413,7 +413,18 @@
           
           <div class="form-group">
             <label for="departamento" class="form-label">Departamento</label>
-            <input type="text" class="form-control" id="departamento" placeholder="Ej. Reynosa, Yucatán">
+            <select class="form-control" id="departamento" required>
+              <option value="">Selecciona un departamento</option>
+              <option value="Puebla">Puebla</option>
+              <option value="Oaxaca">Oaxaca</option>
+              <option value="Tlaxcala">Tlaxcala</option>
+              <option value="CDMX">CDMX</option>
+              <option value="Aguascalientes">Aguascalientes</option>
+              <option value="Villahermosa">Villahermosa</option>
+              <option value="Guerrero">Guerrero</option>
+              <option value="Matamoros">Matamoros</option>
+              <option value="Cozumel">Cozumel</option>
+            </select>
           </div>
           
           <button type="submit" class="btn btn-primary">
@@ -474,7 +485,7 @@
         username: document.getElementById('username').value.trim(),
         password: document.getElementById('password').value,
         rol: document.getElementById('rol').value,
-        departamento: document.getElementById('departamento').value.trim()
+        departamento: document.getElementById('departamento').value
       };
 
       const res = await fetch('/api/admin/add-user', {
