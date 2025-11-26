@@ -645,112 +645,109 @@
     }
 
     // ====================== AGENDAR CONSULTA PARA PACIENTE DE AGENDA (CORREGIDO) ======================
-    async function agendarConsultaPacienteAgenda(paciente) {
-      try {
-        const { value: formValues } = await Swal.fire({
-          title: 'Agendar Consulta',
-          width: '600px',
-          html: `
-            <div class="text-start">
-              <div class="mb-3">
-                <label class="form-label"><strong>Paciente:</strong></label>
-                <input type="text" class="form-control" value="${paciente.nombre_completo}" readonly style="background-color: #f8f9fa;">
-              </div>
-              <div class="mb-3">
-                <label class="form-label"><strong>Fecha:</strong></label>
-                <input type="date" id="swal-fecha-agenda" class="form-control" required>
-              </div>
-              <div class="mb-3">
-                <label class="form-label"><strong>Hora:</strong></label>
-                <input type="time" id="swal-hora-agenda" class="form-control" required>
-              </div>
-              <div class="mb-3">
-                <label class="form-label"><strong>Médico:</strong></label>
-                <input type="text" id="swal-medico-agenda" class="form-control" placeholder="Escribe el nombre del médico" autocomplete="off" required>
-              </div>
-            </div>
-          `,
-          showCancelButton: true,
-          confirmButtonText: '<i class="fas fa-check"></i> Agendar',
-          cancelButtonText: 'Cancelar',
-          confirmButtonColor: '#27ae60',
-          cancelButtonColor: '#6c757d',
-          didOpen: () => {
-            // ✅ FORZAR que el campo esté completamente habilitado
-            setTimeout(() => {
-              const medicoInput = document.getElementById('swal-medico-agenda');
-              if (medicoInput) {
-                medicoInput.removeAttribute('disabled');
-                medicoInput.removeAttribute('readonly');
-                medicoInput.disabled = false;
-                medicoInput.readOnly = false;
-                medicoInput.focus();
-                
-                // ✅ Verificar que funciona
-                console.log('✅ Campo médico habilitado:', {
-                  disabled: medicoInput.disabled,
-                  readOnly: medicoInput.readOnly,
-                  value: medicoInput.value
-                });
-              }
-            }, 100);
-          },
-          preConfirm: () => {
-            const fecha = document.getElementById('swal-fecha-agenda').value;
-            const hora = document.getElementById('swal-hora-agenda').value;
-            const medico = document.getElementById('swal-medico-agenda').value.trim();
+async function agendarConsultaPacienteAgenda(paciente) {
 
-            if (!fecha || !hora || !medico) {
-              Swal.showValidationMessage('Por favor completa todos los campos');
-              return false;
-            }
-            return { fecha, hora, medico };
-          }
-        });
+  // 🔥 CERRAR CUALQUIER MODAL DE BOOTSTRAP ABIERTO
+  document.querySelectorAll('.modal.show')
+    .forEach(m => bootstrap.Modal.getInstance(m)?.hide());
 
-        if (formValues) {
-          const nuevaConsulta = {
-            expediente_id: null,  // NO tiene expediente completo
-            paciente: paciente.nombre_completo,
-            numero_expediente: paciente.id,
-            telefono1: paciente.telefono || '',
-            telefono2: '',
-            edad: paciente.edad || null,
-            ciudad: 'No especificada',
-            fecha: formValues.fecha,
-            hora: formValues.hora,
-            medico: formValues.medico,
-            estado: 'Pendiente',
-            tipo_paciente: 'agenda',  // ✅ IMPORTANTE
-            paciente_agenda_id: paciente.id  // ✅ IMPORTANTE
-          };
+  try {
+    const { value: formValues } = await Swal.fire({
+      title: 'Agendar Consulta',
+      width: '600px',
+      html: `
+        <div class="text-start">
+          <div class="mb-3">
+            <label class="form-label"><strong>Paciente:</strong></label>
+            <input type="text" class="form-control" value="${paciente.nombre_completo}"
+              readonly style="background-color:#f8f9fa;">
+          </div>
+          <div class="mb-3">
+            <label class="form-label"><strong>Fecha:</strong></label>
+            <input type="date" id="swal-fecha-agenda" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label"><strong>Hora:</strong></label>
+            <input type="time" id="swal-hora-agenda" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label"><strong>Médico:</strong></label>
+            <input type="text" id="swal-medico-agenda"
+              class="form-control"
+              placeholder="Escribe el nombre del médico"
+              autocomplete="off" required>
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: '<i class="fas fa-check"></i> Agendar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#27ae60',
+      cancelButtonColor: '#6c757d',
 
-          const respPost = await fetch('/api/consultas', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(nuevaConsulta)
-          });
+      didOpen: () => {
+        const medicoInput = document.getElementById('swal-medico-agenda');
+        medicoInput.removeAttribute('disabled');
+        medicoInput.removeAttribute('readonly');
+        medicoInput.disabled = false;
+        medicoInput.readOnly = false;
 
-          if (respPost.ok) {
-            mostrarExito('¡Éxito!', 'Consulta agendada correctamente');
-            
-            // ✅ Cerrar el modal de pacientes de agenda
-            const modalPacientes = bootstrap.Modal.getInstance(document.getElementById('modalPacientesAgenda'));
-            if (modalPacientes) {
-              modalPacientes.hide();
-            }
-            
-            cargarConsultas();
-          } else {
-            const errorData = await respPost.json();
-            mostrarError('Error', errorData.error || 'No se pudo agendar');
-          }
+        // 🔥 DAR FOCO DESPUÉS DE QUE SWEETALERT TERMINE EL RENDER
+        setTimeout(() => medicoInput.focus(), 50);
+      },
+
+      preConfirm: () => {
+        const fecha = document.getElementById('swal-fecha-agenda').value;
+        const hora = document.getElementById('swal-hora-agenda').value;
+        const medico = document.getElementById('swal-medico-agenda').value.trim();
+
+        if (!fecha || !hora || !medico) {
+          Swal.showValidationMessage('Completa todos los campos');
+          return false;
         }
-      } catch (err) {
-        console.error('❌ Error:', err);
-        mostrarError('Error', err.message);
+        return { fecha, hora, medico };
       }
+    });
+
+    if (!formValues) return;
+
+    const nuevaConsulta = {
+      expediente_id: null,
+      paciente: paciente.nombre_completo,
+      numero_expediente: paciente.id,
+      telefono1: paciente.telefono || '',
+      telefono2: '',
+      edad: paciente.edad || null,
+      ciudad: 'No especificada',
+      fecha: formValues.fecha,
+      hora: formValues.hora,
+      medico: formValues.medico,
+      estado: 'Pendiente',
+      tipo_paciente: 'agenda',
+      paciente_agenda_id: paciente.id
+    };
+
+    const respPost = await fetch('/api/consultas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(nuevaConsulta)
+    });
+
+    if (!respPost.ok) {
+      const errorData = await respPost.json();
+      mostrarError('Error', errorData.error || 'No se pudo agendar');
+      return;
     }
+
+    mostrarExito('¡Éxito!', 'Consulta agendada correctamente');
+    cargarConsultas();
+
+  } catch (err) {
+    console.error('❌ Error:', err);
+    mostrarError('Error', err.message);
+  }
+}
+
 
     // ====================== CARGAR PACIENTES DE AGENDA ======================
     async function cargarPacientesAgenda() {
@@ -921,107 +918,118 @@
     }
 
     // ====================== SELECCIONAR EXPEDIENTE (CORREGIDO CON IDS ÚNICOS) ======================
-    async function seleccionarExpediente(numeroExpediente) {
-      try {
-        const resp = await fetch(`/api/expedientes/detalle/${numeroExpediente}`);
-        if (!resp.ok) throw new Error('No se pudo obtener el expediente');
+async function seleccionarExpediente(numeroExpediente) {
 
-        const expediente = await resp.json();
+  // 🔥 CERRAR CUALQUIER MODAL BOOTSTRAP ABIERTO
+  document.querySelectorAll('.modal.show')
+    .forEach(m => bootstrap.Modal.getInstance(m)?.hide());
 
-        const { value: formValues } = await Swal.fire({
-          title: 'Agendar Consulta',
-          width: '600px',
-          html: `
-            <div class="text-start">
-              <div class="mb-3">
-                <label><strong>Paciente:</strong></label>
-                <input type="text" class="form-control" value="${expediente.nombre_completo}" readonly style="background-color: #f8f9fa;">
-              </div>
-              <div class="mb-3">
-                <label><strong>Expediente:</strong></label>
-                <input type="text" class="form-control" value="${expediente.numero_expediente}" readonly style="background-color: #f8f9fa;">
-              </div>
-              <div class="mb-3">
-                <label><strong>Fecha:</strong></label>
-                <input type="date" id="swal-fecha-exp" class="form-control" required>
-              </div>
-              <div class="mb-3">
-                <label><strong>Hora:</strong></label>
-                <input type="time" id="swal-hora-exp" class="form-control" required>
-              </div>
-              <div class="mb-3">
-                <label><strong>Médico:</strong></label>
-                <input type="text" id="swal-medico-exp" class="form-control" placeholder="Escribe el nombre del médico" autocomplete="off" required>
-              </div>
-            </div>
-          `,
-          showCancelButton: true,
-          confirmButtonText: 'Agendar',
-          confirmButtonColor: '#27ae60',
-          didOpen: () => {
-            // ✅ FORZAR habilitación del campo
-            setTimeout(() => {
-              const medicoInput = document.getElementById('swal-medico-exp');
-              if (medicoInput) {
-                medicoInput.removeAttribute('disabled');
-                medicoInput.removeAttribute('readonly');
-                medicoInput.disabled = false;
-                medicoInput.readOnly = false;
-                medicoInput.focus();
-              }
-            }, 100);
-          },
-          preConfirm: () => {
-            const fecha = document.getElementById('swal-fecha-exp').value;
-            const hora = document.getElementById('swal-hora-exp').value;
-            const medico = document.getElementById('swal-medico-exp').value.trim();
+  try {
+    const resp = await fetch(`/api/expedientes/detalle/${numeroExpediente}`);
+    if (!resp.ok) throw new Error('No se pudo obtener el expediente');
 
-            if (!fecha || !hora || !medico) {
-              Swal.showValidationMessage('Completa todos los campos');
-              return false;
-            }
-            return { fecha, hora, medico };
-          }
-        });
+    const expediente = await resp.json();
 
-        if (formValues) {
-          const nuevaConsulta = {
-            expediente_id: parseInt(expediente.numero_expediente),
-            paciente: expediente.nombre_completo,
-            numero_expediente: parseInt(expediente.numero_expediente),
-            telefono1: expediente.telefono1 || '',
-            telefono2: expediente.telefono2 || '',
-            edad: expediente.edad || null,
-            ciudad: expediente.ciudad || '',
-            fecha: formValues.fecha,
-            hora: formValues.hora,
-            medico: formValues.medico,
-            estado: 'Pendiente',
-            tipo_paciente: 'expediente',  // ✅ Expediente completo
-            paciente_agenda_id: null
-          };
+    const { value: formValues } = await Swal.fire({
+      title: 'Agendar Consulta',
+      width: '600px',
+      html: `
+        <div class="text-start">
+          <div class="mb-3">
+            <label><strong>Paciente:</strong></label>
+            <input type="text" class="form-control"
+              value="${expediente.nombre_completo}"
+              readonly style="background-color:#f8f9fa;">
+          </div>
+          <div class="mb-3">
+            <label><strong>Expediente:</strong></label>
+            <input type="text" class="form-control"
+              value="${expediente.numero_expediente}"
+              readonly style="background-color:#f8f9fa;">
+          </div>
+          <div class="mb-3">
+            <label><strong>Fecha:</strong></label>
+            <input type="date" id="swal-fecha-exp" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label><strong>Hora:</strong></label>
+            <input type="time" id="swal-hora-exp" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label><strong>Médico:</strong></label>
+            <input type="text" id="swal-medico-exp"
+              class="form-control"
+              placeholder="Escribe el nombre del médico"
+              autocomplete="off" required>
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Agendar',
+      confirmButtonColor: '#27ae60',
 
-          const respPost = await fetch('/api/consultas', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(nuevaConsulta)
-          });
+      didOpen: () => {
+        const medicoInput = document.getElementById('swal-medico-exp');
+        medicoInput.removeAttribute('disabled');
+        medicoInput.removeAttribute('readonly');
+        medicoInput.disabled = false;
+        medicoInput.readOnly = false;
+        setTimeout(() => medicoInput.focus(), 50);
+      },
 
-          if (respPost.ok) {
-            mostrarExito('¡Éxito!', 'Consulta agendada');
-            document.getElementById('buscarExpediente').value = '';
-            document.getElementById('resultadosBusqueda').innerHTML = '';
-            cargarConsultas();
-          } else {
-            const errorData = await respPost.json();
-            mostrarError('Error', errorData.error);
-          }
+      preConfirm: () => {
+        const fecha = document.getElementById('swal-fecha-exp').value;
+        const hora = document.getElementById('swal-hora-exp').value;
+        const medico = document.getElementById('swal-medico-exp').value.trim();
+
+        if (!fecha || !hora || !medico) {
+          Swal.showValidationMessage('Completa todos los campos');
+          return false;
         }
-      } catch (err) {
-        console.error('Error:', err);
-        mostrarError('Error', err.message);
+        return { fecha, hora, medico };
       }
+    });
+
+    if (!formValues) return;
+
+    const nuevaConsulta = {
+      expediente_id: parseInt(expediente.numero_expediente),
+      paciente: expediente.nombre_completo,
+      numero_expediente: parseInt(expediente.numero_expediente),
+      telefono1: expediente.telefono1 || '',
+      telefono2: expediente.telefono2 || '',
+      edad: expediente.edad || null,
+      ciudad: expediente.ciudad || '',
+      fecha: formValues.fecha,
+      hora: formValues.hora,
+      medico: formValues.medico,
+      estado: 'Pendiente',
+      tipo_paciente: 'expediente',
+      paciente_agenda_id: null
+    };
+
+    const respPost = await fetch('/api/consultas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(nuevaConsulta)
+    });
+
+    if (!respPost.ok) {
+      const errorData = await respPost.json();
+      mostrarError('Error', errorData.error);
+      return;
     }
+
+    mostrarExito('¡Éxito!', 'Consulta agendada');
+    document.getElementById('buscarExpediente').value = '';
+    document.getElementById('resultadosBusqueda').innerHTML = '';
+    cargarConsultas();
+
+  } catch (err) {
+    console.error('Error:', err);
+    mostrarError('Error', err.message);
+  }
+}
 
     // ====================== CARGAR CONSULTAS ======================
     async function cargarConsultas() {
