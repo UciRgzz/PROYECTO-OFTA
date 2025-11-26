@@ -654,7 +654,7 @@
             <div class="text-start">
               <div class="mb-3">
                 <label class="form-label"><strong>Paciente:</strong></label>
-                <input type="text" class="form-control" value="${paciente.nombre_completo}" disabled>
+                <input type="text" class="form-control" value="${paciente.nombre_completo}" readonly style="background-color: #f8f9fa;">
               </div>
               <div class="mb-3">
                 <label class="form-label"><strong>Fecha:</strong></label>
@@ -666,7 +666,7 @@
               </div>
               <div class="mb-3">
                 <label class="form-label"><strong>Médico:</strong></label>
-                <input type="text" id="swal-medico-agenda" class="form-control" placeholder="Nombre del médico" required>
+                <input type="text" id="swal-medico-agenda" class="form-control" placeholder="Escribe el nombre del médico" autocomplete="off" required>
               </div>
             </div>
           `,
@@ -676,10 +676,24 @@
           confirmButtonColor: '#27ae60',
           cancelButtonColor: '#6c757d',
           didOpen: () => {
-            // ✅ Asegurar que el campo esté habilitado y enfocado
-            const medicoInput = document.getElementById('swal-medico-agenda');
-            medicoInput.removeAttribute('disabled');
-            medicoInput.focus();
+            // ✅ FORZAR que el campo esté completamente habilitado
+            setTimeout(() => {
+              const medicoInput = document.getElementById('swal-medico-agenda');
+              if (medicoInput) {
+                medicoInput.removeAttribute('disabled');
+                medicoInput.removeAttribute('readonly');
+                medicoInput.disabled = false;
+                medicoInput.readOnly = false;
+                medicoInput.focus();
+                
+                // ✅ Verificar que funciona
+                console.log('✅ Campo médico habilitado:', {
+                  disabled: medicoInput.disabled,
+                  readOnly: medicoInput.readOnly,
+                  value: medicoInput.value
+                });
+              }
+            }, 100);
           },
           preConfirm: () => {
             const fecha = document.getElementById('swal-fecha-agenda').value;
@@ -921,11 +935,11 @@
             <div class="text-start">
               <div class="mb-3">
                 <label><strong>Paciente:</strong></label>
-                <input type="text" class="form-control" value="${expediente.nombre_completo}" disabled>
+                <input type="text" class="form-control" value="${expediente.nombre_completo}" readonly style="background-color: #f8f9fa;">
               </div>
               <div class="mb-3">
                 <label><strong>Expediente:</strong></label>
-                <input type="text" class="form-control" value="${expediente.numero_expediente}" disabled>
+                <input type="text" class="form-control" value="${expediente.numero_expediente}" readonly style="background-color: #f8f9fa;">
               </div>
               <div class="mb-3">
                 <label><strong>Fecha:</strong></label>
@@ -937,7 +951,7 @@
               </div>
               <div class="mb-3">
                 <label><strong>Médico:</strong></label>
-                <input type="text" id="swal-medico-exp" class="form-control" placeholder="Nombre del médico" required>
+                <input type="text" id="swal-medico-exp" class="form-control" placeholder="Escribe el nombre del médico" autocomplete="off" required>
               </div>
             </div>
           `,
@@ -945,7 +959,17 @@
           confirmButtonText: 'Agendar',
           confirmButtonColor: '#27ae60',
           didOpen: () => {
-            document.getElementById('swal-medico-exp').focus();
+            // ✅ FORZAR habilitación del campo
+            setTimeout(() => {
+              const medicoInput = document.getElementById('swal-medico-exp');
+              if (medicoInput) {
+                medicoInput.removeAttribute('disabled');
+                medicoInput.removeAttribute('readonly');
+                medicoInput.disabled = false;
+                medicoInput.readOnly = false;
+                medicoInput.focus();
+              }
+            }, 100);
           },
           preConfirm: () => {
             const fecha = document.getElementById('swal-fecha-exp').value;
