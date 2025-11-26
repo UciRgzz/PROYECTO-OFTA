@@ -770,27 +770,19 @@ app.get('/api/ordenes_medicas/recibo/:recibo_id', verificarSesion, async (req, r
   }
 });
 
-// ==================== MÓDULO DE PACIENTES AGENDA (REGISTROS RÁPIDOS) ====================
-// Crear paciente rápido desde Agenda Consultas
+// ==================== MÓDULO DE PACIENTES AGENDA ====================
+
+// POST - Crear paciente rápido desde Agenda Consultas
 app.post('/api/pacientes-agenda', verificarSesion, async (req, res) => {
   try {
-    const {
-      nombre,
-      apellido,
-      telefono,
-      email,
-      fecha_nacimiento,
-      genero,
-      direccion
-    } = req.body;
-
+    const { nombre, apellido, telefono, email, fecha_nacimiento, genero, direccion } = req.body;
     const depto = getDepartamento(req);
 
     if (!nombre || !apellido || !telefono) {
       return res.status(400).json({ error: 'Nombre, apellido y teléfono son requeridos' });
     }
 
-    // Calcular edad si hay fecha de nacimiento
+    // Calcular edad
     let edad = null;
     if (fecha_nacimiento) {
       const hoy = new Date();
@@ -811,87 +803,116 @@ app.post('/api/pacientes-agenda', verificarSesion, async (req, res) => {
     );
 
     const pacienteCreado = result.rows[0];
-    
-    // Agregar nombre_completo manualmente
     pacienteCreado.nombre_completo = `${pacienteCreado.nombre} ${pacienteCreado.apellido}`;
-    pacienteCreado.numero_expediente = pacienteCreado.id; // Usamos el ID como número de expediente
+    pacienteCreado.numero_expediente = pacienteCreado.id;
     pacienteCreado.telefono1 = pacienteCreado.telefono;
-
-    console.log('✅ Paciente agenda creado:', pacienteCreado);
 
     res.json(pacienteCreado);
 
   } catch (err) {
     console.error('Error creando paciente agenda:', err);
-    
-    // Error de teléfono duplicado
     if (err.code === '23505') {
-      return res.status(400).json({ 
-        error: 'Ya existe un paciente con ese teléfono en este departamento' 
-      });
+      return res.status(400).json({ error: 'Ya existe un paciente con ese teléfono en este departamento' });
     }
-    
     res.status(500).json({ error: 'Error al crear paciente: ' + err.message });
   }
 });
 
-// Buscar pacientes de agenda
-app.get('/api/pacientes-agenda/buscar', verificarSesion, async (req, res) => {
+// GET - Listar pacientes de agenda con consultas
+app.get('/api/pacientes-agenda/lista-completa', verificarSesion, async (req, res) => {
   try {
-    const { q } = req.query;
     const depto = getDepartamento(req);
-
-    if (!q || q.trim() === '') {
-      return res.status(400).json({ error: 'Parámetro de búsqueda vacío' });
-    }
-
-    const busqueda = q.trim();
 
     const query = `
       SELECT 
-        id,
-        nombre,
-        apellido,
-        nombre || ' ' || apellido AS nombre_completo,
-        telefono,
-        email,
-        edad,
-        fecha_nacimiento,
-        genero,
-        direccion,
-        id AS numero_expediente,
-        telefono AS telefono1
-      FROM pacientes_agenda
-      WHERE departamento = $1
-        AND (
-          LOWER(nombre || ' ' || apellido) LIKE LOWER($2) 
-          OR telefono LIKE $2
-        )
-      ORDER BY nombre, apellido ASC
-      LIMIT 20
+        pa.*,
+        pa.nombre || ' ' || pa.apellido AS nombre_completo,
+        COUNT(c.id) AS total_consultas,
+        MAX(c.fecha) AS ultima_consulta,
+        CASE 
+          WHEN EXISTS (
+            SELECT 1 FROM expedientes e 
+            WHERE e.telefono1 = pa.telefono 
+            AND e.departamento = pa.departamento
+          ) THEN true
+          ELSE false
+        END AS tiene_expediente_completo
+      FROM pacientes_agenda pa
+      LEFT JOIN consultas c ON c.paciente_agenda_id = pa.id
+      WHERE pa.departamento = $1
+      GROUP BY pa.id
+      ORDER BY pa.created_at DESC
     `;
 
-    const result = await pool.query(query, [depto, `%${busqueda}%`]);
+    const result = await pool.query(query, [depto]);
     res.json(result.rows);
 
   } catch (err) {
-    console.error('Error buscando pacientes agenda:', err);
-    res.status(500).json({ error: 'Error al buscar pacientes' });
+    console.error('Error listando pacientes agenda:', err);
+    res.status(500).json({ error: 'Error al listar pacientes' });
   }
 });
 
-// Obtener un paciente de agenda por ID
+// POST - Crear expediente completo desde paciente de agenda
+app.post('/api/pacientes-agenda/:id/crear-expediente', verificarSesion, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { id } = req.params;
+    const depto = getDepartamento(req);
+
+    await client.query('BEGIN');
+
+    const paciente = await client.query(
+      'SELECT * FROM pacientes_agenda WHERE id = $1 AND departamento = $2',
+      [id, depto]
+    );
+
+    if (paciente.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Paciente no encontrado' });
+    }
+
+    const p = paciente.rows[0];
+    const nombreCompleto = `${p.nombre} ${p.apellido}`;
+
+    const expediente = await client.query(
+      `INSERT INTO expedientes 
+        (nombre_completo, fecha_nacimiento, edad, padecimientos, colonia, ciudad, telefono1, departamento)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *`,
+      [nombreCompleto, p.fecha_nacimiento, p.edad, 'Ninguno', p.direccion || 'No especificada', 'No especificada', p.telefono, depto]
+    );
+
+    // Actualizar consultas existentes
+    await client.query(
+      `UPDATE consultas 
+       SET expediente_id = $1, 
+           tipo_paciente = 'expediente',
+           numero_expediente = $1
+       WHERE paciente_agenda_id = $2`,
+      [expediente.rows[0].numero_expediente, id]
+    );
+
+    await client.query('COMMIT');
+    res.json({ mensaje: 'Expediente completo creado exitosamente', expediente: expediente.rows[0] });
+
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Error creando expediente completo:', err);
+    res.status(500).json({ error: 'Error al crear expediente completo: ' + err.message });
+  } finally {
+    client.release();
+  }
+});
+
+// GET - Obtener paciente por ID
 app.get('/api/pacientes-agenda/:id', verificarSesion, async (req, res) => {
   try {
     const { id } = req.params;
     const depto = getDepartamento(req);
 
     const result = await pool.query(
-      `SELECT 
-        *,
-        nombre || ' ' || apellido AS nombre_completo,
-        id AS numero_expediente,
-        telefono AS telefono1
+      `SELECT *, nombre || ' ' || apellido AS nombre_completo, id AS numero_expediente, telefono AS telefono1
        FROM pacientes_agenda 
        WHERE id = $1 AND departamento = $2`,
       [id, depto]
@@ -908,6 +929,7 @@ app.get('/api/pacientes-agenda/:id', verificarSesion, async (req, res) => {
     res.status(500).json({ error: 'Error al obtener paciente' });
   }
 });
+
 
 // ==================== Guardar recibo (CORREGIDO CON ABONOS) ====================
 app.post('/api/recibos', verificarSesion, async (req, res) => {
@@ -3320,78 +3342,62 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
   });
 
   // ==================== CREAR CONSULTA ====================
-  app.post('/api/consultas', verificarSesion, async (req, res) => {
-    try {
-      const {
-        expediente_id,
-        paciente,
-        numero_expediente,
-        telefono1,
-        telefono2,
-        edad,
-        ciudad,
-        fecha,
-        hora,
-        medico,
-        estado
-      } = req.body;
+app.post('/api/consultas', verificarSesion, async (req, res) => {
+  try {
+    const {
+      expediente_id,
+      paciente,
+      numero_expediente,
+      telefono1,
+      telefono2,
+      edad,
+      ciudad,
+      fecha,
+      hora,
+      medico,
+      estado,
+      tipo_paciente,        // NUEVO
+      paciente_agenda_id    // NUEVO
+    } = req.body;
 
-      let depto = getDepartamento(req);
+    const depto = getDepartamento(req);
 
-      console.log('📥 Datos recibidos para crear consulta:', {
-        expediente_id,
-        paciente,
-        numero_expediente,
-        departamento: depto,
-        fecha
-      });
-
-      if (!expediente_id) {
-        console.error('❌ Error: expediente_id es null o undefined');
-        return res.status(400).json({ error: 'El expediente_id es requerido' });
-      }
-
-      const fechaLocal = new Date(fecha).toISOString().split('T')[0];
-
-      const result = await pool.query(`
-        INSERT INTO consultas (
-          expediente_id,
-          paciente,
-          numero_expediente,
-          telefono1,
-          telefono2,
-          edad,
-          ciudad,
-          fecha,
-          hora,
-          medico,
-          estado,
-          departamento
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-        RETURNING *
-      `, [
-        parseInt(expediente_id),
-        paciente,
-        parseInt(numero_expediente),
-        telefono1,
-        telefono2,
-        edad,
-        ciudad,
-        fechaLocal,
-        hora,
-        medico,
-        estado || 'Pendiente',
-        depto
-      ]);
-
-      console.log('✅ Consulta creada exitosamente:', result.rows[0]);
-      res.json(result.rows[0]);
-
-    } catch (err) {
-      console.error('❌ Error en POST /api/consultas:', err);
-      res.status(500).json({ error: err.message });
+    if (tipo_paciente === 'agenda' && !paciente_agenda_id) {
+      return res.status(400).json({ error: 'Se requiere paciente_agenda_id para pacientes de agenda' });
     }
-  });
+
+    const query = `
+      INSERT INTO consultas 
+        (expediente_id, paciente, numero_expediente, telefono1, telefono2, edad, ciudad, 
+         fecha, hora, medico, estado, departamento, tipo_paciente, paciente_agenda_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      RETURNING *
+    `;
+
+    const result = await pool.query(query, [
+      tipo_paciente === 'agenda' ? null : expediente_id,
+      paciente,
+      numero_expediente,
+      telefono1 || '',
+      telefono2 || '',
+      edad,
+      ciudad || 'No especificada',
+      fecha,
+      hora,
+      medico,
+      estado || 'Pendiente',
+      depto,
+      tipo_paciente || 'expediente',
+      paciente_agenda_id || null
+    ]);
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error creando consulta:', err);
+    res.status(500).json({ error: 'Error al crear consulta: ' + err.message });
+  }
+});
+ 
 
   // ==================== MARCAR CONSULTA COMO ATENDIDA ====================
   app.put('/api/consultas/:id/atender', verificarSesion, async (req, res) => {
@@ -3404,7 +3410,7 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
         SET estado = 'Atendida'
         WHERE id = $1 AND departamento = $2
         RETURNING *
-      `, [id, depto]);
+      `, [id, depto]); 
 
       if (result.rows.length === 0) {
         return res.status(404).json({ error: 'Consulta no encontrada' });
