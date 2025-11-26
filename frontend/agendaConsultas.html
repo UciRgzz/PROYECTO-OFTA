@@ -644,7 +644,7 @@
       }
     }
 
-    // ====================== AGENDAR CONSULTA PARA PACIENTE DE AGENDA ======================
+    // ====================== AGENDAR CONSULTA PARA PACIENTE DE AGENDA (CORREGIDO) ======================
     async function agendarConsultaPacienteAgenda(paciente) {
       try {
         const { value: formValues } = await Swal.fire({
@@ -658,28 +658,36 @@
               </div>
               <div class="mb-3">
                 <label class="form-label"><strong>Fecha:</strong></label>
-                <input type="date" id="swal-fecha" class="form-control" required>
+                <input type="date" id="swal-fecha-agenda" class="form-control" required>
               </div>
               <div class="mb-3">
                 <label class="form-label"><strong>Hora:</strong></label>
-                <input type="time" id="swal-hora" class="form-control" required>
+                <input type="time" id="swal-hora-agenda" class="form-control" required>
               </div>
               <div class="mb-3">
                 <label class="form-label"><strong>Médico:</strong></label>
-                <input type="text" id="swal-medico" class="form-control" required>
+                <input type="text" id="swal-medico-agenda" class="form-control" placeholder="Nombre del médico" required>
               </div>
             </div>
           `,
           showCancelButton: true,
           confirmButtonText: '<i class="fas fa-check"></i> Agendar',
           cancelButtonText: 'Cancelar',
+          confirmButtonColor: '#27ae60',
+          cancelButtonColor: '#6c757d',
+          didOpen: () => {
+            // ✅ Asegurar que el campo esté habilitado y enfocado
+            const medicoInput = document.getElementById('swal-medico-agenda');
+            medicoInput.removeAttribute('disabled');
+            medicoInput.focus();
+          },
           preConfirm: () => {
-            const fecha = document.getElementById('swal-fecha').value;
-            const hora = document.getElementById('swal-hora').value;
-            const medico = document.getElementById('swal-medico').value;
+            const fecha = document.getElementById('swal-fecha-agenda').value;
+            const hora = document.getElementById('swal-hora-agenda').value;
+            const medico = document.getElementById('swal-medico-agenda').value.trim();
 
             if (!fecha || !hora || !medico) {
-              Swal.showValidationMessage('Completa todos los campos');
+              Swal.showValidationMessage('Por favor completa todos los campos');
               return false;
             }
             return { fecha, hora, medico };
@@ -711,6 +719,13 @@
 
           if (respPost.ok) {
             mostrarExito('¡Éxito!', 'Consulta agendada correctamente');
+            
+            // ✅ Cerrar el modal de pacientes de agenda
+            const modalPacientes = bootstrap.Modal.getInstance(document.getElementById('modalPacientesAgenda'));
+            if (modalPacientes) {
+              modalPacientes.hide();
+            }
+            
             cargarConsultas();
           } else {
             const errorData = await respPost.json();
@@ -891,7 +906,7 @@
       }
     }
 
-    // ====================== SELECCIONAR EXPEDIENTE ======================
+    // ====================== SELECCIONAR EXPEDIENTE (CORREGIDO CON IDS ÚNICOS) ======================
     async function seleccionarExpediente(numeroExpediente) {
       try {
         const resp = await fetch(`/api/expedientes/detalle/${numeroExpediente}`);
@@ -914,24 +929,28 @@
               </div>
               <div class="mb-3">
                 <label><strong>Fecha:</strong></label>
-                <input type="date" id="swal-fecha" class="form-control" required>
+                <input type="date" id="swal-fecha-exp" class="form-control" required>
               </div>
               <div class="mb-3">
                 <label><strong>Hora:</strong></label>
-                <input type="time" id="swal-hora" class="form-control" required>
+                <input type="time" id="swal-hora-exp" class="form-control" required>
               </div>
               <div class="mb-3">
                 <label><strong>Médico:</strong></label>
-                <input type="text" id="swal-medico" class="form-control" required>
+                <input type="text" id="swal-medico-exp" class="form-control" placeholder="Nombre del médico" required>
               </div>
             </div>
           `,
           showCancelButton: true,
           confirmButtonText: 'Agendar',
+          confirmButtonColor: '#27ae60',
+          didOpen: () => {
+            document.getElementById('swal-medico-exp').focus();
+          },
           preConfirm: () => {
-            const fecha = document.getElementById('swal-fecha').value;
-            const hora = document.getElementById('swal-hora').value;
-            const medico = document.getElementById('swal-medico').value;
+            const fecha = document.getElementById('swal-fecha-exp').value;
+            const hora = document.getElementById('swal-hora-exp').value;
+            const medico = document.getElementById('swal-medico-exp').value.trim();
 
             if (!fecha || !hora || !medico) {
               Swal.showValidationMessage('Completa todos los campos');
