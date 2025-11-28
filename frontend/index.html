@@ -149,6 +149,64 @@
       margin: 15px 0;
     }
 
+    /* Estilos para menús desplegables */
+    .menu-category {
+      margin-bottom: 10px;
+    }
+
+    .category-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .category-header:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .category-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 15px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.9);
+    }
+
+    .category-icon {
+      transition: transform 0.3s;
+    }
+
+    .category-icon.rotated {
+      transform: rotate(180deg);
+    }
+
+    .submenu {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      margin-left: 20px;
+    }
+
+    .submenu.open {
+      max-height: 500px;
+    }
+
+    .submenu a {
+      padding: 10px 15px;
+      margin-bottom: 5px;
+      font-size: 14px;
+      background: rgba(255,255,255,0.05);
+    }
+
+    .submenu a:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
     /* MAIN CONTENT */
     .main-content {
       margin-left: var(--sidebar-width);
@@ -559,7 +617,6 @@
           <li><a class="dropdown-item" href="#" onclick="cambiarSucursal('Matamoros')">Matamoros</a></li>
           <li><a class="dropdown-item" href="#" onclick="cambiarSucursal('Cozumel')">Cozumel</a></li>
         </ul>
-
       </div>
 
       <!-- 🔹 Aquí el menú se llenará dinámicamente -->
@@ -585,7 +642,6 @@
         <h4 style="margin: 0; margin-left: 15px; font-family: 'Poppins', sans-serif; font-weight: 700; color: #1e3a5f; letter-spacing: 1px;">
            OFTASIS
         </h4>
-
       </div>
       
       <div class="header-right">
@@ -683,7 +739,6 @@
       .catch(err => console.error("Error al cerrar sesión:", err));
   }
 
-
   // ==================== Router simple ====================
   async function mostrarSeccion(seccion) {
     const paginas = {
@@ -766,6 +821,28 @@
     }
   }
 
+  // ==================== Función para toggle de categorías ====================
+  function toggleCategory(categoryId) {
+    const submenu = document.getElementById(categoryId);
+    const icon = document.querySelector(`[data-category="${categoryId}"] .category-icon`);
+    
+    if (submenu.classList.contains('open')) {
+      submenu.classList.remove('open');
+      icon.classList.remove('rotated');
+    } else {
+      // Cerrar otros submenús abiertos
+      document.querySelectorAll('.submenu.open').forEach(menu => {
+        if (menu.id !== categoryId) {
+          menu.classList.remove('open');
+          document.querySelector(`[data-category="${menu.id}"] .category-icon`).classList.remove('rotated');
+        }
+      });
+      
+      submenu.classList.add('open');
+      icon.classList.add('rotated');
+    }
+  }
+
   // ==================== Cargar menú dinámico ====================
   async function cargarMenu() {
     try {
@@ -803,36 +880,18 @@
 
       let html = "";
       
-      // Gestión Financiera
-      if (permisos.includes("recibos") || permisos.includes("ordenes") || permisos.includes("cierredecaja")) {
-        html += `<h2>Gestión Financiera</h2>`;
-        if (permisos.includes("recibos")) {
-          html += `<a onclick="mostrarSeccion('recibos')" style="cursor:pointer;"><i class="material-icons">receipt</i> Recibos</a>`;
-        }
-        if (permisos.includes("ordenes")) {
-          html += `<a onclick="mostrarSeccion('ordenes')" style="cursor:pointer;"><i class="material-icons">assignment</i> Órdenes</a>`;
-        }
-        if (permisos.includes("cierredecaja")) {
-          html += `<a onclick="mostrarSeccion('cierredecaja')" style="cursor:pointer;"><i class="material-icons">attach_money</i> Cierre de Caja</a>`;
-        }
-        html += `<div class="sidebar-divider"></div>`;
-      }
-      
-      // Gestión Médica
-      if (permisos.includes("medico") || permisos.includes("optometria")) {
-        html += `<h2>Gestión Médica</h2>`;
-        if (permisos.includes("medico")) {
-          html += `<a onclick="mostrarSeccion('medico')" style="cursor:pointer;"><i class="material-icons">healing</i> Módulo Médico</a>`;
-        }
-        if (permisos.includes("optometria")) {
-          html += `<a onclick="mostrarSeccion('optometria')" style="cursor:pointer;"><i class="material-icons">visibility</i> Optometría</a>`;
-        }
-        html += `<div class="sidebar-divider"></div>`;
-      }
-      
-      // Gestión de Pacientes
+      // Gestión de Pacientes (PRIMERO)
       if (permisos.includes("expedientes") || permisos.includes("agendaconsultas") || permisos.includes("agendaquirurgica")) {
-        html += `<h2>Gestión de Pacientes</h2>`;
+        html += `<div class="menu-category">
+          <div class="category-header" onclick="toggleCategory('pacientes')" data-category="pacientes">
+            <div class="category-title">
+              <i class="material-icons">people</i>
+              <span>Gestión de Pacientes</span>
+            </div>
+            <i class="material-icons category-icon">expand_more</i>
+          </div>
+          <div class="submenu" id="pacientes">`;
+        
         if (permisos.includes("expedientes")) {
           html += `<a onclick="mostrarSeccion('expedientes')" style="cursor:pointer;"><i class="material-icons">folder</i> Expedientes</a>`;
         }
@@ -842,25 +901,94 @@
         if (permisos.includes("agendaquirurgica")) {
           html += `<a onclick="mostrarSeccion('agendaquirurgica')" style="cursor:pointer;"><i class="material-icons">event</i> Agenda Quirúrgica</a>`;
         }
-        html += `<div class="sidebar-divider"></div>`;
+        
+        html += `</div></div>`;
       }
       
-      // Gestión de Inventario
+      // Gestión Médica (SEGUNDO)
+      if (permisos.includes("medico") || permisos.includes("optometria")) {
+        html += `<div class="menu-category">
+          <div class="category-header" onclick="toggleCategory('medica')" data-category="medica">
+            <div class="category-title">
+              <i class="material-icons">healing</i>
+              <span>Gestión Médica</span>
+            </div>
+            <i class="material-icons category-icon">expand_more</i>
+          </div>
+          <div class="submenu" id="medica">`;
+        
+        if (permisos.includes("medico")) {
+          html += `<a onclick="mostrarSeccion('medico')" style="cursor:pointer;"><i class="material-icons">healing</i> Módulo Médico</a>`;
+        }
+        if (permisos.includes("optometria")) {
+          html += `<a onclick="mostrarSeccion('optometria')" style="cursor:pointer;"><i class="material-icons">visibility</i> Optometría</a>`;
+        }
+        
+        html += `</div></div>`;
+      }
+      
+      // Gestión Financiera (TERCERO)
+      if (permisos.includes("recibos") || permisos.includes("ordenes") || permisos.includes("cierredecaja")) {
+        html += `<div class="menu-category">
+          <div class="category-header" onclick="toggleCategory('financiera')" data-category="financiera">
+            <div class="category-title">
+              <i class="material-icons">attach_money</i>
+              <span>Gestión Financiera</span>
+            </div>
+            <i class="material-icons category-icon">expand_more</i>
+          </div>
+          <div class="submenu" id="financiera">`;
+        
+        if (permisos.includes("recibos")) {
+          html += `<a onclick="mostrarSeccion('recibos')" style="cursor:pointer;"><i class="material-icons">receipt</i> Recibos</a>`;
+        }
+        if (permisos.includes("ordenes")) {
+          html += `<a onclick="mostrarSeccion('ordenes')" style="cursor:pointer;"><i class="material-icons">assignment</i> Órdenes</a>`;
+        }
+        if (permisos.includes("cierredecaja")) {
+          html += `<a onclick="mostrarSeccion('cierredecaja')" style="cursor:pointer;"><i class="material-icons">attach_money</i> Cierre de Caja</a>`;
+        }
+        
+        html += `</div></div>`;
+      }
+      
+      // Gestión de Inventario (CUARTO)
       if (permisos.includes("insumos")) {
-        html += `<h2>Gestión de Inventario</h2>`;
+        html += `<div class="menu-category">
+          <div class="category-header" onclick="toggleCategory('inventario')" data-category="inventario">
+            <div class="category-title">
+              <i class="material-icons">inventory</i>
+              <span>Gestión de Inventario</span>
+            </div>
+            <i class="material-icons category-icon">expand_more</i>
+          </div>
+          <div class="submenu" id="inventario">`;
+        
         html += `<a onclick="mostrarSeccion('insumos')" style="cursor:pointer;"><i class="material-icons">inventory</i> Insumos</a>`;
-        html += `<div class="sidebar-divider"></div>`;
+        
+        html += `</div></div>`;
       }
       
-      // Administración del Sistema
+      // Administración del Sistema (QUINTO)
       if (permisos.includes("asignarmodulos") || permisos.includes("usuarios")) {
-        html += `<h2>Administración del Sistema</h2>`;
+        html += `<div class="menu-category">
+          <div class="category-header" onclick="toggleCategory('administracion')" data-category="administracion">
+            <div class="category-title">
+              <i class="material-icons">settings</i>
+              <span>Administración del Sistema</span>
+            </div>
+            <i class="material-icons category-icon">expand_more</i>
+          </div>
+          <div class="submenu" id="administracion">`;
+        
         if (permisos.includes("asignarmodulos")) {
           html += `<a onclick="mostrarSeccion('asignarmodulos')" style="cursor:pointer;"><i class="material-icons">settings</i> Asignar Módulos</a>`;
         }
         if (permisos.includes("usuarios")) {
           html += `<a onclick="mostrarSeccion('usuarios')" style="cursor:pointer;"><i class="material-icons">group</i> Usuarios</a>`;
         }
+        
+        html += `</div></div>`;
       }
 
       document.getElementById("menu-dinamico").innerHTML =
