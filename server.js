@@ -3696,99 +3696,107 @@ app.post('/api/consultas', verificarSesion, async (req, res) => {
     }
   });
 
-  // ==================== CREAR ORDEN MÉDICA DESDE CONSULTA ====================
-  app.post('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
-    try {
-      const { consultaId, folio_recibo } = req.body;
-      const depto = getDepartamento(req);
+// ==================== CREAR ORDEN MÉDICA DESDE CONSULTA (SOPORTA PACIENTES DE AGENDA) ====================
+app.post("/api/ordenes_medicas_consulta", verificarSesion, async (req, res) => {
+  const client = await pool.connect();
+  
+  try {
+    const { consultaId, folio_recibo } = req.body;
+    const depto = getDepartamento(req);
 
-      console.log('📋 Creando orden médica para consulta:', consultaId);
+    await client.query("BEGIN");
 
-      if (!consultaId) {
-        return res.status(400).json({ error: 'Se requiere el ID de la consulta' });
-      }
+    // 🔹 Obtener datos de la consulta
+    const consultaResult = await client.query(
+      `SELECT 
+        id, 
+        expediente_id, 
+        paciente_agenda_id, 
+        tipo_paciente,
+        numero_expediente
+       FROM consultas 
+       WHERE id = $1 AND departamento = $2`,
+      [consultaId, depto]
+    );
 
-      // Obtener datos de la consulta
-      const consulta = await pool.query(
-        'SELECT * FROM consultas WHERE id = $1 AND departamento = $2',
-        [consultaId, depto]
-      );
-
-      if (consulta.rows.length === 0) {
-        return res.status(404).json({ error: 'Consulta no encontrada' });
-      }
-
-      const c = consulta.rows[0];
-
-      // Verificar si ya existe una orden para esta consulta
-      const ordenExistente = await pool.query(
-        'SELECT * FROM ordenes_medicas WHERE consulta_id = $1 AND departamento = $2',
-        [consultaId, depto]
-      );
-
-      if (ordenExistente.rows.length > 0) {
-        console.log('⚠️ Ya existe orden para esta consulta');
-        return res.status(200).json({
-          mensaje: 'Ya existe una orden médica para esta consulta',
-          orden: ordenExistente.rows[0],
-          yaExiste: true
-        });
-      }
-
-      // ✅ Crear orden médica SIEMPRE con pagado = 0
-      const result = await pool.query(`
-        INSERT INTO ordenes_medicas (
-          consulta_id,
-          expediente_id,
-          folio_recibo,
-          medico,
-          diagnostico,
-          lado,
-          procedimiento,
-          estatus,
-          precio,
-          pagado,
-          pendiente,
-          origen,
-          tipo,
-          fecha,
-          departamento
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-        RETURNING *
-      `, [
-        consultaId,
-        c.expediente_id,
-        folio_recibo || null,
-        c.medico,
-        'Consulta General',
-        'OD',
-        'Consulta Oftalmológica',
-        'Pendiente',           // ✅ SIEMPRE Pendiente
-        500.00,
-        0,                     // ✅ SIEMPRE pagado = 0
-        500.00,                // ✅ SIEMPRE pendiente = precio
-        'CONSULTA',
-        'Consulta',
-        c.fecha,
-        depto
-      ]);
-
-      console.log('✅ Orden médica creada exitosamente:', result.rows[0].id);
-
-      res.status(201).json({
-        ...result.rows[0],
-        mensaje: 'Orden creada exitosamente',
-        yaExiste: false
-      });
-
-    } catch (err) {
-      console.error('❌ Error en POST /api/ordenes_medicas_consulta:', err);
-      res.status(500).json({
-        error: 'Error al crear la orden médica',
-        detalle: err.message
-      });
+    if (consultaResult.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "No se encontró la consulta" });
     }
-  });
+
+    const consulta = consultaResult.rows[0];
+    const esPacienteAgenda = consulta.tipo_paciente === 'agenda';
+
+    console.log('📋 Creando orden desde consulta:', {
+      consultaId,
+      tipo_paciente: consulta.tipo_paciente,
+      expediente_id: consulta.expediente_id,
+      paciente_agenda_id: consulta.paciente_agenda_id
+    });
+
+    // 🔹 Procedimiento por defecto: Consulta Oftalmológica
+    const procedimiento = 'Consulta Oftalmológica';
+    const precio = 500.00;
+    const fechaLocal = fechaLocalMX();
+
+    // 🔹 Crear la orden médica
+    const ordenResult = await client.query(
+      `INSERT INTO ordenes_medicas (
+        expediente_id, 
+        paciente_agenda_id,
+        folio_recibo, 
+        consulta_id,
+        procedimiento, 
+        tipo, 
+        precio,
+        pagado, 
+        pendiente, 
+        estatus, 
+        fecha, 
+        departamento, 
+        medico, 
+        origen
+      )
+      VALUES ($1, $2, $3, $4, $5, 'Consulta', $6::numeric, 0, $6::numeric, 'Pendiente', $7::date, $8, 'Pendiente', 'CONSULTA')
+      RETURNING *`,
+      [
+        esPacienteAgenda ? null : consulta.expediente_id,  // expediente_id NULL si es agenda
+        esPacienteAgenda ? consulta.paciente_agenda_id : null,  // paciente_agenda_id NULL si es expediente
+        folio_recibo,
+        consultaId,
+        procedimiento,
+        precio,
+        fechaLocal,
+        depto
+      ]
+    );
+
+    // 🔹 Actualizar estado de la consulta
+    await client.query(
+      `UPDATE consultas 
+       SET estado = 'En Módulo Médico' 
+       WHERE id = $1 AND departamento = $2`,
+      [consultaId, depto]
+    );
+
+    await client.query("COMMIT");
+    
+    console.log('✅ Orden médica creada:', ordenResult.rows[0].id);
+    
+    res.json({ 
+      mensaje: "Orden médica creada correctamente",
+      id: ordenResult.rows[0].id,
+      orden: ordenResult.rows[0]
+    });
+
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("❌ Error al crear orden desde consulta:", err);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+});
 
   // ==================== OBTENER ÓRDENES MÉDICAS DE CONSULTAS ====================
   app.get('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
