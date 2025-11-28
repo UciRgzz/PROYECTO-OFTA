@@ -1159,14 +1159,18 @@ async function seleccionarExpediente(numeroExpediente) {
       }
     }
 
-    // ====================== IR A PAGAR (✅ CORREGIDO) ======================
+    // ====================== IR A PAGAR (✅ VERSIÓN FINAL CORREGIDA) ======================
     let procesandoPago = false;
 
     async function irAPagar(consultaId, numeroExpediente, nombrePaciente) {
-      if (procesandoPago) return;
+      if (procesandoPago) {
+        console.log('⚠️ Ya hay un proceso de pago en curso');
+        return;
+      }
 
       try {
-        console.log('🔍 irAPagar llamado con:', { consultaId, numeroExpediente, nombrePaciente });
+        console.log('\n🔍 ===== INICIO irAPagar =====');
+        console.log('📋 Parámetros recibidos:', { consultaId, numeroExpediente, nombrePaciente });
 
         // 🔹 OBTENER DATOS COMPLETOS DE LA CONSULTA
         const respConsulta = await fetch(`/api/consultas`);
@@ -1177,14 +1181,19 @@ async function seleccionarExpediente(numeroExpediente) {
           throw new Error('No se encontró la consulta');
         }
 
-        console.log('📋 Consulta encontrada:', consulta);
-        console.log('📊 Tipo paciente:', consulta.tipo_paciente);
-        console.log('📊 Expediente ID:', consulta.expediente_id);
-        console.log('📊 Paciente agenda ID:', consulta.paciente_agenda_id);
+        console.log('📊 Consulta encontrada:', {
+          id: consulta.id,
+          tipo_paciente: consulta.tipo_paciente,
+          expediente_id: consulta.expediente_id,
+          paciente_agenda_id: consulta.paciente_agenda_id,
+          numero_expediente: consulta.numero_expediente
+        });
+
+        let expedienteValidoId = null;
 
         // 🔹 SI ES PACIENTE DE AGENDA SIN EXPEDIENTE → CREAR EXPEDIENTE PRIMERO
         if (consulta.tipo_paciente === 'agenda' && !consulta.expediente_id) {
-          console.log('⚠️ Paciente de agenda sin expediente. Solicitando crear expediente completo...');
+          console.log('⚠️ Paciente de agenda sin expediente completo. Solicitando crear expediente...');
 
           const confirmacion = await Swal.fire({
             title: '¿Crear Expediente Completo?',
@@ -1206,7 +1215,10 @@ async function seleccionarExpediente(numeroExpediente) {
             width: '550px'
           });
 
-          if (!confirmacion.isConfirmed) return;
+          if (!confirmacion.isConfirmed) {
+            console.log('❌ Usuario canceló creación de expediente');
+            return;
+          }
 
           console.log('✅ Usuario confirmó creación de expediente');
 
@@ -1229,9 +1241,25 @@ async function seleccionarExpediente(numeroExpediente) {
           }
 
           const expedienteCreado = await respCrearExp.json();
-          numeroExpediente = expedienteCreado.expediente.numero_expediente;
+          expedienteValidoId = expedienteCreado.expediente.numero_expediente;
 
-          console.log('✅ Expediente creado:', numeroExpediente);
+          console.log('✅ Expediente creado en BD:', expedienteValidoId);
+
+          // 🔥 ESPERAR 500ms PARA QUE LA BD SE ACTUALICE
+          await new Promise(resolve => setTimeout(resolve, 500));
+
+          // 🔥 RECARGAR LA CONSULTA ACTUALIZADA
+          console.log('🔄 Recargando consulta actualizada...');
+          const respConsultaActualizada = await fetch(`/api/consultas`);
+          const consultasActualizadas = await respConsultaActualizada.json();
+          const consultaActualizada = consultasActualizadas.find(c => c.id === consultaId);
+
+          if (consultaActualizada && consultaActualizada.expediente_id) {
+            expedienteValidoId = consultaActualizada.expediente_id;
+            console.log('✅ Consulta actualizada. Nuevo expediente_id:', expedienteValidoId);
+          } else {
+            console.log('⚠️ Consulta no actualizada aún, usando ID del expediente creado:', expedienteValidoId);
+          }
 
           await Swal.fire({
             icon: 'success',
@@ -1239,7 +1267,7 @@ async function seleccionarExpediente(numeroExpediente) {
             html: `
               <div style="text-align: center;">
                 <p><i class="fas fa-check-circle" style="color: #27ae60; font-size: 3rem;"></i></p>
-                <p><strong>Expediente N° ${numeroExpediente}</strong></p>
+                <p><strong>Expediente N° ${expedienteValidoId}</strong></p>
                 <p class="text-muted">Ahora puedes proceder con el pago</p>
               </div>
             `,
@@ -1247,20 +1275,30 @@ async function seleccionarExpediente(numeroExpediente) {
             showConfirmButton: false
           });
 
-          // Recargar consultas para que se actualice la vista
+          // Recargar la tabla de consultas
           await cargarConsultas();
+
+        } else {
+          // Ya tiene expediente completo
+          expedienteValidoId = consulta.expediente_id || numeroExpediente;
+          console.log('✅ Paciente ya tiene expediente completo:', expedienteValidoId);
         }
 
-        // 🔹 AHORA SÍ, PROCEDER CON EL PAGO
-        console.log('💰 Procediendo a crear orden de pago para expediente:', numeroExpediente);
+        // 🔹 VALIDAR QUE TENEMOS UN EXPEDIENTE VÁLIDO
+        if (!expedienteValidoId) {
+          throw new Error('No se pudo obtener un expediente válido para proceder con el pago');
+        }
 
+        console.log('💰 Procediendo a crear orden de pago para expediente:', expedienteValidoId);
+
+        // 🔹 AHORA SÍ, PROCEDER CON EL PAGO
         const resultado = await Swal.fire({
           title: 'Crear Orden de Pago',
           html: `
             <div class="text-start" style="padding: 10px;">
               <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                 <p style="margin: 5px 0;"><strong><i class="fas fa-user"></i> Paciente:</strong> ${nombrePaciente}</p>
-                <p style="margin: 5px 0;"><strong><i class="fas fa-id-card"></i> Expediente:</strong> ${numeroExpediente}</p>
+                <p style="margin: 5px 0;"><strong><i class="fas fa-id-card"></i> Expediente:</strong> ${expedienteValidoId}</p>
               </div>
               <div style="background: #e3f2fd; padding: 15px; border-radius: 8px;">
                 <p style="margin: 5px 0;"><strong><i class="fas fa-stethoscope"></i> Procedimiento:</strong> Consulta Oftalmológica</p>
@@ -1276,7 +1314,10 @@ async function seleccionarExpediente(numeroExpediente) {
           width: '500px'
         });
 
-        if (!resultado.isConfirmed) return;
+        if (!resultado.isConfirmed) {
+          console.log('❌ Usuario canceló creación de orden');
+          return;
+        }
 
         procesandoPago = true;
 
@@ -1291,7 +1332,7 @@ async function seleccionarExpediente(numeroExpediente) {
 
         const datosRecibo = {
           fecha: fechaLocal,
-          paciente_id: numeroExpediente,  // ✅ Ahora siempre será un expediente válido
+          paciente_id: expedienteValidoId,  // ✅ Ahora siempre será un expediente válido
           procedimiento: 'Consulta Oftalmológica',
           precio: 500.00,
           forma_pago: 'Efectivo',
@@ -1310,7 +1351,7 @@ async function seleccionarExpediente(numeroExpediente) {
 
         if (!respRecibo.ok) {
           const errorData = await respRecibo.json();
-          throw new Error(errorData.error);
+          throw new Error(errorData.error || 'Error al crear recibo');
         }
 
         const reciboCreado = await respRecibo.json();
@@ -1327,11 +1368,12 @@ async function seleccionarExpediente(numeroExpediente) {
 
         if (!respOrden.ok) {
           const errorData = await respOrden.json();
-          throw new Error(errorData.error);
+          throw new Error(errorData.error || 'Error al crear orden médica');
         }
 
         const resultado2 = await respOrden.json();
         console.log('✅ Orden médica creada:', resultado2);
+        console.log('🔍 ===== FIN irAPagar =====\n');
 
         await Swal.fire({
           icon: 'success',
@@ -1353,7 +1395,8 @@ async function seleccionarExpediente(numeroExpediente) {
         cargarConsultas();
 
       } catch (err) {
-        console.error("❌ Error completo:", err);
+        console.error("❌ ERROR COMPLETO:", err);
+        console.error("Stack:", err.stack);
         Swal.fire({
           icon: 'error',
           title: 'Error al Crear Orden',
