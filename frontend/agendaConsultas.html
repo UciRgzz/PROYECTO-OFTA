@@ -1159,25 +1159,121 @@ async function seleccionarExpediente(numeroExpediente) {
       }
     }
 
-    // ====================== IR A PAGAR ======================
+    // ====================== IR A PAGAR (✅ CORREGIDO) ======================
     let procesandoPago = false;
 
     async function irAPagar(consultaId, numeroExpediente, nombrePaciente) {
       if (procesandoPago) return;
 
       try {
+        console.log('🔍 irAPagar llamado con:', { consultaId, numeroExpediente, nombrePaciente });
+
+        // 🔹 OBTENER DATOS COMPLETOS DE LA CONSULTA
+        const respConsulta = await fetch(`/api/consultas`);
+        const consultas = await respConsulta.json();
+        const consulta = consultas.find(c => c.id === consultaId);
+
+        if (!consulta) {
+          throw new Error('No se encontró la consulta');
+        }
+
+        console.log('📋 Consulta encontrada:', consulta);
+        console.log('📊 Tipo paciente:', consulta.tipo_paciente);
+        console.log('📊 Expediente ID:', consulta.expediente_id);
+        console.log('📊 Paciente agenda ID:', consulta.paciente_agenda_id);
+
+        // 🔹 SI ES PACIENTE DE AGENDA SIN EXPEDIENTE → CREAR EXPEDIENTE PRIMERO
+        if (consulta.tipo_paciente === 'agenda' && !consulta.expediente_id) {
+          console.log('⚠️ Paciente de agenda sin expediente. Solicitando crear expediente completo...');
+
+          const confirmacion = await Swal.fire({
+            title: '¿Crear Expediente Completo?',
+            html: `
+              <div style="text-align: left; padding: 10px;">
+                <p><i class="fas fa-info-circle" style="color: #3498db;"></i> <strong>Este paciente aún no tiene un expediente completo.</strong></p>
+                <p>Es necesario crear un expediente completo antes de generar el pago.</p>
+                <hr>
+                <p><strong>Paciente:</strong> ${nombrePaciente}</p>
+                <p class="text-muted" style="font-size: 0.9rem;">Las consultas existentes se vincularán automáticamente al nuevo expediente.</p>
+              </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: '<i class="fas fa-check"></i> Sí, crear expediente',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#27ae60',
+            cancelButtonColor: '#6c757d',
+            width: '550px'
+          });
+
+          if (!confirmacion.isConfirmed) return;
+
+          console.log('✅ Usuario confirmó creación de expediente');
+
+          // Mostrar cargando
+          Swal.fire({
+            title: 'Creando expediente completo...',
+            html: '<i class="fas fa-spinner fa-spin fa-3x text-primary"></i><br><br><p>Por favor espera...</p>',
+            allowOutsideClick: false,
+            showConfirmButton: false
+          });
+
+          // Crear expediente desde paciente de agenda
+          const respCrearExp = await fetch(`/api/pacientes-agenda/${consulta.paciente_agenda_id}/crear-expediente`, {
+            method: 'POST'
+          });
+
+          if (!respCrearExp.ok) {
+            const errorData = await respCrearExp.json();
+            throw new Error(errorData.error || 'No se pudo crear el expediente');
+          }
+
+          const expedienteCreado = await respCrearExp.json();
+          numeroExpediente = expedienteCreado.expediente.numero_expediente;
+
+          console.log('✅ Expediente creado:', numeroExpediente);
+
+          await Swal.fire({
+            icon: 'success',
+            title: '¡Expediente Creado!',
+            html: `
+              <div style="text-align: center;">
+                <p><i class="fas fa-check-circle" style="color: #27ae60; font-size: 3rem;"></i></p>
+                <p><strong>Expediente N° ${numeroExpediente}</strong></p>
+                <p class="text-muted">Ahora puedes proceder con el pago</p>
+              </div>
+            `,
+            timer: 3000,
+            showConfirmButton: false
+          });
+
+          // Recargar consultas para que se actualice la vista
+          await cargarConsultas();
+        }
+
+        // 🔹 AHORA SÍ, PROCEDER CON EL PAGO
+        console.log('💰 Procediendo a crear orden de pago para expediente:', numeroExpediente);
+
         const resultado = await Swal.fire({
           title: 'Crear Orden de Pago',
           html: `
-            <div class="text-start">
-              <p><strong>Paciente:</strong> ${nombrePaciente}</p>
-              <p><strong>Procedimiento:</strong> Consulta Oftalmológica</p>
-              <p><strong>Precio:</strong> $500.00</p>
+            <div class="text-start" style="padding: 10px;">
+              <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <p style="margin: 5px 0;"><strong><i class="fas fa-user"></i> Paciente:</strong> ${nombrePaciente}</p>
+                <p style="margin: 5px 0;"><strong><i class="fas fa-id-card"></i> Expediente:</strong> ${numeroExpediente}</p>
+              </div>
+              <div style="background: #e3f2fd; padding: 15px; border-radius: 8px;">
+                <p style="margin: 5px 0;"><strong><i class="fas fa-stethoscope"></i> Procedimiento:</strong> Consulta Oftalmológica</p>
+                <p style="margin: 5px 0; font-size: 1.2rem; color: #27ae60;"><strong><i class="fas fa-dollar-sign"></i> Precio:</strong> $500.00</p>
+              </div>
             </div>
           `,
           showCancelButton: true,
-          confirmButtonText: 'Crear Orden',
-          cancelButtonText: 'Cancelar'
+          confirmButtonText: '<i class="fas fa-check"></i> Crear Orden',
+          cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+          confirmButtonColor: '#27ae60',
+          cancelButtonColor: '#6c757d',
+          width: '500px'
         });
 
         if (!resultado.isConfirmed) return;
@@ -1185,8 +1281,8 @@ async function seleccionarExpediente(numeroExpediente) {
         procesandoPago = true;
 
         Swal.fire({
-          title: 'Creando orden...',
-          html: '<i class="fas fa-spinner fa-spin fa-3x"></i>',
+          title: 'Creando orden de pago...',
+          html: '<i class="fas fa-spinner fa-spin fa-3x text-primary"></i><br><br><p>Generando recibo y orden médica...</p>',
           allowOutsideClick: false,
           showConfirmButton: false
         });
@@ -1195,7 +1291,7 @@ async function seleccionarExpediente(numeroExpediente) {
 
         const datosRecibo = {
           fecha: fechaLocal,
-          paciente_id: numeroExpediente,
+          paciente_id: numeroExpediente,  // ✅ Ahora siempre será un expediente válido
           procedimiento: 'Consulta Oftalmológica',
           precio: 500.00,
           forma_pago: 'Efectivo',
@@ -1203,6 +1299,8 @@ async function seleccionarExpediente(numeroExpediente) {
           tipo: 'Normal',
           crear_orden: false
         };
+
+        console.log('📤 Enviando datos de recibo:', datosRecibo);
 
         const respRecibo = await fetch('/api/recibos', {
           method: 'POST',
@@ -1216,6 +1314,7 @@ async function seleccionarExpediente(numeroExpediente) {
         }
 
         const reciboCreado = await respRecibo.json();
+        console.log('✅ Recibo creado:', reciboCreado);
 
         const respOrden = await fetch("/api/ordenes_medicas_consulta", {
           method: "POST",
@@ -1232,25 +1331,43 @@ async function seleccionarExpediente(numeroExpediente) {
         }
 
         const resultado2 = await respOrden.json();
+        console.log('✅ Orden médica creada:', resultado2);
 
         await Swal.fire({
           icon: 'success',
-          title: '¡Orden Creada!',
+          title: '¡Orden Creada Exitosamente!',
           html: `
-            <p>Recibo N° ${reciboCreado.recibo.numero_recibo}</p>
-            <p>Orden médica #${resultado2.id}</p>
+            <div style="text-align: center; padding: 10px;">
+              <p><i class="fas fa-check-circle" style="color: #27ae60; font-size: 3rem;"></i></p>
+              <div style="background: #d4edda; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                <p style="margin: 5px 0;"><strong><i class="fas fa-receipt"></i> Recibo N°:</strong> ${reciboCreado.recibo.numero_recibo}</p>
+                <p style="margin: 5px 0;"><strong><i class="fas fa-file-medical"></i> Orden médica #:</strong> ${resultado2.id}</p>
+              </div>
+              <p class="text-muted">La consulta está lista para ser atendida</p>
+            </div>
           `,
-          timer: 3000
+          confirmButtonColor: '#27ae60',
+          timer: 4000
         });
 
         cargarConsultas();
 
       } catch (err) {
-        console.error("Error:", err);
+        console.error("❌ Error completo:", err);
         Swal.fire({
           icon: 'error',
-          title: 'Error',
-          text: err.message
+          title: 'Error al Crear Orden',
+          html: `
+            <div style="text-align: left;">
+              <p><strong>Error:</strong></p>
+              <p style="color: #e74c3c;">${err.message}</p>
+              <hr>
+              <p class="text-muted" style="font-size: 0.9rem;">
+                Si el problema persiste, contacta al administrador del sistema.
+              </p>
+            </div>
+          `,
+          confirmButtonColor: '#e74c3c'
         });
       } finally {
         procesandoPago = false;
