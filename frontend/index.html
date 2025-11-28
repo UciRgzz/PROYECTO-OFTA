@@ -96,13 +96,18 @@
     }
 
     .sidebar h2 {
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 600;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
       text-transform: uppercase;
       letter-spacing: 1px;
       color: rgba(255,255,255,0.7);
       padding-left: 10px;
+      margin-top: 20px;
+    }
+
+    .sidebar h2:first-child {
+      margin-top: 0;
     }
 
     .sidebar a {
@@ -616,7 +621,7 @@
              class="welcome-logo">
       </div>
     </main> 
-
+  </div>
 
   <!-- MODAL ÓRDENES Y OPTOMETRÍA -->
   <div class="modal fade" id="modalOrdenes" tabindex="-1" aria-hidden="true">
@@ -797,42 +802,65 @@
       }
 
       let html = "";
-      if (permisos.includes("expedientes")) {
-        html += `<a onclick="mostrarSeccion('expedientes')" style="cursor:pointer;"><i class="material-icons">folder</i> Expedientes</a>`;
-      }
-      if (permisos.includes("optometria")) {
-        html += `<a onclick="mostrarSeccion('optometria')" style="cursor:pointer;"><i class="material-icons">visibility</i> Optometría</a>`;
-      }
-      if (permisos.includes("recibos")) {
-        html += `<a onclick="mostrarSeccion('recibos')" style="cursor:pointer;"><i class="material-icons">receipt</i> Recibos</a>`;
-      }
-      if (permisos.includes("medico")) {
-        html += `<a onclick="mostrarSeccion('medico')" style="cursor:pointer;"><i class="material-icons">healing</i> Módulo Médico</a>`;
-      }
-      if (permisos.includes("agendaquirurgica")) {
-        html += `<a onclick="mostrarSeccion('agendaquirurgica')" style="cursor:pointer;"><i class="material-icons">event</i> Agenda Quirúrgica</a>`;
-      }
-      if (permisos.includes("agendaconsultas")) {
-        html += `<a onclick="mostrarSeccion('agendaconsultas')" style="cursor:pointer;"><i class="material-icons">event_note</i> Agenda Consultas</a>`;
-      }
-      if (permisos.includes("ordenes")) {
-        html += `<a onclick="mostrarSeccion('ordenes')" style="cursor:pointer;"><i class="material-icons">assignment</i> Órdenes</a>`;
-      }
-      if (permisos.includes("cierredecaja")) {
-        html += `<a onclick="mostrarSeccion('cierredecaja')" style="cursor:pointer;"><i class="material-icons">attach_money</i> Cierre de Caja</a>`;
-      }
-      if (permisos.includes("insumos")) {
-        html += `<a onclick="mostrarSeccion('insumos')" style="cursor:pointer;"><i class="material-icons">inventory</i> Insumos</a>`;
-      }
-      // 🔹 Separador para gestión de cuentas
-      if (permisos.includes("asignarmodulos") || permisos.includes("usuarios")) {
+      
+      // Gestión Financiera
+      if (permisos.includes("recibos") || permisos.includes("ordenes") || permisos.includes("cierredecaja")) {
+        html += `<h2>Gestión Financiera</h2>`;
+        if (permisos.includes("recibos")) {
+          html += `<a onclick="mostrarSeccion('recibos')" style="cursor:pointer;"><i class="material-icons">receipt</i> Recibos</a>`;
+        }
+        if (permisos.includes("ordenes")) {
+          html += `<a onclick="mostrarSeccion('ordenes')" style="cursor:pointer;"><i class="material-icons">assignment</i> Órdenes</a>`;
+        }
+        if (permisos.includes("cierredecaja")) {
+          html += `<a onclick="mostrarSeccion('cierredecaja')" style="cursor:pointer;"><i class="material-icons">attach_money</i> Cierre de Caja</a>`;
+        }
         html += `<div class="sidebar-divider"></div>`;
       }
-      if (permisos.includes("asignarmodulos")) {
-        html += `<a onclick="mostrarSeccion('asignarmodulos')" style="cursor:pointer;"><i class="material-icons">settings</i> Asignar Módulos</a>`;
+      
+      // Gestión Médica
+      if (permisos.includes("medico") || permisos.includes("optometria")) {
+        html += `<h2>Gestión Médica</h2>`;
+        if (permisos.includes("medico")) {
+          html += `<a onclick="mostrarSeccion('medico')" style="cursor:pointer;"><i class="material-icons">healing</i> Módulo Médico</a>`;
+        }
+        if (permisos.includes("optometria")) {
+          html += `<a onclick="mostrarSeccion('optometria')" style="cursor:pointer;"><i class="material-icons">visibility</i> Optometría</a>`;
+        }
+        html += `<div class="sidebar-divider"></div>`;
       }
-      if (permisos.includes("usuarios")) {
-        html += `<a onclick="mostrarSeccion('usuarios')" style="cursor:pointer;"><i class="material-icons">group</i> Usuarios</a>`;
+      
+      // Gestión de Pacientes
+      if (permisos.includes("expedientes") || permisos.includes("agendaconsultas") || permisos.includes("agendaquirurgica")) {
+        html += `<h2>Gestión de Pacientes</h2>`;
+        if (permisos.includes("expedientes")) {
+          html += `<a onclick="mostrarSeccion('expedientes')" style="cursor:pointer;"><i class="material-icons">folder</i> Expedientes</a>`;
+        }
+        if (permisos.includes("agendaconsultas")) {
+          html += `<a onclick="mostrarSeccion('agendaconsultas')" style="cursor:pointer;"><i class="material-icons">event_note</i> Agenda Consultas</a>`;
+        }
+        if (permisos.includes("agendaquirurgica")) {
+          html += `<a onclick="mostrarSeccion('agendaquirurgica')" style="cursor:pointer;"><i class="material-icons">event</i> Agenda Quirúrgica</a>`;
+        }
+        html += `<div class="sidebar-divider"></div>`;
+      }
+      
+      // Gestión de Inventario
+      if (permisos.includes("insumos")) {
+        html += `<h2>Gestión de Inventario</h2>`;
+        html += `<a onclick="mostrarSeccion('insumos')" style="cursor:pointer;"><i class="material-icons">inventory</i> Insumos</a>`;
+        html += `<div class="sidebar-divider"></div>`;
+      }
+      
+      // Administración del Sistema
+      if (permisos.includes("asignarmodulos") || permisos.includes("usuarios")) {
+        html += `<h2>Administración del Sistema</h2>`;
+        if (permisos.includes("asignarmodulos")) {
+          html += `<a onclick="mostrarSeccion('asignarmodulos')" style="cursor:pointer;"><i class="material-icons">settings</i> Asignar Módulos</a>`;
+        }
+        if (permisos.includes("usuarios")) {
+          html += `<a onclick="mostrarSeccion('usuarios')" style="cursor:pointer;"><i class="material-icons">group</i> Usuarios</a>`;
+        }
       }
 
       document.getElementById("menu-dinamico").innerHTML =
