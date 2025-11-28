@@ -3704,7 +3704,7 @@ app.post('/api/consultas', verificarSesion, async (req, res) => {
     }
   });
 
-// ==================== CREAR ORDEN MÉDICA DESDE CONSULTA (SOPORTA PACIENTES DE AGENDA) ====================
+// ==================== CREAR ORDEN MÉDICA DESDE CONSULTA ====================
 app.post("/api/ordenes_medicas_consulta", verificarSesion, async (req, res) => {
   const client = await pool.connect();
   
@@ -3714,7 +3714,6 @@ app.post("/api/ordenes_medicas_consulta", verificarSesion, async (req, res) => {
 
     await client.query("BEGIN");
 
-    // 🔹 Obtener datos de la consulta
     const consultaResult = await client.query(
       `SELECT 
         id, 
@@ -3735,19 +3734,10 @@ app.post("/api/ordenes_medicas_consulta", verificarSesion, async (req, res) => {
     const consulta = consultaResult.rows[0];
     const esPacienteAgenda = consulta.tipo_paciente === 'agenda';
 
-    console.log('📋 Creando orden desde consulta:', {
-      consultaId,
-      tipo_paciente: consulta.tipo_paciente,
-      expediente_id: consulta.expediente_id,
-      paciente_agenda_id: consulta.paciente_agenda_id
-    });
-
-    // 🔹 Procedimiento por defecto: Consulta Oftalmológica
     const procedimiento = 'Consulta Oftalmológica';
     const precio = 500.00;
     const fechaLocal = fechaLocalMX();
 
-    // 🔹 Crear la orden médica
     const ordenResult = await client.query(
       `INSERT INTO ordenes_medicas (
         expediente_id, 
@@ -3768,8 +3758,8 @@ app.post("/api/ordenes_medicas_consulta", verificarSesion, async (req, res) => {
       VALUES ($1, $2, $3, $4, $5, 'Consulta', $6::numeric, 0, $6::numeric, 'Pendiente', $7::date, $8, 'Pendiente', 'CONSULTA')
       RETURNING *`,
       [
-        esPacienteAgenda ? null : consulta.expediente_id,  // expediente_id NULL si es agenda
-        esPacienteAgenda ? consulta.paciente_agenda_id : null,  // paciente_agenda_id NULL si es expediente
+        esPacienteAgenda ? null : consulta.expediente_id,
+        esPacienteAgenda ? consulta.paciente_agenda_id : null,
         folio_recibo,
         consultaId,
         procedimiento,
@@ -3779,17 +3769,14 @@ app.post("/api/ordenes_medicas_consulta", verificarSesion, async (req, res) => {
       ]
     );
 
-    // 🔹 Actualizar estado de la consulta
-    await client.query(
-      `UPDATE consultas 
-       SET estado = 'En Módulo Médico' 
-       WHERE id = $1 AND departamento = $2`,
-      [consultaId, depto]
-    );
+    // ✅ NO ACTUALIZAR EL ESTADO - La consulta debe seguir en "Pendiente"
+    // ELIMINAR O COMENTAR ESTAS LÍNEAS:
+    // await client.query(
+    //   `UPDATE consultas SET estado = 'En Módulo Médico' WHERE id = $1 AND departamento = $2`,
+    //   [consultaId, depto]
+    // );
 
     await client.query("COMMIT");
-    
-    console.log('✅ Orden médica creada:', ordenResult.rows[0].id);
     
     res.json({ 
       mensaje: "Orden médica creada correctamente",
@@ -3805,6 +3792,7 @@ app.post("/api/ordenes_medicas_consulta", verificarSesion, async (req, res) => {
     client.release();
   }
 });
+
 
   // ==================== OBTENER ÓRDENES MÉDICAS DE CONSULTAS ====================
   app.get('/api/ordenes_medicas_consulta', verificarSesion, async (req, res) => {
