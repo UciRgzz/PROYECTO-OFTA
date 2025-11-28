@@ -256,6 +256,9 @@
           <i class="fas fa-search"></i> Buscar Paciente para Agendar
         </div>
         <div>
+          <button class="btn btn-purple btn-sm" data-bs-toggle="modal" data-bs-target="#modalPacientesAgenda">
+            <i class="fas fa-users"></i> Ver Pacientes de Agenda
+          </button>
           <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalNuevoPaciente">
             <i class="fas fa-user-plus"></i> Nuevo Paciente
           </button>
@@ -386,6 +389,33 @@
           <button type="button" class="btn btn-primary" id="btnCrearPaciente">
             <i class="fas fa-save"></i> Crear Paciente y Agendar
           </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para ver pacientes de agenda -->
+  <div class="modal fade" id="modalPacientesAgenda" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header" style="background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); color: white;">
+          <h5 class="modal-title">
+            <i class="fas fa-users"></i> Pacientes de Agenda
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> 
+            <strong>Pacientes de Agenda:</strong> Son pacientes creados rápidamente sin expediente completo. 
+            Puedes crear su expediente completo cuando lo necesites.
+          </div>
+          <div id="listaPacientesAgenda">
+            <div class="text-center py-4">
+              <i class="fas fa-spinner fa-spin fa-3x text-primary"></i>
+              <p class="mt-3">Cargando pacientes...</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -603,6 +633,129 @@
       } catch (err) {
         console.error('❌ Error:', err);
         mostrarError('Error', err.message);
+      }
+    }
+
+    // ====================== CARGAR PACIENTES DE AGENDA ======================
+    async function cargarPacientesAgenda() {
+      try {
+        const resp = await fetch('/api/pacientes-agenda/lista-completa');
+        const pacientes = await resp.json();
+
+        const contenedor = document.getElementById('listaPacientesAgenda');
+
+        if (pacientes.length === 0) {
+          contenedor.innerHTML = `
+            <div class="alert alert-warning">
+              <i class="fas fa-exclamation-triangle"></i> 
+              No hay pacientes de agenda registrados
+            </div>
+          `;
+          return;
+        }
+
+        contenedor.innerHTML = pacientes.map(p => `
+          <div style="background: white; border: 2px solid #dee2e6; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div style="flex: 1;">
+                <h6 style="margin: 0; color: #2c3e50;">
+                  <i class="fas fa-user"></i> ${p.nombre_completo}
+                  ${p.tiene_expediente_completo ? '<span class="badge bg-success ms-2"><i class="fas fa-check"></i> Con Expediente</span>' : ''}
+                </h6>
+                <small class="text-muted">
+                  <i class="fas fa-phone"></i> ${p.telefono || 'Sin teléfono'} | 
+                  <i class="fas fa-birthday-cake"></i> ${p.edad || 'Sin edad'} años | 
+                  <i class="fas fa-calendar"></i> Consultas: ${p.total_consultas || 0}
+                </small>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                ${!p.tiene_expediente_completo ? `
+                  <button class="btn btn-warning btn-sm" onclick="crearExpedienteCompleto(${p.id})">
+                    <i class="fas fa-file-medical"></i> Crear Expediente
+                  </button>
+                ` : ''}
+                <button class="btn btn-primary btn-sm" onclick="agendarDesdeListaAgenda(${p.id})">
+                  <i class="fas fa-calendar-plus"></i> Agendar
+                </button>
+              </div>
+            </div>
+          </div>
+        `).join('');
+
+      } catch (err) {
+        console.error('Error cargando pacientes:', err);
+        document.getElementById('listaPacientesAgenda').innerHTML = `
+          <div class="alert alert-danger">
+            <i class="fas fa-times-circle"></i> Error al cargar pacientes
+          </div>
+        `;
+      }
+    }
+
+    // ====================== CREAR EXPEDIENTE COMPLETO ======================
+    async function crearExpedienteCompleto(pacienteAgendaId) {
+      try {
+        const confirmacion = await Swal.fire({
+          title: '¿Crear Expediente Completo?',
+          text: 'Se creará un expediente completo en el sistema',
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonText: 'Sí, crear',
+          cancelButtonText: 'Cancelar'
+        });
+
+        if (!confirmacion.isConfirmed) return;
+
+        Swal.fire({
+          title: 'Creando expediente...',
+          html: '<i class="fas fa-spinner fa-spin fa-3x"></i>',
+          allowOutsideClick: false,
+          showConfirmButton: false
+        });
+
+        const resp = await fetch(`/api/pacientes-agenda/${pacienteAgendaId}/crear-expediente`, {
+          method: 'POST'
+        });
+
+        if (!resp.ok) {
+          const errorData = await resp.json();
+          throw new Error(errorData.error);
+        }
+
+        const resultado = await resp.json();
+
+        await Swal.fire({
+          icon: 'success',
+          title: '¡Expediente Creado!',
+          html: `
+            <p>Expediente N° <strong>${resultado.expediente.numero_expediente}</strong> creado</p>
+            <p class="text-muted">Las consultas existentes se han vinculado al expediente</p>
+          `
+        });
+
+        cargarPacientesAgenda();
+
+      } catch (err) {
+        console.error('Error:', err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: err.message
+        });
+      }
+    }
+
+    // ====================== AGENDAR DESDE LISTA DE AGENDA ======================
+    async function agendarDesdeListaAgenda(pacienteAgendaId) {
+      try {
+        const resp = await fetch(`/api/pacientes-agenda/${pacienteAgendaId}`);
+        const paciente = await resp.json();
+
+        await agendarConsultaPacienteAgenda(paciente);
+
+      } catch (err) {
+        console.error('Error:', err);
+        mostrarError('Error', 'No se pudo cargar el paciente');
       }
     }
 
@@ -1171,6 +1324,10 @@
         if (searchTimeout) clearTimeout(searchTimeout);
         searchTimeout = setTimeout(buscarExpediente, 500);
       });
+
+      // Cargar pacientes cuando se abre el modal
+      const modalPacientes = document.getElementById('modalPacientesAgenda');
+      modalPacientes.addEventListener('shown.bs.modal', cargarPacientesAgenda);
     });
 
     function inicializarDateRangePicker() {
