@@ -8,7 +8,6 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
   <style>
-    /* ... (mismo CSS que antes) ... */
     :root {
       --primary-color: #2c3e50;
       --secondary-color: #3498db;
@@ -1046,7 +1045,7 @@
       }
     }
 
-    // ====================== IR A PAGAR (✅ NO ENVÍA A MÓDULO MÉDICO) ======================
+    // ====================== IR A PAGAR (✅ CORREGIDO - NO ENVÍA A MÓDULO MÉDICO AUTOMÁTICAMENTE) ======================
     let procesandoPago = false;
 
     async function irAPagar(consultaId, numeroExpediente, nombrePaciente) {
@@ -1122,10 +1121,10 @@
           paciente_agenda_id: consulta.tipo_paciente === 'agenda' ? consulta.paciente_agenda_id : null,
           procedimiento: 'Consulta Oftalmológica',
           precio: 500.00,
-          forma_pago: 'Efectivo',
-          monto_pagado: 0,
+          forma_pago: 'Pendiente',  // ✅ CAMBIO CRÍTICO: forma_pago en "Pendiente"
+          monto_pagado: 0,           // ✅ monto_pagado en 0
           tipo: 'Normal',
-          crear_orden: false  // ✅ NO crear orden automáticamente
+          crear_orden: false         // ✅ NO crear orden desde recibos
         };
 
         console.log('📤 Enviando recibo:', datosRecibo);
@@ -1144,7 +1143,7 @@
         const reciboCreado = await respRecibo.json();
         console.log('✅ Recibo creado:', reciboCreado);
 
-        // ✅ CREAR ORDEN MÉDICA
+        // ✅ CREAR ORDEN MÉDICA VINCULADA A LA CONSULTA
         const respOrden = await fetch("/api/ordenes_medicas_consulta", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1161,10 +1160,11 @@
 
         const ordenCreada = await respOrden.json();
         console.log('✅ Orden médica creada:', ordenCreada);
+        console.log('⚠️ IMPORTANTE: Consulta permanece en estado "Pendiente"');
         console.log('🔍 ===== FIN irAPagar =====\n');
 
-        // ✅ IMPORTANTE: LA CONSULTA SIGUE EN ESTADO "Pendiente"
-        // El usuario debe dar clic en "Atender" para enviarla a Módulo Médico
+        // ✅ CRÍTICO: NO CAMBIAR EL ESTADO DE LA CONSULTA
+        // La consulta debe seguir en "Pendiente" hasta que el usuario dé clic en "Atender"
 
         await Swal.fire({
           icon: 'success',
@@ -1176,11 +1176,12 @@
                 <p style="margin: 5px 0;"><strong><i class="fas fa-receipt"></i> Recibo N°:</strong> ${reciboCreado.recibo.numero_recibo}</p>
                 <p style="margin: 5px 0;"><strong><i class="fas fa-file-medical"></i> Orden médica #:</strong> ${ordenCreada.id}</p>
               </div>
-              <p class="text-muted">La consulta está lista para ser atendida</p>
+              <p style="color: #2c3e50; font-weight: 600;">✅ La consulta ahora muestra el botón "Atender"</p>
+              <p class="text-muted">Presiona "Atender" para enviar al Módulo Médico</p>
             </div>
           `,
           confirmButtonColor: '#27ae60',
-          timer: 4000
+          timer: 5000
         });
 
         cargarConsultas();

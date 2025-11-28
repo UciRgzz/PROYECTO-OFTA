@@ -1987,66 +1987,69 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
     }
   });
 
-  // ==================== LISTAR TODAS LAS ÓRDENES ====================
-  app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
-    try {
-      let depto = getDepartamento(req);
-      const { desde, hasta } = req.query;
+// ==================== LISTAR TODAS LAS ÓRDENES (✅ CORREGIDO - INCLUYE CONSULTAS) ====================
+app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
+  try {
+    let depto = getDepartamento(req);
+    const { desde, hasta } = req.query;
 
-      let params = [depto];
-      let where = "o.departamento = $1";
+    let params = [depto];
+    let where = "o.departamento = $1";
 
-      if (desde && hasta) {
-        params.push(desde, hasta);
-        where += ` AND DATE(o.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
-      }
-
-      const query = `
-        SELECT 
-          o.id AS orden_id,
-          o.numero_orden AS n_orden,                 -- 👈 N.Orden (número consecutivo)
-          e.numero_expediente AS expediente_numero,  -- 👈 Expediente del paciente
-          e.nombre_completo AS paciente, 
-          o.medico, 
-          o.diagnostico, 
-          o.lado, 
-          o.procedimiento, 
-          o.tipo,
-          o.precio,                                  
-          COALESCE(SUM(p.monto), 0) AS pagado,      
-          (o.precio - COALESCE(SUM(p.monto), 0)) AS pendiente,
-          o.estatus,
-          o.fecha,
-          o.folio_recibo,
-          r.numero_recibo AS n_folio                 -- 👈 N.Folio del recibo asociado
-        FROM ordenes_medicas o
-        JOIN expedientes e 
-          ON e.numero_expediente = o.expediente_id
-        AND e.departamento = o.departamento
-        LEFT JOIN pagos p 
-          ON p.orden_id = o.id 
-        AND p.departamento = o.departamento
-        LEFT JOIN recibos r                          -- 👈 JOIN para obtener el número de recibo
-          ON r.id = o.folio_recibo
-        AND r.departamento = o.departamento
-        WHERE ${where}
-        GROUP BY o.id, e.numero_expediente, e.nombre_completo, 
-                o.medico, o.diagnostico, o.lado, o.procedimiento, 
-                o.tipo, o.precio, o.estatus, o.fecha, o.folio_recibo,
-                o.numero_orden, r.numero_recibo      -- 👈 Agregar al GROUP BY
-        ORDER BY o.numero_orden DESC;                -- 👈 Ordenar por número de orden
-      `;
-
-      const result = await pool.query(query, params);
-      
-      console.log("✅ Órdenes médicas cargadas:", result.rows.length);
-      
-      res.json(result.rows);
-    } catch (err) {
-      console.error("❌ Error en /api/ordenes_medicas:", err);
-      res.status(500).json({ error: err.message });
+    if (desde && hasta) {
+      params.push(desde, hasta);
+      where += ` AND DATE(o.fecha) BETWEEN $${params.length - 1} AND $${params.length}`;
     }
-  });
+
+    const query = `
+      SELECT 
+        o.id AS orden_id,
+        o.numero_orden AS n_orden,
+        COALESCE(e.numero_expediente, pa.id) AS expediente_numero,
+        COALESCE(e.nombre_completo, pa.nombre || ' ' || pa.apellido, 'No registrado') AS paciente,
+        o.medico, 
+        o.diagnostico, 
+        o.lado, 
+        o.procedimiento, 
+        o.tipo,
+        o.precio,                                  
+        COALESCE(SUM(p.monto), 0) AS pagado,      
+        (o.precio - COALESCE(SUM(p.monto), 0)) AS pendiente,
+        o.estatus,
+        o.fecha,
+        o.folio_recibo,
+        r.numero_recibo AS n_folio
+      FROM ordenes_medicas o
+      LEFT JOIN expedientes e 
+        ON e.numero_expediente = o.expediente_id
+        AND e.departamento = o.departamento
+      LEFT JOIN pacientes_agenda pa
+        ON pa.id = o.paciente_agenda_id
+        AND pa.departamento = o.departamento
+      LEFT JOIN pagos p 
+        ON p.orden_id = o.id 
+        AND p.departamento = o.departamento
+      LEFT JOIN recibos r
+        ON r.id = o.folio_recibo
+        AND r.departamento = o.departamento
+      WHERE ${where}
+      GROUP BY o.id, e.numero_expediente, e.nombre_completo, 
+              o.medico, o.diagnostico, o.lado, o.procedimiento, 
+              o.tipo, o.precio, o.estatus, o.fecha, o.folio_recibo,
+              o.numero_orden, r.numero_recibo, pa.id, pa.nombre, pa.apellido
+      ORDER BY o.numero_orden DESC;
+    `;
+
+    const result = await pool.query(query, params);
+    
+    console.log("✅ Órdenes médicas cargadas:", result.rows.length);
+    
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ Error en /api/ordenes_medicas:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
   // ==================== OBTENER NUMERO_RECIBO DE UNA ORDEN MÉDICA ====================
   app.get("/api/ordenes/:id/recibo", verificarSesion, async (req, res) => {
@@ -3394,7 +3397,7 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
     }
   });
 
-  
+
   // ==================== CREAR CONSULTA ====================
 app.post('/api/consultas', verificarSesion, async (req, res) => {
   try {
