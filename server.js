@@ -931,26 +931,52 @@ app.get('/api/pacientes-agenda/:id', verificarSesion, async (req, res) => {
 });
 
 
-// ==================== Guardar recibo (CORREGIDO CON ABONOS) ====================
+// ==================== Guardar recibo (CORREGIDO CON ABONOS Y PACIENTES DE AGENDA) ====================
 app.post('/api/recibos', verificarSesion, async (req, res) => {
-  const { fecha, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, crear_orden } = req.body;
+  const { fecha, paciente_id, paciente_agenda_id, procedimiento, precio, forma_pago, monto_pagado, tipo, crear_orden } = req.body;
   const depto = getDepartamento(req);
   const client = await pool.connect();
 
   try {
     await client.query("BEGIN");
 
-    const expediente = await client.query(
-      "SELECT numero_expediente FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
-      [paciente_id, depto]
-    );
+    let folio = null;
+    let esPacienteAgenda = false;
 
-    if (expediente.rows.length === 0) {
+    // 🔹 Determinar tipo de paciente y obtener folio
+    if (paciente_agenda_id) {
+      // Es un paciente de agenda
+      const pacienteAgenda = await client.query(
+        "SELECT id FROM pacientes_agenda WHERE id = $1 AND departamento = $2",
+        [paciente_agenda_id, depto]
+      );
+
+      if (pacienteAgenda.rows.length === 0) {
+        await client.query("ROLLBACK");
+        return res.status(400).json({ error: "El paciente de agenda no existe en este departamento" });
+      }
+
+      folio = pacienteAgenda.rows[0].id;
+      esPacienteAgenda = true;
+
+    } else if (paciente_id) {
+      // Es un paciente con expediente normal
+      const expediente = await client.query(
+        "SELECT numero_expediente FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
+        [paciente_id, depto]
+      );
+
+      if (expediente.rows.length === 0) {
+        await client.query("ROLLBACK");
+        return res.status(400).json({ error: "El paciente no existe en este departamento" });
+      }
+
+      folio = expediente.rows[0].numero_expediente;
+
+    } else {
       await client.query("ROLLBACK");
-      return res.status(400).json({ error: "El paciente no existe en este departamento" });
+      return res.status(400).json({ error: "Debe proporcionar paciente_id o paciente_agenda_id" });
     }
-
-    const folio = expediente.rows[0].numero_expediente;
 
     const ultimoNumero = await client.query(
       "SELECT COALESCE(MAX(numero_recibo), 0) + 1 AS siguiente FROM recibos WHERE departamento = $1",
@@ -958,13 +984,25 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
     );
     const siguienteNumero = ultimoNumero.rows[0].siguiente;
 
+    // 🔹 Insertar recibo con los campos correctos según tipo de paciente
     const result = await client.query(
       `INSERT INTO recibos 
-         (numero_recibo, fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, departamento)
+         (numero_recibo, fecha, folio, paciente_id, paciente_agenda_id, procedimiento, precio, forma_pago, tipo, departamento)
        VALUES 
-         ($1, $2::date, $3, $4, $5, $6::numeric, $7, $8::numeric, $9, $10)
+         ($1, $2::date, $3, $4, $5, $6, $7::numeric, $8, $9, $10)
        RETURNING *`,
-      [siguienteNumero, fecha, folio, paciente_id, procedimiento, precio, forma_pago, monto_pagado, tipo, depto]
+      [
+        siguienteNumero, 
+        fecha, 
+        folio, 
+        esPacienteAgenda ? null : paciente_id,  // NULL si es paciente de agenda
+        esPacienteAgenda ? paciente_agenda_id : null,  // NULL si es expediente normal
+        procedimiento, 
+        precio, 
+        forma_pago, 
+        tipo, 
+        depto
+      ]
     );
 
     const recibo = result.rows[0];
@@ -990,12 +1028,23 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
       
       const orden = await client.query(
         `INSERT INTO ordenes_medicas (
-           expediente_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, departamento, medico, origen
-         ) VALUES ($1, $2, $3, $4, $5::numeric, $6::numeric, ($5::numeric - $6::numeric),
-           CASE WHEN $6::numeric >= $5::numeric THEN 'Pagado' ELSE 'Pendiente' END,
-           $7::date, $8, 'Pendiente', $9)
+           expediente_id, paciente_agenda_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, departamento, medico, origen
+         ) VALUES ($1, $2, $3, $4, $5, $6::numeric, $7::numeric, ($6::numeric - $7::numeric),
+           CASE WHEN $7::numeric >= $6::numeric THEN 'Pagado' ELSE 'Pendiente' END,
+           $8::date, $9, 'Pendiente', $10)
          RETURNING id`,
-        [paciente_id, recibo.id, procedimiento, tipoOrden, precio, monto_pagado, fechaLocal, depto, origenOrden]
+        [
+          esPacienteAgenda ? null : paciente_id,  // expediente_id NULL si es agenda
+          esPacienteAgenda ? paciente_agenda_id : null,  // paciente_agenda_id NULL si es expediente
+          recibo.id, 
+          procedimiento, 
+          tipoOrden, 
+          precio, 
+          monto_pagado, 
+          fechaLocal, 
+          depto, 
+          origenOrden
+        ]
       );
 
       const ordenId = orden.rows[0].id;
@@ -1004,7 +1053,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
         await client.query(
           `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
            VALUES ($1, $2, $3::numeric, $4, $5::date, $6)`,
-          [ordenId, paciente_id, monto_pagado, forma_pago, fechaLocal, depto]
+          [ordenId, esPacienteAgenda ? null : paciente_id, monto_pagado, forma_pago, fechaLocal, depto]
         );
       }
 
@@ -1012,7 +1061,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
         await client.query(
           `INSERT INTO agenda_quirurgica (paciente_id, procedimiento, fecha, departamento, recibo_id, orden_id)
            VALUES ($1, $2, $3::date, $4, $5, $6)`,
-          [paciente_id, procedimiento, fechaLocal, depto, recibo.id, ordenId]
+          [esPacienteAgenda ? null : paciente_id, procedimiento, fechaLocal, depto, recibo.id, ordenId]
         );
       }
     }

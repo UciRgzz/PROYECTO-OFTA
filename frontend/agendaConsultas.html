@@ -1159,7 +1159,7 @@ async function seleccionarExpediente(numeroExpediente) {
       }
     }
 
-    // ====================== IR A PAGAR (✅ VERSIÓN FINAL CORREGIDA) ======================
+    // ====================== IR A PAGAR (✅ VERSIÓN CORREGIDA CON PACIENTE_AGENDA_ID) ======================
     let procesandoPago = false;
 
     async function irAPagar(consultaId, numeroExpediente, nombrePaciente) {
@@ -1185,120 +1185,21 @@ async function seleccionarExpediente(numeroExpediente) {
           id: consulta.id,
           tipo_paciente: consulta.tipo_paciente,
           expediente_id: consulta.expediente_id,
-          paciente_agenda_id: consulta.paciente_agenda_id,
-          numero_expediente: consulta.numero_expediente
+          paciente_agenda_id: consulta.paciente_agenda_id
         });
 
-        let expedienteValidoId = null;
-
-        // 🔹 SI ES PACIENTE DE AGENDA SIN EXPEDIENTE → CREAR EXPEDIENTE PRIMERO
-        if (consulta.tipo_paciente === 'agenda' && !consulta.expediente_id) {
-          console.log('⚠️ Paciente de agenda sin expediente completo. Solicitando crear expediente...');
-
-          const confirmacion = await Swal.fire({
-            title: '¿Crear Expediente Completo?',
-            html: `
-              <div style="text-align: left; padding: 10px;">
-                <p><i class="fas fa-info-circle" style="color: #3498db;"></i> <strong>Este paciente aún no tiene un expediente completo.</strong></p>
-                <p>Es necesario crear un expediente completo antes de generar el pago.</p>
-                <hr>
-                <p><strong>Paciente:</strong> ${nombrePaciente}</p>
-                <p class="text-muted" style="font-size: 0.9rem;">Las consultas existentes se vincularán automáticamente al nuevo expediente.</p>
-              </div>
-            `,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: '<i class="fas fa-check"></i> Sí, crear expediente',
-            cancelButtonText: 'Cancelar',
-            confirmButtonColor: '#27ae60',
-            cancelButtonColor: '#6c757d',
-            width: '550px'
-          });
-
-          if (!confirmacion.isConfirmed) {
-            console.log('❌ Usuario canceló creación de expediente');
-            return;
-          }
-
-          console.log('✅ Usuario confirmó creación de expediente');
-
-          // Mostrar cargando
-          Swal.fire({
-            title: 'Creando expediente completo...',
-            html: '<i class="fas fa-spinner fa-spin fa-3x text-primary"></i><br><br><p>Por favor espera...</p>',
-            allowOutsideClick: false,
-            showConfirmButton: false
-          });
-
-          // Crear expediente desde paciente de agenda
-          const respCrearExp = await fetch(`/api/pacientes-agenda/${consulta.paciente_agenda_id}/crear-expediente`, {
-            method: 'POST'
-          });
-
-          if (!respCrearExp.ok) {
-            const errorData = await respCrearExp.json();
-            throw new Error(errorData.error || 'No se pudo crear el expediente');
-          }
-
-          const expedienteCreado = await respCrearExp.json();
-          expedienteValidoId = expedienteCreado.expediente.numero_expediente;
-
-          console.log('✅ Expediente creado en BD:', expedienteValidoId);
-
-          // 🔥 ESPERAR 500ms PARA QUE LA BD SE ACTUALICE
-          await new Promise(resolve => setTimeout(resolve, 500));
-
-          // 🔥 RECARGAR LA CONSULTA ACTUALIZADA
-          console.log('🔄 Recargando consulta actualizada...');
-          const respConsultaActualizada = await fetch(`/api/consultas`);
-          const consultasActualizadas = await respConsultaActualizada.json();
-          const consultaActualizada = consultasActualizadas.find(c => c.id === consultaId);
-
-          if (consultaActualizada && consultaActualizada.expediente_id) {
-            expedienteValidoId = consultaActualizada.expediente_id;
-            console.log('✅ Consulta actualizada. Nuevo expediente_id:', expedienteValidoId);
-          } else {
-            console.log('⚠️ Consulta no actualizada aún, usando ID del expediente creado:', expedienteValidoId);
-          }
-
-          await Swal.fire({
-            icon: 'success',
-            title: '¡Expediente Creado!',
-            html: `
-              <div style="text-align: center;">
-                <p><i class="fas fa-check-circle" style="color: #27ae60; font-size: 3rem;"></i></p>
-                <p><strong>Expediente N° ${expedienteValidoId}</strong></p>
-                <p class="text-muted">Ahora puedes proceder con el pago</p>
-              </div>
-            `,
-            timer: 3000,
-            showConfirmButton: false
-          });
-
-          // Recargar la tabla de consultas
-          await cargarConsultas();
-
-        } else {
-          // Ya tiene expediente completo
-          expedienteValidoId = consulta.expediente_id || numeroExpediente;
-          console.log('✅ Paciente ya tiene expediente completo:', expedienteValidoId);
-        }
-
-        // 🔹 VALIDAR QUE TENEMOS UN EXPEDIENTE VÁLIDO
-        if (!expedienteValidoId) {
-          throw new Error('No se pudo obtener un expediente válido para proceder con el pago');
-        }
-
-        console.log('💰 Procediendo a crear orden de pago para expediente:', expedienteValidoId);
-
         // 🔹 AHORA SÍ, PROCEDER CON EL PAGO
+        const tipoPacienteTexto = consulta.tipo_paciente === 'agenda' 
+          ? 'Paciente de Agenda (Expediente Rápido)' 
+          : `Expediente N° ${consulta.expediente_id}`;
+
         const resultado = await Swal.fire({
           title: 'Crear Orden de Pago',
           html: `
             <div class="text-start" style="padding: 10px;">
               <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                 <p style="margin: 5px 0;"><strong><i class="fas fa-user"></i> Paciente:</strong> ${nombrePaciente}</p>
-                <p style="margin: 5px 0;"><strong><i class="fas fa-id-card"></i> Expediente:</strong> ${expedienteValidoId}</p>
+                <p style="margin: 5px 0;"><strong><i class="fas fa-id-card"></i> Tipo:</strong> ${tipoPacienteTexto}</p>
               </div>
               <div style="background: #e3f2fd; padding: 15px; border-radius: 8px;">
                 <p style="margin: 5px 0;"><strong><i class="fas fa-stethoscope"></i> Procedimiento:</strong> Consulta Oftalmológica</p>
@@ -1330,9 +1231,11 @@ async function seleccionarExpediente(numeroExpediente) {
 
         const fechaLocal = new Date().toISOString().split('T')[0];
 
+        // ✅ NUEVA ESTRUCTURA: Enviar paciente_id O paciente_agenda_id según tipo
         const datosRecibo = {
           fecha: fechaLocal,
-          paciente_id: expedienteValidoId,  // ✅ Ahora siempre será un expediente válido
+          paciente_id: consulta.tipo_paciente === 'expediente' ? consulta.expediente_id : null,
+          paciente_agenda_id: consulta.tipo_paciente === 'agenda' ? consulta.paciente_agenda_id : null,
           procedimiento: 'Consulta Oftalmológica',
           precio: 500.00,
           forma_pago: 'Efectivo',
