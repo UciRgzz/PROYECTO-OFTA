@@ -3335,7 +3335,7 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
     }
   });
 
-  // ==================== OBTENER TODAS LAS CONSULTAS ====================
+// ==================== OBTENER TODAS LAS CONSULTAS ====================
   app.get('/api/consultas', verificarSesion, async (req, res) => {
     try {
       const { desde, hasta } = req.query;
@@ -3347,6 +3347,8 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
           SELECT 
             id,
             expediente_id,
+            paciente_agenda_id,
+            tipo_paciente,
             paciente,
             numero_expediente,
             fecha,
@@ -3367,6 +3369,8 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
           SELECT 
             id,
             expediente_id,
+            paciente_agenda_id,
+            tipo_paciente,
             paciente,
             numero_expediente,
             fecha,
@@ -3390,6 +3394,7 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
     }
   });
 
+  
   // ==================== CREAR CONSULTA ====================
 app.post('/api/consultas', verificarSesion, async (req, res) => {
   try {
