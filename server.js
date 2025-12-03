@@ -1398,8 +1398,8 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
     const depto = getDepartamento(req);
 
     const result = await pool.query(`
-      -- 1️⃣ Recibos tipo "Normal" con orden médica SIN ATENDER 
-      --    Y que NO estén vinculados a una consulta de Agenda (evita duplicados)
+      -- 1️⃣ Recibos tipo "Normal" con orden médica SIN ATENDER
+      --    PERO que NO vengan de Agenda Consultas que aún no han sido enviadas
       SELECT 
         r.id AS recibo_id,
         e.numero_expediente AS expediente_id,
@@ -1420,11 +1420,19 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
       WHERE r.departamento = $1
         AND r.tipo = 'Normal'
         AND (o.medico IS NULL OR o.medico = '' OR o.medico = 'Pendiente')
-        AND o.consulta_id IS NULL  -- ✅ FILTRO CRÍTICO: NO tiene consulta_id
+        AND (
+          o.consulta_id IS NULL 
+          OR EXISTS (
+            SELECT 1 FROM consultas c 
+            WHERE c.id = o.consulta_id 
+            AND c.estado = 'En Módulo Médico'
+            AND c.departamento = r.departamento
+          )
+        )
 
       UNION
 
-      -- 2️⃣ SOLO Consultas que YA fueron enviadas al módulo médico
+      -- 2️⃣ Consultas que YA fueron enviadas al módulo médico (estado = 'En Módulo Médico')
       SELECT 
         c.id AS recibo_id,
         c.numero_expediente AS expediente_id,
@@ -1446,7 +1454,7 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
         ON c.numero_expediente = e.numero_expediente 
         AND c.departamento = e.departamento
       WHERE c.departamento = $1
-        AND c.estado = 'En Módulo Médico'  -- ✅ Ya está correcto
+        AND c.estado = 'En Módulo Médico'
 
       ORDER BY nombre_completo ASC
     `, [depto]);
