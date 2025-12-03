@@ -931,7 +931,7 @@ app.get('/api/pacientes-agenda/:id', verificarSesion, async (req, res) => {
 });
 
 
-// ==================== Guardar recibo (CORREGIDO CON ABONOS, PACIENTES DE AGENDA Y MÓDULO MÉDICO) ====================
+// ==================== Guardar recibo (CORREGIDO - SIN COMENTARIOS EN QUERY) ====================
 app.post('/api/recibos', verificarSesion, async (req, res) => {
   const { fecha, paciente_id, paciente_agenda_id, procedimiento, precio, forma_pago, monto_pagado, tipo, crear_orden } = req.body;
   const depto = getDepartamento(req);
@@ -943,9 +943,8 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
     let folio = null;
     let esPacienteAgenda = false;
 
-    // 🔹 Determinar tipo de paciente y obtener folio
+    // Determinar tipo de paciente y obtener folio
     if (paciente_agenda_id) {
-      // Es un paciente de agenda
       const pacienteAgenda = await client.query(
         "SELECT id FROM pacientes_agenda WHERE id = $1 AND departamento = $2",
         [paciente_agenda_id, depto]
@@ -960,7 +959,6 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
       esPacienteAgenda = true;
 
     } else if (paciente_id) {
-      // Es un paciente con expediente normal
       const expediente = await client.query(
         "SELECT numero_expediente FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
         [paciente_id, depto]
@@ -984,7 +982,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
     );
     const siguienteNumero = ultimoNumero.rows[0].siguiente;
 
-    // 🔹 Insertar recibo con los campos correctos según tipo de paciente
+    // Insertar recibo
     const result = await client.query(
       `INSERT INTO recibos 
          (numero_recibo, fecha, folio, paciente_id, paciente_agenda_id, procedimiento, precio, forma_pago, tipo, departamento)
@@ -995,8 +993,8 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
         siguienteNumero, 
         fecha, 
         folio, 
-        esPacienteAgenda ? null : paciente_id,  // NULL si es paciente de agenda
-        esPacienteAgenda ? paciente_agenda_id : null,  // NULL si es expediente normal
+        esPacienteAgenda ? null : paciente_id,
+        esPacienteAgenda ? paciente_agenda_id : null,
         procedimiento, 
         precio, 
         forma_pago, 
@@ -1017,14 +1015,13 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
       );
     }
 
-    // ✅ CORREGIDO: Crear orden SOLO si crear_orden no es false
-    // Si viene de Agenda Consultas con crear_orden: false, NO crear orden aquí
+    // Crear orden SOLO si crear_orden no es false
     const debeCrearOrden = crear_orden !== false && (tipo === "OrdenCirugia" || tipo === "Normal");
 
     if (debeCrearOrden) {
       const fechaLocal = fechaLocalMX();
       
-      // 🔹 Obtener siguiente número de orden
+      // Obtener siguiente número de orden
       const numeroOrdenRes = await client.query(
         "SELECT COALESCE(MAX(numero_orden), 0) + 1 AS siguiente FROM ordenes_medicas WHERE departamento = $1",
         [depto]
@@ -1032,18 +1029,18 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
       const numero_orden = numeroOrdenRes.rows[0].siguiente;
       
       const tipoOrden = tipo === "OrdenCirugia" ? "Cirugia" : "Consulta";
-      const origenOrden = tipo === "OrdenCirugia" ? "CIRUGIA" : "RECIBOS";  // ✅ Cambiar origen a "RECIBOS"
+      const origenOrden = tipo === "OrdenCirugia" ? "CIRUGIA" : "RECIBOS";
       
-      // ✅ CORREGIDO: medico debe ser '' (cadena vacía) para que aparezca en Módulo Médico
+      // IMPORTANTE: medico como cadena vacía para que aparezca en Módulo Médico
       const orden = await client.query(
         `INSERT INTO ordenes_medicas (
           numero_orden, expediente_id, paciente_agenda_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, departamento, medico, origen
         ) VALUES ($1, $2, $3, $4, $5, $6, $7::numeric, $8::numeric, ($7::numeric - $8::numeric),
           CASE WHEN $8::numeric >= $7::numeric THEN 'Pagado' ELSE 'Pendiente' END,
-          $9::date, $10, '', $11)    // ✅ CAMBIAR NULL por '' (cadena vacía)
+          $9::date, $10, '', $11)
         RETURNING id`,
         [
-          numero_orden,  // ✅ Agregado número de orden
+          numero_orden,
           esPacienteAgenda ? null : paciente_id,
           esPacienteAgenda ? paciente_agenda_id : null,
           recibo.id, 
@@ -1058,7 +1055,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
       );
 
       const ordenId = orden.rows[0].id;
-      console.log(`✅ Orden médica N°${numero_orden} creada (tipo: ${tipoOrden}, medico: NULL para aparecer en Módulo Médico)`);
+      console.log(`✅ Orden médica N°${numero_orden} creada (tipo: ${tipoOrden}, medico: cadena vacía para Módulo Médico)`);
 
       if (monto_pagado > 0) {
         await client.query(
