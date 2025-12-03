@@ -2210,144 +2210,163 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
     }
   });
 
-  // ==================== LISTADO DE PACIENTES (CORREGIDO) ====================
-  app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
-    try {
-      const { fecha, desde, hasta } = req.query;
-      const depto = getDepartamento(req);
-      
-      let whereRecibos = "r.departamento = $1";
-      let whereOrdenes = "o.departamento = $1";
-      let wherePagos = "p.departamento = $1";
-      const params = [depto];
+// ==================== LISTADO DE PACIENTES (CORREGIDO CON MINI EXPEDIENTES) ====================
+app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
+  try {
+    const { fecha, desde, hasta } = req.query;
+    const depto = getDepartamento(req);
+    
+    let whereRecibos = "r.departamento = $1";
+    let whereOrdenes = "o.departamento = $1";
+    let wherePagos = "p.departamento = $1";
+    const params = [depto];
 
-      // --- Construir filtros de fecha ---
-      if (fecha) {
-        params.push(fecha);
-        whereRecibos += ` AND DATE(r.fecha) = $${params.length}`;
-        whereOrdenes += ` AND DATE(o.fecha) = $${params.length}`;
-        wherePagos += ` AND DATE(p.fecha) = $${params.length}`;
-      } else if (desde && hasta) {
-        const desdeIdx = params.length + 1;
-        const hastaIdx = params.length + 2;
-        params.push(desde, hasta);
-        whereRecibos += ` AND DATE(r.fecha) BETWEEN $${desdeIdx} AND $${hastaIdx}`;
-        whereOrdenes += ` AND DATE(o.fecha) BETWEEN $${desdeIdx} AND $${hastaIdx}`;
-        wherePagos += ` AND DATE(p.fecha) BETWEEN $${desdeIdx} AND $${hastaIdx}`;
-      } else {
-        whereRecibos += " AND DATE(r.fecha) = CURRENT_DATE";
-        whereOrdenes += " AND DATE(o.fecha) = CURRENT_DATE";
-        wherePagos += " AND DATE(p.fecha) = CURRENT_DATE";
-      }
-
-      // --- Consulta SQL FINAL CORREGIDA ---
-      const query = `
-        WITH datos_completos AS (
-          -- 1️⃣ Recibos tipo NORMAL (✅ EXCLUIR si tienen orden médica)
-          SELECT 
-            r.paciente_id AS numero_expediente,
-            r.numero_recibo AS n_folio,
-            NULL::integer AS n_orden,
-            r.fecha,
-            r.procedimiento,
-            CASE 
-              WHEN (r.precio - r.monto_pagado) > 0 THEN 'Pendiente'
-              ELSE 'Pagado'
-            END AS status,
-            r.forma_pago AS pago,
-            r.precio AS precio_total,
-            COALESCE(r.monto_pagado, 0)::numeric AS pagado,
-            (r.precio - r.monto_pagado)::numeric AS pendiente
-          FROM recibos r
-          WHERE ${whereRecibos}
-            AND (r.tipo = 'Normal' OR r.tipo IS NULL OR r.tipo = '')
-            AND NOT EXISTS (
-              SELECT 1 FROM ordenes_medicas o 
-              WHERE o.folio_recibo = r.id 
-                AND o.departamento = r.departamento
-            )
-
-          UNION ALL
-
-          -- 2️⃣ Recibos tipo "OrdenCirugia" sin orden médica
-          SELECT 
-            r.paciente_id AS numero_expediente,
-            r.numero_recibo AS n_folio,
-            NULL::integer AS n_orden,
-            r.fecha,
-            r.procedimiento,
-            CASE 
-              WHEN (r.precio - r.monto_pagado) > 0 THEN 'Pendiente'
-              ELSE 'Pagado'
-            END AS status,
-            r.forma_pago AS pago,
-            r.precio AS precio_total,
-            COALESCE(r.monto_pagado, 0)::numeric AS pagado,
-            (r.precio - r.monto_pagado)::numeric AS pendiente
-          FROM recibos r
-          WHERE ${whereRecibos}
-            AND r.tipo = 'OrdenCirugia'
-            AND NOT EXISTS (
-              SELECT 1 FROM ordenes_medicas o 
-              WHERE o.folio_recibo = r.id 
-                AND o.departamento = r.departamento
-            )
-
-          UNION ALL
-
-          -- 3️⃣ Órdenes médicas con pagos
-          SELECT 
-            o.expediente_id AS numero_expediente,
-            COALESCE(r.numero_recibo, 0) AS n_folio,
-            o.numero_orden AS n_orden,
-            COALESCE(o.fecha_cirugia, o.fecha) AS fecha,
-            o.procedimiento,
-            o.estatus AS status,
-            STRING_AGG(DISTINCT p.forma_pago, ', ') AS pago,
-            o.precio AS precio_total,
-            COALESCE(o.pagado, 0)::numeric AS pagado,
-            COALESCE(o.pendiente, 0)::numeric AS pendiente
-          FROM ordenes_medicas o
-          LEFT JOIN pagos p 
-            ON p.orden_id = o.id 
-          AND ${wherePagos}
-          LEFT JOIN recibos r
-            ON r.id = o.folio_recibo
-          AND r.departamento = o.departamento
-          WHERE ${whereOrdenes}
-          GROUP BY o.id, o.expediente_id, o.fecha, o.fecha_cirugia, 
-                  o.procedimiento, o.estatus, o.precio, o.pagado, o.pendiente,
-                  o.numero_orden, r.numero_recibo
-        )
-
-        SELECT 
-          COALESCE(d.n_orden, 0) AS n_orden,
-          COALESCE(d.n_folio, 0) AS n_folio,
-          e.numero_expediente AS expediente,
-          e.nombre_completo AS nombre,
-          TO_CHAR(d.fecha, 'YYYY-MM-DD') AS fecha,
-          d.procedimiento,
-          d.status,
-          d.pago,
-          d.pagado AS total,
-          -d.pendiente AS saldo
-        FROM datos_completos d
-        JOIN expedientes e 
-          ON e.numero_expediente = d.numero_expediente 
-        AND e.departamento = $1
-        ORDER BY d.fecha DESC, COALESCE(d.n_orden, 0) DESC;
-      `;
-
-      console.log('📊 Ejecutando query con params:', params);
-      const result = await pool.query(query, params);
-      console.log('✅ Registros obtenidos:', result.rows.length);
-      res.json(result.rows);
-
-    } catch (err) {
-      console.error("❌ Error en /api/listado-pacientes:", err);
-      res.status(500).json({ error: err.message });
+    // --- Construir filtros de fecha ---
+    if (fecha) {
+      params.push(fecha);
+      whereRecibos += ` AND DATE(r.fecha) = $${params.length}`;
+      whereOrdenes += ` AND DATE(o.fecha) = $${params.length}`;
+      wherePagos += ` AND DATE(p.fecha) = $${params.length}`;
+    } else if (desde && hasta) {
+      const desdeIdx = params.length + 1;
+      const hastaIdx = params.length + 2;
+      params.push(desde, hasta);
+      whereRecibos += ` AND DATE(r.fecha) BETWEEN $${desdeIdx} AND $${hastaIdx}`;
+      whereOrdenes += ` AND DATE(o.fecha) BETWEEN $${desdeIdx} AND $${hastaIdx}`;
+      wherePagos += ` AND DATE(p.fecha) BETWEEN $${desdeIdx} AND $${hastaIdx}`;
+    } else {
+      whereRecibos += " AND DATE(r.fecha) = CURRENT_DATE";
+      whereOrdenes += " AND DATE(o.fecha) = CURRENT_DATE";
+      wherePagos += " AND DATE(p.fecha) = CURRENT_DATE";
     }
-  });
+
+    // --- Consulta SQL FINAL CORREGIDA ---
+    const query = `
+      WITH datos_completos AS (
+        -- 1️⃣ Recibos tipo NORMAL (✅ EXCLUIR si tienen orden médica)
+        SELECT 
+          r.paciente_id AS numero_expediente,
+          r.paciente_agenda_id,
+          r.numero_recibo AS n_folio,
+          NULL::integer AS n_orden,
+          r.fecha,
+          r.procedimiento,
+          CASE 
+            WHEN (r.precio - r.monto_pagado) > 0 THEN 'Pendiente'
+            ELSE 'Pagado'
+          END AS status,
+          r.forma_pago AS pago,
+          r.precio AS precio_total,
+          COALESCE(r.monto_pagado, 0)::numeric AS pagado,
+          (r.precio - r.monto_pagado)::numeric AS pendiente
+        FROM recibos r
+        WHERE ${whereRecibos}
+          AND (r.tipo = 'Normal' OR r.tipo IS NULL OR r.tipo = '')
+          AND NOT EXISTS (
+            SELECT 1 FROM ordenes_medicas o 
+            WHERE o.folio_recibo = r.id 
+              AND o.departamento = r.departamento
+          )
+
+        UNION ALL
+
+        -- 2️⃣ Recibos tipo "OrdenCirugia" sin orden médica
+        SELECT 
+          r.paciente_id AS numero_expediente,
+          r.paciente_agenda_id,
+          r.numero_recibo AS n_folio,
+          NULL::integer AS n_orden,
+          r.fecha,
+          r.procedimiento,
+          CASE 
+            WHEN (r.precio - r.monto_pagado) > 0 THEN 'Pendiente'
+            ELSE 'Pagado'
+          END AS status,
+          r.forma_pago AS pago,
+          r.precio AS precio_total,
+          COALESCE(r.monto_pagado, 0)::numeric AS pagado,
+          (r.precio - r.monto_pagado)::numeric AS pendiente
+        FROM recibos r
+        WHERE ${whereRecibos}
+          AND r.tipo = 'OrdenCirugia'
+          AND NOT EXISTS (
+            SELECT 1 FROM ordenes_medicas o 
+            WHERE o.folio_recibo = r.id 
+              AND o.departamento = r.departamento
+          )
+
+        UNION ALL
+
+        -- 3️⃣ Órdenes médicas con pagos
+        SELECT 
+          o.expediente_id AS numero_expediente,
+          o.paciente_agenda_id,
+          COALESCE(r.numero_recibo, 0) AS n_folio,
+          o.numero_orden AS n_orden,
+          COALESCE(o.fecha_cirugia, o.fecha) AS fecha,
+          o.procedimiento,
+          o.estatus AS status,
+          STRING_AGG(DISTINCT p.forma_pago, ', ') AS pago,
+          o.precio AS precio_total,
+          COALESCE(o.pagado, 0)::numeric AS pagado,
+          COALESCE(o.pendiente, 0)::numeric AS pendiente
+        FROM ordenes_medicas o
+        LEFT JOIN pagos p 
+          ON p.orden_id = o.id 
+        AND ${wherePagos}
+        LEFT JOIN recibos r
+          ON r.id = o.folio_recibo
+        AND r.departamento = o.departamento
+        WHERE ${whereOrdenes}
+        GROUP BY o.id, o.expediente_id, o.paciente_agenda_id, o.fecha, o.fecha_cirugia, 
+                o.procedimiento, o.estatus, o.precio, o.pagado, o.pendiente,
+                o.numero_orden, r.numero_recibo
+      )
+
+      SELECT 
+        COALESCE(d.n_orden, 0) AS n_orden,
+        COALESCE(d.n_folio, 0) AS n_folio,
+        -- ✅ Mostrar expediente normal O mini expediente
+        COALESCE(
+          e.numero_expediente::text,
+          ('PA-' || d.paciente_agenda_id::text),
+          'Sin expediente'
+        ) AS expediente,
+        -- ✅ Obtener nombre desde expedientes O pacientes_agenda
+        COALESCE(
+          e.nombre_completo,
+          (pa.nombre || ' ' || pa.apellido),
+          'Sin nombre'
+        ) AS nombre,
+        TO_CHAR(d.fecha, 'YYYY-MM-DD') AS fecha,
+        d.procedimiento,
+        d.status,
+        d.pago,
+        d.pagado AS total,
+        -d.pendiente AS saldo
+      FROM datos_completos d
+      -- ✅ LEFT JOIN con expedientes (puede no existir)
+      LEFT JOIN expedientes e 
+        ON e.numero_expediente = d.numero_expediente 
+        AND e.departamento = $1
+      -- ✅ LEFT JOIN con pacientes_agenda (puede no existir)
+      LEFT JOIN pacientes_agenda pa
+        ON pa.id = d.paciente_agenda_id
+        AND pa.departamento = $1
+      ORDER BY d.fecha DESC, COALESCE(d.n_orden, 0) DESC;
+    `;
+
+    console.log('📊 Ejecutando query con params:', params);
+    const result = await pool.query(query, params);
+    console.log('✅ Registros obtenidos:', result.rows.length);
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error("❌ Error en /api/listado-pacientes:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
   // ==================== ADMIN: Selección de sucursal ====================
   app.post("/api/seleccionar-sucursal", verificarSesion, (req, res) => {
