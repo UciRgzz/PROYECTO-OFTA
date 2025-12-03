@@ -1249,35 +1249,89 @@
       }
     }
 
-    async function verDatosConsulta(consultaId) {
-      try {
-        const resp = await fetch(`/api/ordenes_medicas/consulta/${consultaId}`);
-        if (!resp.ok) {
-          mostrarError('Error', 'No se encontró información');
-          return;
-        }
-
-        const orden = await resp.json();
-
-        Swal.fire({
-          title: 'Orden Médica',
-          width: '900px',
-          html: `
-            <div class="text-start">
-              <p><strong>Paciente:</strong> ${orden.paciente_nombre}</p>
-              <p><strong>Médico:</strong> ${orden.medico}</p>
-              <p><strong>Diagnóstico:</strong> ${orden.diagnostico}</p>
-            </div>
-          `,
-          confirmButtonText: 'Cerrar'
-        });
-
-      } catch (err) {
-        console.error('Error:', err);
-        mostrarError('Error', 'No se pudo cargar');
-      }
+    // ====================== VER DATOS DE CONSULTA ======================
+   async function verDatosConsulta(consultaId) {
+  try {
+    const resp = await fetch(`/api/ordenes_medicas/consulta/${consultaId}`);
+    if (!resp.ok) {
+      mostrarError('Error', 'No se encontró información médica para esta consulta');
+      return;
     }
 
+    const orden = await resp.json();
+
+    // Formatear la fecha
+    const fechaFormateada = orden.fecha ? new Date(orden.fecha).toLocaleDateString('es-MX') : 'Sin fecha';
+
+    Swal.fire({
+      title: '<i class="fas fa-file-medical"></i> Orden Médica',
+      width: '900px',
+      html: `
+        <div style="text-align: left; padding: 20px;">
+          <!-- INFORMACIÓN DEL PACIENTE -->
+          <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <h5 style="color: #2c3e50; margin-bottom: 10px;">
+              <i class="fas fa-user"></i> Información del Paciente
+            </h5>
+            <p style="margin: 5px 0;"><strong>Paciente:</strong> ${orden.paciente_nombre || 'No registrado'}</p>
+            <p style="margin: 5px 0;"><strong>Expediente:</strong> ${orden.expediente_id || 'N/A'}</p>
+            <p style="margin: 5px 0;"><strong>Fecha:</strong> ${fechaFormateada}</p>
+          </div>
+
+          <!-- INFORMACIÓN MÉDICA -->
+          <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <h5 style="color: #2c3e50; margin-bottom: 10px;">
+              <i class="fas fa-stethoscope"></i> Diagnóstico
+            </h5>
+            <p style="margin: 5px 0;"><strong>Médico:</strong> ${orden.medico || 'No especificado'}</p>
+            <p style="margin: 5px 0;"><strong>Diagnóstico:</strong> ${orden.diagnostico || 'No especificado'}</p>
+            <p style="margin: 5px 0;"><strong>Lado:</strong> ${orden.lado || 'No especificado'}</p>
+            <p style="margin: 5px 0;"><strong>Procedimiento:</strong> ${orden.procedimiento || 'No especificado'}</p>
+          </div>
+
+          <!-- EXPLORACIÓN CLÍNICA -->
+          <div style="background: #fff3e0; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <h5 style="color: #2c3e50; margin-bottom: 10px;">
+              <i class="fas fa-eye"></i> Exploración Clínica
+            </h5>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <p style="margin: 5px 0;"><strong>Anexos:</strong> ${orden.anexos || 'N/A'}</p>
+              <p style="margin: 5px 0;"><strong>Conjuntiva:</strong> ${orden.conjuntiva || 'N/A'}</p>
+              <p style="margin: 5px 0;"><strong>Córnea:</strong> ${orden.cornea || 'N/A'}</p>
+              <p style="margin: 5px 0;"><strong>Cámara Anterior:</strong> ${orden.camara_anterior || 'N/A'}</p>
+              <p style="margin: 5px 0;"><strong>Cristalino:</strong> ${orden.cristalino || 'N/A'}</p>
+              <p style="margin: 5px 0;"><strong>Retina:</strong> ${orden.retina || 'N/A'}</p>
+              <p style="margin: 5px 0;"><strong>Mácula:</strong> ${orden.macula || 'N/A'}</p>
+              <p style="margin: 5px 0;"><strong>Nervio Óptico:</strong> ${orden.nervio_optico || 'N/A'}</p>
+              <p style="margin: 5px 0;"><strong>Ciclopejia:</strong> ${orden.ciclopejia || 'N/A'}</p>
+              <p style="margin: 5px 0;"><strong>Hora TP:</strong> ${orden.hora_tp || 'N/A'}</p>
+            </div>
+          </div>
+
+          <!-- PROBLEMAS Y PLAN -->
+          <div style="background: #f3e5f5; padding: 15px; border-radius: 8px;">
+            <h5 style="color: #2c3e50; margin-bottom: 10px;">
+              <i class="fas fa-clipboard-list"></i> Problemas y Plan
+            </h5>
+            <p style="margin: 5px 0;"><strong>Problemas:</strong> ${orden.problemas || 'No especificado'}</p>
+            <p style="margin: 5px 0;"><strong>Plan:</strong> ${orden.plan || 'No especificado'}</p>
+          </div>
+        </div>
+      `,
+      confirmButtonText: '<i class="fas fa-times"></i> Cerrar',
+      confirmButtonColor: '#6c757d',
+      customClass: {
+        popup: 'swal-wide'
+      }
+    });
+
+  } catch (err) {
+    console.error('Error:', err);
+    mostrarError('Error', 'No se pudo cargar la información médica');
+  }
+}
+
+// ====================== ELIMINAR CONSULTA ======================
     async function eliminarConsulta(id) {
       try {
         const confirmacion = await Swal.fire({
