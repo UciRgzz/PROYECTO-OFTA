@@ -1362,35 +1362,45 @@ app.get('/api/procedimientos', verificarSesion, async (req, res) => {
 
   // ==================== MODULO MÉDICO ====================
   // ----------------BUSCAR PACIENTE POR FOLIO ----------------
-  app.get('/api/recibos/paciente/:folio', verificarSesion, async (req, res) => {
-    const { folio } = req.params;
+app.get('/api/recibos/paciente/:folio', verificarSesion, async (req, res) => {
+  const { folio } = req.params;
+  let depto = getDepartamento(req);
 
-    // 📌 Determinar sucursal activa
-    let depto = getDepartamento(req);
+  try {
+    // 1️⃣ Primero buscar en expedientes normales
+    const expedienteResult = await pool.query(
+      `SELECT numero_expediente AS id, numero_expediente AS folio, nombre_completo
+       FROM expedientes
+       WHERE numero_expediente = $1 AND departamento = $2
+       LIMIT 1`,
+      [folio, depto]
+    );
 
-    try {
-      const result = await pool.query(
-        `SELECT e.numero_expediente AS folio, e.nombre_completo
-        FROM expedientes e
-        WHERE e.numero_expediente = $1 AND e.departamento = $2
-        LIMIT 1`,
-        [folio, depto]
-      );
-
-      if (result.rows.length === 0) {
-        return res.status(404).json({ error: "No se encontró paciente con ese folio" });
-      }
-
-      // ✅ devolver en el formato que espera el frontend
-      res.json({
-        id: result.rows[0].folio,                 // este será pacienteId en el frontend
-        nombre_completo: result.rows[0].nombre_completo
-      });
-    } catch (err) {
-      console.error("Error buscando paciente por folio:", err);
-      res.status(500).json({ error: "Error al buscar paciente" });
+    if (expedienteResult.rows.length > 0) {
+      return res.json(expedienteResult.rows[0]);
     }
-  });
+
+    // 2️⃣ Si no se encuentra, buscar en pacientes_agenda
+    const pacienteAgendaResult = await pool.query(
+      `SELECT id, id AS folio, (nombre || ' ' || apellido) AS nombre_completo
+       FROM pacientes_agenda
+       WHERE id = $1 AND departamento = $2
+       LIMIT 1`,
+      [folio, depto]
+    );
+
+    if (pacienteAgendaResult.rows.length > 0) {
+      return res.json(pacienteAgendaResult.rows[0]);
+    }
+
+    // 3️⃣ Si no se encuentra en ninguna tabla
+    return res.status(404).json({ error: "No se encontró paciente con ese folio" });
+
+  } catch (err) {
+    console.error("Error buscando paciente por folio:", err);
+    res.status(500).json({ error: "Error al buscar paciente" });
+  }
+});
 
 // ==================== PACIENTES PENDIENTES PARA MÓDULO MÉDICO ====================
 app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
