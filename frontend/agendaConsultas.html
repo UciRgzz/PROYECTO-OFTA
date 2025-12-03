@@ -1250,7 +1250,7 @@
     }
 
     // ====================== VER DATOS DE CONSULTA ======================
-   async function verDatosConsulta(consultaId) {
+async function verDatosConsulta(consultaId) {
   try {
     const resp = await fetch(`/api/ordenes_medicas/consulta/${consultaId}`);
     if (!resp.ok) {
@@ -1260,8 +1260,15 @@
 
     const orden = await resp.json();
 
-    // Formatear la fecha
-    const fechaFormateada = orden.fecha ? new Date(orden.fecha).toLocaleDateString('es-MX') : 'Sin fecha';
+    // ✅ Formatear la fecha correctamente (sin conversión UTC)
+    const fechaFormateada = orden.fecha || 'Sin fecha';
+    
+    // ✅ Determinar el número de expediente
+    const numeroExpediente = orden.expediente_id 
+      ? `Expediente N° ${orden.expediente_id}` 
+      : orden.paciente_agenda_id 
+        ? `Paciente Agenda N° ${orden.paciente_agenda_id}` 
+        : 'Sin expediente';
 
     Swal.fire({
       title: '<i class="fas fa-file-medical"></i> Orden Médica',
@@ -1274,7 +1281,7 @@
               <i class="fas fa-user"></i> Información del Paciente
             </h5>
             <p style="margin: 5px 0;"><strong>Paciente:</strong> ${orden.paciente_nombre || 'No registrado'}</p>
-            <p style="margin: 5px 0;"><strong>Expediente:</strong> ${orden.expediente_id || 'N/A'}</p>
+            <p style="margin: 5px 0;"><strong>${numeroExpediente}</strong></p>
             <p style="margin: 5px 0;"><strong>Fecha:</strong> ${fechaFormateada}</p>
           </div>
 
