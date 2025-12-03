@@ -742,7 +742,7 @@
     }
   });
 
-  // ==================== MODULO DE RECIBOS ====================
+  // ==================== MODULO DE RECIBOS ===================
 // ==================== OBTENER ORDEN MÉDICA POR RECIBO ====================
 app.get('/api/ordenes_medicas/recibo/:recibo_id', verificarSesion, async (req, res) => {
   try {
@@ -1281,6 +1281,97 @@ app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
     client.release();
   }
 });
+// ==================== ELIMINAR RECIBO (NUEVO - CON CASCADA) ====================
+app.delete('/api/recibos/:id', verificarSesion, async (req, res) => {
+  const { id } = req.params;
+  const depto = getDepartamento(req);
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    // 1️⃣ Verificar que el recibo existe y pertenece al departamento
+    const reciboCheck = await client.query(
+      "SELECT id FROM recibos WHERE id = $1 AND departamento = $2",
+      [id, depto]
+    );
+
+    if (reciboCheck.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Recibo no encontrado o no pertenece a este departamento" });
+    }
+
+    console.log(`🗑️ Eliminando recibo ${id} y todas sus dependencias...`);
+
+    // 2️⃣ Buscar órdenes médicas asociadas a este recibo
+    const ordenesResult = await client.query(
+      "SELECT id FROM ordenes_medicas WHERE folio_recibo = $1 AND departamento = $2",
+      [id, depto]
+    );
+
+    const ordenIds = ordenesResult.rows.map(r => r.id);
+
+    if (ordenIds.length > 0) {
+      console.log(`📋 Encontradas ${ordenIds.length} órdenes médicas asociadas`);
+
+      // 3️⃣ Eliminar pagos de las órdenes
+      await client.query(
+        "DELETE FROM pagos WHERE orden_id = ANY($1) AND departamento = $2",
+        [ordenIds, depto]
+      );
+      console.log(`✅ Pagos de órdenes eliminados`);
+
+      // 4️⃣ Eliminar consultas asociadas (si existen)
+      await client.query(
+        "DELETE FROM consultas WHERE id IN (SELECT consulta_id FROM ordenes_medicas WHERE id = ANY($1)) AND departamento = $2",
+        [ordenIds, depto]
+      );
+      console.log(`✅ Consultas asociadas eliminadas`);
+
+      // 5️⃣ Eliminar registros de agenda quirúrgica
+      await client.query(
+        "DELETE FROM agenda_quirurgica WHERE orden_id = ANY($1) AND departamento = $2",
+        [ordenIds, depto]
+      );
+      console.log(`✅ Registros de agenda quirúrgica eliminados`);
+
+      // 6️⃣ Eliminar las órdenes médicas
+      await client.query(
+        "DELETE FROM ordenes_medicas WHERE id = ANY($1) AND departamento = $2",
+        [ordenIds, depto]
+      );
+      console.log(`✅ Órdenes médicas eliminadas`);
+    }
+
+    // 7️⃣ Eliminar abonos del recibo
+    await client.query(
+      "DELETE FROM abonos_recibos WHERE recibo_id = $1 AND departamento = $2",
+      [id, depto]
+    );
+    console.log(`✅ Abonos del recibo eliminados`);
+
+    // 8️⃣ Finalmente, eliminar el recibo
+    await client.query(
+      "DELETE FROM recibos WHERE id = $1 AND departamento = $2",
+      [id, depto]
+    );
+    console.log(`✅ Recibo ${id} eliminado correctamente`);
+
+    await client.query("COMMIT");
+    res.json({ mensaje: "Recibo y todas sus dependencias eliminados correctamente" });
+
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("❌ Error al eliminar recibo:", err);
+    res.status(500).json({ 
+      error: "Error al eliminar recibo", 
+      detalle: err.message 
+    });
+  } finally {
+    client.release();
+  }
+});
+
 
 // ==================== CATÁLOGO DE PROCEDIMIENTOS (CORREGIDO - CON PRECIOS POR SUCURSAL) ====================
 app.get('/api/procedimientos', verificarSesion, async (req, res) => {
