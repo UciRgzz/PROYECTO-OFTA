@@ -931,7 +931,7 @@ app.get('/api/pacientes-agenda/:id', verificarSesion, async (req, res) => {
 });
 
 
-// ==================== Guardar recibo (CORREGIDO CON ABONOS Y PACIENTES DE AGENDA) ====================
+// ==================== Guardar recibo (CORREGIDO CON ABONOS, PACIENTES DE AGENDA Y MÓDULO MÉDICO) ====================
 app.post('/api/recibos', verificarSesion, async (req, res) => {
   const { fecha, paciente_id, paciente_agenda_id, procedimiento, precio, forma_pago, monto_pagado, tipo, crear_orden } = req.body;
   const depto = getDepartamento(req);
@@ -1023,19 +1023,29 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 
     if (debeCrearOrden) {
       const fechaLocal = fechaLocalMX();
-      const tipoOrden = tipo === "OrdenCirugia" ? "Cirugia" : "Consulta";
-      const origenOrden = tipo === "OrdenCirugia" ? "CIRUGIA" : "CIRUGIA";
       
+      // 🔹 Obtener siguiente número de orden
+      const numeroOrdenRes = await client.query(
+        "SELECT COALESCE(MAX(numero_orden), 0) + 1 AS siguiente FROM ordenes_medicas WHERE departamento = $1",
+        [depto]
+      );
+      const numero_orden = numeroOrdenRes.rows[0].siguiente;
+      
+      const tipoOrden = tipo === "OrdenCirugia" ? "Cirugia" : "Consulta";
+      const origenOrden = tipo === "OrdenCirugia" ? "CIRUGIA" : "RECIBOS";  // ✅ Cambiar origen a "RECIBOS"
+      
+      // ✅ CRÍTICO: medico debe ser NULL (no 'Pendiente') para que aparezca en Módulo Médico
       const orden = await client.query(
         `INSERT INTO ordenes_medicas (
-           expediente_id, paciente_agenda_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, departamento, medico, origen
-         ) VALUES ($1, $2, $3, $4, $5, $6::numeric, $7::numeric, ($6::numeric - $7::numeric),
-           CASE WHEN $7::numeric >= $6::numeric THEN 'Pagado' ELSE 'Pendiente' END,
-           $8::date, $9, 'Pendiente', $10)
+           numero_orden, expediente_id, paciente_agenda_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, departamento, medico, origen
+         ) VALUES ($1, $2, $3, $4, $5, $6, $7::numeric, $8::numeric, ($7::numeric - $8::numeric),
+           CASE WHEN $8::numeric >= $7::numeric THEN 'Pagado' ELSE 'Pendiente' END,
+           $9::date, $10, NULL, $11)
          RETURNING id`,
         [
-          esPacienteAgenda ? null : paciente_id,  // expediente_id NULL si es agenda
-          esPacienteAgenda ? paciente_agenda_id : null,  // paciente_agenda_id NULL si es expediente
+          numero_orden,  // ✅ Agregado número de orden
+          esPacienteAgenda ? null : paciente_id,
+          esPacienteAgenda ? paciente_agenda_id : null,
           recibo.id, 
           procedimiento, 
           tipoOrden, 
@@ -1048,6 +1058,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
       );
 
       const ordenId = orden.rows[0].id;
+      console.log(`✅ Orden médica N°${numero_orden} creada (tipo: ${tipoOrden}, medico: NULL para aparecer en Módulo Médico)`);
 
       if (monto_pagado > 0) {
         await client.query(
