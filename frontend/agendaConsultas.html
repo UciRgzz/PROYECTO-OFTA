@@ -944,93 +944,80 @@
     }
 
     async function mostrarConsultas(consultas, ordenes) {
-      const tbody = document.getElementById("tabla-consultas");
-      tbody.innerHTML = "";
+  const tbody = document.getElementById("tabla-consultas");
+  tbody.innerHTML = "";
 
-      if (consultas.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-muted">No hay consultas programadas</td></tr>`;
-        return;
-      }
+  if (consultas.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" class="text-muted">No hay consultas programadas</td></tr>`;
+    return;
+  }
 
-      // ✅ OBTENER RECIBOS PARA VERIFICAR PAGOS
-      const respRecibos = await fetch('/api/recibos');
-      const recibos = respRecibos.ok ? await respRecibos.json() : [];
-
-      consultas.forEach(c => {
-        // ✅ VERIFICAR SI YA TIENE ORDEN CREADA
-        const ordenConsulta = ordenes.find(o => o.consulta_id === c.id);
-        const tieneOrden = !!ordenConsulta;
-        
-        // ✅ VERIFICAR SI LA ORDEN TIENE PAGOS REGISTRADOS
-        let tienePago = false;
-        if (tieneOrden && ordenConsulta.folio_recibo) {
-          const reciboAsociado = recibos.find(r => r.id === ordenConsulta.folio_recibo);
-          tienePago = reciboAsociado && parseFloat(reciboAsociado.monto_pagado || 0) > 0;
-        }
-        
-        let botonesAccion = '';
-        
-        // ✅ FLUJO CORRECTO:
-        // 1. Pendiente SIN orden → Botón "Pagar"
-        // 2. Pendiente CON orden SIN pago → Botón "Pagar" 
-        // 3. Pendiente CON orden CON pago → Botón "Atender"
-        // 4. En Módulo Médico → Badge "En atención"
-        // 5. Atendida → Botón "Ver"
-        
-        if (c.estado === 'Pendiente') {
-          if (!tieneOrden || !tienePago) {
-            // ✅ CASO 1 y 2: NO tiene orden O no tiene pago → Mostrar botón "Pagar"
-            botonesAccion = `
-              <button class="btn btn-warning btn-sm" onclick="irAPagar(${c.id}, ${c.numero_expediente}, '${c.paciente.replace(/'/g, "\\'")}')">
-                <i class="fas fa-dollar-sign"></i> Pagar
-              </button>
-            `;
-          } else {
-            // ✅ CASO 3: Tiene orden Y tiene pago → Mostrar botón "Atender"
-            botonesAccion = `
-              <button class="btn btn-success btn-sm" onclick="enviarAModuloMedico(${c.id})">
-                <i class="fas fa-stethoscope"></i> Atender
-              </button>
-            `;
-          }
-        } else if (c.estado === 'En Módulo Médico') {
-          // ✅ CASO 4: En atención
-          botonesAccion = `<span class="badge bg-info">En atención</span>`;
-        } else if (c.estado === 'Atendida') {
-          // ✅ CASO 5: Ya atendida
-          botonesAccion = `
-            <button class="btn btn-info btn-sm" onclick="verDatosConsulta(${c.id})">
-              <i class="fas fa-eye"></i> Ver
-            </button>
-          `;
-        }
-        
-        // Admin siempre puede eliminar
-        if (rolUsuario === 'admin') {
-          botonesAccion += `
-            <button class="btn btn-danger btn-sm" onclick="eliminarConsulta(${c.id})">
-              <i class="fas fa-trash"></i>
-            </button>
-          `;
-        }
-        
-        const fila = document.createElement("tr");
-        fila.innerHTML = `
-          <td>${c.id}</td>
-          <td>${c.paciente}</td>
-          <td>${formatearFecha(c.fecha)}</td>
-          <td>${formatearHora12h(c.hora)}</td>
-          <td>${c.medico}</td>
-          <td>
-            <span class="badge bg-${c.estado === 'Pendiente' ? 'warning' : c.estado === 'Atendida' ? 'success' : 'info'}">
-              ${c.estado}
-            </span>
-          </td>
-          <td><div class="btn-group-actions">${botonesAccion}</div></td>
+  consultas.forEach(c => {
+    // ✅ SOLO VERIFICAR SI TIENE ORDEN CREADA
+    const tieneOrden = ordenes.some(o => o.consulta_id === c.id);
+    
+    let botonesAccion = '';
+    
+    // ✅ FLUJO CORRECTO:
+    // 1. Pendiente SIN orden → Botón "Pagar"
+    // 2. Pendiente CON orden → Botón "Atender"
+    // 3. En Módulo Médico → Badge "En atención"
+    // 4. Atendida → Botón "Ver"
+    
+    if (c.estado === 'Pendiente') {
+      if (!tieneOrden) {
+        // ✅ CASO 1: NO tiene orden → Mostrar botón "Pagar"
+        botonesAccion = `
+          <button class="btn btn-warning btn-sm" onclick="irAPagar(${c.id}, ${c.numero_expediente}, '${c.paciente.replace(/'/g, "\\'")}')">
+            <i class="fas fa-dollar-sign"></i> Pagar
+          </button>
         `;
-        tbody.appendChild(fila);
-      });
+      } else {
+        // ✅ CASO 2: YA tiene orden → Mostrar botón "Atender"
+        botonesAccion = `
+          <button class="btn btn-success btn-sm" onclick="enviarAModuloMedico(${c.id})">
+            <i class="fas fa-stethoscope"></i> Atender
+          </button>
+        `;
+      }
+    } else if (c.estado === 'En Módulo Médico') {
+      // ✅ CASO 3: En atención
+      botonesAccion = `<span class="badge bg-info">En atención</span>`;
+    } else if (c.estado === 'Atendida') {
+      // ✅ CASO 4: Ya atendida
+      botonesAccion = `
+        <button class="btn btn-info btn-sm" onclick="verDatosConsulta(${c.id})">
+          <i class="fas fa-eye"></i> Ver
+        </button>
+      `;
     }
+    
+    // Admin siempre puede eliminar
+    if (rolUsuario === 'admin') {
+      botonesAccion += `
+        <button class="btn btn-danger btn-sm" onclick="eliminarConsulta(${c.id})">
+          <i class="fas fa-trash"></i>
+        </button>
+      `;
+    }
+    
+    const fila = document.createElement("tr");
+    fila.innerHTML = `
+      <td>${c.id}</td>
+      <td>${c.paciente}</td>
+      <td>${formatearFecha(c.fecha)}</td>
+      <td>${formatearHora12h(c.hora)}</td>
+      <td>${c.medico}</td>
+      <td>
+        <span class="badge bg-${c.estado === 'Pendiente' ? 'warning' : c.estado === 'Atendida' ? 'success' : 'info'}">
+          ${c.estado}
+        </span>
+      </td>
+      <td><div class="btn-group-actions">${botonesAccion}</div></td>
+    `;
+    tbody.appendChild(fila);
+  });
+}
 
     function formatearHora12h(hora24) {
       if (!hora24) return "-";
