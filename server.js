@@ -1083,7 +1083,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 app.get('/api/recibos', verificarSesion, async (req, res) => {
   try {
     let depto = getDepartamento(req);
-    const { fecha, desde, hasta } = req.query; // 👈 soporta fecha y rango
+    const { fecha, desde, hasta } = req.query;
 
     let query = `
       SELECT 
@@ -1091,18 +1091,20 @@ app.get('/api/recibos', verificarSesion, async (req, res) => {
         r.numero_recibo,
         r.fecha,
         r.folio,
-        e.nombre_completo AS paciente,
+        -- ✅ CORREGIDO: Obtener nombre desde expedientes O pacientes_agenda
+        COALESCE(
+          e.nombre_completo,
+          (pa.nombre || ' ' || pa.apellido)
+        ) AS paciente,
         r.procedimiento,
         r.tipo,
         r.forma_pago,
         r.precio,
-        -- ✅ CAMBIO: Calcular monto_pagado desde abonos_recibos
         COALESCE(
           (SELECT SUM(a.monto) FROM abonos_recibos a 
            WHERE a.recibo_id = r.id AND a.departamento = r.departamento),
           0
         ) AS monto_pagado,
-        -- ✅ CAMBIO: Calcular pendiente correctamente
         (r.precio - COALESCE(
           (SELECT SUM(a.monto) FROM abonos_recibos a 
            WHERE a.recibo_id = r.id AND a.departamento = r.departamento),
@@ -1111,7 +1113,10 @@ app.get('/api/recibos', verificarSesion, async (req, res) => {
       FROM recibos r
       LEFT JOIN expedientes e 
         ON r.paciente_id = e.numero_expediente 
-      AND r.departamento = e.departamento
+        AND r.departamento = e.departamento
+      LEFT JOIN pacientes_agenda pa
+        ON r.paciente_agenda_id = pa.id
+        AND r.departamento = pa.departamento
       WHERE r.departamento = $1
     `;
     let params = [depto];
@@ -1123,7 +1128,7 @@ app.get('/api/recibos', verificarSesion, async (req, res) => {
       query += " AND r.fecha BETWEEN $2 AND $3";
       params.push(desde, hasta);
     } else {
-      query += " AND r.fecha = CURRENT_DATE"; // 👈 por defecto carga solo los de hoy
+      query += " AND r.fecha = CURRENT_DATE";
     }
 
     query += " ORDER BY r.numero_recibo DESC";
@@ -1136,45 +1141,6 @@ app.get('/api/recibos', verificarSesion, async (req, res) => {
   }
 });
 
-// ✅ ELIMINAR RECIBO - SIN CAMBIOS
-app.delete('/api/recibos/:id', isAdmin, async (req, res) => {
-  try {
-    const { id } = req.params;
-    let depto = getDepartamento(req);
-
-    // 1. Eliminar pagos asociados a órdenes de este recibo
-    await pool.query(
-      `DELETE FROM pagos 
-      WHERE orden_id IN (
-        SELECT id FROM ordenes_medicas 
-        WHERE folio_recibo = $1 AND departamento = $2
-      ) AND departamento = $2`,
-      [id, depto]
-    );
-
-    // 2. Eliminar órdenes médicas asociadas al recibo
-    await pool.query(
-      `DELETE FROM ordenes_medicas 
-      WHERE folio_recibo = $1 AND departamento = $2`,
-      [id, depto]
-    );
-
-    // 3. Eliminar el recibo (el trigger automáticamente renumerará)
-    const result = await pool.query(
-      'DELETE FROM recibos WHERE id = $1 AND departamento = $2 RETURNING *',
-      [id, depto]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Recibo no encontrado o no pertenece a este departamento" });
-    }
-
-    res.json({ mensaje: "🗑️ Recibo y registros asociados eliminados correctamente" });
-  } catch (err) {
-    console.error("Error eliminando recibo:", err);
-    res.status(500).json({ error: "Error eliminando recibo" });
-  }
-});
 
 // ==================== Obtener un recibo por ID (CORREGIDO) ====================
 app.get('/api/recibos/:id', verificarSesion, async (req, res) => {
