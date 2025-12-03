@@ -1473,7 +1473,7 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
     const depto = getDepartamento(req);
 
     const result = await pool.query(`
-      -- ✅ SOLO Consultas que YA fueron enviadas al módulo médico (estado = 'En Módulo Médico')
+      -- 1️⃣ Consultas que YA fueron enviadas al módulo médico (estado = 'En Módulo Médico')
       SELECT 
         c.id AS recibo_id,
         COALESCE(c.numero_expediente, c.paciente_agenda_id) AS expediente_id,
@@ -1499,6 +1499,30 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
         AND c.departamento = pa.departamento
       WHERE c.departamento = $1
         AND c.estado = 'En Módulo Médico'
+
+      UNION ALL
+
+      -- 2️⃣ Órdenes médicas creadas directamente desde RECIBOS (tipo Normal/Atención Médica)
+      SELECT 
+        o.folio_recibo AS recibo_id,
+        COALESCE(o.expediente_id, o.paciente_agenda_id) AS expediente_id,
+        COALESCE(e.nombre_completo, pa.nombre || ' ' || pa.apellido, 'Sin nombre') AS nombre_completo,
+        COALESCE(e.edad, pa.edad, 0) AS edad,
+        COALESCE(e.padecimientos, 'NINGUNO') AS padecimientos,
+        o.procedimiento,
+        NULL AS consulta_id,
+        o.folio_recibo AS folio_recibo_real,
+        'RECIBOS' AS origen
+      FROM ordenes_medicas o
+      LEFT JOIN expedientes e 
+        ON o.expediente_id = e.numero_expediente 
+        AND o.departamento = e.departamento
+      LEFT JOIN pacientes_agenda pa
+        ON o.paciente_agenda_id = pa.id
+        AND o.departamento = pa.departamento
+      WHERE o.departamento = $1
+        AND o.origen = 'RECIBOS'
+        AND (o.medico IS NULL OR o.medico = '' OR o.medico = 'Pendiente')
 
       ORDER BY nombre_completo ASC
     `, [depto]);
