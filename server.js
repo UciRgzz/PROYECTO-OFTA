@@ -1536,7 +1536,7 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== GUARDAR O ACTUALIZAR ORDEN MÉDICA (✅ CORREGIDO - ACTUALIZA EN LUGAR DE CREAR NUEVA) ====================
+// ==================== GUARDAR O ACTUALIZAR ORDEN MÉDICA (✅ CORREGIDO - CREA NUEVA ORDEN SI CAMBIA PROCEDIMIENTO) ====================
 app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
   const client = await pool.connect();
   
@@ -1571,7 +1571,6 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
     if (consulta_id) {
       console.log('📋 Procesando orden desde CONSULTA ID:', consulta_id);
 
-      // Obtener datos de la consulta
       const consultaResult = await client.query(
         `SELECT expediente_id, numero_expediente, paciente_agenda_id, tipo_paciente FROM consultas WHERE id = $1 AND departamento = $2`,
         [consulta_id, depto]
@@ -1585,7 +1584,6 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
       const consulta = consultaResult.rows[0];
       expediente_id = consulta.expediente_id || consulta.numero_expediente;
 
-      // Obtener información del procedimiento seleccionado
       const procResult = await client.query(
         `SELECT nombre, precio FROM catalogo_procedimientos WHERE id = $1`,
         [procedimiento_id]
@@ -1601,10 +1599,6 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
       const esConsultaInicial = procedimientoNombre.toLowerCase().includes('consulta') && 
                                 parseFloat(procedimientoPrecio) <= 500;
 
-      console.log(`🔍 Procedimiento: ${procedimientoNombre} - Precio: $${procedimientoPrecio}`);
-      console.log(`📊 Es consulta inicial: ${esConsultaInicial}`);
-
-      // ✅ BUSCAR SI YA EXISTE UNA ORDEN PARA ESTA CONSULTA
       const ordenExistente = await client.query(
         `SELECT id, folio_recibo FROM ordenes_medicas 
          WHERE consulta_id = $1 AND departamento = $2
@@ -1613,11 +1607,8 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
       );
 
       if (ordenExistente.rows.length > 0) {
-        // ✅ YA EXISTE ORDEN - ACTUALIZAR
         const ordenId = ordenExistente.rows[0].id;
         folio_recibo_final = ordenExistente.rows[0].folio_recibo;
-
-        console.log(`🔄 ACTUALIZANDO orden existente ID: ${ordenId}`);
 
         if (esConsultaInicial) {
           // Actualizar orden de consulta
@@ -1642,7 +1633,6 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
             ]
           );
 
-          // Actualizar recibo asociado
           await client.query(
             `UPDATE recibos 
              SET procedimiento = $1, precio = $2
@@ -1650,15 +1640,12 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
             [procedimientoNombre, procedimientoPrecio, folio_recibo_final, depto]
           );
 
-          // Marcar consulta como Atendida
           await client.query(
             `UPDATE consultas SET estado = 'Atendida' WHERE id = $1 AND departamento = $2`,
             [consulta_id, depto]
           );
 
           await client.query("COMMIT");
-          console.log(`✅ Orden de consulta actualizada - ID: ${ordenId}`);
-
           return res.json({ 
             mensaje: "Orden médica de consulta actualizada correctamente", 
             orden: result.rows[0],
@@ -1666,10 +1653,7 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
           });
 
         } else {
-          // ✅ CAMBIÓ A CIRUGÍA - CREAR NUEVA ORDEN Y NUEVO RECIBO
-          console.log(`🆕 Cambió a cirugía: ${procedimientoNombre}`);
-
-          // 1. Actualizar la orden de consulta existente
+          // Cambió a cirugía - actualizar consulta + crear nueva orden
           await client.query(
             `UPDATE ordenes_medicas 
             SET medico = $1, diagnostico = $2, lado = $3,
@@ -1688,7 +1672,6 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
             ]
           );
 
-          // 2. Crear NUEVO recibo para la cirugía
           const fechaLocal = fechaLocalMX();
           const ultimoNumero = await client.query(
             "SELECT COALESCE(MAX(numero_recibo), 0) + 1 AS siguiente FROM recibos WHERE departamento = $1",
@@ -1698,9 +1681,9 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
 
           const nuevoRecibo = await client.query(
             `INSERT INTO recibos 
-              (numero_recibo, fecha, folio, paciente_id, paciente_agenda_id, procedimiento, precio, forma_pago, monto_pagado, tipo, departamento)
+              (numero_recibo, fecha, folio, paciente_id, paciente_agenda_id, procedimiento, precio, forma_pago, tipo, departamento)
             VALUES 
-              ($1, $2::date, $3, $4, $5, $6, $7::numeric, 'Pendiente', 0, 'OrdenCirugia', $8)
+              ($1, $2::date, $3, $4, $5, $6, $7::numeric, 'Pendiente', 'OrdenCirugia', $8)
             RETURNING *`,
             [
               siguienteNumero, 
@@ -1716,7 +1699,6 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
 
           folio_recibo_final = nuevoRecibo.rows[0].id;
 
-          // 3. Crear NUEVA orden de cirugía
           const resultCirugia = await client.query(
             `INSERT INTO ordenes_medicas (
               expediente_id, paciente_agenda_id, folio_recibo, consulta_id, medico, diagnostico, lado, 
@@ -1745,15 +1727,12 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
             ]
           );
 
-          // Marcar consulta como Atendida
           await client.query(
             `UPDATE consultas SET estado = 'Atendida' WHERE id = $1 AND departamento = $2`,
             [consulta_id, depto]
           );
 
           await client.query("COMMIT");
-          console.log(`✅ Nueva orden de cirugía creada - ID: ${resultCirugia.rows[0].id}`);
-
           return res.json({ 
             mensaje: "Nueva orden médica de cirugía creada correctamente", 
             orden: resultCirugia.rows[0],
@@ -1762,7 +1741,6 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         }
 
       } else {
-        // NO EXISTE ORDEN PREVIA (no debería pasar si el flujo es correcto)
         await client.query("ROLLBACK");
         return res.status(400).json({ 
           error: "No se encontró orden médica previa para esta consulta" 
@@ -1770,11 +1748,11 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
       }
 
     } else if (folio_recibo) {
-      // ✅ CASO 2: VIENE DE RECIBO DIRECTO (sin consulta)
+      // ✅ CASO 2: VIENE DE RECIBO DIRECTO
       console.log('💵 Procesando orden desde RECIBO ID:', folio_recibo);
 
       const reciboResult = await client.query(
-        `SELECT id, paciente_id, paciente_agenda_id, tipo, procedimiento FROM recibos WHERE id = $1 AND departamento = $2`,
+        `SELECT id, paciente_id, paciente_agenda_id, tipo, procedimiento, precio FROM recibos WHERE id = $1 AND departamento = $2`,
         [folio_recibo, depto]
       );
 
@@ -1798,55 +1776,143 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
 
       const { nombre: procedimientoNombre, precio: procedimientoPrecio } = procResult.rows[0];
 
-      // Verificar si ya existe orden para este recibo
       const ordenExistente = await client.query(
-        `SELECT id FROM ordenes_medicas WHERE folio_recibo = $1 AND departamento = $2 LIMIT 1`,
+        `SELECT id, procedimiento, precio FROM ordenes_medicas WHERE folio_recibo = $1 AND departamento = $2 LIMIT 1`,
         [folio_recibo, depto]
       );
 
       if (ordenExistente.rows.length > 0) {
-        // ACTUALIZAR orden existente
         const ordenId = ordenExistente.rows[0].id;
+        const procedimientoOriginal = ordenExistente.rows[0].procedimiento;
+        const precioOriginal = parseFloat(ordenExistente.rows[0].precio);
+        const precioNuevo = parseFloat(procedimientoPrecio);
 
-        const result = await client.query(
-          `UPDATE ordenes_medicas 
-          SET medico = $1, diagnostico = $2, lado = $3,
-              anexos = $4, conjuntiva = $5, cornea = $6, 
-              camara_anterior = $7, cristalino = $8,
-              retina = $9, macula = $10, nervio_optico = $11, 
-              ciclopejia = $12, hora_tp = $13,
-              problemas = $14, plan = $15,
-              procedimiento = $16, precio = $17, pendiente = $17
-          WHERE id = $18 AND departamento = $19
-          RETURNING *`,
-          [
-            medico, diagnostico, lado,
-            anexos, conjuntiva, cornea, camara_anterior, cristalino,
-            retina, macula, nervio_optico, ciclopejia, hora_tp,
-            problemas, plan,
-            procedimientoNombre, procedimientoPrecio,
-            ordenId, depto
-          ]
-        );
+        // 🔍 DETECTAR SI CAMBIÓ DE CONSULTA A CIRUGÍA
+        const esConsultaOriginal = procedimientoOriginal.toLowerCase().includes('consulta') && precioOriginal <= 500;
+        const esCirugiaNueva = !procedimientoNombre.toLowerCase().includes('consulta') && precioNuevo > 500;
 
-        // Actualizar recibo
-        await client.query(
-          `UPDATE recibos 
-           SET procedimiento = $1, precio = $2
-           WHERE id = $3 AND departamento = $4`,
-          [procedimientoNombre, procedimientoPrecio, folio_recibo, depto]
-        );
+        if (esConsultaOriginal && esCirugiaNueva) {
+          console.log('🔄 CAMBIÓ DE CONSULTA A CIRUGÍA - Crear nueva orden');
 
-        await client.query("COMMIT");
+          // 1. Actualizar orden de consulta CON DATOS MÉDICOS (sin cambiar procedimiento/precio)
+          await client.query(
+            `UPDATE ordenes_medicas 
+            SET medico = $1, diagnostico = $2, lado = $3,
+                anexos = $4, conjuntiva = $5, cornea = $6, 
+                camara_anterior = $7, cristalino = $8,
+                retina = $9, macula = $10, nervio_optico = $11, 
+                ciclopejia = $12, hora_tp = $13,
+                problemas = $14, plan = $15
+            WHERE id = $16 AND departamento = $17`,
+            [
+              medico, diagnostico, lado,
+              anexos, conjuntiva, cornea, camara_anterior, cristalino,
+              retina, macula, nervio_optico, ciclopejia, hora_tp,
+              problemas, plan,
+              ordenId, depto
+            ]
+          );
 
-        return res.json({ 
-          mensaje: "Orden médica actualizada correctamente", 
-          orden: result.rows[0],
-          actualizada: true
-        });
+          // 2. Crear NUEVO recibo para cirugía
+          const fechaLocal = fechaLocalMX();
+          const ultimoNumero = await client.query(
+            "SELECT COALESCE(MAX(numero_recibo), 0) + 1 AS siguiente FROM recibos WHERE departamento = $1",
+            [depto]
+          );
+          const siguienteNumero = ultimoNumero.rows[0].siguiente;
+
+          const nuevoRecibo = await client.query(
+            `INSERT INTO recibos 
+              (numero_recibo, fecha, folio, paciente_id, paciente_agenda_id, procedimiento, precio, forma_pago, tipo, departamento)
+            VALUES 
+              ($1, $2::date, $3, $4, $5, $6, $7::numeric, 'Pendiente', 'OrdenCirugia', $8)
+            RETURNING *`,
+            [
+              siguienteNumero, 
+              fechaLocal, 
+              expediente_id, 
+              recibo.paciente_id,
+              recibo.paciente_agenda_id,
+              procedimientoNombre, 
+              procedimientoPrecio, 
+              depto
+            ]
+          );
+
+          // 3. Crear NUEVA orden de cirugía
+          const resultCirugia = await client.query(
+            `INSERT INTO ordenes_medicas (
+              expediente_id, paciente_agenda_id, folio_recibo, consulta_id, medico, diagnostico, lado, 
+              procedimiento, tipo, precio,
+              anexos, conjuntiva, cornea, camara_anterior, cristalino,
+              retina, macula, nervio_optico, ciclopejia, hora_tp,
+              problemas, plan, estatus, fecha, departamento, origen, pagado, pendiente
+            )
+            VALUES (
+              $1, $2, $3, NULL, $4, $5, $6,
+              $7, 'Cirugia', $8,
+              $9, $10, $11, $12, $13,
+              $14, $15, $16, $17, $18,
+              $19, $20, 'Pendiente', $21::date, $22, 'CIRUGIA', 0, $8
+            )
+            RETURNING *`,
+            [
+              recibo.paciente_id, recibo.paciente_agenda_id, nuevoRecibo.rows[0].id,
+              medico, diagnostico, lado,
+              procedimientoNombre, procedimientoPrecio,
+              anexos, conjuntiva, cornea, camara_anterior, cristalino,
+              retina, macula, nervio_optico, ciclopejia, hora_tp,
+              problemas, plan, fechaLocal, depto
+            ]
+          );
+
+          await client.query("COMMIT");
+          return res.json({ 
+            mensaje: "Nueva orden de cirugía creada, consulta original conservada", 
+            orden: resultCirugia.rows[0],
+            actualizada: false
+          });
+
+        } else {
+          // MISMO tipo de procedimiento - actualizar orden
+          const result = await client.query(
+            `UPDATE ordenes_medicas 
+            SET medico = $1, diagnostico = $2, lado = $3,
+                anexos = $4, conjuntiva = $5, cornea = $6, 
+                camara_anterior = $7, cristalino = $8,
+                retina = $9, macula = $10, nervio_optico = $11, 
+                ciclopejia = $12, hora_tp = $13,
+                problemas = $14, plan = $15,
+                procedimiento = $16, precio = $17, pendiente = $17
+            WHERE id = $18 AND departamento = $19
+            RETURNING *`,
+            [
+              medico, diagnostico, lado,
+              anexos, conjuntiva, cornea, camara_anterior, cristalino,
+              retina, macula, nervio_optico, ciclopejia, hora_tp,
+              problemas, plan,
+              procedimientoNombre, procedimientoPrecio,
+              ordenId, depto
+            ]
+          );
+
+          await client.query(
+            `UPDATE recibos 
+             SET procedimiento = $1, precio = $2
+             WHERE id = $3 AND departamento = $4`,
+            [procedimientoNombre, procedimientoPrecio, folio_recibo, depto]
+          );
+
+          await client.query("COMMIT");
+          return res.json({ 
+            mensaje: "Orden médica actualizada correctamente", 
+            orden: result.rows[0],
+            actualizada: true
+          });
+        }
 
       } else {
-        // CREAR nueva orden
+        // No existe orden - crear nueva
         const fechaLocal = fechaLocalMX();
 
         const result = await client.query(
@@ -1875,7 +1941,6 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
           ]
         );
 
-        // Actualizar recibo
         await client.query(
           `UPDATE recibos 
            SET procedimiento = $1, precio = $2
@@ -1884,7 +1949,6 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         );
 
         await client.query("COMMIT");
-
         return res.json({ 
           mensaje: "Orden médica creada correctamente", 
           orden: result.rows[0],
@@ -1905,6 +1969,7 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
     client.release();
   }
 });
+
 
 // ==================== ÓRDENES POR EXPEDIENTE ====================
   app.get("/api/expedientes/:id/ordenes", verificarSesion, async (req, res) => {
