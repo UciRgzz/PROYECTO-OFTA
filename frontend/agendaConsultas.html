@@ -937,13 +937,13 @@
         const respOrdenes = await fetch('/api/ordenes_medicas_consulta');
         const ordenes = respOrdenes.ok ? await respOrdenes.json() : [];
         
-        mostrarConsultas(consultas, ordenes);
+        await mostrarConsultas(consultas, ordenes);
       } catch (err) {
         console.error("Error:", err);
       }
     }
 
-    function mostrarConsultas(consultas, ordenes) {
+    async function mostrarConsultas(consultas, ordenes) {
       const tbody = document.getElementById("tabla-consultas");
       tbody.innerHTML = "";
 
@@ -952,28 +952,41 @@
         return;
       }
 
+      // ✅ OBTENER RECIBOS PARA VERIFICAR PAGOS
+      const respRecibos = await fetch('/api/recibos');
+      const recibos = respRecibos.ok ? await respRecibos.json() : [];
+
       consultas.forEach(c => {
         // ✅ VERIFICAR SI YA TIENE ORDEN CREADA
-        const tieneOrden = ordenes.some(o => o.consulta_id === c.id);
+        const ordenConsulta = ordenes.find(o => o.consulta_id === c.id);
+        const tieneOrden = !!ordenConsulta;
+        
+        // ✅ VERIFICAR SI LA ORDEN TIENE PAGOS REGISTRADOS
+        let tienePago = false;
+        if (tieneOrden && ordenConsulta.folio_recibo) {
+          const reciboAsociado = recibos.find(r => r.id === ordenConsulta.folio_recibo);
+          tienePago = reciboAsociado && parseFloat(reciboAsociado.monto_pagado || 0) > 0;
+        }
         
         let botonesAccion = '';
         
         // ✅ FLUJO CORRECTO:
         // 1. Pendiente SIN orden → Botón "Pagar"
-        // 2. Pendiente CON orden → Botón "Atender"
-        // 3. En Módulo Médico → Badge "En atención"
-        // 4. Atendida → Botón "Ver"
+        // 2. Pendiente CON orden SIN pago → Botón "Pagar" 
+        // 3. Pendiente CON orden CON pago → Botón "Atender"
+        // 4. En Módulo Médico → Badge "En atención"
+        // 5. Atendida → Botón "Ver"
         
         if (c.estado === 'Pendiente') {
-          if (!tieneOrden) {
-            // ✅ CASO 1: NO tiene orden → Mostrar botón "Pagar"
+          if (!tieneOrden || !tienePago) {
+            // ✅ CASO 1 y 2: NO tiene orden O no tiene pago → Mostrar botón "Pagar"
             botonesAccion = `
               <button class="btn btn-warning btn-sm" onclick="irAPagar(${c.id}, ${c.numero_expediente}, '${c.paciente.replace(/'/g, "\\'")}')">
                 <i class="fas fa-dollar-sign"></i> Pagar
               </button>
             `;
           } else {
-            // ✅ CASO 2: YA tiene orden → Mostrar botón "Atender"
+            // ✅ CASO 3: Tiene orden Y tiene pago → Mostrar botón "Atender"
             botonesAccion = `
               <button class="btn btn-success btn-sm" onclick="enviarAModuloMedico(${c.id})">
                 <i class="fas fa-stethoscope"></i> Atender
@@ -981,10 +994,10 @@
             `;
           }
         } else if (c.estado === 'En Módulo Médico') {
-          // ✅ CASO 3: En atención
+          // ✅ CASO 4: En atención
           botonesAccion = `<span class="badge bg-info">En atención</span>`;
         } else if (c.estado === 'Atendida') {
-          // ✅ CASO 4: Ya atendida
+          // ✅ CASO 5: Ya atendida
           botonesAccion = `
             <button class="btn btn-info btn-sm" onclick="verDatosConsulta(${c.id})">
               <i class="fas fa-eye"></i> Ver
