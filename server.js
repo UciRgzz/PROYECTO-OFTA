@@ -1034,14 +1034,14 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
       const tipoOrden = tipo === "OrdenCirugia" ? "Cirugia" : "Consulta";
       const origenOrden = tipo === "OrdenCirugia" ? "CIRUGIA" : "RECIBOS";  // ✅ Cambiar origen a "RECIBOS"
       
-      // ✅ CRÍTICO: medico debe ser NULL (no 'Pendiente') para que aparezca en Módulo Médico
+      // ✅ CORREGIDO: medico debe ser '' (cadena vacía) para que aparezca en Módulo Médico
       const orden = await client.query(
         `INSERT INTO ordenes_medicas (
-           numero_orden, expediente_id, paciente_agenda_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, departamento, medico, origen
-         ) VALUES ($1, $2, $3, $4, $5, $6, $7::numeric, $8::numeric, ($7::numeric - $8::numeric),
-           CASE WHEN $8::numeric >= $7::numeric THEN 'Pagado' ELSE 'Pendiente' END,
-           $9::date, $10, NULL, $11)
-         RETURNING id`,
+          numero_orden, expediente_id, paciente_agenda_id, folio_recibo, procedimiento, tipo, precio, pagado, pendiente, estatus, fecha, departamento, medico, origen
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7::numeric, $8::numeric, ($7::numeric - $8::numeric),
+          CASE WHEN $8::numeric >= $7::numeric THEN 'Pagado' ELSE 'Pendiente' END,
+          $9::date, $10, '', $11)    // ✅ CAMBIAR NULL por '' (cadena vacía)
+        RETURNING id`,
         [
           numero_orden,  // ✅ Agregado número de orden
           esPacienteAgenda ? null : paciente_id,
