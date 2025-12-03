@@ -1374,46 +1374,12 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
     const depto = getDepartamento(req);
 
     const result = await pool.query(`
-      -- 1️⃣ Recibos tipo "Normal" con orden médica SIN ATENDER
-      --    PERO que NO vengan de Agenda Consultas que aún no han sido enviadas
-      SELECT 
-        r.id AS recibo_id,
-        e.numero_expediente AS expediente_id,
-        e.nombre_completo,
-        e.edad,
-        e.padecimientos,
-        r.procedimiento,
-        NULL AS consulta_id,
-        r.id AS folio_recibo_real,
-        'RECIBO' AS origen
-      FROM recibos r
-      JOIN expedientes e 
-        ON r.paciente_id = e.numero_expediente 
-        AND r.departamento = e.departamento
-      JOIN ordenes_medicas o
-        ON o.folio_recibo = r.id
-        AND o.departamento = r.departamento
-      WHERE r.departamento = $1
-        AND r.tipo = 'Normal'
-        AND (o.medico IS NULL OR o.medico = '' OR o.medico = 'Pendiente')
-        AND (
-          o.consulta_id IS NULL 
-          OR EXISTS (
-            SELECT 1 FROM consultas c 
-            WHERE c.id = o.consulta_id 
-            AND c.estado = 'En Módulo Médico'
-            AND c.departamento = r.departamento
-          )
-        )
-
-      UNION
-
-      -- 2️⃣ Consultas que YA fueron enviadas al módulo médico (estado = 'En Módulo Médico')
+      -- ✅ SOLO Consultas que YA fueron enviadas al módulo médico (estado = 'En Módulo Médico')
       SELECT 
         c.id AS recibo_id,
-        c.numero_expediente AS expediente_id,
-        COALESCE(e.nombre_completo, c.paciente) AS nombre_completo,
-        COALESCE(e.edad, c.edad) AS edad,
+        COALESCE(c.numero_expediente, c.paciente_agenda_id) AS expediente_id,
+        COALESCE(e.nombre_completo, pa.nombre || ' ' || pa.apellido, c.paciente) AS nombre_completo,
+        COALESCE(e.edad, pa.edad, c.edad) AS edad,
         COALESCE(e.padecimientos, 'NINGUNO') AS padecimientos,
         'Consulta Oftalmológica' AS procedimiento,
         c.id AS consulta_id,
@@ -1427,8 +1393,11 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
         'CONSULTA' AS origen
       FROM consultas c
       LEFT JOIN expedientes e 
-        ON c.numero_expediente = e.numero_expediente 
+        ON c.expediente_id = e.numero_expediente 
         AND c.departamento = e.departamento
+      LEFT JOIN pacientes_agenda pa
+        ON c.paciente_agenda_id = pa.id
+        AND c.departamento = pa.departamento
       WHERE c.departamento = $1
         AND c.estado = 'En Módulo Médico'
 
