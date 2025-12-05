@@ -761,11 +761,15 @@
           document.getElementById("sucursal-selector").style.display = "block";
         }
 
-        let sucursalActual = data.usuario.rol === "admin"
-          ? data.usuario.sucursalSeleccionada || "Admin"
-          : data.usuario.departamento;
+        // ✅ MOSTRAR EL DEPARTAMENTO REAL DEL USUARIO
+        let sucursalActual = data.usuario.departamento || "Admin";
 
+        // ✅ Si es admin global Y seleccionó otra sucursal, mostrar esa
+        if (data.usuario.esAdminGlobal && data.usuario.sucursalSeleccionada) {
+          sucursalActual = data.usuario.sucursalSeleccionada;
+        }
         document.getElementById("sucursalTexto").textContent = sucursalActual;
+        
         
         // ✅ MOSTRAR NOMBRE COMPLETO (si existe, si no, username)
         const nombreCompleto = data.usuario.nombre_completo || data.usuario.username;
