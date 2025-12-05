@@ -293,13 +293,14 @@
 
           //Guardar datos en sesión
           req.session.usuario = {
-              id: usuario.id,
-              nomina: usuario.nomina,
-              username: usuario.username,
-              nombre_completo: usuario.nombre_completo || usuario.username,
-              rol: usuario.rol,
-              departamento: usuario.rol === "admin" ? "ADMIN" : usuario.departamento
-          };
+            id: usuario.id,
+            nomina: usuario.nomina,
+            username: usuario.username,
+            nombre_completo: usuario.nombre_completo || usuario.username,
+            rol: usuario.rol,
+            departamento: usuario.departamento, // ✅ GUARDAR EL DEPARTAMENTO REAL DE LA BD
+            esAdminGlobal: usuario.rol === "admin" && (!usuario.departamento || usuario.departamento === 'N/A') // ✅ FLAG PARA ADMIN SIN SUCURSAL
+        };
             
           res.json({ 
               mensaje: 'Login exitoso', 
@@ -411,12 +412,17 @@
 
   // ==================== HELPER: Determinar sucursal activa ====================
   function getDepartamento(req) {
-    if (req.session.usuario.rol === "admin") {
-      //Si el admin no seleccionó sucursal, usamos "ADMIN" como valor especial
-      return req.session.usuario.sucursalSeleccionada || "ADMIN";
-    }
-    return req.session.usuario.departamento;
+  const usuario = req.session.usuario;
+  
+  // 1. Si es admin SIN departamento (nómina 1256) → puede cambiar de sucursal
+  if (usuario.esAdminGlobal) {
+    return usuario.sucursalSeleccionada || "ADMIN";
   }
+  
+  // 2. Si es admin CON departamento (nómina 3004) → usa su departamento
+  // 3. Si es usuario normal → usa su departamento
+  return usuario.departamento;
+}
 
 
   // ==================== MODULO DE EXPEDIENTES ====================
