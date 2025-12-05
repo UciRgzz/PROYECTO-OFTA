@@ -769,7 +769,7 @@
           sucursalActual = data.usuario.sucursalSeleccionada;
         }
         document.getElementById("sucursalTexto").textContent = sucursalActual;
-        
+
         
         // ✅ MOSTRAR NOMBRE COMPLETO (si existe, si no, username)
         const nombreCompleto = data.usuario.nombre_completo || data.usuario.username;
@@ -831,48 +831,56 @@
   }
 
   // ==================== Cambiar sucursal (solo admin) ====================
-  async function cambiarSucursal(nombreSucursal) {
-    try {
-      const res = await fetch('/api/set-departamento', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ departamento: nombreSucursal })
-      });
+async function cambiarSucursal(nombreSucursal) {
+  try {
+    const res = await fetch('/api/set-departamento', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ departamento: nombreSucursal })
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (res.ok) {
-        const sucursalTexto = document.getElementById("sucursalTexto");
-        if (sucursalTexto) {
-          sucursalTexto.textContent = (nombreSucursal === "admin") ? "Admin" : nombreSucursal;
-        }
+    if (res.ok) {
+      const sucursalTexto = document.getElementById("sucursalTexto");
+      if (sucursalTexto) {
+        sucursalTexto.textContent = (nombreSucursal === "admin") ? "Admin" : nombreSucursal;
+      }
 
+      // ✅ RECARGAR EL IFRAME ACTIVO
+      const iframe = document.querySelector('#main-content iframe');
+      if (iframe) {
+        iframe.src = iframe.src; // Forzar recarga
+      } else {
+        // Si no hay iframe, limpiar contenido
         document.getElementById('main-content').innerHTML = `
           <div class="welcome-container">
-            <h1 class="welcome-title">Bienvenido al Sistema</h1>
+            <h1 class="welcome-title">Sucursal Cambiada</h1>
+            <p class="welcome-subtitle">Ahora estás viendo datos de ${nombreSucursal}</p>
             <p class="welcome-subtitle">Selecciona una opción del menú para comenzar</p>
             <img src="/uploads/logo-oftavision.png" 
                  alt="Instituto Oftavisión" 
                  class="welcome-logo">
           </div>
         `;
-        
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: data.error || "Error al cambiar sucursal"
-        });
       }
-    } catch (err) {
-      console.error("Error cambiando sucursal:", err);
+      
+    } else {
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'Error en la conexión con el servidor'
+        text: data.error || "Error al cambiar sucursal"
       });
     }
+  } catch (err) {
+    console.error("Error cambiando sucursal:", err);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Error en la conexión con el servidor'
+    });
   }
+}
 
   // ==================== Cargar menú dinámico ====================
   async function cargarMenu() {
