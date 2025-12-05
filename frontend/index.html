@@ -642,7 +642,7 @@
           </div>
         </div>
 
-        <!-- Usuario (MODIFICADO PARA FOTOS) -->
+        <!-- Usuario (MODIFICADO PARA FOTOS Y NOMBRE COMPLETO) -->
         <div class="user-info" id="userInfo" onclick="abrirModalFoto()">
           <img id="avatarUsuarioImg" class="user-avatar-img" style="display:none;">
           <div class="user-avatar" id="userAvatar"></div>
@@ -750,7 +750,7 @@
     document.querySelector('.sidebar').classList.toggle('open');
   });
 
-  // ==================== Sesión (Inicio) ====================
+  // ==================== Sesión (Inicio) - CON NOMBRE COMPLETO ====================
   fetch('/api/check-session')
     .then(res => res.ok ? res.json() : Promise.reject())
     .then(data => {
@@ -766,10 +766,16 @@
           : data.usuario.departamento;
 
         document.getElementById("sucursalTexto").textContent = sucursalActual;
-        document.getElementById("nombreUsuario").textContent = data.usuario.username;
+        
+        // ✅ MOSTRAR NOMBRE COMPLETO (si existe, si no, username)
+        const nombreCompleto = data.usuario.nombre_completo || data.usuario.username;
+        document.getElementById("nombreUsuario").textContent = nombreCompleto;
+        
         document.getElementById("userRole").textContent = data.usuario.rol;
-        document.getElementById("userAvatar").textContent = data.usuario.username.charAt(0).toUpperCase();
-
+        
+        // ✅ USAR PRIMERA LETRA DEL NOMBRE COMPLETO
+        const inicial = nombreCompleto.charAt(0).toUpperCase();
+        document.getElementById("userAvatar").textContent = inicial;
       }
     })
     .catch(() => window.location.href = '/login/login.html');
@@ -1033,7 +1039,9 @@
         document.getElementById('fotoPreviewActual').style.display = 'block';
         document.getElementById('avatarPreviewInicial').style.display = 'none';
       } else {
-        const inicial = data.nomina ? data.nomina.charAt(0).toUpperCase() : 'U';
+        // ✅ USAR NOMBRE COMPLETO SI EXISTE
+        const nombreParaInicial = data.nombre_completo || data.nomina || 'U';
+        const inicial = nombreParaInicial.charAt(0).toUpperCase();
         document.getElementById('avatarPreviewInicial').textContent = inicial;
         document.getElementById('avatarPreviewInicial').style.display = 'flex';
         document.getElementById('fotoPreviewActual').style.display = 'none';
@@ -1132,7 +1140,9 @@
         const userResponse = await fetch('/api/obtener-foto-perfil');
         const userData = await userResponse.json();
         
-        const inicial = userData.nomina ? userData.nomina.charAt(0).toUpperCase() : 'U';
+        // ✅ USAR NOMBRE COMPLETO SI EXISTE
+        const nombreParaInicial = userData.nombre_completo || userData.nomina || 'U';
+        const inicial = nombreParaInicial.charAt(0).toUpperCase();
         
         document.getElementById('avatarUsuarioImg').style.display = 'none';
         document.getElementById('userAvatar').textContent = inicial;
@@ -1152,6 +1162,7 @@
     }
   }
 
+  // ==================== CARGAR FOTO INICIAL - CON NOMBRE COMPLETO ====================
   async function cargarFotoPerfilInicial() {
     try {
       const response = await fetch('/api/obtener-foto-perfil');
@@ -1162,10 +1173,17 @@
         document.getElementById('avatarUsuarioImg').style.display = 'block';
         document.getElementById('userAvatar').style.display = 'none';
       } else {
-        const inicial = data.nomina ? data.nomina.charAt(0).toUpperCase() : 'U';
+        // ✅ USAR NOMBRE COMPLETO SI EXISTE, SI NO, NOMINA
+        const nombreParaInicial = data.nombre_completo || data.nomina || 'U';
+        const inicial = nombreParaInicial.charAt(0).toUpperCase();
         document.getElementById('userAvatar').textContent = inicial;
         document.getElementById('userAvatar').style.display = 'flex';
         document.getElementById('avatarUsuarioImg').style.display = 'none';
+      }
+      
+      // ✅ ACTUALIZAR NOMBRE COMPLETO EN EL HEADER
+      if (data.nombre_completo) {
+        document.getElementById('nombreUsuario').textContent = data.nombre_completo;
       }
     } catch (error) {
       console.error('Error cargando foto inicial:', error);

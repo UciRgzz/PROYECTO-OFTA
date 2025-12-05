@@ -296,6 +296,7 @@
               id: usuario.id,
               nomina: usuario.nomina,
               username: usuario.username,
+              nombre_completo: usuario.nombre_completo || usuario.username,
               rol: usuario.rol,
               departamento: usuario.rol === "admin" ? "ADMIN" : usuario.departamento
           };
@@ -3104,16 +3105,16 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
   //==================== MÓDULO CREAR USUARIO ADMIN ====================//
   // Crear usuario
   app.post('/api/admin/add-user', isAdmin, async (req, res) => {
-      const { nomina, username, password, rol, departamento } = req.body;
-      const client = await pool.connect();
+    const { nomina, username, nombre_completo, password, rol, departamento } = req.body; // ✅ AGREGAR nombre_completo
+    const client = await pool.connect();
 
       try {
           await client.query("BEGIN");
 
           const hashedPassword = await bcrypt.hash(password, 10);
           await client.query(
-              'INSERT INTO usuarios (nomina, username, password, rol, departamento) VALUES ($1,$2,$3,$4,$5)',
-              [nomina, username, hashedPassword, rol, departamento]
+              'INSERT INTO usuarios (nomina, username, nombre_completo, password, rol, departamento) VALUES ($1,$2,$3,$4,$5,$6)',
+              [nomina, username, nombre_completo, hashedPassword, rol, departamento]
           );
 
           // 🔹 Insertar los 10 módulos por defecto (permitido = false)
@@ -3144,9 +3145,9 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
 
   // Listar usuarios
   app.get('/api/admin/list-users', isAdmin, async (req, res) => {
-      try {
-          const result = await pool.query('SELECT nomina, username, rol, departamento FROM usuarios ORDER BY username ASC');
-          res.json(result.rows);
+    try {
+        const result = await pool.query('SELECT nomina, username, nombre_completo, rol, departamento FROM usuarios ORDER BY username ASC'); // ✅ AGREGAR nombre_completo
+        res.json(result.rows);
       } catch (err) {
           console.error(err);
           res.status(500).json({ error: 'Error listando usuarios' });
@@ -4151,7 +4152,7 @@ app.get("/api/ordenes_medicas/consulta/:consultaId", verificarSesion, async (req
       }
   });
 
-  
+
 // ==================== MODULO DE FOTOS DE PERFIL ====================
 
 // Crear carpeta uploads/perfiles si no existe
@@ -4286,10 +4287,10 @@ app.get('/api/obtener-foto-perfil', verificarSesion, async (req, res) => {
     const usuarioId = req.session.usuario.id;
     
     const result = await pool.query(
-      `SELECT fp.ruta_archivo, fp.fecha_actualizacion, u.nomina
-       FROM fotos_perfil fp
-       INNER JOIN usuarios u ON fp.id_usuario = u.id
-       WHERE fp.id_usuario = $1 AND fp.activa = TRUE`,
+      `SELECT fp.ruta_archivo, fp.fecha_actualizacion, u.nomina, u.nombre_completo
+      FROM fotos_perfil fp
+      INNER JOIN usuarios u ON fp.id_usuario = u.id
+      WHERE fp.id_usuario = $1 AND fp.activa = TRUE`,
       [usuarioId]
     );
 
@@ -4298,14 +4299,22 @@ app.get('/api/obtener-foto-perfil', verificarSesion, async (req, res) => {
         success: true,
         foto: result.rows[0].ruta_archivo,
         nomina: result.rows[0].nomina,
+        nombre_completo: result.rows[0].nombre_completo,
         fechaActualizacion: result.rows[0].fecha_actualizacion
       });
     } else {
-      // Si no tiene foto, devolver la inicial
-      const userResult = await pool.query(
-        'SELECT nomina FROM usuarios WHERE id = $1',
-        [usuarioId]
-      );
+  const userResult = await pool.query(
+    'SELECT nomina, nombre_completo FROM usuarios WHERE id = $1', // ✅ AGREGAR nombre_completo
+    [usuarioId]
+  );
+  
+  res.json({ 
+    success: true,
+    foto: null,
+    nomina: userResult.rows[0]?.nomina || 'U',
+    nombre_completo: userResult.rows[0]?.nombre_completo || 'Usuario', // ✅ AGREGAR
+    fechaActualizacion: null
+  });
       
       res.json({ 
         success: true,
