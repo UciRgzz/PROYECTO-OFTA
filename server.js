@@ -293,6 +293,7 @@
 
           //Guardar datos en sesión
           req.session.usuario = {
+              id: usuario.id,
               nomina: usuario.nomina,
               username: usuario.username,
               rol: usuario.rol,
@@ -4150,7 +4151,239 @@ app.get("/api/ordenes_medicas/consulta/:consultaId", verificarSesion, async (req
       }
   });
 
+  
+// ==================== MODULO DE FOTOS DE PERFIL ====================
 
+// Crear carpeta uploads/perfiles si no existe
+const uploadDirPerfiles = path.join(__dirname, 'uploads', 'perfiles');
+if (!fs.existsSync(uploadDirPerfiles)) {
+  fs.mkdirSync(uploadDirPerfiles, { recursive: true });
+  console.log('✅ Carpeta uploads/perfiles creada');
+}
+
+// Configuración de multer para fotos de perfil
+const storageFotos = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadDirPerfiles);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    const userId = req.session.usuario?.id || 'unknown';
+    cb(null, 'perfil-' + userId + '-' + uniqueSuffix + ext);
+  }
+});
+
+const uploadFoto = multer({ 
+  storage: storageFotos,
+  limits: { 
+    fileSize: 5 * 1024 * 1024 // 5MB máximo
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Solo se permiten imágenes (jpeg, jpg, png, gif, webp)'));
+    }
+  }
+});
+
+// ==================== SUBIR/ACTUALIZAR FOTO DE PERFIL ====================
+app.post('/api/actualizar-foto-perfil', verificarSesion, uploadFoto.single('foto'), async (req, res) => {
+  const client = await pool.connect();
+  
+  try {
+    if (!req.file) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'No se recibió ningún archivo' 
+      });
+    }
+
+    const usuarioId = req.session.usuario.id;
+    const rutaArchivo = '/uploads/perfiles/' + req.file.filename;
+    const nombreOriginal = req.file.originalname;
+    const tamanoBytes = req.file.size;
+    const tipoMime = req.file.mimetype;
+
+    await client.query('BEGIN');
+
+    // Verificar si el usuario ya tiene una foto
+    const fotoAnterior = await client.query(
+      'SELECT ruta_archivo FROM fotos_perfil WHERE id_usuario = $1 AND activa = TRUE',
+      [usuarioId]
+    );
+
+    // Si existe foto anterior, eliminar el archivo físico
+    if (fotoAnterior.rows.length > 0) {
+      const rutaAnterior = fotoAnterior.rows[0].ruta_archivo;
+      const archivoAnterior = path.join(__dirname, rutaAnterior);
+      
+      if (fs.existsSync(archivoAnterior)) {
+        fs.unlinkSync(archivoAnterior);
+        console.log('🗑️ Foto anterior eliminada:', archivoAnterior);
+      }
+
+      // Actualizar el registro existente
+      await client.query(
+        `UPDATE fotos_perfil 
+         SET ruta_archivo = $1, 
+             nombre_original = $2, 
+             tamano_bytes = $3, 
+             tipo_mime = $4, 
+             fecha_actualizacion = CURRENT_TIMESTAMP
+         WHERE id_usuario = $5 AND activa = TRUE`,
+        [rutaArchivo, nombreOriginal, tamanoBytes, tipoMime, usuarioId]
+      );
+    } else {
+      // Insertar nuevo registro
+      await client.query(
+        `INSERT INTO fotos_perfil 
+         (id_usuario, ruta_archivo, nombre_original, tamano_bytes, tipo_mime) 
+         VALUES ($1, $2, $3, $4, $5)`,
+        [usuarioId, rutaArchivo, nombreOriginal, tamanoBytes, tipoMime]
+      );
+    }
+
+    await client.query('COMMIT');
+
+    console.log('✅ Foto de perfil actualizada para usuario:', usuarioId);
+
+    res.json({ 
+      success: true, 
+      fotoUrl: rutaArchivo,
+      mensaje: 'Foto actualizada correctamente'
+    });
+
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('❌ Error al actualizar foto de perfil:', error);
+    
+    // Si hubo error, eliminar el archivo subido
+    if (req.file) {
+      const archivoError = path.join(__dirname, 'uploads', 'perfiles', req.file.filename);
+      if (fs.existsSync(archivoError)) {
+        fs.unlinkSync(archivoError);
+      }
+    }
+    
+    res.status(500).json({ 
+      success: false, 
+      error: 'Error al actualizar foto: ' + error.message 
+    });
+  } finally {
+    client.release();
+  }
+});
+
+// ==================== OBTENER FOTO DE PERFIL ====================
+app.get('/api/obtener-foto-perfil', verificarSesion, async (req, res) => {
+  try {
+    const usuarioId = req.session.usuario.id;
+    
+    const result = await pool.query(
+      `SELECT fp.ruta_archivo, fp.fecha_actualizacion, u.nomina
+       FROM fotos_perfil fp
+       INNER JOIN usuarios u ON fp.id_usuario = u.id
+       WHERE fp.id_usuario = $1 AND fp.activa = TRUE`,
+      [usuarioId]
+    );
+
+    if (result.rows.length > 0) {
+      res.json({ 
+        success: true,
+        foto: result.rows[0].ruta_archivo,
+        nomina: result.rows[0].nomina,
+        fechaActualizacion: result.rows[0].fecha_actualizacion
+      });
+    } else {
+      // Si no tiene foto, devolver la inicial
+      const userResult = await pool.query(
+        'SELECT nomina FROM usuarios WHERE id = $1',
+        [usuarioId]
+      );
+      
+      res.json({ 
+        success: true,
+        foto: null,
+        nomina: userResult.rows[0]?.nomina || 'U',
+        fechaActualizacion: null
+      });
+    }
+
+  } catch (error) {
+    console.error('Error al obtener foto de perfil:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Error al obtener foto' 
+    });
+  }
+});
+
+// ==================== ELIMINAR FOTO DE PERFIL ====================
+app.delete('/api/eliminar-foto-perfil', verificarSesion, async (req, res) => {
+  const client = await pool.connect();
+  
+  try {
+    const usuarioId = req.session.usuario.id;
+
+    await client.query('BEGIN');
+
+    // Obtener la ruta del archivo antes de eliminarlo
+    const result = await client.query(
+      'SELECT ruta_archivo FROM fotos_perfil WHERE id_usuario = $1 AND activa = TRUE',
+      [usuarioId]
+    );
+
+    if (result.rows.length > 0) {
+      const rutaArchivo = result.rows[0].ruta_archivo;
+      const archivoFisico = path.join(__dirname, rutaArchivo);
+
+      // Eliminar archivo físico
+      if (fs.existsSync(archivoFisico)) {
+        fs.unlinkSync(archivoFisico);
+        console.log('🗑️ Archivo físico eliminado:', archivoFisico);
+      }
+
+      // Eliminar registro de la base de datos
+      await client.query(
+        'DELETE FROM fotos_perfil WHERE id_usuario = $1',
+        [usuarioId]
+      );
+
+      await client.query('COMMIT');
+
+      res.json({ 
+        success: true,
+        mensaje: 'Foto eliminada correctamente'
+      });
+    } else {
+      await client.query('ROLLBACK');
+      res.json({ 
+        success: false,
+        error: 'No hay foto para eliminar'
+      });
+    }
+
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error al eliminar foto de perfil:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Error al eliminar foto' 
+    });
+  } finally {
+    client.release();
+  }
+});
+
+console.log('✅ Endpoints de fotos de perfil configurados');
+  
+// ==================== INICIAR SERVIDOR ====================
   app.listen(3000, "0.0.0.0", () => {
       console.log("Servidor corriendo en puerto 3000 en todas las interfaces");
   });

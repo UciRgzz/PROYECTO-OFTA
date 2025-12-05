@@ -186,6 +186,7 @@
       border-radius: 30px;
       background: rgba(52, 152, 219, 0.1);
       cursor: pointer;
+      transition: background 0.2s;
     }
     
     .user-info:hover {
@@ -204,6 +205,14 @@
       font-weight: bold;
       font-size: 16px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .user-avatar-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #e5e7eb;
     }
     
     .user-details {
@@ -526,6 +535,12 @@
       color: var(--primary-color);
       cursor: pointer;
     }
+
+    /* ==================== ESTILOS PARA MODAL DE FOTO ==================== */
+    @keyframes slideDown {
+      from { transform:translateY(-50px); opacity:0; }
+      to { transform:translateY(0); opacity:1; }
+    }
   </style>
 </head>
 <body id="index-page">
@@ -554,7 +569,6 @@
           <li><a class="dropdown-item" href="#" onclick="cambiarSucursal('Matamoros')">Matamoros</a></li>
           <li><a class="dropdown-item" href="#" onclick="cambiarSucursal('Cozumel')">Cozumel</a></li>
         </ul>
-
       </div>
 
       <!-- 🔹 Aquí el menú se llenará dinámicamente -->
@@ -580,7 +594,6 @@
         <h4 style="margin: 0; margin-left: 15px; font-family: 'Poppins', sans-serif; font-weight: 700; color: #1e3a5f; letter-spacing: 1px;">
            OFTASIS
         </h4>
-
       </div>
       
       <div class="header-right">
@@ -594,8 +607,9 @@
           </div>
         </div>
 
-        <!-- Usuario -->
-        <div class="user-info" id="userInfo">
+        <!-- Usuario (MODIFICADO PARA FOTOS) -->
+        <div class="user-info" id="userInfo" onclick="abrirModalFoto()">
+          <img id="avatarUsuarioImg" class="user-avatar-img" style="display:none;">
           <div class="user-avatar" id="userAvatar"></div>
           <div class="user-details">
             <span class="user-name" id="nombreUsuario"></span>
@@ -604,6 +618,60 @@
         </div>
       </div>
     </header>
+
+    <!-- MODAL PARA FOTO DE PERFIL -->
+    <div id="modalFotoPerfil" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; backdrop-filter:blur(5px);">
+      <div style="background:white; width:90%; max-width:500px; margin:80px auto; border-radius:15px; box-shadow:0 20px 60px rgba(0,0,0,0.3); overflow:hidden; animation:slideDown 0.3s ease;">
+        
+        <!-- Header del Modal -->
+        <div style="background:linear-gradient(135deg, #1e3a5f, #3498db); color:white; padding:20px; display:flex; justify-content:space-between; align-items:center;">
+          <h3 style="margin:0; font-size:20px; font-weight:600;">Foto de Perfil</h3>
+          <button onclick="cerrarModalFoto()" style="background:none; border:none; color:white; font-size:28px; cursor:pointer; width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center; transition:background 0.2s;">&times;</button>
+        </div>
+        
+        <!-- Body del Modal -->
+        <div style="padding:30px;">
+          <!-- Vista previa actual -->
+          <div style="text-align:center; margin-bottom:25px;">
+            <img id="fotoPreviewActual" style="width:150px; height:150px; border-radius:50%; object-fit:cover; border:4px solid #e5e7eb; display:none;">
+            <div id="avatarPreviewInicial" style="width:150px; height:150px; border-radius:50%; background:linear-gradient(135deg, #667eea, #764ba2); color:white; display:flex; align-items:center; justify-content:center; font-size:60px; font-weight:600; margin:0 auto; border:4px solid #e5e7eb;">A</div>
+          </div>
+          
+          <!-- Botón para seleccionar imagen -->
+          <div style="text-align:center; margin-bottom:20px;">
+            <label for="inputFotoPerfil" style="display:inline-flex; align-items:center; gap:10px; padding:12px 25px; background:#3498db; color:white; border-radius:25px; cursor:pointer; font-weight:500; transition:all 0.2s; box-shadow:0 4px 10px rgba(52,152,219,0.3);">
+              <i class="material-icons">cloud_upload</i>
+              Seleccionar Imagen
+            </label>
+            <input type="file" id="inputFotoPerfil" accept="image/*" style="display:none;">
+            <p style="margin-top:10px; font-size:13px; color:#6c757d;">JPG, PNG, GIF o WEBP (máx. 5MB)</p>
+          </div>
+          
+          <!-- Preview de nueva imagen -->
+          <div id="nuevaFotoPreview" style="display:none; text-align:center;">
+            <p style="font-weight:500; margin-bottom:10px;">Nueva imagen:</p>
+            <img id="previewNuevaFoto" style="max-width:100%; max-height:250px; border-radius:10px; border:2px solid #e5e7eb;">
+          </div>
+        </div>
+        
+        <!-- Footer del Modal -->
+        <div style="padding:15px 30px; background:#f9fafb; border-top:1px solid #e5e7eb; display:flex; gap:10px; justify-content:space-between;">
+          <button onclick="eliminarFotoPerfil()" style="background:#ef4444; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:500; transition:background 0.2s; display:flex; align-items:center; gap:8px;">
+            <i class="material-icons" style="font-size:18px;">delete</i>
+            Eliminar
+          </button>
+          <div style="display:flex; gap:10px;">
+            <button onclick="cerrarModalFoto()" style="background:white; color:#6c757d; border:1px solid #d1d5db; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:500;">
+              Cancelar
+            </button>
+            <button onclick="guardarFotoPerfil()" style="background:#3498db; color:white; border:none; padding:10px 25px; border-radius:8px; cursor:pointer; font-weight:500; transition:background 0.2s;">
+              Guardar
+            </button>
+          </div>
+        </div>
+        
+      </div>
+    </div>
 
     <!-- MAIN CONTENT -->
     <main class="main-body" id="main-content">
@@ -616,7 +684,7 @@
              class="welcome-logo">
       </div>
     </main> 
-
+  </div>
 
   <!-- MODAL ÓRDENES Y OPTOMETRÍA -->
   <div class="modal fade" id="modalOrdenes" tabindex="-1" aria-hidden="true">
@@ -824,7 +892,6 @@
       if (permisos.includes("insumos")) {
         html += `<a onclick="mostrarSeccion('insumos')" style="cursor:pointer;"><i class="material-icons">inventory</i> Insumos</a>`;
       }
-      // 🔹 Separador para gestión de cuentas
       if (permisos.includes("asignarmodulos") || permisos.includes("usuarios")) {
         html += `<div class="sidebar-divider"></div>`;
       }
@@ -852,7 +919,6 @@
   const notifList = document.getElementById("notif-list");
   const notifCount = document.getElementById("notif-count");
 
-  // === Cargar notificaciones ===
   async function cargarNotificaciones() {
     try {
       const res = await fetch("/api/notificaciones");
@@ -885,7 +951,6 @@
     }
   }
 
-  // === Mostrar/ocultar panel de notificaciones ===
   if (bell && notifDropdown) {
     bell.addEventListener("click", async (e) => {
       e.stopPropagation();
@@ -902,14 +967,177 @@
 
   notifDropdown.addEventListener("click", e => e.stopPropagation());
 
-  // === 🔄 Recarga automática cada 15 segundos ===
   setInterval(() => {
     cargarNotificaciones();
   }, 15000);
 
-  // === 🔄 Carga inicial al entrar al sistema ===
   cargarNotificaciones();
 
+  // ==================== FOTOS DE PERFIL ====================
+  let archivoSeleccionado = null;
+
+  function abrirModalFoto() {
+    document.getElementById('modalFotoPerfil').style.display = 'flex';
+    cargarFotoActual();
+  }
+
+  function cerrarModalFoto() {
+    document.getElementById('modalFotoPerfil').style.display = 'none';
+    document.getElementById('inputFotoPerfil').value = '';
+    document.getElementById('nuevaFotoPreview').style.display = 'none';
+    archivoSeleccionado = null;
+  }
+
+  async function cargarFotoActual() {
+    try {
+      const response = await fetch('/api/obtener-foto-perfil');
+      const data = await response.json();
+      
+      if (data.success && data.foto) {
+        document.getElementById('fotoPreviewActual').src = data.foto;
+        document.getElementById('fotoPreviewActual').style.display = 'block';
+        document.getElementById('avatarPreviewInicial').style.display = 'none';
+      } else {
+        const inicial = data.nomina ? data.nomina.charAt(0).toUpperCase() : 'U';
+        document.getElementById('avatarPreviewInicial').textContent = inicial;
+        document.getElementById('avatarPreviewInicial').style.display = 'flex';
+        document.getElementById('fotoPreviewActual').style.display = 'none';
+      }
+    } catch (error) {
+      console.error('Error cargando foto:', error);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const inputFoto = document.getElementById('inputFotoPerfil');
+    if (inputFoto) {
+      inputFoto.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        if (file.size > 5 * 1024 * 1024) {
+          Swal.fire('Error', 'La imagen es demasiado grande (máx. 5MB)', 'error');
+          this.value = '';
+          return;
+        }
+        
+        const tiposPermitidos = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        if (!tiposPermitidos.includes(file.type)) {
+          Swal.fire('Error', 'Tipo de archivo no permitido', 'error');
+          this.value = '';
+          return;
+        }
+        
+        archivoSeleccionado = file;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('previewNuevaFoto').src = e.target.result;
+          document.getElementById('nuevaFotoPreview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  });
+
+  async function guardarFotoPerfil() {
+    if (!archivoSeleccionado) {
+      Swal.fire('Aviso', 'Por favor selecciona una imagen', 'info');
+      return;
+    }
+    
+    const formData = new FormData();
+    formData.append('foto', archivoSeleccionado);
+    
+    try {
+      const response = await fetch('/api/actualizar-foto-perfil', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        document.getElementById('avatarUsuarioImg').src = data.fotoUrl + '?t=' + Date.now();
+        document.getElementById('avatarUsuarioImg').style.display = 'block';
+        document.getElementById('userAvatar').style.display = 'none';
+        
+        cerrarModalFoto();
+        Swal.fire('¡Éxito!', 'Foto actualizada correctamente', 'success');
+      } else {
+        Swal.fire('Error', data.error || 'Error al actualizar foto', 'error');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      Swal.fire('Error', 'Error al actualizar foto', 'error');
+    }
+  }
+
+  async function eliminarFotoPerfil() {
+    const confirmar = await Swal.fire({
+      title: '¿Eliminar foto?',
+      text: '¿Estás seguro de que quieres eliminar tu foto de perfil?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#ef4444'
+    });
+    
+    if (!confirmar.isConfirmed) return;
+    
+    try {
+      const response = await fetch('/api/eliminar-foto-perfil', {
+        method: 'DELETE'
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        const userResponse = await fetch('/api/obtener-foto-perfil');
+        const userData = await userResponse.json();
+        
+        const inicial = userData.nomina ? userData.nomina.charAt(0).toUpperCase() : 'U';
+        
+        document.getElementById('avatarUsuarioImg').style.display = 'none';
+        document.getElementById('userAvatar').textContent = inicial;
+        document.getElementById('userAvatar').style.display = 'flex';
+        
+        document.getElementById('fotoPreviewActual').style.display = 'none';
+        document.getElementById('avatarPreviewInicial').textContent = inicial;
+        document.getElementById('avatarPreviewInicial').style.display = 'flex';
+        
+        Swal.fire('¡Eliminada!', 'Foto eliminada correctamente', 'success');
+      } else {
+        Swal.fire('Error', data.error || 'Error al eliminar foto', 'error');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      Swal.fire('Error', 'Error al eliminar foto', 'error');
+    }
+  }
+
+  async function cargarFotoPerfilInicial() {
+    try {
+      const response = await fetch('/api/obtener-foto-perfil');
+      const data = await response.json();
+      
+      if (data.success && data.foto) {
+        document.getElementById('avatarUsuarioImg').src = data.foto;
+        document.getElementById('avatarUsuarioImg').style.display = 'block';
+        document.getElementById('userAvatar').style.display = 'none';
+      } else {
+        const inicial = data.nomina ? data.nomina.charAt(0).toUpperCase() : 'U';
+        document.getElementById('userAvatar').textContent = inicial;
+        document.getElementById('userAvatar').style.display = 'flex';
+        document.getElementById('avatarUsuarioImg').style.display = 'none';
+      }
+    } catch (error) {
+      console.error('Error cargando foto inicial:', error);
+    }
+  }
+
+  setTimeout(cargarFotoPerfilInicial, 500);
 </script>
 
 </body>
