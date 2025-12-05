@@ -175,60 +175,103 @@
     .header-right {
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: 25px;
     }
     
-    .user-info {
+    /* USUARIO MEJORADO - FOTO ARRIBA, NOMBRE ABAJO */
+    .user-profile-container {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 12px;
-      padding: 8px 15px;
-      border-radius: 30px;
-      background: rgba(52, 152, 219, 0.1);
+      gap: 5px;
       cursor: pointer;
-      transition: background 0.2s;
+      padding: 8px 15px;
+      border-radius: 12px;
+      background: rgba(52, 152, 219, 0.08);
+      transition: all 0.3s ease;
+      min-width: 120px;
     }
     
-    .user-info:hover {
-      background: rgba(52, 152, 219, 0.2);
+    .user-profile-container:hover {
+      background: rgba(52, 152, 219, 0.15);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+    }
+    
+    .user-avatar-container {
+      position: relative;
+      width: 52px;
+      height: 52px;
+      margin: 0 auto;
+    }
+    
+    .user-avatar-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #3498db;
+      box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+      transition: all 0.3s ease;
+    }
+    
+    .user-avatar-img:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4);
     }
     
     .user-avatar {
-      background: var(--secondary-color);
+      background: linear-gradient(135deg, #3498db, #2c7be5);
       color: #fff;
       border-radius: 50%;
-      width: 40px;
-      height: 40px;
+      width: 100%;
+      height: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: bold;
-      font-size: 16px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    
-    .user-avatar-img {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 2px solid #e5e7eb;
+      font-size: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      border: 3px solid white;
     }
     
     .user-details {
       display: flex;
       flex-direction: column;
+      align-items: center;
+      text-align: center;
+      width: 100%;
     }
     
     .user-name {
       font-weight: 600;
       color: var(--primary-color);
-      font-size: 15px;
+      font-size: 14px;
+      line-height: 1.3;
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     
     .user-role {
-      font-size: 12px;
+      font-size: 11px;
       color: #6c757d;
+      background: rgba(108, 117, 125, 0.1);
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-top: 2px;
+    }
+    
+    .user-status {
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      width: 12px;
+      height: 12px;
+      background-color: #27ae60;
+      border: 2px solid white;
+      border-radius: 50%;
     }
     
     .notifications {
@@ -238,43 +281,54 @@
     
     .notifications i {
       color: #6c757d;
-      font-size: 24px;
+      font-size: 26px;
+      transition: all 0.2s;
     }
     
     .notifications:hover i {
       color: var(--secondary-color);
+      transform: scale(1.1);
     }
     
     .notification-badge {
       position: absolute;
       top: -5px;
       right: -5px;
-      background: #e74c3c;
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
       color: white;
       border-radius: 50%;
-      width: 18px;
-      height: 18px;
-      font-size: 10px;
+      width: 20px;
+      height: 20px;
+      font-size: 11px;
       display: flex;
       align-items: center;
       justify-content: center;
+      font-weight: bold;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
     
     .notification-dropdown {
       position: absolute;
       top: 50px;
       right: 0;
-      width: 320px;
+      width: 350px;
       background: white;
-      border-radius: 10px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
       z-index: 1000;
       display: none;
       overflow: hidden;
+      border: 1px solid #e9ecef;
     }
     
     .notification-dropdown.show {
       display: block;
+      animation: fadeIn 0.2s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     
     .notification-header {
@@ -282,10 +336,14 @@
       border-bottom: 1px solid #eee;
       font-weight: 600;
       color: var(--primary-color);
+      background: #f8f9fa;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     
     .notification-list {
-      max-height: 300px;
+      max-height: 350px;
       overflow-y: auto;
     }
     
@@ -293,6 +351,7 @@
       padding: 12px 20px;
       border-bottom: 1px solid #f5f5f5;
       font-size: 14px;
+      transition: background 0.2s;
     }
     
     .notification-item:hover {
@@ -304,7 +363,7 @@
     }
     
     .notification-empty {
-      padding: 20px;
+      padding: 30px 20px;
       text-align: center;
       color: #6c757d;
       font-style: italic;
@@ -525,6 +584,15 @@
       .menu-toggle {
         display: block !important;
       }
+      
+      .user-profile-container {
+        min-width: auto;
+        padding: 8px 10px;
+      }
+      
+      .user-name {
+        max-width: 100px;
+      }
     }
     
     .menu-toggle {
@@ -534,6 +602,30 @@
       font-size: 24px;
       color: var(--primary-color);
       cursor: pointer;
+    }
+    
+    @media (max-width: 768px) {
+      .header-right {
+        gap: 15px;
+      }
+      
+      .user-profile-container {
+        padding: 6px 8px;
+      }
+      
+      .user-avatar-container {
+        width: 44px;
+        height: 44px;
+      }
+      
+      .user-name {
+        font-size: 13px;
+      }
+      
+      .notification-dropdown {
+        width: 300px;
+        right: -50px;
+      }
     }
 
     /* ==================== ESTILOS PARA MODAL DE FOTO ==================== */
@@ -546,15 +638,201 @@
       animation: slideDown 0.3s ease;
     }
 
-    /* Hover effects para modal */
-    label[for="inputFotoPerfil"]:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(52,152,219,0.5) !important;
+    /* Estilos mejorados para modal de foto */
+    .modal-foto-header {
+      background: linear-gradient(135deg, #1e3a5f, #3498db);
+      color: white;
+      padding: 20px 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
     }
-
-    #modalFotoPerfil button:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.05);
+    
+    .modal-foto-title {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+    }
+    
+    .modal-foto-close {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      transition: all 0.2s;
+    }
+    
+    .modal-foto-close:hover {
+      background: rgba(255,255,255,0.3);
+      transform: rotate(90deg);
+    }
+    
+    .modal-foto-body {
+      padding: 30px;
+      overflow-y: auto;
+      flex: 1;
+      text-align: center;
+    }
+    
+    .modal-foto-footer {
+      padding: 20px 25px;
+      background: #f9fafb;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    
+    .foto-preview-container {
+      margin-bottom: 25px;
+    }
+    
+    .avatar-preview {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 5px solid #e5e7eb;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+      margin: 0 auto 15px;
+      display: block;
+      transition: all 0.3s;
+    }
+    
+    .avatar-preview:hover {
+      transform: scale(1.03);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+    }
+    
+    .avatar-inicial {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      font-weight: 600;
+      margin: 0 auto 15px;
+      border: 5px solid #e5e7eb;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .btn-select-photo {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 35px;
+      background: linear-gradient(135deg, #3498db, #2c7be5);
+      color: white;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 16px;
+      box-shadow: 0 6px 15px rgba(52,152,219,0.4);
+      transition: all 0.3s;
+      border: none;
+    }
+    
+    .btn-select-photo:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(52,152,219,0.5);
+    }
+    
+    .photo-info {
+      margin: 10px 0 0 0;
+      font-size: 13px;
+      color: #6c757d;
+    }
+    
+    .new-photo-preview {
+      margin-top: 25px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 12px;
+      border: 2px dashed #dee2e6;
+    }
+    
+    .new-photo-title {
+      font-weight: 500;
+      margin-bottom: 10px;
+      font-size: 15px;
+      color: #495057;
+    }
+    
+    .new-photo-img {
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: 8px;
+      border: 2px solid #e5e7eb;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .btn-modal-delete {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+      border: none;
+      padding: 12px 22px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    
+    .btn-modal-delete:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(239, 68, 68, 0.3);
+    }
+    
+    .btn-modal-cancel {
+      background: white;
+      color: #6c757d;
+      border: 1px solid #d1d5db;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    
+    .btn-modal-cancel:hover {
+      background: #f8f9fa;
+      color: #495057;
+    }
+    
+    .btn-modal-save {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border: none;
+      padding: 12px 32px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 14px;
+      transition: all 0.2s;
+      box-shadow: 0 4px 10px rgba(16,185,129,0.3);
+    }
+    
+    .btn-modal-save:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(16,185,129,0.4);
     }
 
     /* Responsive modal */
@@ -564,16 +842,28 @@
         max-height: 95vh !important;
       }
       
-      #modalFotoPerfil > div > div:nth-child(2) {
+      .modal-foto-body {
         padding: 20px !important;
       }
       
-      #modalFotoPerfil button span {
-        display: none;
+      .avatar-preview, .avatar-inicial {
+        width: 120px;
+        height: 120px;
       }
       
-      #modalFotoPerfil button {
-        padding: 12px !important;
+      .btn-select-photo {
+        padding: 12px 25px;
+        font-size: 15px;
+      }
+      
+      .modal-foto-footer {
+        flex-wrap: wrap;
+      }
+      
+      .modal-foto-footer > div {
+        width: 100%;
+        justify-content: center;
+        margin-top: 10px;
       }
     }
   </style>
@@ -642,10 +932,13 @@
           </div>
         </div>
 
-        <!-- Usuario (MODIFICADO PARA FOTOS Y NOMBRE COMPLETO) -->
-        <div class="user-info" id="userInfo" onclick="abrirModalFoto()">
-          <img id="avatarUsuarioImg" class="user-avatar-img" style="display:none;">
-          <div class="user-avatar" id="userAvatar"></div>
+        <!-- Usuario MEJORADO: Foto arriba, nombre abajo -->
+        <div class="user-profile-container" id="userInfo" onclick="abrirModalFoto()">
+          <div class="user-avatar-container">
+            <img id="avatarUsuarioImg" class="user-avatar-img" style="display:none;">
+            <div class="user-avatar" id="userAvatar"></div>
+            <div class="user-status"></div>
+          </div>
           <div class="user-details">
             <span class="user-name" id="nombreUsuario"></span>
             <span class="user-role" id="userRole"></span>
@@ -654,53 +947,53 @@
       </div>
     </header>
 
-    <!-- ==================== MODAL PARA FOTO DE PERFIL (VERSIÓN COMPACTA) ==================== -->
+    <!-- ==================== MODAL PARA FOTO DE PERFIL (VERSIÓN MEJORADA) ==================== -->
     <div id="modalFotoPerfil" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; backdrop-filter:blur(5px);">
-      <div style="background:white; width:90%; max-width:450px; max-height:90vh; margin:5vh auto; border-radius:15px; box-shadow:0 20px 60px rgba(0,0,0,0.4); overflow:hidden; display:flex; flex-direction:column;">
+      <div style="background:white; width:90%; max-width:500px; max-height:90vh; margin:5vh auto; border-radius:15px; box-shadow:0 20px 60px rgba(0,0,0,0.4); overflow:hidden; display:flex; flex-direction:column;">
         
         <!-- Header -->
-        <div style="background:linear-gradient(135deg, #1e3a5f, #3498db); color:white; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
-          <h3 style="margin:0; font-size:18px; font-weight:600;">Foto de Perfil</h3>
-          <button onclick="cerrarModalFoto()" style="background:rgba(255,255,255,0.2); border:none; color:white; font-size:24px; cursor:pointer; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; line-height:1;">&times;</button>
+        <div class="modal-foto-header">
+          <h3 class="modal-foto-title">Foto de Perfil</h3>
+          <button class="modal-foto-close" onclick="cerrarModalFoto()">&times;</button>
         </div>
         
         <!-- Body con scroll -->
-        <div style="padding:25px; overflow-y:auto; flex:1;">
+        <div class="modal-foto-body">
           <!-- Avatar actual -->
-          <div style="text-align:center; margin-bottom:20px;">
-            <img id="fotoPreviewActual" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:3px solid #e5e7eb; display:none;">
-            <div id="avatarPreviewInicial" style="width:100px; height:100px; border-radius:50%; background:linear-gradient(135deg, #667eea, #764ba2); color:white; display:flex; align-items:center; justify-content:center; font-size:42px; font-weight:600; margin:0 auto; border:3px solid #e5e7eb;">A</div>
+          <div class="foto-preview-container">
+            <img id="fotoPreviewActual" class="avatar-preview" style="display:none;">
+            <div id="avatarPreviewInicial" class="avatar-inicial">A</div>
           </div>
           
           <!-- Botón seleccionar -->
           <div style="text-align:center; margin-bottom:15px;">
-            <label for="inputFotoPerfil" style="display:inline-flex; align-items:center; gap:8px; padding:12px 30px; background:#3498db; color:white; border-radius:30px; cursor:pointer; font-weight:500; font-size:15px; box-shadow:0 4px 12px rgba(52,152,219,0.4); transition:all 0.2s;">
+            <label for="inputFotoPerfil" class="btn-select-photo">
               <i class="material-icons" style="font-size:20px;">cloud_upload</i>
               Seleccionar Imagen
             </label>
             <input type="file" id="inputFotoPerfil" accept="image/*" style="display:none;">
-            <p style="margin:8px 0 0 0; font-size:12px; color:#6c757d;">JPG, PNG, GIF o WEBP (máx. 5MB)</p>
+            <p class="photo-info">JPG, PNG, GIF o WEBP (máx. 5MB)</p>
           </div>
           
           <!-- Preview nueva imagen -->
-          <div id="nuevaFotoPreview" style="display:none; text-align:center; margin-top:15px;">
-            <p style="font-weight:500; margin-bottom:8px; font-size:14px;">Nueva imagen:</p>
-            <img id="previewNuevaFoto" style="max-width:100%; max-height:180px; border-radius:8px; border:2px solid #e5e7eb;">
+          <div id="nuevaFotoPreview" class="new-photo-preview" style="display:none;">
+            <p class="new-photo-title">Nueva imagen:</p>
+            <img id="previewNuevaFoto" class="new-photo-img">
           </div>
         </div>
         
         <!-- Footer FIJO -->
-        <div style="padding:15px 20px; background:#f9fafb; border-top:1px solid #e5e7eb; display:flex; gap:8px; justify-content:space-between; flex-shrink:0;">
-          <button onclick="eliminarFotoPerfil()" style="background:#ef4444; color:white; border:none; padding:12px 18px; border-radius:8px; cursor:pointer; font-weight:500; font-size:14px; display:flex; align-items:center; gap:6px; transition:all 0.2s;">
+        <div class="modal-foto-footer">
+          <button class="btn-modal-delete" onclick="eliminarFotoPerfil()">
             <i class="material-icons" style="font-size:18px;">delete</i>
             <span>Eliminar</span>
           </button>
-          <div style="display:flex; gap:8px;">
-            <button onclick="cerrarModalFoto()" style="background:white; color:#6c757d; border:1px solid #d1d5db; padding:12px 20px; border-radius:8px; cursor:pointer; font-weight:500; font-size:14px; transition:all 0.2s;">
+          <div style="display:flex; gap:10px;">
+            <button class="btn-modal-cancel" onclick="cerrarModalFoto()">
               Cancelar
             </button>
-            <button onclick="guardarFotoPerfil()" style="background:#10b981; color:white; border:none; padding:12px 28px; border-radius:8px; cursor:pointer; font-weight:500; font-size:14px; transition:all 0.2s; box-shadow:0 2px 8px rgba(16,185,129,0.3);">
-              Guardar
+            <button class="btn-modal-save" onclick="guardarFotoPerfil()">
+              Guardar Cambios
             </button>
           </div>
         </div>
@@ -1101,12 +1394,19 @@
       const data = await response.json();
       
       if (data.success) {
+        // Actualizar foto en el header
         document.getElementById('avatarUsuarioImg').src = data.fotoUrl + '?t=' + Date.now();
         document.getElementById('avatarUsuarioImg').style.display = 'block';
         document.getElementById('userAvatar').style.display = 'none';
         
         cerrarModalFoto();
-        Swal.fire('¡Éxito!', 'Foto actualizada correctamente', 'success');
+        Swal.fire({
+          icon: 'success',
+          title: '¡Foto actualizada!',
+          text: 'Tu foto de perfil se ha actualizado correctamente',
+          timer: 2000,
+          showConfirmButton: false
+        });
       } else {
         Swal.fire('Error', data.error || 'Error al actualizar foto', 'error');
       }
@@ -1144,15 +1444,23 @@
         const nombreParaInicial = userData.nombre_completo || userData.nomina || 'U';
         const inicial = nombreParaInicial.charAt(0).toUpperCase();
         
+        // Actualizar header
         document.getElementById('avatarUsuarioImg').style.display = 'none';
         document.getElementById('userAvatar').textContent = inicial;
         document.getElementById('userAvatar').style.display = 'flex';
         
+        // Actualizar modal
         document.getElementById('fotoPreviewActual').style.display = 'none';
         document.getElementById('avatarPreviewInicial').textContent = inicial;
         document.getElementById('avatarPreviewInicial').style.display = 'flex';
         
-        Swal.fire('¡Eliminada!', 'Foto eliminada correctamente', 'success');
+        Swal.fire({
+          icon: 'success',
+          title: '¡Foto eliminada!',
+          text: 'Tu foto de perfil se ha eliminado correctamente',
+          timer: 2000,
+          showConfirmButton: false
+        });
       } else {
         Swal.fire('Error', data.error || 'Error al eliminar foto', 'error');
       }
