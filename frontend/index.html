@@ -541,6 +541,41 @@
       from { transform:translateY(-50px); opacity:0; }
       to { transform:translateY(0); opacity:1; }
     }
+
+    #modalFotoPerfil > div {
+      animation: slideDown 0.3s ease;
+    }
+
+    /* Hover effects para modal */
+    label[for="inputFotoPerfil"]:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(52,152,219,0.5) !important;
+    }
+
+    #modalFotoPerfil button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+    }
+
+    /* Responsive modal */
+    @media (max-width: 768px) {
+      #modalFotoPerfil > div {
+        width: 95% !important;
+        max-height: 95vh !important;
+      }
+      
+      #modalFotoPerfil > div > div:nth-child(2) {
+        padding: 20px !important;
+      }
+      
+      #modalFotoPerfil button span {
+        display: none;
+      }
+      
+      #modalFotoPerfil button {
+        padding: 12px !important;
+      }
+    }
   </style>
 </head>
 <body id="index-page">
@@ -619,52 +654,52 @@
       </div>
     </header>
 
-    <!-- MODAL PARA FOTO DE PERFIL -->
-    <div id="modalFotoPerfil" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; backdrop-filter:blur(5px);">
-      <div style="background:white; width:90%; max-width:500px; margin:80px auto; border-radius:15px; box-shadow:0 20px 60px rgba(0,0,0,0.3); overflow:hidden; animation:slideDown 0.3s ease;">
+    <!-- ==================== MODAL PARA FOTO DE PERFIL (VERSIÓN COMPACTA) ==================== -->
+    <div id="modalFotoPerfil" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; backdrop-filter:blur(5px);">
+      <div style="background:white; width:90%; max-width:450px; max-height:90vh; margin:5vh auto; border-radius:15px; box-shadow:0 20px 60px rgba(0,0,0,0.4); overflow:hidden; display:flex; flex-direction:column;">
         
-        <!-- Header del Modal -->
-        <div style="background:linear-gradient(135deg, #1e3a5f, #3498db); color:white; padding:20px; display:flex; justify-content:space-between; align-items:center;">
-          <h3 style="margin:0; font-size:20px; font-weight:600;">Foto de Perfil</h3>
-          <button onclick="cerrarModalFoto()" style="background:none; border:none; color:white; font-size:28px; cursor:pointer; width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center; transition:background 0.2s;">&times;</button>
+        <!-- Header -->
+        <div style="background:linear-gradient(135deg, #1e3a5f, #3498db); color:white; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+          <h3 style="margin:0; font-size:18px; font-weight:600;">Foto de Perfil</h3>
+          <button onclick="cerrarModalFoto()" style="background:rgba(255,255,255,0.2); border:none; color:white; font-size:24px; cursor:pointer; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; line-height:1;">&times;</button>
         </div>
         
-        <!-- Body del Modal -->
-        <div style="padding:30px;">
-          <!-- Vista previa actual -->
-          <div style="text-align:center; margin-bottom:25px;">
-            <img id="fotoPreviewActual" style="width:150px; height:150px; border-radius:50%; object-fit:cover; border:4px solid #e5e7eb; display:none;">
-            <div id="avatarPreviewInicial" style="width:150px; height:150px; border-radius:50%; background:linear-gradient(135deg, #667eea, #764ba2); color:white; display:flex; align-items:center; justify-content:center; font-size:60px; font-weight:600; margin:0 auto; border:4px solid #e5e7eb;">A</div>
+        <!-- Body con scroll -->
+        <div style="padding:25px; overflow-y:auto; flex:1;">
+          <!-- Avatar actual -->
+          <div style="text-align:center; margin-bottom:20px;">
+            <img id="fotoPreviewActual" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:3px solid #e5e7eb; display:none;">
+            <div id="avatarPreviewInicial" style="width:100px; height:100px; border-radius:50%; background:linear-gradient(135deg, #667eea, #764ba2); color:white; display:flex; align-items:center; justify-content:center; font-size:42px; font-weight:600; margin:0 auto; border:3px solid #e5e7eb;">A</div>
           </div>
           
-          <!-- Botón para seleccionar imagen -->
-          <div style="text-align:center; margin-bottom:20px;">
-            <label for="inputFotoPerfil" style="display:inline-flex; align-items:center; gap:10px; padding:12px 25px; background:#3498db; color:white; border-radius:25px; cursor:pointer; font-weight:500; transition:all 0.2s; box-shadow:0 4px 10px rgba(52,152,219,0.3);">
-              <i class="material-icons">cloud_upload</i>
+          <!-- Botón seleccionar -->
+          <div style="text-align:center; margin-bottom:15px;">
+            <label for="inputFotoPerfil" style="display:inline-flex; align-items:center; gap:8px; padding:12px 30px; background:#3498db; color:white; border-radius:30px; cursor:pointer; font-weight:500; font-size:15px; box-shadow:0 4px 12px rgba(52,152,219,0.4); transition:all 0.2s;">
+              <i class="material-icons" style="font-size:20px;">cloud_upload</i>
               Seleccionar Imagen
             </label>
             <input type="file" id="inputFotoPerfil" accept="image/*" style="display:none;">
-            <p style="margin-top:10px; font-size:13px; color:#6c757d;">JPG, PNG, GIF o WEBP (máx. 5MB)</p>
+            <p style="margin:8px 0 0 0; font-size:12px; color:#6c757d;">JPG, PNG, GIF o WEBP (máx. 5MB)</p>
           </div>
           
-          <!-- Preview de nueva imagen -->
-          <div id="nuevaFotoPreview" style="display:none; text-align:center;">
-            <p style="font-weight:500; margin-bottom:10px;">Nueva imagen:</p>
-            <img id="previewNuevaFoto" style="max-width:100%; max-height:250px; border-radius:10px; border:2px solid #e5e7eb;">
+          <!-- Preview nueva imagen -->
+          <div id="nuevaFotoPreview" style="display:none; text-align:center; margin-top:15px;">
+            <p style="font-weight:500; margin-bottom:8px; font-size:14px;">Nueva imagen:</p>
+            <img id="previewNuevaFoto" style="max-width:100%; max-height:180px; border-radius:8px; border:2px solid #e5e7eb;">
           </div>
         </div>
         
-        <!-- Footer del Modal -->
-        <div style="padding:15px 30px; background:#f9fafb; border-top:1px solid #e5e7eb; display:flex; gap:10px; justify-content:space-between;">
-          <button onclick="eliminarFotoPerfil()" style="background:#ef4444; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:500; transition:background 0.2s; display:flex; align-items:center; gap:8px;">
+        <!-- Footer FIJO -->
+        <div style="padding:15px 20px; background:#f9fafb; border-top:1px solid #e5e7eb; display:flex; gap:8px; justify-content:space-between; flex-shrink:0;">
+          <button onclick="eliminarFotoPerfil()" style="background:#ef4444; color:white; border:none; padding:12px 18px; border-radius:8px; cursor:pointer; font-weight:500; font-size:14px; display:flex; align-items:center; gap:6px; transition:all 0.2s;">
             <i class="material-icons" style="font-size:18px;">delete</i>
-            Eliminar
+            <span>Eliminar</span>
           </button>
-          <div style="display:flex; gap:10px;">
-            <button onclick="cerrarModalFoto()" style="background:white; color:#6c757d; border:1px solid #d1d5db; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:500;">
+          <div style="display:flex; gap:8px;">
+            <button onclick="cerrarModalFoto()" style="background:white; color:#6c757d; border:1px solid #d1d5db; padding:12px 20px; border-radius:8px; cursor:pointer; font-weight:500; font-size:14px; transition:all 0.2s;">
               Cancelar
             </button>
-            <button onclick="guardarFotoPerfil()" style="background:#3498db; color:white; border:none; padding:10px 25px; border-radius:8px; cursor:pointer; font-weight:500; transition:background 0.2s;">
+            <button onclick="guardarFotoPerfil()" style="background:#10b981; color:white; border:none; padding:12px 28px; border-radius:8px; cursor:pointer; font-weight:500; font-size:14px; transition:all 0.2s; box-shadow:0 2px 8px rgba(16,185,129,0.3);">
               Guardar
             </button>
           </div>
