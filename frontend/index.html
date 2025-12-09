@@ -830,9 +830,11 @@
     }
   }
 
-  // ==================== Cambiar sucursal (solo admin) ====================
+// ==================== Cambiar sucursal (solo admin) - VERSIÓN CORREGIDA ====================
 async function cambiarSucursal(nombreSucursal) {
   try {
+    console.log('🔄 Cambiando a sucursal:', nombreSucursal);
+    
     const res = await fetch('/api/set-departamento', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -847,16 +849,21 @@ async function cambiarSucursal(nombreSucursal) {
         sucursalTexto.textContent = (nombreSucursal === "admin") ? "Admin" : nombreSucursal;
       }
 
-      // ✅ RECARGAR EL IFRAME ACTIVO
+      // ✅ RECARGAR EL IFRAME ACTIVO CON TIMESTAMP
       const iframe = document.querySelector('#main-content iframe');
       if (iframe) {
-        iframe.src = iframe.src; // Forzar recarga
+        const urlActual = iframe.src.split('?')[0]; // Quitar parámetros anteriores
+        iframe.src = urlActual + '?t=' + Date.now(); // ✅ Agregar timestamp único
+        console.log('📄 URL actual:', urlActual);
+        console.log('📄 Nueva URL:', iframe.src);
+        console.log('✅ Iframe recargado para sucursal:', nombreSucursal);
       } else {
-        // Si no hay iframe, limpiar contenido
+        // Si no hay iframe, mostrar pantalla de bienvenida
+        console.log('ℹ️ No hay iframe activo, mostrando pantalla de bienvenida');
         document.getElementById('main-content').innerHTML = `
           <div class="welcome-container">
             <h1 class="welcome-title">Sucursal Cambiada</h1>
-            <p class="welcome-subtitle">Ahora estás viendo datos de ${nombreSucursal}</p>
+            <p class="welcome-subtitle">Ahora estás viendo datos de: <strong>${nombreSucursal}</strong></p>
             <p class="welcome-subtitle">Selecciona una opción del menú para comenzar</p>
             <img src="/uploads/logo-oftavision.png" 
                  alt="Instituto Oftavisión" 
@@ -865,7 +872,19 @@ async function cambiarSucursal(nombreSucursal) {
         `;
       }
       
+      // ✅ NOTIFICACIÓN DE ÉXITO
+      Swal.fire({
+        icon: 'success',
+        title: '¡Sucursal Cambiada!',
+        text: `Ahora estás viendo: ${nombreSucursal}`,
+        timer: 2000,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end'
+      });
+      
     } else {
+      console.error('❌ Error del servidor:', data.error);
       Swal.fire({
         icon: 'error',
         title: 'Error',
@@ -873,7 +892,7 @@ async function cambiarSucursal(nombreSucursal) {
       });
     }
   } catch (err) {
-    console.error("Error cambiando sucursal:", err);
+    console.error("❌ Error cambiando sucursal:", err);
     Swal.fire({
       icon: 'error',
       title: 'Error',
