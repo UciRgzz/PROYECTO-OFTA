@@ -411,16 +411,15 @@
 
 
   // ==================== HELPER: Determinar sucursal activa ====================
-  function getDepartamento(req) {
+function getDepartamento(req) {
   const usuario = req.session.usuario;
   
-  // 1. Si es admin SIN departamento (nómina 1256) → puede cambiar de sucursal
-  if (usuario.esAdminGlobal) {
-    return usuario.sucursalSeleccionada || "ADMIN";
+  // ✅ TODOS los admins pueden cambiar de sucursal
+  if (usuario.rol === "admin") {
+    return usuario.sucursalSeleccionada || usuario.departamento || "ADMIN";
   }
   
-  // 2. Si es admin CON departamento (nómina 3004) → usa su departamento
-  // 3. Si es usuario normal → usa su departamento
+  // Usuario normal → usa su departamento
   return usuario.departamento;
 }
 

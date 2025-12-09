@@ -761,13 +761,17 @@
           document.getElementById("sucursal-selector").style.display = "block";
         }
 
-        // ✅ MOSTRAR EL DEPARTAMENTO REAL DEL USUARIO
-        let sucursalActual = data.usuario.departamento || "Admin";
-
-        // ✅ Si es admin global Y seleccionó otra sucursal, mostrar esa
-        if (data.usuario.esAdminGlobal && data.usuario.sucursalSeleccionada) {
+        // ✅ MOSTRAR LA SUCURSAL SELECCIONADA (si existe) o el departamento
+        let sucursalActual;
+        if (data.usuario.sucursalSeleccionada) {
           sucursalActual = data.usuario.sucursalSeleccionada;
+        } else if (data.usuario.departamento) {
+          sucursalActual = data.usuario.departamento;
+        } else {
+          sucursalActual = "Admin";
         }
+        
+        console.log('🏢 Sucursal actual en inicio:', sucursalActual);
         document.getElementById("sucursalTexto").textContent = sucursalActual;
 
         
@@ -810,7 +814,9 @@
 
     const main = document.getElementById('main-content');
     document.querySelectorAll('.sidebar a').forEach(item => item.classList.remove('active'));
-    event.target.classList.add('active');
+    if (event && event.target) {
+      event.target.classList.add('active');
+    }
 
     if (paginas[seccion]) {
       main.innerHTML = `<iframe src="${paginas[seccion]}" frameborder="0"></iframe>`;
@@ -830,9 +836,10 @@
     }
   }
 
-// ==================== Cambiar sucursal (solo admin) - VERSIÓN CORREGIDA ====================
+// ==================== Cambiar sucursal (solo admin) - VERSIÓN CORREGIDA CON MÁS DEBUG ====================
 async function cambiarSucursal(nombreSucursal) {
   try {
+    console.log('🔄 =========================');
     console.log('🔄 Cambiando a sucursal:', nombreSucursal);
     
     const res = await fetch('/api/set-departamento', {
@@ -842,6 +849,7 @@ async function cambiarSucursal(nombreSucursal) {
     });
 
     const data = await res.json();
+    console.log('📡 Respuesta del servidor:', data);
 
     if (res.ok) {
       const sucursalTexto = document.getElementById("sucursalTexto");
@@ -849,13 +857,19 @@ async function cambiarSucursal(nombreSucursal) {
         sucursalTexto.textContent = (nombreSucursal === "admin") ? "Admin" : nombreSucursal;
       }
 
+      // ✅ VERIFICAR INMEDIATAMENTE QUE LA SESIÓN SE ACTUALIZÓ
+      const checkRes = await fetch('/api/check-session');
+      const checkData = await checkRes.json();
+      console.log('🔍 Sesión después de cambio:', checkData.usuario);
+
       // ✅ RECARGAR EL IFRAME ACTIVO CON TIMESTAMP
       const iframe = document.querySelector('#main-content iframe');
       if (iframe) {
         const urlActual = iframe.src.split('?')[0]; // Quitar parámetros anteriores
-        iframe.src = urlActual + '?t=' + Date.now(); // ✅ Agregar timestamp único
+        const timestamp = Date.now();
+        iframe.src = urlActual + '?t=' + timestamp; // ✅ Agregar timestamp único
         console.log('📄 URL actual:', urlActual);
-        console.log('📄 Nueva URL:', iframe.src);
+        console.log('📄 Nueva URL con timestamp:', iframe.src);
         console.log('✅ Iframe recargado para sucursal:', nombreSucursal);
       } else {
         // Si no hay iframe, mostrar pantalla de bienvenida
@@ -882,6 +896,8 @@ async function cambiarSucursal(nombreSucursal) {
         toast: true,
         position: 'top-end'
       });
+      
+      console.log('🔄 =========================');
       
     } else {
       console.error('❌ Error del servidor:', data.error);
