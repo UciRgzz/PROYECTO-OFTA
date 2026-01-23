@@ -1094,10 +1094,10 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 });
 
 
-// ==================== Listar recibos (CORREGIDO DEFINITIVO) ====================
+// ==================== Listar recibos (CORREGIDO - SOLO CAMBIO EN SELECT) ====================
 app.get('/api/recibos', verificarSesion, async (req, res) => {
   try {
-    const depto = getDepartamento(req);
+    let depto = getDepartamento(req);
     const { fecha, desde, hasta } = req.query;
 
     let query = `
@@ -1106,46 +1106,35 @@ app.get('/api/recibos', verificarSesion, async (req, res) => {
         r.numero_recibo,
         r.fecha,
         r.folio,
+        -- ✅ CORREGIDO: Obtener nombre desde expedientes O pacientes_agenda
         COALESCE(
           e.nombre_completo,
-          pa.nombre || ' ' || pa.apellido
+          (pa.nombre || ' ' || pa.apellido)
         ) AS paciente,
         r.procedimiento,
         r.tipo,
         r.forma_pago,
         r.precio,
         COALESCE(
-          (
-            SELECT SUM(a.monto)
-            FROM abonos_recibos a
-            WHERE a.recibo_id = r.id
-              AND a.departamento = r.departamento
-          ),
+          (SELECT SUM(a.monto) FROM abonos_recibos a 
+           WHERE a.recibo_id = r.id AND a.departamento = r.departamento),
           0
         ) AS monto_pagado,
-        (
-          r.precio -
-          COALESCE(
-            (
-              SELECT SUM(a.monto)
-              FROM abonos_recibos a
-              WHERE a.recibo_id = r.id
-                AND a.departamento = r.departamento
-            ),
-            0
-          )
-        ) AS pendiente
+        (r.precio - COALESCE(
+          (SELECT SUM(a.monto) FROM abonos_recibos a 
+           WHERE a.recibo_id = r.id AND a.departamento = r.departamento),
+          0
+        )) AS pendiente
       FROM recibos r
-      LEFT JOIN expedientes e
-        ON e.numero_expediente = r.paciente_id
-       AND e.departamento = r.departamento
+      LEFT JOIN expedientes e 
+        ON r.paciente_id = e.numero_expediente 
+        AND r.departamento = e.departamento
       LEFT JOIN pacientes_agenda pa
-        ON pa.id = r.paciente_agenda_id
-       AND pa.departamento = r.departamento
+        ON r.paciente_agenda_id = pa.id
+        AND r.departamento = pa.departamento
       WHERE r.departamento = $1
     `;
-
-    const params = [depto];
+    let params = [depto];
 
     if (fecha) {
       query += " AND r.fecha = $2";
@@ -1160,13 +1149,10 @@ app.get('/api/recibos', verificarSesion, async (req, res) => {
     query += " ORDER BY r.numero_recibo DESC";
 
     const result = await pool.query(query, params);
-
-    // 🔒 GARANTÍA: SIEMPRE devolver array
-    res.json(Array.isArray(result.rows) ? result.rows : []);
-
+    res.json(result.rows);
   } catch (err) {
-    console.error("❌ Error al obtener recibos:", err);
-    res.status(500).json([]);
+    console.error("Error al obtener recibos:", err);
+    res.status(500).json({ error: "Error al obtener recibos" });
   }
 });
 
@@ -1219,7 +1205,7 @@ app.get('/api/recibos/:id', verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== Abonar a un recibo (CORREGIDO DEFINITIVO) ====================
+// ==================== Abonar a un recibo (VERIFICAR) ====================
 app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
   const { id } = req.params;
   const { monto, forma_pago } = req.body;
@@ -1229,36 +1215,35 @@ app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
   try {
     await client.query("BEGIN");
 
-    // 1️⃣ Verificar que el recibo exista
-    const reciboRes = await client.query(
-      `SELECT id, tipo 
-       FROM recibos 
-       WHERE id = $1 AND departamento = $2`,
-      [id, depto]
+    // 1️⃣ Insertar el abono en abonos_recibos
+    await client.query(
+      `INSERT INTO abonos_recibos (recibo_id, monto, forma_pago, fecha, departamento)
+      VALUES ($1, $2, $3, $4, $5)`,
+      [id, monto, forma_pago, fechaLocalMX(), depto]
     );
 
-    if (reciboRes.rows.length === 0) {
+    // 2️⃣ Actualizar monto_pagado en el recibo
+    const result = await client.query(
+      `UPDATE recibos
+      SET monto_pagado = monto_pagado + $1
+      WHERE id = $2 AND departamento = $3
+      RETURNING *`,
+      [monto, id, depto]
+    );
+
+    if (result.rows.length === 0) {
       await client.query("ROLLBACK");
       return res.status(404).json({ error: "Recibo no encontrado" });
     }
 
-    const recibo = reciboRes.rows[0];
+    const recibo = result.rows[0];
 
-    // 2️⃣ Insertar el abono (NO tocar recibos.monto_pagado)
-    await client.query(
-      `INSERT INTO abonos_recibos 
-       (recibo_id, monto, forma_pago, fecha, departamento)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [id, monto, forma_pago, fechaLocalMX(), depto]
-    );
-
-    // 3️⃣ Si el recibo está ligado a una orden médica, actualizar la orden
+    // 3️⃣ Si el recibo es de tipo OrdenCirugia → actualizar orden y registrar pago
     if (recibo.tipo && recibo.tipo.toLowerCase().includes("orden")) {
-
       const ordenResult = await client.query(
-        `SELECT id, expediente_id, precio, pagado 
-         FROM ordenes_medicas
-         WHERE folio_recibo = $1 AND departamento = $2`,
+        `SELECT id, expediente_id, precio, pagado, pendiente
+        FROM ordenes_medicas
+        WHERE folio_recibo = $1 AND departamento = $2`,
         [id, depto]
       );
 
@@ -1267,41 +1252,31 @@ app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
 
         const nuevoPagado = Number(orden.pagado || 0) + Number(monto);
         const nuevoPendiente = Math.max(0, Number(orden.precio) - nuevoPagado);
-        const nuevoEstatus = nuevoPendiente <= 0 ? 'Pagado' : 'Pendiente';
+        const nuevoEstatus = nuevoPendiente <= 0 ? "Pagado" : "Pendiente";
 
-        // Actualizar orden médica
+        // Actualiza totales de la orden médica
         await client.query(
           `UPDATE ordenes_medicas
-           SET pagado = $1,
-               pendiente = $2,
-               estatus = $3
-           WHERE id = $4 AND departamento = $5`,
+          SET pagado = $1, pendiente = $2, estatus = $3
+          WHERE id = $4 AND departamento = $5`,
           [nuevoPagado, nuevoPendiente, nuevoEstatus, orden.id, depto]
         );
 
-        // Registrar pago en historial de pagos
+        // Registrar el pago también en la tabla pagos (para el historial y cierre de caja)
         await client.query(
-          `INSERT INTO pagos
-           (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
-           VALUES ($1, $2, $3, $4, $5, $6)`,
-          [
-            orden.id,
-            orden.expediente_id,
-            monto,
-            forma_pago,
-            fechaLocalMX(),
-            depto
-          ]
+          `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
+          VALUES ($1, $2, $3, $4, $5, $6)`,
+          [orden.id, orden.expediente_id, monto, forma_pago, fechaLocalMX(), depto]
         );
       }
     }
 
     await client.query("COMMIT");
-    res.json({ mensaje: "Abono registrado correctamente" });
+    res.json({ mensaje: "✅ Abono registrado correctamente" });
 
   } catch (err) {
     await client.query("ROLLBACK");
-    console.error("❌ Error al registrar abono:", err);
+    console.error("❌ Error al registrar abono:", err.message);
     res.status(500).json({
       error: "Error al registrar abono",
       detalle: err.message
@@ -1310,8 +1285,6 @@ app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
     client.release();
   }
 });
-
-
 // ==================== ELIMINAR RECIBO (NUEVO - CON CASCADA) ====================
 app.delete('/api/recibos/:id', verificarSesion, async (req, res) => {
   const { id } = req.params;
