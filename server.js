@@ -1222,21 +1222,20 @@ app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
       [id, monto, forma_pago, fechaLocalMX(), depto]
     );
 
-    // 2️⃣ Actualizar monto_pagado en el recibo
-    const result = await client.query(
-      `UPDATE recibos
-      SET monto_pagado = monto_pagado + $1
-      WHERE id = $2 AND departamento = $3
-      RETURNING *`,
-      [monto, id, depto]
-    );
+// 2️⃣ Obtener datos del recibo (SIN actualizar monto_pagado)
+const reciboRes = await client.query(
+  `SELECT id, tipo FROM recibos
+   WHERE id = $1 AND departamento = $2`,
+  [id, depto]
+);
 
-    if (result.rows.length === 0) {
-      await client.query("ROLLBACK");
-      return res.status(404).json({ error: "Recibo no encontrado" });
-    }
+if (reciboRes.rows.length === 0) {
+  await client.query("ROLLBACK");
+  return res.status(404).json({ error: "Recibo no encontrado" });
+}
 
-    const recibo = result.rows[0];
+const recibo = reciboRes.rows[0];
+
 
     // 3️⃣ Si el recibo es de tipo OrdenCirugia → actualizar orden y registrar pago
     if (recibo.tipo && recibo.tipo.toLowerCase().includes("orden")) {
