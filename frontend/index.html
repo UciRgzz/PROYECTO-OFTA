@@ -774,7 +774,7 @@
           sucursalActual = "Admin";
         }
         
-        console.log('🏢 Sucursal actual en inicio:', sucursalActual);
+        console.log(' Sucursal actual en inicio:', sucursalActual);
         document.getElementById("sucursalTexto").textContent = sucursalActual;
 
         
@@ -842,8 +842,8 @@
 // ==================== Cambiar sucursal (solo admin) - VERSIÓN CORREGIDA CON MÁS DEBUG ====================
 async function cambiarSucursal(nombreSucursal) {
   try {
-    console.log('🔄 =========================');
-    console.log('🔄 Cambiando a sucursal:', nombreSucursal);
+    console.log(' =========================');
+    console.log(' Cambiando a sucursal:', nombreSucursal);
     
     const res = await fetch('/api/set-departamento', {
       method: 'POST',
@@ -852,7 +852,7 @@ async function cambiarSucursal(nombreSucursal) {
     });
 
     const data = await res.json();
-    console.log('📡 Respuesta del servidor:', data);
+    console.log(' Respuesta del servidor:', data);
 
     if (res.ok) {
       const sucursalTexto = document.getElementById("sucursalTexto");
@@ -863,20 +863,20 @@ async function cambiarSucursal(nombreSucursal) {
       // ✅ VERIFICAR INMEDIATAMENTE QUE LA SESIÓN SE ACTUALIZÓ
       const checkRes = await fetch('/api/check-session');
       const checkData = await checkRes.json();
-      console.log('🔍 Sesión después de cambio:', checkData.usuario);
+      console.log(' Sesión después de cambio:', checkData.usuario);
 
       // ✅ RECARGAR EL IFRAME ACTIVO CON TIMESTAMP
       const iframe = document.querySelector('#main-content iframe');
       if (iframe) {
         const urlActual = iframe.src.split('?')[0]; // Quitar parámetros anteriores
         const timestamp = Date.now();
-        iframe.src = urlActual + '?t=' + timestamp; // ✅ Agregar timestamp único
-        console.log('📄 URL actual:', urlActual);
-        console.log('📄 Nueva URL con timestamp:', iframe.src);
-        console.log('✅ Iframe recargado para sucursal:', nombreSucursal);
+        iframe.src = urlActual + '?t=' + timestamp; //  Agregar timestamp único
+        console.log(' URL actual:', urlActual);
+        console.log(' Nueva URL con timestamp:', iframe.src);
+        console.log(' Iframe recargado para sucursal:', nombreSucursal);
       } else {
         // Si no hay iframe, mostrar pantalla de bienvenida
-        console.log('ℹ️ No hay iframe activo, mostrando pantalla de bienvenida');
+        console.log('ℹ No hay iframe activo, mostrando pantalla de bienvenida');
         document.getElementById('main-content').innerHTML = `
           <div class="welcome-container">
             <h1 class="welcome-title">Sucursal Cambiada</h1>
@@ -900,7 +900,7 @@ async function cambiarSucursal(nombreSucursal) {
         position: 'top-end'
       });
       
-      console.log('🔄 =========================');
+      console.log(' =========================');
       
     } else {
       console.error('❌ Error del servidor:', data.error);
