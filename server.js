@@ -1094,10 +1094,10 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
 });
 
 
-// ==================== Listar recibos (CORREGIDO - SOLO CAMBIO EN SELECT) ====================
+// ==================== Listar recibos (CORREGIDO DEFINITIVO) ====================
 app.get('/api/recibos', verificarSesion, async (req, res) => {
   try {
-    let depto = getDepartamento(req);
+    const depto = getDepartamento(req);
     const { fecha, desde, hasta } = req.query;
 
     let query = `
@@ -1106,35 +1106,46 @@ app.get('/api/recibos', verificarSesion, async (req, res) => {
         r.numero_recibo,
         r.fecha,
         r.folio,
-        -- ✅ CORREGIDO: Obtener nombre desde expedientes O pacientes_agenda
         COALESCE(
           e.nombre_completo,
-          (pa.nombre || ' ' || pa.apellido)
+          pa.nombre || ' ' || pa.apellido
         ) AS paciente,
         r.procedimiento,
         r.tipo,
         r.forma_pago,
         r.precio,
         COALESCE(
-          (SELECT SUM(a.monto) FROM abonos_recibos a 
-           WHERE a.recibo_id = r.id AND a.departamento = r.departamento),
+          (
+            SELECT SUM(a.monto)
+            FROM abonos_recibos a
+            WHERE a.recibo_id = r.id
+              AND a.departamento = r.departamento
+          ),
           0
         ) AS monto_pagado,
-        (r.precio - COALESCE(
-          (SELECT SUM(a.monto) FROM abonos_recibos a 
-           WHERE a.recibo_id = r.id AND a.departamento = r.departamento),
-          0
-        )) AS pendiente
+        (
+          r.precio -
+          COALESCE(
+            (
+              SELECT SUM(a.monto)
+              FROM abonos_recibos a
+              WHERE a.recibo_id = r.id
+                AND a.departamento = r.departamento
+            ),
+            0
+          )
+        ) AS pendiente
       FROM recibos r
-      LEFT JOIN expedientes e 
-        ON r.paciente_id = e.numero_expediente 
-        AND r.departamento = e.departamento
+      LEFT JOIN expedientes e
+        ON e.numero_expediente = r.paciente_id
+       AND e.departamento = r.departamento
       LEFT JOIN pacientes_agenda pa
-        ON r.paciente_agenda_id = pa.id
-        AND r.departamento = pa.departamento
+        ON pa.id = r.paciente_agenda_id
+       AND pa.departamento = r.departamento
       WHERE r.departamento = $1
     `;
-    let params = [depto];
+
+    const params = [depto];
 
     if (fecha) {
       query += " AND r.fecha = $2";
@@ -1149,10 +1160,13 @@ app.get('/api/recibos', verificarSesion, async (req, res) => {
     query += " ORDER BY r.numero_recibo DESC";
 
     const result = await pool.query(query, params);
-    res.json(result.rows);
+
+    // 🔒 GARANTÍA: SIEMPRE devolver array
+    res.json(Array.isArray(result.rows) ? result.rows : []);
+
   } catch (err) {
-    console.error("Error al obtener recibos:", err);
-    res.status(500).json({ error: "Error al obtener recibos" });
+    console.error("❌ Error al obtener recibos:", err);
+    res.status(500).json([]);
   }
 });
 
