@@ -1219,7 +1219,7 @@ app.get('/api/recibos/:id', verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== Abonar a un recibo (VERIFICAR) ====================
+// ==================== Abonar a un recibo (CORREGIDO DEFINITIVO) ====================
 app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
   const { id } = req.params;
   const { monto, forma_pago } = req.body;
@@ -1229,34 +1229,36 @@ app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
   try {
     await client.query("BEGIN");
 
-    // 1️⃣ Insertar el abono en abonos_recibos
+    // 1️⃣ Verificar que el recibo exista
+    const reciboRes = await client.query(
+      `SELECT id, tipo 
+       FROM recibos 
+       WHERE id = $1 AND departamento = $2`,
+      [id, depto]
+    );
+
+    if (reciboRes.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Recibo no encontrado" });
+    }
+
+    const recibo = reciboRes.rows[0];
+
+    // 2️⃣ Insertar el abono (NO tocar recibos.monto_pagado)
     await client.query(
-      `INSERT INTO abonos_recibos (recibo_id, monto, forma_pago, fecha, departamento)
-      VALUES ($1, $2, $3, $4, $5)`,
+      `INSERT INTO abonos_recibos 
+       (recibo_id, monto, forma_pago, fecha, departamento)
+       VALUES ($1, $2, $3, $4, $5)`,
       [id, monto, forma_pago, fechaLocalMX(), depto]
     );
 
-// 2️⃣ Obtener datos del recibo (SIN actualizar monto_pagado)
-const reciboRes = await client.query(
-  `SELECT id, tipo FROM recibos
-   WHERE id = $1 AND departamento = $2`,
-  [id, depto]
-);
-
-if (reciboRes.rows.length === 0) {
-  await client.query("ROLLBACK");
-  return res.status(404).json({ error: "Recibo no encontrado" });
-}
-
-const recibo = reciboRes.rows[0];
-
-
-    // 3️⃣ Si el recibo es de tipo OrdenCirugia → actualizar orden y registrar pago
+    // 3️⃣ Si el recibo está ligado a una orden médica, actualizar la orden
     if (recibo.tipo && recibo.tipo.toLowerCase().includes("orden")) {
+
       const ordenResult = await client.query(
-        `SELECT id, expediente_id, precio, pagado, pendiente
-        FROM ordenes_medicas
-        WHERE folio_recibo = $1 AND departamento = $2`,
+        `SELECT id, expediente_id, precio, pagado 
+         FROM ordenes_medicas
+         WHERE folio_recibo = $1 AND departamento = $2`,
         [id, depto]
       );
 
@@ -1265,31 +1267,41 @@ const recibo = reciboRes.rows[0];
 
         const nuevoPagado = Number(orden.pagado || 0) + Number(monto);
         const nuevoPendiente = Math.max(0, Number(orden.precio) - nuevoPagado);
-        const nuevoEstatus = nuevoPendiente <= 0 ? "Pagado" : "Pendiente";
+        const nuevoEstatus = nuevoPendiente <= 0 ? 'Pagado' : 'Pendiente';
 
-        // Actualiza totales de la orden médica
+        // Actualizar orden médica
         await client.query(
           `UPDATE ordenes_medicas
-          SET pagado = $1, pendiente = $2, estatus = $3
-          WHERE id = $4 AND departamento = $5`,
+           SET pagado = $1,
+               pendiente = $2,
+               estatus = $3
+           WHERE id = $4 AND departamento = $5`,
           [nuevoPagado, nuevoPendiente, nuevoEstatus, orden.id, depto]
         );
 
-        // Registrar el pago también en la tabla pagos (para el historial y cierre de caja)
+        // Registrar pago en historial de pagos
         await client.query(
-          `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
-          VALUES ($1, $2, $3, $4, $5, $6)`,
-          [orden.id, orden.expediente_id, monto, forma_pago, fechaLocalMX(), depto]
+          `INSERT INTO pagos
+           (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
+           VALUES ($1, $2, $3, $4, $5, $6)`,
+          [
+            orden.id,
+            orden.expediente_id,
+            monto,
+            forma_pago,
+            fechaLocalMX(),
+            depto
+          ]
         );
       }
     }
 
     await client.query("COMMIT");
-    res.json({ mensaje: "✅ Abono registrado correctamente" });
+    res.json({ mensaje: "Abono registrado correctamente" });
 
   } catch (err) {
     await client.query("ROLLBACK");
-    console.error("❌ Error al registrar abono:", err.message);
+    console.error("❌ Error al registrar abono:", err);
     res.status(500).json({
       error: "Error al registrar abono",
       detalle: err.message
@@ -1298,6 +1310,8 @@ const recibo = reciboRes.rows[0];
     client.release();
   }
 });
+
+
 // ==================== ELIMINAR RECIBO (NUEVO - CON CASCADA) ====================
 app.delete('/api/recibos/:id', verificarSesion, async (req, res) => {
   const { id } = req.params;
