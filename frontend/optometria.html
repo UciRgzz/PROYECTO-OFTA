@@ -2,219 +2,1140 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Gestión de Optometría</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <title>Gestión de Optometría</title>
+  <link rel="icon" type="image/png" href="/uploads/logo-oftavision2.png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --primary-color: #1e3a5f;
+      --secondary-color: #2980b9;
+      --accent-color: #e74c3c;
+      --success-color: #27ae60;
+      --warning-color: #f39c12;
+      --light-color: #f8f9fa;
+      --dark-color: #2c3e50;
+      --border-color: #dfe6e9;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
     body {
-      background:#f4f6f9;
-      padding:20px;
+      font-family: 'Poppins', 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      padding: 20px;
+      color: #2c3e50;
+      min-height: 100vh;
     }
+    
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 30px;
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      color: white;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+    
+    h1 {
+      font-size: 2.8rem;
+      margin-bottom: 10px;
+      font-weight: 700;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .description {
+      font-size: 1.1rem;
+      opacity: 0.95;
+      font-weight: 300;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+      overflow: hidden;
+      border: none;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+    }
+    
     .card-header {
-      background:#2c3e50;
-      color:white;
-      font-weight:600;
+      background: linear-gradient(135deg, var(--primary-color) 0%, #2c5282 100%);
+      color: white;
+      padding: 20px 30px;
+      font-size: 1.4rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      border-bottom: 3px solid var(--secondary-color);
     }
-    h5 {
-      margin-top:30px;
-      font-weight:700;
-      color:#2c3e50;
+    
+    .card-header i {
+      margin-right: 15px;
+      font-size: 1.6rem;
     }
-    hr {
-      margin:30px 0;
+    
+    .card-body {
+      padding: 30px;
     }
-    table input {
-      text-align:center;
+    
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin-top: 30px;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid var(--secondary-color);
+      display: flex;
+      align-items: center;
+    }
+    
+    .section-title i {
+      margin-right: 10px;
+      color: var(--secondary-color);
+    }
+    
+    .subsection-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--secondary-color);
+      margin-top: 25px;
+      margin-bottom: 15px;
+      padding-left: 10px;
+      border-left: 4px solid var(--secondary-color);
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--dark-color);
+      font-size: 0.95rem;
+      display: block;
+    }
+    
+    input, select, textarea {
+      padding: 12px 15px;
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      font-size: 1rem;
+      width: 100%;
+      transition: all 0.3s;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--secondary-color);
+      box-shadow: 0 0 0 4px rgba(41, 128, 185, 0.1);
+      outline: none;
+      transform: translateY(-2px);
+    }
+    
+    input[readonly] {
+      background-color: #f0f3f5;
+      cursor: not-allowed;
+    }
+    
+    .btn {
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 28px;
+      font-size: 1.05rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--secondary-color) 0%, #1e6ba8 100%);
+      color: white;
+      box-shadow: 0 5px 15px rgba(41, 128, 185, 0.3);
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(41, 128, 185, 0.4);
+    }
+    
+    .btn-primary i {
+      margin-right: 10px;
+      font-size: 1.1rem;
+    }
+    
+    .btn-secondary {
+      background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+      color: white;
+      box-shadow: 0 5px 15px rgba(149, 165, 166, 0.3);
+    }
+    
+    .btn-secondary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(149, 165, 166, 0.4);
+    }
+    
+    .btn-danger {
+      background: linear-gradient(135deg, var(--accent-color) 0%, #c0392b 100%);
+      color: white;
+      box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+    }
+    
+    .btn-danger:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(231, 76, 60, 0.4);
+    }
+    
+    .btn-sm {
+      padding: 8px 16px;
+      font-size: 0.9rem;
+    }
+    
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    
+    .table th {
+      background: linear-gradient(135deg, var(--primary-color) 0%, #2c5282 100%);
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 0.9rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    
+    .table td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border-color);
+      text-align: center;
+      font-size: 0.9rem;
+    }
+    
+    .table tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .table tr:nth-child(even) {
+      background: #f8f9fa;
+    }
+    
+    .table tr:hover {
+      background-color: #e3f2fd;
+      transition: background-color 0.3s;
+    }
+    
+    .input-group-sm {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    
+    .input-group-sm input {
+      flex: 1;
+    }
+    
+    .eye-label {
+      display: inline-block;
+      padding: 8px 15px;
+      background: linear-gradient(135deg, var(--secondary-color) 0%, #1e6ba8 100%);
+      color: white;
+      border-radius: 8px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      font-size: 1.1rem;
+      box-shadow: 0 4px 10px rgba(41, 128, 185, 0.2);
+    }
+    
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .field-box {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 10px;
+      border: 2px solid var(--border-color);
+      transition: all 0.3s;
+    }
+    
+    .field-box:hover {
+      border-color: var(--secondary-color);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .footer {
+      text-align: center;
+      margin-top: 50px;
+      padding: 20px;
+      color: #6c757d;
+      font-size: 0.95rem;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    
+    .success-alert {
+      display: none;
+      padding: 15px 20px;
+      background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+      color: #155724;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      border: 2px solid #c3e6cb;
+      font-weight: 500;
+    }
+    
+    .table-responsive {
+      overflow-x: auto;
+      border-radius: 12px;
+    }
+    
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2rem;
+      }
+      
+      .card-header {
+        font-size: 1.1rem;
+        padding: 15px 20px;
+      }
+      
+      .section-title {
+        font-size: 1.1rem;
+      }
+      
+      .field-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Animaciones */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .card {
+      animation: fadeIn 0.5s ease;
     }
   </style>
 </head>
-
 <body>
+  <div class="container">
+    <header>
+      <h1><i class="fas fa-eye"></i> Gestión de Optometría</h1>
+      <p class="description">Sistema integral para la administración de evaluaciones optométricas - Oftavisión 2025</p>
+    </header>
 
-<div class="container">
-
-  <div class="card mb-4">
-    <div class="card-header text-center">
-      <i class="fas fa-eye"></i> Evaluación de Optometría
+    <div class="success-alert" id="successAlert">
+      <i class="fas fa-check-circle"></i> <span id="successMessage">Evaluación guardada correctamente.</span>
     </div>
 
-    <div class="card-body">
-      <form id="formOptometria">
+    <div class="card">
+      <div class="card-header"><i class="fas fa-search"></i> Buscar / Nueva Evaluación</div>
+      <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <input type="text" id="buscarOpto" class="form-control" style="max-width: 500px;" placeholder="Buscar por expediente o nombre del paciente...">
+        <button id="btnNuevo" class="btn btn-primary"><i class="fas fa-plus-circle"></i> Nueva Evaluación</button>
+      </div>
+    </div>
 
-        <!-- ================= DATOS GENERALES ================= -->
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <label>Número de Expediente *</label>
-            <input type="number" name="expediente_id" class="form-control" required>
-          </div>
-          <div class="col-md-6">
-            <label>Nombre del Paciente</label>
-            <input type="text" class="form-control" readonly>
-          </div>
-        </div>
+    <div id="formularioOpto" style="display:none;"></div>
 
-        <hr>
+    <div class="mb-4" id="filtroFechaContainer">
+      <label for="filtroRangoOpto" class="form-label"><i class="fas fa-calendar-alt"></i> Filtrar por fecha:</label>
+      <input type="text" id="filtroRangoOpto" class="form-control" style="max-width:350px;" placeholder="Selecciona un rango de fechas" readonly>
+    </div>
 
-        <!-- ================= AGUDEZA VISUAL SIN CORRECCIÓN ================= -->
-        <h5>Agudeza Visual SIN Corrección</h5>
-        <div class="row">
-          <div class="col-md-6">
-            <label>Ojo Derecho (OD)</label>
-            <input type="text" name="av_sin_corr_od" class="form-control" placeholder="20/20, 20/40, CD, MP">
-          </div>
-          <div class="col-md-6">
-            <label>Ojo Izquierdo (OI)</label>
-            <input type="text" name="av_sin_corr_oi" class="form-control">
-          </div>
-        </div>
+    <div id="tablaOpto"></div>
+    
+    <div class="footer">
+      <p><strong>Sistema de Gestión Oftavisión</strong> &copy; 2025 | Todos los derechos reservados</p>
+    </div>
+  </div>
 
-        <hr>
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-        <!-- ================= AGUDEZA VISUAL CON ESTENOPEICO ================= -->
-        <h5>Agudeza Visual CON Estenopeico</h5>
-        <div class="row">
-          <div class="col-md-6">
-            <label>Ojo Derecho (OD)</label>
-            <input type="text" name="av_esteno_od" class="form-control">
-          </div>
-          <div class="col-md-6">
-            <label>Ojo Izquierdo (OI)</label>
-            <input type="text" name="av_esteno_oi" class="form-control">
-          </div>
-        </div>
+<script>
+async function cargarOptometrias(desde, hasta) {
+  let url = "/api/optometria";
+  if (desde && hasta) {
+    url += `?desde=${desde}&hasta=${hasta}`;
+  }
+  const res = await fetch(url);
+  const data = await res.json();
 
-        <hr>
-
-        <!-- ================= AUTORREFRACTOR ================= -->
-        <h5>Autorrefractor</h5>
-        <div class="row">
-          <div class="col-md-6">
-            <strong>Ojo Derecho (OD)</strong>
-            <input name="auto_esf_od" class="form-control mb-2" placeholder="ESF">
-            <input name="auto_cil_od" class="form-control mb-2" placeholder="CIL">
-            <input name="auto_eje_od" class="form-control" placeholder="EJE">
-          </div>
-          <div class="col-md-6">
-            <strong>Ojo Izquierdo (OI)</strong>
-            <input name="auto_esf_oi" class="form-control mb-2" placeholder="ESF">
-            <input name="auto_cil_oi" class="form-control mb-2" placeholder="CIL">
-            <input name="auto_eje_oi" class="form-control" placeholder="EJE">
-          </div>
-        </div>
-
-        <hr>
-
-        <!-- ================= AUTORREFRACTOR CON CICLOPLEJIA ================= -->
-        <h5>Autorrefractor con Cicloplejia</h5>
-        <div class="row">
-          <div class="col-md-6">
-            <strong>Ojo Derecho (OD)</strong>
-            <input name="auto_ciclo_esf_od" class="form-control mb-2" placeholder="ESF">
-            <input name="auto_ciclo_cil_od" class="form-control mb-2" placeholder="CIL">
-            <input name="auto_ciclo_eje_od" class="form-control" placeholder="EJE">
-          </div>
-          <div class="col-md-6">
-            <strong>Ojo Izquierdo (OI)</strong>
-            <input name="auto_ciclo_esf_oi" class="form-control mb-2" placeholder="ESF">
-            <input name="auto_ciclo_cil_oi" class="form-control mb-2" placeholder="CIL">
-            <input name="auto_ciclo_eje_oi" class="form-control" placeholder="EJE">
-          </div>
-        </div>
-
-        <hr>
-
-        <!-- ================= GRADUACIÓN SUBJETIVA ================= -->
-        <h5>Graduación Subjetiva</h5>
-
-        <table class="table table-bordered align-middle text-center">
-          <thead class="table-dark">
+  let html = `
+    <div class="card">
+      <div class="card-header"><i class="fas fa-table"></i> Registros de Evaluaciones Optométricas</div>
+      <div class="card-body table-responsive">
+        <table class="table text-center align-middle">
+          <thead>
             <tr>
+              <th>ID</th>
+              <th>Expediente</th>
+              <th>Nombre</th>
+              <th colspan="6">Graduación OD</th>
+              <th colspan="6">Graduación OI</th>
+              <th colspan="3">Autorefractor OD<br>(Sin Cicloplejía)</th>
+              <th colspan="3">Autorefractor OI<br>(Sin Cicloplejía)</th>
+              <th colspan="3">Autorefractor OD<br>(Con Cicloplejía)</th>
+              <th colspan="3">Autorefractor OI<br>(Con Cicloplejía)</th>
+              <th colspan="3">Refracción Subjetiva OD</th>
+              <th colspan="3">Refracción Subjetiva OI</th>
+              <th colspan="3">Refracción Cicloplejía OD</th>
+              <th colspan="3">Refracción Cicloplejía OI</th>
+              <th colspan="3">Lentes Anteriores OD</th>
+              <th colspan="3">Lentes Anteriores OI</th>
+              <th colspan="3">AV OD</th>
+              <th colspan="3">AV OI</th>
+              <th>BMP</th>
+              <th>BMP OD</th>
+              <th>BMP OI</th>
+              <th>F.O</th>
+              <th>F.O OD</th>
+              <th>F.O OI</th>
+              <th>Cicloplejia</th>
+              <th>Hora T.P.</th>
+              <th>Fecha</th>
+              <th>Acciones</th>
+            </tr>
+            <tr>
+              <th></th>
+              <th></th>
               <th></th>
               <th>ESF</th>
               <th>CIL</th>
               <th>EJE</th>
-              <th>AV Lejos</th>
-              <th>Adición</th>
-              <th>AV Cerca</th>
+              <th>AVcC</th>
+              <th>ADD</th>
+              <th>AVcC2</th>
+              <th>ESF</th>
+              <th>CIL</th>
+              <th>EJE</th>
+              <th>AVcC</th>
+              <th>ADD</th>
+              <th>AVcC2</th>
+              <th>ESF</th>
+              <th>CIL</th>
+              <th>EJE</th>
+              <th>ESF</th>
+              <th>CIL</th>
+              <th>EJE</th>
+              <th>ESF</th>
+              <th>CIL</th>
+              <th>EJE</th>
+              <th>ESF</th>
+              <th>CIL</th>
+              <th>EJE</th>
+              <th>ESF</th>
+              <th>CIL</th>
+              <th>EJE</th>
+              <th>ESF</th>
+              <th>CIL</th>
+              <th>EJE</th>
+              <th>ESF</th>
+              <th>CIL</th>
+              <th>EJE</th>
+              <th>ESF</th>
+              <th>CIL</th>
+              <th>EJE</th>
+              <th>ESF</th>
+              <th>CIL</th>
+              <th>EJE</th>
+              <th>ESF</th>
+              <th>CIL</th>
+              <th>EJE</th>
+              <th>Lejos</th>
+              <th>Cerca</th>
+              <th>c/L</th>
+              <th>Lejos</th>
+              <th>Cerca</th>
+              <th>c/L</th>
+              <th></th>
+              <th></th>
+              <th></th>
+              <th></th>
+              <th></th>
+              <th></th>
+              <th></th>
+              <th></th>
+              <th></th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td><strong>Lentes Anteriores</strong></td>
-              <td><input name="ant_esf" class="form-control"></td>
-              <td><input name="ant_cil" class="form-control"></td>
-              <td><input name="ant_eje" class="form-control"></td>
-              <td><input name="ant_av_lejos" class="form-control"></td>
-              <td><input name="ant_add" class="form-control"></td>
-              <td><input name="ant_av_cerca" class="form-control"></td>
-            </tr>
-            <tr>
-              <td><strong>Refracción Subjetiva</strong></td>
-              <td><input name="sub_esf" class="form-control"></td>
-              <td><input name="sub_cil" class="form-control"></td>
-              <td><input name="sub_eje" class="form-control"></td>
-              <td><input name="sub_av_lejos" class="form-control"></td>
-              <td><input name="sub_add" class="form-control"></td>
-              <td><input name="sub_av_cerca" class="form-control"></td>
-            </tr>
-            <tr>
-              <td><strong>Refracción con Cicloplejia</strong></td>
-              <td><input name="ciclo_esf" class="form-control"></td>
-              <td><input name="ciclo_cil" class="form-control"></td>
-              <td><input name="ciclo_eje" class="form-control"></td>
-              <td><input name="ciclo_av_lejos" class="form-control"></td>
-              <td><input name="ciclo_add" class="form-control"></td>
-              <td><input name="ciclo_av_cerca" class="form-control"></td>
-            </tr>
-          </tbody>
-        </table>
+  `;
 
-        <hr>
+  if (data.length === 0) {
+    html += `<tr><td colspan="64">Sin registros encontrados</td></tr>`;
+  } else {
+    data.forEach(o => {
+      let horaFormateada = "";
+      if (o.hora_tp) {
+        const [hora, minuto] = o.hora_tp.split(':');
+        const horaNum = parseInt(hora);
+        const periodo = horaNum >= 12 ? 'p.m.' : 'a.m.';
+        const hora12 = horaNum % 12 || 12;
+        horaFormateada = `${hora12.toString().padStart(2, '0')}:${minuto} ${periodo}`;
+      }
 
-        <!-- ================= BOTONES ================= -->
-        <div class="d-flex justify-content-between">
-          <button type="reset" class="btn btn-secondary">
-            <i class="fas fa-times"></i> Cancelar
-          </button>
-          <button type="submit" class="btn btn-primary">
-            <i class="fas fa-save"></i> Guardar Evaluación
-          </button>
-        </div>
+      html += `
+        <tr>
+          <td><strong>${o.id}</strong></td>
+          <td><strong>${o.expediente_id}</strong></td>
+          <td><strong>${o.nombre || ""}</strong></td>
+          <td>${o.esfera_od || ""}</td>
+          <td>${o.cilindro_od || ""}</td>
+          <td>${o.eje_od || ""}</td>
+          <td>${o.avcc_od || ""}</td>
+          <td>${o.adicion_od || ""}</td>
+          <td>${o.avcc2_od || ""}</td>
+          <td>${o.esfera_oi || ""}</td>
+          <td>${o.cilindro_oi || ""}</td>
+          <td>${o.eje_oi || ""}</td>
+          <td>${o.avcc_oi || ""}</td>
+          <td>${o.adicion_oi || ""}</td>
+          <td>${o.avcc2_oi || ""}</td>
+          <td>${o.auto_sin_esf_od || ""}</td>
+          <td>${o.auto_sin_cil_od || ""}</td>
+          <td>${o.auto_sin_eje_od || ""}</td>
+          <td>${o.auto_sin_esf_oi || ""}</td>
+          <td>${o.auto_sin_cil_oi || ""}</td>
+          <td>${o.auto_sin_eje_oi || ""}</td>
+          <td>${o.auto_con_esf_od || ""}</td>
+          <td>${o.auto_con_cil_od || ""}</td>
+          <td>${o.auto_con_eje_od || ""}</td>
+          <td>${o.auto_con_esf_oi || ""}</td>
+          <td>${o.auto_con_cil_oi || ""}</td>
+          <td>${o.auto_con_eje_oi || ""}</td>
+          <td>${o.refrac_subj_esf_od || ""}</td>
+          <td>${o.refrac_subj_cil_od || ""}</td>
+          <td>${o.refrac_subj_eje_od || ""}</td>
+          <td>${o.refrac_subj_esf_oi || ""}</td>
+          <td>${o.refrac_subj_cil_oi || ""}</td>
+          <td>${o.refrac_subj_eje_oi || ""}</td>
+          <td>${o.refrac_ciclo_esf_od || ""}</td>
+          <td>${o.refrac_ciclo_cil_od || ""}</td>
+          <td>${o.refrac_ciclo_eje_od || ""}</td>
+          <td>${o.refrac_ciclo_esf_oi || ""}</td>
+          <td>${o.refrac_ciclo_cil_oi || ""}</td>
+          <td>${o.refrac_ciclo_eje_oi || ""}</td>
+          <td>${o.lentes_ant_esf_od || ""}</td>
+          <td>${o.lentes_ant_cil_od || ""}</td>
+          <td>${o.lentes_ant_eje_od || ""}</td>
+          <td>${o.lentes_ant_esf_oi || ""}</td>
+          <td>${o.lentes_ant_cil_oi || ""}</td>
+          <td>${o.lentes_ant_eje_oi || ""}</td>
+          <td>${o.av_lejos_od || ""}</td>
+          <td>${o.av_cerca_od || ""}</td>
+          <td>${o.av_lentes_od || ""}</td>
+          <td>${o.av_lejos_oi || ""}</td>
+          <td>${o.av_cerca_oi || ""}</td>
+          <td>${o.av_lentes_oi || ""}</td>
+          <td>${o.bmp || ""}</td>
+          <td>${o.bmp_od || ""}</td>
+          <td>${o.bmp_oi || ""}</td>
+          <td>${o.fo || ""}</td>
+          <td>${o.fo_od || ""}</td>
+          <td>${o.fo_oi || ""}</td>
+          <td>${o.cicloplejia || ""}</td>
+          <td>${horaFormateada}</td>
+          <td>${o.fecha.split('T')[0].split('-').reverse().join('/')}</td>
+          <td>
+            <button class="btn btn-danger btn-sm" onclick="borrarOpto(${o.id})">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+  }
 
-      </form>
-    </div>
-  </div>
+  html += `</tbody></table></div></div>`;
+  document.getElementById("tablaOpto").innerHTML = html;
+}
 
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<script>
-document.getElementById("formOptometria").addEventListener("submit", async e => {
-  e.preventDefault();
-
-  const data = Object.fromEntries(new FormData(e.target));
-
-  const res = await fetch("/api/optometria", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
+document.addEventListener("DOMContentLoaded", function() {
+  const hoy = moment().format("YYYY-MM-DD");
+  
+  $('#filtroRangoOpto').daterangepicker({
+    autoUpdateInput: false,
+    locale: {
+      format: 'DD/MM/YYYY',
+      separator: " - ",
+      applyLabel: "Aplicar",
+      cancelLabel: "Cancelar",
+      fromLabel: "Desde",
+      toLabel: "Hasta",
+      customRangeLabel: "Rango personalizado",
+      daysOfWeek: ["Do","Lu","Ma","Mi","Ju","Vi","Sa"],
+      monthNames: ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"],
+      firstDay: 1
+    },
+    startDate: moment(),
+    endDate: moment(),
+    ranges: {
+      'Hoy': [moment(), moment()],
+      'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+      'Últimos 7 Días': [moment().subtract(6, 'days'), moment()],
+      'Últimos 30 Días': [moment().subtract(29, 'days'), moment()],
+      'Este Mes': [moment().startOf('month'), moment().endOf('month')],
+      'Mes Pasado': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+    }
   });
 
-  const result = await res.json();
+  $('#filtroRangoOpto').on('apply.daterangepicker', function(ev, picker) {
+    $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+    const desde = picker.startDate.format("YYYY-MM-DD");
+    const hasta = picker.endDate.format("YYYY-MM-DD");
+    cargarOptometrias(desde, hasta);
+  });
 
-  if (res.ok) {
-    Swal.fire("Éxito", "Evaluación guardada correctamente", "success");
-    e.target.reset();
-  } else {
-    Swal.fire("Error", result.error || "Error al guardar", "error");
-  }
+  $('#filtroRangoOpto').on('cancel.daterangepicker', function() {
+    $(this).val('Hoy');
+    cargarOptometrias(hoy, hoy);
+  });
+
+  $('#filtroRangoOpto').val('Hoy');
+  cargarOptometrias(hoy, hoy);
 });
-</script>
 
+async function buscarNombrePaciente(expedienteId) {
+  const nombreInput = document.getElementById("nombrePaciente");
+  
+  if (!expedienteId || expedienteId.trim() === "") {
+    nombreInput.value = "";
+    nombreInput.style.backgroundColor = "#e9ecef";
+    return;
+  }
+
+  try {
+    nombreInput.value = "Buscando...";
+    nombreInput.style.backgroundColor = "#fff3cd";
+
+    const res = await fetch(`/api/expedientes/${expedienteId}/nombre`);
+    const data = await res.json();
+
+    if (res.ok) {
+      nombreInput.value = data.nombre;
+      nombreInput.style.backgroundColor = "#d4edda";
+    } else {
+      nombreInput.value = "❌ No encontrado";
+      nombreInput.style.backgroundColor = "#f8d7da";
+    }
+  } catch (err) {
+    nombreInput.value = "❌ Error al buscar";
+    nombreInput.style.backgroundColor = "#f8d7da";
+    console.error("Error al buscar nombre:", err);
+  }
+}
+
+document.getElementById("btnNuevo").addEventListener("click", async function() {
+  const filtro = document.getElementById("filtroFechaContainer");
+  filtro.style.display = "none";
+  document.getElementById("tablaOpto").style.display = "none";
+
+  const html = `
+    <div class="card">
+      <div class="card-header"><i class="fas fa-plus-circle"></i> Nueva Evaluación de Optometría</div>
+      <div class="card-body">
+        <form id="formOptometria">
+          
+          <!-- Información del Paciente -->
+          <div class="section-title">
+            <i class="fas fa-user"></i> Información del Paciente
+          </div>
+          <div class="row">
+            <div class="col-md-6 form-group">
+              <label>Número de Expediente *</label>
+              <input type="number" name="expediente_id" id="expedienteInput" class="form-control" required>
+            </div>
+            <div class="col-md-6 form-group">
+              <label>Nombre del Paciente</label>
+              <input type="text" id="nombrePaciente" class="form-control" readonly placeholder="Se cargará automáticamente">
+            </div>
+          </div>
+
+          <!-- Graduación -->
+          <div class="section-title">
+            <i class="fas fa-glasses"></i> Graduación
+          </div>
+          
+          <div class="subsection-title">Ojo Derecho (OD)</div>
+          <div class="row">
+            <div class="col-md-2 form-group">
+              <label>Esfera (ESF)</label>
+              <input type="text" name="esfera_od" class="form-control" placeholder="±0.00">
+            </div>
+            <div class="col-md-2 form-group">
+              <label>Cilindro (CIL)</label>
+              <input type="text" name="cilindro_od" class="form-control" placeholder="±0.00">
+            </div>
+            <div class="col-md-2 form-group">
+              <label>Eje (EJE)</label>
+              <input type="text" name="eje_od" class="form-control" placeholder="0-180°">
+            </div>
+            <div class="col-md-2 form-group">
+              <label>AVcC</label>
+              <input type="text" name="avcc_od" class="form-control" placeholder="20/20">
+            </div>
+            <div class="col-md-2 form-group">
+              <label>Adición (ADD)</label>
+              <input type="text" name="adicion_od" class="form-control" placeholder="+0.00">
+            </div>
+            <div class="col-md-2 form-group">
+              <label>AVcC2</label>
+              <input type="text" name="avcc2_od" class="form-control" placeholder="20/20">
+            </div>
+          </div>
+
+          <div class="subsection-title">Ojo Izquierdo (OI)</div>
+          <div class="row">
+            <div class="col-md-2 form-group">
+              <label>Esfera (ESF)</label>
+              <input type="text" name="esfera_oi" class="form-control" placeholder="±0.00">
+            </div>
+            <div class="col-md-2 form-group">
+              <label>Cilindro (CIL)</label>
+              <input type="text" name="cilindro_oi" class="form-control" placeholder="±0.00">
+            </div>
+            <div class="col-md-2 form-group">
+              <label>Eje (EJE)</label>
+              <input type="text" name="eje_oi" class="form-control" placeholder="0-180°">
+            </div>
+            <div class="col-md-2 form-group">
+              <label>AVcC</label>
+              <input type="text" name="avcc_oi" class="form-control" placeholder="20/20">
+            </div>
+            <div class="col-md-2 form-group">
+              <label>Adición (ADD)</label>
+              <input type="text" name="adicion_oi" class="form-control" placeholder="+0.00">
+            </div>
+            <div class="col-md-2 form-group">
+              <label>AVcC2</label>
+              <input type="text" name="avcc2_oi" class="form-control" placeholder="20/20">
+            </div>
+          </div>
+
+          <!-- Autorefractor SIN Cicloplejía -->
+          <div class="section-title">
+            <i class="fas fa-microscope"></i> Autorefractor SIN Cicloplejía
+          </div>
+          
+          <div class="subsection-title">Ojo Derecho (OD)</div>
+          <div class="row">
+            <div class="col-md-4 form-group">
+              <label>Esfera (ESF)</label>
+              <input type="text" name="auto_sin_esf_od" class="form-control" placeholder="±0.00">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>Cilindro (CIL)</label>
+              <input type="text" name="auto_sin_cil_od" class="form-control" placeholder="±0.00">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>Eje (EJE)</label>
+              <input type="text" name="auto_sin_eje_od" class="form-control" placeholder="0-180°">
+            </div>
+          </div>
+
+          <div class="subsection-title">Ojo Izquierdo (OI)</div>
+          <div class="row">
+            <div class="col-md-4 form-group">
+              <label>Esfera (ESF)</label>
+              <input type="text" name="auto_sin_esf_oi" class="form-control" placeholder="±0.00">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>Cilindro (CIL)</label>
+              <input type="text" name="auto_sin_cil_oi" class="form-control" placeholder="±0.00">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>Eje (EJE)</label>
+              <input type="text" name="auto_sin_eje_oi" class="form-control" placeholder="0-180°">
+            </div>
+          </div>
+
+          <!-- Autorefractor CON Cicloplejía -->
+          <div class="section-title">
+            <i class="fas fa-microscope"></i> Autorefractor CON Cicloplejía
+          </div>
+          
+          <div class="subsection-title">Ojo Derecho (OD)</div>
+          <div class="row">
+            <div class="col-md-4 form-group">
+              <label>Esfera (ESF)</label>
+              <input type="text" name="auto_con_esf_od" class="form-control" placeholder="±0.00">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>Cilindro (CIL)</label>
+              <input type="text" name="auto_con_cil_od" class="form-control" placeholder="±0.00">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>Eje (EJE)</label>
+              <input type="text" name="auto_con_eje_od" class="form-control" placeholder="0-180°">
+            </div>
+          </div>
+
+          <div class="subsection-title">Ojo Izquierdo (OI)</div>
+          <div class="row">
+            <div class="col-md-4 form-group">
+              <label>Esfera (ESF)</label>
+              <input type="text" name="auto_con_esf_oi" class="form-control" placeholder="±0.00">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>Cilindro (CIL)</label>
+              <input type="text" name="auto_con_cil_oi" class="form-control" placeholder="±0.00">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>Eje (EJE)</label>
+              <input type="text" name="auto_con_eje_oi" class="form-control" placeholder="0-180°">
+            </div>
+          </div>
+
+          <!-- Refracción Subjetiva -->
+          <div class="section-title">
+            <i class="fas fa-eye-dropper"></i> Refracción Subjetiva
+          </div>
+          
+          <div class="subsection-title">Ojo Derecho (OD)</div>
+          <div class="row">
+            <div class="col-md-4 form-group">
+              <label>Esfera (ESF)</label>
+              <input type="text" name="refrac_subj_esf_od" class="form-control" placeholder="±0.00">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>Cilindro (CIL)</label>
+              <input type="text" name="refrac_subj_cil_od" class="form-control" placeholder="±0.00">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>Eje (EJE)</label>
+              <input type="text" name="refrac_subj_eje_od" class="form-control" placeholder="0-180°">
+            </div>
+          </div>
+
+          <div class="subsection-title">Ojo Izquierdo (OI)</div>
+          <div class="row">
+            <div class="col-md-4 form-group">
+              <label>Esfera (ESF)</label>
+              <input type="text" name="refrac_subj_esf_oi" class="form-control" placeholder="±0.00">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>Cilindro (CIL)</label>
+              <input type="text" name="refrac_subj_cil_oi" class="form-control" placeholder="±0.00">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>Eje (EJE)</label>
+              <input type="text" name="refrac_subj_eje_oi" class="form-control" placeholder="0-180°">
+            </div>
+          </div>
+
+          <!-- Refracción con Cicloplejía -->
+          <div class="section-title">
+            <i class="fas fa-vial"></i> Refracción con Cicloplejía
+          </div>
+          
+          <div class="subsection-title">Ojo Derecho (OD)</div>
+          <div class="row">
+            <div class="col-md-4 form-group">
+              <label>Esfera (ESF)</label>
+              <input type="text" name="refrac_ciclo_esf_od" class="form-control" placeholder="±0.00">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>Cilindro (CIL)</label>
+              <input type="text" name="refrac_ciclo_cil_od" class="form-control" placeholder="±0.00">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>Eje (EJE)</label>
+              <input type="text" name="refrac_ciclo_eje_od" class="form-control" placeholder="0-180°">
+            </div>
+          </div>
+
+          <div class="subsection-title">Ojo Izquierdo (OI)</div>
+          <div class="row">
+            <div class="col-md-4 form-group">
+              <label>Esfera (ESF)</label>
+              <input type="text" name="refrac_ciclo_esf_oi" class="form-control" placeholder="±0.00">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>Cilindro (CIL)</label>
+              <input type="text" name="refrac_ciclo_cil_oi" class="form-control" placeholder="±0.00">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>Eje (EJE)</label>
+              <input type="text" name="refrac_ciclo_eje_oi" class="form-control" placeholder="0-180°">
+            </div>
+          </div>
+
+          <!-- Lentes Anteriores -->
+          <div class="section-title">
+            <i class="fas fa-prescription"></i> Lentes Anteriores
+          </div>
+          
+          <div class="subsection-title">Ojo Derecho (OD)</div>
+          <div class="row">
+            <div class="col-md-4 form-group">
+              <label>Esfera (ESF)</label>
+              <input type="text" name="lentes_ant_esf_od" class="form-control" placeholder="±0.00">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>Cilindro (CIL)</label>
+              <input type="text" name="lentes_ant_cil_od" class="form-control" placeholder="±0.00">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>Eje (EJE)</label>
+              <input type="text" name="lentes_ant_eje_od" class="form-control" placeholder="0-180°">
+            </div>
+          </div>
+
+          <div class="subsection-title">Ojo Izquierdo (OI)</div>
+          <div class="row">
+            <div class="col-md-4 form-group">
+              <label>Esfera (ESF)</label>
+              <input type="text" name="lentes_ant_esf_oi" class="form-control" placeholder="±0.00">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>Cilindro (CIL)</label>
+              <input type="text" name="lentes_ant_cil_oi" class="form-control" placeholder="±0.00">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>Eje (EJE)</label>
+              <input type="text" name="lentes_ant_eje_oi" class="form-control" placeholder="0-180°">
+            </div>
+          </div>
+
+          <!-- Agudeza Visual -->
+          <div class="section-title">
+            <i class="fas fa-chart-line"></i> Agudeza Visual
+          </div>
+          
+          <div class="subsection-title">Ojo Derecho (OD)</div>
+          <div class="row">
+            <div class="col-md-4 form-group">
+              <label>AV Lejos</label>
+              <input type="text" name="av_lejos_od" class="form-control" placeholder="20/20">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>AV Cerca</label>
+              <input type="text" name="av_cerca_od" class="form-control" placeholder="J1">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>Con Lentes</label>
+              <input type="text" name="av_lentes_od" class="form-control" placeholder="20/20">
+            </div>
+          </div>
+
+          <div class="subsection-title">Ojo Izquierdo (OI)</div>
+          <div class="row">
+            <div class="col-md-4 form-group">
+              <label>AV Lejos</label>
+              <input type="text" name="av_lejos_oi" class="form-control" placeholder="20/20">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>AV Cerca</label>
+              <input type="text" name="av_cerca_oi" class="form-control" placeholder="J1">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>Con Lentes</label>
+              <input type="text" name="av_lentes_oi" class="form-control" placeholder="20/20">
+            </div>
+          </div>
+
+          <!-- Otros Datos -->
+          <div class="section-title">
+            <i class="fas fa-clipboard-list"></i> Otros Datos
+          </div>
+          <div class="row">
+            <div class="col-md-4 form-group">
+              <label>BMP</label>
+              <input type="text" name="bmp" class="form-control" placeholder="Valor BMP">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>BMP OD</label>
+              <input type="text" name="bmp_od" class="form-control" placeholder="Valor BMP OD">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>BMP OI</label>
+              <input type="text" name="bmp_oi" class="form-control" placeholder="Valor BMP OI">
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-4 form-group">
+              <label>F.O (Fondo de Ojo)</label>
+              <input type="text" name="fo" class="form-control" placeholder="Observaciones">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>F.O OD</label>
+              <input type="text" name="fo_od" class="form-control" placeholder="Observaciones OD">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>F.O OI</label>
+              <input type="text" name="fo_oi" class="form-control" placeholder="Observaciones OI">
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 form-group">
+              <label>Cicloplejia</label>
+              <input type="text" name="cicloplejia" class="form-control" placeholder="Tipo/Observaciones">
+            </div>
+            <div class="col-md-6 form-group">
+              <label>Hora T.P. (Tiempo de Aplicación)</label>
+              <input type="time" name="hora_tp" class="form-control">
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between mt-5">
+            <button type="button" class="btn btn-secondary" id="cancelarOpto">
+              <i class="fas fa-times"></i> Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i> Guardar Evaluación
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+  
+  const formDiv = document.getElementById("formularioOpto");
+  formDiv.innerHTML = html;
+  formDiv.style.display = "block";
+
+  document.getElementById("expedienteInput").addEventListener("input", function(e) {
+    const expedienteId = e.target.value;
+    buscarNombrePaciente(expedienteId);
+  });
+
+  document.getElementById("cancelarOpto").onclick = () => {
+    formDiv.style.display = "none";
+    filtro.style.display = "block";
+    document.getElementById("tablaOpto").style.display = "block";
+  };
+
+  document.getElementById("formOptometria").addEventListener("submit", async e => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    const res = await fetch("/api/optometria", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (res.ok) {
+      Swal.fire({
+        icon: "success",
+        title: "¡Éxito!",
+        text: result.mensaje,
+        confirmButtonColor: "#2980b9"
+      });
+      formDiv.style.display = "none";
+      filtro.style.display = "block";
+      document.getElementById("tablaOpto").style.display = "block";
+      const hoy = moment().format("YYYY-MM-DD");
+      $('#filtroRangoOpto').val('Hoy');
+      cargarOptometrias(hoy, hoy);
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: result.error,
+        confirmButtonColor: "#e74c3c"
+      });
+    }
+  });
+});
+
+async function borrarOpto(id) {
+  const result = await Swal.fire({
+    title: "¿Eliminar esta evaluación?",
+    text: "Esta acción no se puede revertir",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#e74c3c",
+    cancelButtonColor: "#95a5a6",
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar"
+  });
+  if (result.isConfirmed) {
+    const res = await fetch(`/api/optometria/${id}`, {method: "DELETE"});
+    const data = await res.json();
+    if (res.ok) {
+      Swal.fire({
+        icon: "success",
+        title: "¡Eliminado!",
+        text: data.mensaje,
+        confirmButtonColor: "#2980b9"
+      });
+      const inputVal = $('#filtroRangoOpto').val();
+      if (inputVal === 'Hoy' || !inputVal) {
+        const hoy = moment().format("YYYY-MM-DD");
+        cargarOptometrias(hoy, hoy);
+      } else {
+        const picker = $('#filtroRangoOpto').data('daterangepicker');
+        if (picker) {
+          const desde = picker.startDate.format("YYYY-MM-DD");
+          const hasta = picker.endDate.format("YYYY-MM-DD");
+          cargarOptometrias(desde, hasta);
+        }
+      }
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: data.error,
+        confirmButtonColor: "#e74c3c"
+      });
+    }
+  }
+}
+</script>
 </body>
 </html>
