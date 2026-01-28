@@ -62,6 +62,7 @@
       font-weight: 600;
       display: flex;
       align-items: center;
+      justify-content: space-between;
     }
     
     .card-header i {
@@ -145,6 +146,26 @@
     }
     
     .btn i {
+      margin-right: 8px;
+    }
+
+    /* Botón TP */
+    .btn-tp {
+      background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+      color: white;
+      padding: 10px 20px;
+      font-size: 0.95rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-tp.aplicado {
+      background: linear-gradient(135deg, var(--success-color) 0%, #229954 100%);
+      box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+    }
+
+    .btn-tp i {
       margin-right: 8px;
     }
     
@@ -303,6 +324,7 @@ async function cargarOptometrias(desde, hasta) {
               <th>Expediente</th>
               <th>Nombre</th>
               <th>Fecha</th>
+              <th>TP Aplicado</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -310,15 +332,25 @@ async function cargarOptometrias(desde, hasta) {
   `;
 
   if (data.length === 0) {
-    html += `<tr><td colspan="5">Sin registros</td></tr>`;
+    html += `<tr><td colspan="6">Sin registros</td></tr>`;
   } else {
     data.forEach(o => {
+      let horaFormateada = "";
+      if (o.hora_tp) {
+        const [hora, minuto] = o.hora_tp.split(':');
+        const horaNum = parseInt(hora);
+        const periodo = horaNum >= 12 ? 'p.m.' : 'a.m.';
+        const hora12 = horaNum % 12 || 12;
+        horaFormateada = `${hora12.toString().padStart(2, '0')}:${minuto} ${periodo}`;
+      }
+
       html += `
         <tr>
           <td>${o.id}</td>
           <td>${o.expediente_id}</td>
           <td>${o.nombre || ""}</td>
           <td>${o.fecha.split('T')[0].split('-').reverse().join('/')}</td>
+          <td>${horaFormateada || '<span style="color:#999;">No aplicado</span>'}</td>
           <td>
             <button class="btn btn-danger btn-sm" onclick="borrarOpto(${o.id})">
               <i class="fas fa-trash"></i>
@@ -407,14 +439,27 @@ async function buscarNombrePaciente(expedienteId) {
   }
 }
 
+// Variable para controlar el estado del TP
+let tpAplicado = false;
+let horaTP = '';
+
 document.getElementById("btnNuevo").addEventListener("click", async function() {
   const filtro = document.getElementById("filtroFechaContainer");
   filtro.style.display = "none";
   document.getElementById("tablaOpto").style.display = "none";
 
+  // Resetear estado del TP
+  tpAplicado = false;
+  horaTP = '';
+
   const html = `
     <div class="card">
-      <div class="card-header"><i class="fas fa-plus-circle"></i> Nueva Evaluación de Optometría</div>
+      <div class="card-header">
+        <div><i class="fas fa-plus-circle"></i> Nueva Evaluación de Optometría</div>
+        <button type="button" class="btn-tp" id="btnTP">
+          <i class="fas fa-clock"></i> <span id="tpTexto">TP No Aplicado</span>
+        </button>
+      </div>
       <div class="card-body">
         <form id="formOptometria">
           
@@ -430,8 +475,11 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
             </div>
           </div>
 
-          <!-- AGUDEZA VISUAL SIN CORRECCIÓN Y CON LENTES -->
-          <div class="section-title">📊 Agudeza Visual sin Corrección (s/c) y con Lentes (c/L)</div>
+          <!-- Campo oculto para hora_tp -->
+          <input type="hidden" name="hora_tp" id="horaTPInput">
+
+          <!-- AGUDEZA VISUAL SIN CORRECCIÓN (LEJOS) -->
+          <div class="section-title">📊 Agudeza Visual sin Corrección (Lejos) - s/c y con Lentes c/L</div>
           <div class="grid-2x2">
             <div class="grid-item">
               <label>OJO DERECHO - s/c</label>
@@ -454,17 +502,13 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
           <!-- AGUDEZA VISUAL CON ESTEREOPTICO (BMP) -->
           <div class="section-title">👓 Agudeza Visual con Estereoptico (BMP)</div>
           <div class="row">
-            <div class="col-md-4 form-group">
+            <div class="col-md-6 form-group">
               <label>OJO DERECHO</label>
               <input type="text" name="bmp_od" class="form-control" placeholder="Ej: 20/20">
             </div>
-            <div class="col-md-4 form-group">
+            <div class="col-md-6 form-group">
               <label>OJO IZQUIERDO</label>
               <input type="text" name="bmp_oi" class="form-control" placeholder="Ej: 20/20">
-            </div>
-            <div class="col-md-4 form-group">
-              <label>BMP GENERAL</label>
-              <input type="text" name="bmp" class="form-control" placeholder="Ej: 20/20">
             </div>
           </div>
 
@@ -549,7 +593,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
             </tbody>
           </table>
 
-          <!-- SUBJETIVO (AVcC) -->
+          <!-- SUBJETIVO (AVcC) + ADICIÓN + AV CERCA -->
           <div class="section-title">👁️ Subjetivo - Agudeza Visual con Corrección (AVcC)</div>
           <div class="row">
             <div class="col-md-3 form-group">
@@ -570,7 +614,6 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
             </div>
           </div>
 
-          <!-- ADICIÓN Y AV CERCA -->
           <div class="section-title">➕ Adición y AV Cerca</div>
           <div class="row">
             <div class="col-md-3 form-group">
@@ -591,112 +634,6 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
             </div>
           </div>
 
-          <!-- LENTES ANTERIORES -->
-          <div class="section-title">🔙 Lentes Anteriores</div>
-          <table class="opto-table">
-            <thead>
-              <tr>
-                <th style="width: 25%;">OJO</th>
-                <th>ESF</th>
-                <th>CIL</th>
-                <th>EJE</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="label-cell">OJO DERECHO (OD)</td>
-                <td><input type="text" name="lentes_esf_od" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_cil_od" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_eje_od" placeholder="0°"></td>
-              </tr>
-              <tr>
-                <td class="label-cell">OJO IZQUIERDO (OI)</td>
-                <td><input type="text" name="lentes_esf_oi" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_eje_oi" placeholder="0°"></td>
-              </tr>
-            </tbody>
-          </table>
-
-          <!-- REFRACCIÓN SUBJETIVA -->
-          <div class="section-title">🎯 Refracción Subjetiva</div>
-          <table class="opto-table">
-            <thead>
-              <tr>
-                <th style="width: 25%;">OJO</th>
-                <th>ESF</th>
-                <th>CIL</th>
-                <th>EJE</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="label-cell">OJO DERECHO (OD)</td>
-                <td><input type="text" name="refrac_subj_esf_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_cil_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_eje_od" placeholder="0°"></td>
-              </tr>
-              <tr>
-                <td class="label-cell">OJO IZQUIERDO (OI)</td>
-                <td><input type="text" name="refrac_subj_esf_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_eje_oi" placeholder="0°"></td>
-              </tr>
-            </tbody>
-          </table>
-
-          <!-- REFRACCIÓN CON CICLOPLEJÍA -->
-          <div class="section-title">💊 Refracción con Cicloplejía</div>
-          <table class="opto-table">
-            <thead>
-              <tr>
-                <th style="width: 25%;">OJO</th>
-                <th>ESF</th>
-                <th>CIL</th>
-                <th>EJE</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="label-cell">OJO DERECHO (OD)</td>
-                <td><input type="text" name="refrac_ciclo_esf_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_cil_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_eje_od" placeholder="0°"></td>
-              </tr>
-              <tr>
-                <td class="label-cell">OJO IZQUIERDO (OI)</td>
-                <td><input type="text" name="refrac_ciclo_esf_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_eje_oi" placeholder="0°"></td>
-              </tr>
-            </tbody>
-          </table>
-
-          <!-- OTROS DATOS -->
-          <div class="section-title">📝 Otros Datos</div>
-          <div class="row">
-            <div class="col-md-3 form-group">
-              <label>F.O - OD (Fondo de Ojo)</label>
-              <input type="text" name="fo_od" class="form-control" placeholder="Ej: Normal">
-            </div>
-            <div class="col-md-3 form-group">
-              <label>F.O - OI (Fondo de Ojo)</label>
-              <input type="text" name="fo_oi" class="form-control" placeholder="Ej: Normal">
-            </div>
-            <div class="col-md-3 form-group">
-              <label>F.O General</label>
-              <input type="text" name="fo" class="form-control" placeholder="Ej: Normal">
-            </div>
-            <div class="col-md-3 form-group">
-              <label>Cicloplejia</label>
-              <input type="text" name="cicloplejia" class="form-control" placeholder="Ej: Tropicamida">
-            </div>
-            <div class="col-md-3 form-group">
-              <label>Hora T.P.</label>
-              <input type="time" name="hora_tp" class="form-control">
-            </div>
-          </div>
-
           <div class="d-flex justify-content-between mt-4">
             <button type="button" class="btn btn-secondary" id="cancelarOpto">
               <i class="fas fa-times"></i> Cancelar
@@ -714,26 +651,67 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
   formDiv.innerHTML = html;
   formDiv.style.display = "block";
 
+  // Evento para buscar nombre del paciente
   document.getElementById("expedienteInput").addEventListener("input", function(e) {
     buscarNombrePaciente(e.target.value);
   });
 
+  // Evento para botón TP
+  document.getElementById("btnTP").addEventListener("click", function() {
+    if (!tpAplicado) {
+      // Aplicar TP - obtener hora actual
+      const ahora = new Date();
+      const horas = String(ahora.getHours()).padStart(2, '0');
+      const minutos = String(ahora.getMinutes()).padStart(2, '0');
+      horaTP = `${horas}:${minutos}`;
+      
+      // Cambiar apariencia del botón
+      this.classList.add('aplicado');
+      document.getElementById('tpTexto').textContent = `TP Aplicado - ${horaTP}`;
+      
+      // Guardar en campo oculto
+      document.getElementById('horaTPInput').value = horaTP;
+      
+      tpAplicado = true;
+      
+      Swal.fire({
+        icon: 'success',
+        title: '✅ TP Aplicado',
+        text: `Hora registrada: ${horaTP}`,
+        timer: 2000,
+        showConfirmButton: false
+      });
+    } else {
+      // Desaplicar TP
+      this.classList.remove('aplicado');
+      document.getElementById('tpTexto').textContent = 'TP No Aplicado';
+      document.getElementById('horaTPInput').value = '';
+      tpAplicado = false;
+      horaTP = '';
+    }
+  });
+
+  // Evento cancelar
   document.getElementById("cancelarOpto").onclick = () => {
     formDiv.style.display = "none";
     filtro.style.display = "block";
     document.getElementById("tablaOpto").style.display = "block";
   };
 
+  // Evento submit
   document.getElementById("formOptometria").addEventListener("submit", async e => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData);
+    
     const res = await fetch("/api/optometria", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify(data)
     });
+    
     const result = await res.json();
+    
     if (res.ok) {
       Swal.fire("✅ Éxito", result.mensaje, "success");
       formDiv.style.display = "none";
@@ -759,9 +737,11 @@ async function borrarOpto(id) {
     confirmButtonText: "Sí, eliminar",
     cancelButtonText: "Cancelar"
   });
+  
   if (result.isConfirmed) {
     const res = await fetch(`/api/optometria/${id}`, {method: "DELETE"});
     const data = await res.json();
+    
     if (res.ok) {
       Swal.fire("Eliminado", data.mensaje, "success");
       const inputVal = $('#filtroRangoOpto').val();
