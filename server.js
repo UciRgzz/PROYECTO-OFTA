@@ -4300,34 +4300,28 @@ app.get('/api/obtener-foto-perfil', verificarSesion, async (req, res) => {
     );
 
     if (result.rows.length > 0) {
-      res.json({ 
+      return res.json({  // ← AGREGAR return
         success: true,
         foto: result.rows[0].ruta_archivo,
         nomina: result.rows[0].nomina,
         nombre_completo: result.rows[0].nombre_completo,
         fechaActualizacion: result.rows[0].fecha_actualizacion
       });
-    } else {
-  const userResult = await pool.query(
-    'SELECT nomina, nombre_completo FROM usuarios WHERE id = $1', // ✅ AGREGAR nombre_completo
-    [usuarioId]
-  );
-  
-  res.json({ 
-    success: true,
-    foto: null,
-    nomina: userResult.rows[0]?.nomina || 'U',
-    nombre_completo: userResult.rows[0]?.nombre_completo || 'Usuario', // ✅ AGREGAR
-    fechaActualizacion: null
-  });
-      
-      res.json({ 
-        success: true,
-        foto: null,
-        nomina: userResult.rows[0]?.nomina || 'U',
-        fechaActualizacion: null
-      });
     }
+
+    // Usuario sin foto - obtener datos básicos
+    const userResult = await pool.query(
+      'SELECT nomina, nombre_completo FROM usuarios WHERE id = $1',
+      [usuarioId]
+    );
+    
+    return res.json({  // ← AGREGAR return y ELIMINAR el duplicado
+      success: true,
+      foto: null,
+      nomina: userResult.rows[0]?.nomina || 'U',
+      nombre_completo: userResult.rows[0]?.nombre_completo || 'Usuario',
+      fechaActualizacion: null
+    });
 
   } catch (error) {
     console.error('Error al obtener foto de perfil:', error);
