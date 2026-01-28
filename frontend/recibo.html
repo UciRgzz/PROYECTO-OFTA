@@ -534,15 +534,15 @@
       console.error("Error cargando catálogo:", err);
     }
   }
-
-  function actualizarPrecios() {
-    const proc = document.getElementById("procedimiento").value;
-    const select = document.getElementById("precio");
-    const elegido = catalogo.find(c => c.nombre === proc);
-    select.innerHTML = elegido 
-      ? `<option value="${elegido.precio}">${elegido.nombre} — $${elegido.precio}</option>`
-      : "";
-  }
+// Actualizar precios al cambiar procedimiento
+function actualizarPrecios() {
+  const proc = document.getElementById("procedimiento").value;
+  const select = document.getElementById("precio");
+  const elegido = catalogo.find(c => c.nombre === proc);
+  select.innerHTML = elegido 
+    ? `<option value="${elegido.precio}">${elegido.nombre} — $${parseFloat(elegido.precio).toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</option>`
+    : "";
+}
 
   document.getElementById("procedimiento").addEventListener("change", actualizarPrecios);
 
