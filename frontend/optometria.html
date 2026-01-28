@@ -25,7 +25,7 @@
     }
     
     .container {
-      max-width: 1600px;
+      max-width: 1800px;
       margin: 0 auto;
     }
     
@@ -73,26 +73,28 @@
     }
     
     .section-title {
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       font-weight: 600;
       color: var(--primary-color);
       margin: 25px 0 15px 0;
-      padding-bottom: 10px;
-      border-bottom: 2px solid var(--secondary-color);
+      padding: 10px 15px;
+      background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+      border-left: 4px solid var(--secondary-color);
+      border-radius: 5px;
     }
     
     label {
       font-weight: 600;
       margin-bottom: 8px;
       color: #2c3e50;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
     }
     
     input, select {
-      padding: 10px 12px;
+      padding: 8px 10px;
       border: 2px solid var(--border-color);
-      border-radius: 8px;
-      font-size: 0.95rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
       width: 100%;
       transition: all 0.3s;
     }
@@ -179,13 +181,69 @@
       background-color: #e3f2fd;
     }
     
-    .small-input {
-      max-width: 80px;
-      margin: 0 auto;
-    }
-    
     .form-group {
-      margin-bottom: 20px;
+      margin-bottom: 15px;
+    }
+
+    /* Tabla de formulario estilo optometría */
+    .opto-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+    }
+
+    .opto-table th {
+      background: #34495e;
+      color: white;
+      padding: 10px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-align: center;
+      border: 1px solid #2c3e50;
+    }
+
+    .opto-table td {
+      padding: 8px;
+      text-align: center;
+      border: 1px solid #ddd;
+      background: white;
+    }
+
+    .opto-table td.label-cell {
+      background: #ecf0f1;
+      font-weight: 600;
+      text-align: left;
+      padding-left: 15px;
+      color: #2c3e50;
+    }
+
+    .opto-table input {
+      width: 100%;
+      padding: 6px;
+      border: 1px solid #bdc3c7;
+      border-radius: 4px;
+      text-align: center;
+    }
+
+    .grid-2x2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin: 15px 0;
+    }
+
+    .grid-item {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      border: 2px solid #e9ecef;
+    }
+
+    .grid-item label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      color: #495057;
     }
   </style>
 </head>
@@ -241,128 +299,25 @@ async function cargarOptometrias(desde, hasta) {
         <table class="table text-center align-middle">
           <thead>
             <tr>
-              <th rowspan="2">ID</th>
-              <th rowspan="2">Expediente</th>
-              <th rowspan="2">Nombre</th>
-              <th colspan="3">Graduación OD</th>
-              <th colspan="3">Graduación OI</th>
-              <th colspan="2">Subjetivo OD</th>
-              <th colspan="2">Subjetivo OI</th>
-              <th colspan="2">Agudeza Visual OD</th>
-              <th colspan="2">Agudeza Visual OI</th>
-              <th colspan="2">Adición</th>
-              <th colspan="2">AV Cerca</th>
-              <th colspan="3">Lentes Anteriores OD</th>
-              <th colspan="3">Lentes Anteriores OI</th>
-              <th colspan="3">Refrac. Subjetiva OD</th>
-              <th colspan="3">Refrac. Subjetiva OI</th>
-              <th colspan="3">Refrac. Cicloplejía OD</th>
-              <th colspan="3">Refrac. Cicloplejía OI</th>
-              <th colspan="3">Autorefractor OD</th>
-              <th colspan="3">Autorefractor OI</th>
-              <th colspan="3">Auto c/Ciclo OD</th>
-              <th colspan="3">Auto c/Ciclo OI</th>
-              <th rowspan="2">BMP</th>
-              <th rowspan="2">F.O</th>
-              <th rowspan="2">Cicloplejia</th>
-              <th rowspan="2">Hora TP</th>
-              <th rowspan="2">Fecha</th>
-              <th rowspan="2">Acciones</th>
-            </tr>
-            <tr>
-              <th>ESF</th><th>CIL</th><th>EJE</th>
-              <th>ESF</th><th>CIL</th><th>EJE</th>
-              <th>AVcC</th><th>AVcC2</th>
-              <th>AVcC</th><th>AVcC2</th>
-              <th>s/c</th><th>c/L</th>
-              <th>s/c</th><th>c/L</th>
-              <th>OD</th><th>OI</th>
-              <th>OD</th><th>OI</th>
-              <th>ESF</th><th>CIL</th><th>EJE</th>
-              <th>ESF</th><th>CIL</th><th>EJE</th>
-              <th>ESF</th><th>CIL</th><th>EJE</th>
-              <th>ESF</th><th>CIL</th><th>EJE</th>
-              <th>ESF</th><th>CIL</th><th>EJE</th>
-              <th>ESF</th><th>CIL</th><th>EJE</th>
-              <th>ESF</th><th>CIL</th><th>EJE</th>
-              <th>ESF</th><th>CIL</th><th>EJE</th>
-              <th>ESF</th><th>CIL</th><th>EJE</th>
-              <th>ESF</th><th>CIL</th><th>EJE</th>
+              <th>ID</th>
+              <th>Expediente</th>
+              <th>Nombre</th>
+              <th>Fecha</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
   `;
 
   if (data.length === 0) {
-    html += `<tr><td colspan="52">Sin registros</td></tr>`;
+    html += `<tr><td colspan="5">Sin registros</td></tr>`;
   } else {
     data.forEach(o => {
-      let horaFormateada = "";
-      if (o.hora_tp) {
-        const [hora, minuto] = o.hora_tp.split(':');
-        const horaNum = parseInt(hora);
-        const periodo = horaNum >= 12 ? 'p.m.' : 'a.m.';
-        const hora12 = horaNum % 12 || 12;
-        horaFormateada = `${hora12.toString().padStart(2, '0')}:${minuto} ${periodo}`;
-      }
-
       html += `
         <tr>
           <td>${o.id}</td>
           <td>${o.expediente_id}</td>
           <td>${o.nombre || ""}</td>
-          <td>${o.grad_esf_od || ""}</td>
-          <td>${o.grad_cil_od || ""}</td>
-          <td>${o.grad_eje_od || ""}</td>
-          <td>${o.grad_esf_oi || ""}</td>
-          <td>${o.grad_cil_oi || ""}</td>
-          <td>${o.grad_eje_oi || ""}</td>
-          <td>${o.subj_avcc_od || ""}</td>
-          <td>${o.subj_avcc2_od || ""}</td>
-          <td>${o.subj_avcc_oi || ""}</td>
-          <td>${o.subj_avcc2_oi || ""}</td>
-          <td>${o.av_sc_od || ""}</td>
-          <td>${o.av_cl_od || ""}</td>
-          <td>${o.av_sc_oi || ""}</td>
-          <td>${o.av_cl_oi || ""}</td>
-          <td>${o.adicion_od || ""}</td>
-          <td>${o.adicion_oi || ""}</td>
-          <td>${o.av_cerca_od || ""}</td>
-          <td>${o.av_cerca_oi || ""}</td>
-          <td>${o.lentes_esf_od || ""}</td>
-          <td>${o.lentes_cil_od || ""}</td>
-          <td>${o.lentes_eje_od || ""}</td>
-          <td>${o.lentes_esf_oi || ""}</td>
-          <td>${o.lentes_cil_oi || ""}</td>
-          <td>${o.lentes_eje_oi || ""}</td>
-          <td>${o.refrac_subj_esf_od || ""}</td>
-          <td>${o.refrac_subj_cil_od || ""}</td>
-          <td>${o.refrac_subj_eje_od || ""}</td>
-          <td>${o.refrac_subj_esf_oi || ""}</td>
-          <td>${o.refrac_subj_cil_oi || ""}</td>
-          <td>${o.refrac_subj_eje_oi || ""}</td>
-          <td>${o.refrac_ciclo_esf_od || ""}</td>
-          <td>${o.refrac_ciclo_cil_od || ""}</td>
-          <td>${o.refrac_ciclo_eje_od || ""}</td>
-          <td>${o.refrac_ciclo_esf_oi || ""}</td>
-          <td>${o.refrac_ciclo_cil_oi || ""}</td>
-          <td>${o.refrac_ciclo_eje_oi || ""}</td>
-          <td>${o.auto_esf_od || ""}</td>
-          <td>${o.auto_cil_od || ""}</td>
-          <td>${o.auto_eje_od || ""}</td>
-          <td>${o.auto_esf_oi || ""}</td>
-          <td>${o.auto_cil_oi || ""}</td>
-          <td>${o.auto_eje_oi || ""}</td>
-          <td>${o.auto_ciclo_esf_od || ""}</td>
-          <td>${o.auto_ciclo_cil_od || ""}</td>
-          <td>${o.auto_ciclo_eje_od || ""}</td>
-          <td>${o.auto_ciclo_esf_oi || ""}</td>
-          <td>${o.auto_ciclo_cil_oi || ""}</td>
-          <td>${o.auto_ciclo_eje_oi || ""}</td>
-          <td>${o.bmp || ""}</td>
-          <td>${o.fo || ""}</td>
-          <td>${o.cicloplejia || ""}</td>
-          <td>${horaFormateada}</td>
           <td>${o.fecha.split('T')[0].split('-').reverse().join('/')}</td>
           <td>
             <button class="btn btn-danger btn-sm" onclick="borrarOpto(${o.id})">
@@ -463,6 +418,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
       <div class="card-body">
         <form id="formOptometria">
           
+          <!-- DATOS DEL PACIENTE -->
           <div class="row">
             <div class="col-md-6 form-group">
               <label>Número de Expediente *</label>
@@ -474,253 +430,268 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
             </div>
           </div>
 
-          <div class="section-title">Agudeza Visual sin Corrección y con Lentes</div>
-          <div class="row">
-            <div class="col-md-3 form-group">
-              <label>OD - Sin Corrección (s/c)</label>
+          <!-- AGUDEZA VISUAL SIN CORRECCIÓN Y CON LENTES -->
+          <div class="section-title">📊 Agudeza Visual sin Corrección (s/c) y con Lentes (c/L)</div>
+          <div class="grid-2x2">
+            <div class="grid-item">
+              <label>OJO DERECHO - s/c</label>
               <input type="text" name="av_sc_od" class="form-control" placeholder="20/20">
             </div>
-            <div class="col-md-3 form-group">
-              <label>OD - Con Lentes (c/L)</label>
+            <div class="grid-item">
+              <label>OJO DERECHO - c/L</label>
               <input type="text" name="av_cl_od" class="form-control" placeholder="20/20">
             </div>
-            <div class="col-md-3 form-group">
-              <label>OI - Sin Corrección (s/c)</label>
+            <div class="grid-item">
+              <label>OJO IZQUIERDO - s/c</label>
               <input type="text" name="av_sc_oi" class="form-control" placeholder="20/20">
             </div>
-            <div class="col-md-3 form-group">
-              <label>OI - Con Lentes (c/L)</label>
+            <div class="grid-item">
+              <label>OJO IZQUIERDO - c/L</label>
               <input type="text" name="av_cl_oi" class="form-control" placeholder="20/20">
             </div>
           </div>
 
-          <div class="section-title">Agudeza Visual con Estereóptico (BMP)</div>
+          <!-- AGUDEZA VISUAL CON ESTEREOPTICO (BMP) -->
+          <div class="section-title">👓 Agudeza Visual con Estereoptico (BMP)</div>
           <div class="row">
             <div class="col-md-4 form-group">
-              <label>BMP General</label>
-              <input type="text" name="bmp" class="form-control">
+              <label>OJO DERECHO</label>
+              <input type="text" name="bmp_od" class="form-control" placeholder="Ej: 20/20">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>OJO IZQUIERDO</label>
+              <input type="text" name="bmp_oi" class="form-control" placeholder="Ej: 20/20">
+            </div>
+            <div class="col-md-4 form-group">
+              <label>BMP GENERAL</label>
+              <input type="text" name="bmp" class="form-control" placeholder="Ej: 20/20">
             </div>
           </div>
 
-          <div class="section-title">Autorefractor (Sin Cicloplejía)</div>
-          <div class="row">
-            <div class="col-md-2 form-group">
-              <label>OD - ESF</label>
-              <input type="text" name="auto_esf_od" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OD - CIL</label>
-              <input type="text" name="auto_cil_od" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OD - EJE</label>
-              <input type="text" name="auto_eje_od" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OI - ESF</label>
-              <input type="text" name="auto_esf_oi" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OI - CIL</label>
-              <input type="text" name="auto_cil_oi" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OI - EJE</label>
-              <input type="text" name="auto_eje_oi" class="form-control">
-            </div>
-          </div>
+          <!-- AUTOREFRACTOR (SIN CICLOPLEJÍA) -->
+          <div class="section-title">🔬 Autorefractor (Sin Cicloplejía)</div>
+          <table class="opto-table">
+            <thead>
+              <tr>
+                <th style="width: 25%;">OJO</th>
+                <th>ESF</th>
+                <th>CIL</th>
+                <th>EJE</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="label-cell">OJO DERECHO (OD)</td>
+                <td><input type="text" name="auto_esf_od" placeholder="0.00"></td>
+                <td><input type="text" name="auto_cil_od" placeholder="0.00"></td>
+                <td><input type="text" name="auto_eje_od" placeholder="0°"></td>
+              </tr>
+              <tr>
+                <td class="label-cell">OJO IZQUIERDO (OI)</td>
+                <td><input type="text" name="auto_esf_oi" placeholder="0.00"></td>
+                <td><input type="text" name="auto_cil_oi" placeholder="0.00"></td>
+                <td><input type="text" name="auto_eje_oi" placeholder="0°"></td>
+              </tr>
+            </tbody>
+          </table>
 
-          <div class="section-title">Autorefractor con Cicloplejía</div>
-          <div class="row">
-            <div class="col-md-2 form-group">
-              <label>OD - ESF</label>
-              <input type="text" name="auto_ciclo_esf_od" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OD - CIL</label>
-              <input type="text" name="auto_ciclo_cil_od" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OD - EJE</label>
-              <input type="text" name="auto_ciclo_eje_od" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OI - ESF</label>
-              <input type="text" name="auto_ciclo_esf_oi" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OI - CIL</label>
-              <input type="text" name="auto_ciclo_cil_oi" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OI - EJE</label>
-              <input type="text" name="auto_ciclo_eje_oi" class="form-control">
-            </div>
-          </div>
+          <!-- AUTOREFRACTOR CON CICLOPLEJÍA -->
+          <div class="section-title">💉 Autorefractor con Cicloplejía</div>
+          <table class="opto-table">
+            <thead>
+              <tr>
+                <th style="width: 25%;">OJO</th>
+                <th>ESF</th>
+                <th>CIL</th>
+                <th>EJE</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="label-cell">OJO DERECHO (OD)</td>
+                <td><input type="text" name="auto_ciclo_esf_od" placeholder="0.00"></td>
+                <td><input type="text" name="auto_ciclo_cil_od" placeholder="0.00"></td>
+                <td><input type="text" name="auto_ciclo_eje_od" placeholder="0°"></td>
+              </tr>
+              <tr>
+                <td class="label-cell">OJO IZQUIERDO (OI)</td>
+                <td><input type="text" name="auto_ciclo_esf_oi" placeholder="0.00"></td>
+                <td><input type="text" name="auto_ciclo_cil_oi" placeholder="0.00"></td>
+                <td><input type="text" name="auto_ciclo_eje_oi" placeholder="0°"></td>
+              </tr>
+            </tbody>
+          </table>
 
-          <div class="section-title">Graduación</div>
-          <div class="row">
-            <div class="col-md-2 form-group">
-              <label>OD - ESF</label>
-              <input type="text" name="grad_esf_od" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OD - CIL</label>
-              <input type="text" name="grad_cil_od" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OD - EJE</label>
-              <input type="text" name="grad_eje_od" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OI - ESF</label>
-              <input type="text" name="grad_esf_oi" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OI - CIL</label>
-              <input type="text" name="grad_cil_oi" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OI - EJE</label>
-              <input type="text" name="grad_eje_oi" class="form-control">
-            </div>
-          </div>
+          <!-- GRADUACIÓN -->
+          <div class="section-title">📐 Graduación</div>
+          <table class="opto-table">
+            <thead>
+              <tr>
+                <th style="width: 25%;">OJO</th>
+                <th>ESF</th>
+                <th>CIL</th>
+                <th>EJE</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="label-cell">OJO DERECHO (OD)</td>
+                <td><input type="text" name="grad_esf_od" placeholder="0.00"></td>
+                <td><input type="text" name="grad_cil_od" placeholder="0.00"></td>
+                <td><input type="text" name="grad_eje_od" placeholder="0°"></td>
+              </tr>
+              <tr>
+                <td class="label-cell">OJO IZQUIERDO (OI)</td>
+                <td><input type="text" name="grad_esf_oi" placeholder="0.00"></td>
+                <td><input type="text" name="grad_cil_oi" placeholder="0.00"></td>
+                <td><input type="text" name="grad_eje_oi" placeholder="0°"></td>
+              </tr>
+            </tbody>
+          </table>
 
-          <div class="section-title">Subjetivo (AVcC)</div>
+          <!-- SUBJETIVO (AVcC) -->
+          <div class="section-title">👁️ Subjetivo - Agudeza Visual con Corrección (AVcC)</div>
           <div class="row">
             <div class="col-md-3 form-group">
               <label>OD - AVcC</label>
-              <input type="text" name="subj_avcc_od" class="form-control">
+              <input type="text" name="subj_avcc_od" class="form-control" placeholder="20/20">
             </div>
             <div class="col-md-3 form-group">
               <label>OD - AVcC2</label>
-              <input type="text" name="subj_avcc2_od" class="form-control">
+              <input type="text" name="subj_avcc2_od" class="form-control" placeholder="20/20">
             </div>
             <div class="col-md-3 form-group">
               <label>OI - AVcC</label>
-              <input type="text" name="subj_avcc_oi" class="form-control">
+              <input type="text" name="subj_avcc_oi" class="form-control" placeholder="20/20">
             </div>
             <div class="col-md-3 form-group">
               <label>OI - AVcC2</label>
-              <input type="text" name="subj_avcc2_oi" class="form-control">
+              <input type="text" name="subj_avcc2_oi" class="form-control" placeholder="20/20">
             </div>
           </div>
 
-          <div class="section-title">Adición y AV Cerca</div>
+          <!-- ADICIÓN Y AV CERCA -->
+          <div class="section-title">➕ Adición y AV Cerca</div>
           <div class="row">
             <div class="col-md-3 form-group">
               <label>Adición OD</label>
-              <input type="text" name="adicion_od" class="form-control">
+              <input type="text" name="adicion_od" class="form-control" placeholder="+1.00">
             </div>
             <div class="col-md-3 form-group">
               <label>Adición OI</label>
-              <input type="text" name="adicion_oi" class="form-control">
+              <input type="text" name="adicion_oi" class="form-control" placeholder="+1.00">
             </div>
             <div class="col-md-3 form-group">
               <label>AV Cerca OD</label>
-              <input type="text" name="av_cerca_od" class="form-control">
+              <input type="text" name="av_cerca_od" class="form-control" placeholder="20/20">
             </div>
             <div class="col-md-3 form-group">
               <label>AV Cerca OI</label>
-              <input type="text" name="av_cerca_oi" class="form-control">
+              <input type="text" name="av_cerca_oi" class="form-control" placeholder="20/20">
             </div>
           </div>
 
-          <div class="section-title">Lentes Anteriores</div>
-          <div class="row">
-            <div class="col-md-2 form-group">
-              <label>OD - ESF</label>
-              <input type="text" name="lentes_esf_od" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OD - CIL</label>
-              <input type="text" name="lentes_cil_od" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OD - EJE</label>
-              <input type="text" name="lentes_eje_od" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OI - ESF</label>
-              <input type="text" name="lentes_esf_oi" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OI - CIL</label>
-              <input type="text" name="lentes_cil_oi" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OI - EJE</label>
-              <input type="text" name="lentes_eje_oi" class="form-control">
-            </div>
-          </div>
+          <!-- LENTES ANTERIORES -->
+          <div class="section-title">🔙 Lentes Anteriores</div>
+          <table class="opto-table">
+            <thead>
+              <tr>
+                <th style="width: 25%;">OJO</th>
+                <th>ESF</th>
+                <th>CIL</th>
+                <th>EJE</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="label-cell">OJO DERECHO (OD)</td>
+                <td><input type="text" name="lentes_esf_od" placeholder="0.00"></td>
+                <td><input type="text" name="lentes_cil_od" placeholder="0.00"></td>
+                <td><input type="text" name="lentes_eje_od" placeholder="0°"></td>
+              </tr>
+              <tr>
+                <td class="label-cell">OJO IZQUIERDO (OI)</td>
+                <td><input type="text" name="lentes_esf_oi" placeholder="0.00"></td>
+                <td><input type="text" name="lentes_cil_oi" placeholder="0.00"></td>
+                <td><input type="text" name="lentes_eje_oi" placeholder="0°"></td>
+              </tr>
+            </tbody>
+          </table>
 
-          <div class="section-title">Refracción Subjetiva</div>
-          <div class="row">
-            <div class="col-md-2 form-group">
-              <label>OD - ESF</label>
-              <input type="text" name="refrac_subj_esf_od" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OD - CIL</label>
-              <input type="text" name="refrac_subj_cil_od" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OD - EJE</label>
-              <input type="text" name="refrac_subj_eje_od" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OI - ESF</label>
-              <input type="text" name="refrac_subj_esf_oi" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OI - CIL</label>
-              <input type="text" name="refrac_subj_cil_oi" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OI - EJE</label>
-              <input type="text" name="refrac_subj_eje_oi" class="form-control">
-            </div>
-          </div>
+          <!-- REFRACCIÓN SUBJETIVA -->
+          <div class="section-title">🎯 Refracción Subjetiva</div>
+          <table class="opto-table">
+            <thead>
+              <tr>
+                <th style="width: 25%;">OJO</th>
+                <th>ESF</th>
+                <th>CIL</th>
+                <th>EJE</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="label-cell">OJO DERECHO (OD)</td>
+                <td><input type="text" name="refrac_subj_esf_od" placeholder="0.00"></td>
+                <td><input type="text" name="refrac_subj_cil_od" placeholder="0.00"></td>
+                <td><input type="text" name="refrac_subj_eje_od" placeholder="0°"></td>
+              </tr>
+              <tr>
+                <td class="label-cell">OJO IZQUIERDO (OI)</td>
+                <td><input type="text" name="refrac_subj_esf_oi" placeholder="0.00"></td>
+                <td><input type="text" name="refrac_subj_cil_oi" placeholder="0.00"></td>
+                <td><input type="text" name="refrac_subj_eje_oi" placeholder="0°"></td>
+              </tr>
+            </tbody>
+          </table>
 
-          <div class="section-title">Refracción con Cicloplejía</div>
-          <div class="row">
-            <div class="col-md-2 form-group">
-              <label>OD - ESF</label>
-              <input type="text" name="refrac_ciclo_esf_od" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OD - CIL</label>
-              <input type="text" name="refrac_ciclo_cil_od" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OD - EJE</label>
-              <input type="text" name="refrac_ciclo_eje_od" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OI - ESF</label>
-              <input type="text" name="refrac_ciclo_esf_oi" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OI - CIL</label>
-              <input type="text" name="refrac_ciclo_cil_oi" class="form-control">
-            </div>
-            <div class="col-md-2 form-group">
-              <label>OI - EJE</label>
-              <input type="text" name="refrac_ciclo_eje_oi" class="form-control">
-            </div>
-          </div>
+          <!-- REFRACCIÓN CON CICLOPLEJÍA -->
+          <div class="section-title">💊 Refracción con Cicloplejía</div>
+          <table class="opto-table">
+            <thead>
+              <tr>
+                <th style="width: 25%;">OJO</th>
+                <th>ESF</th>
+                <th>CIL</th>
+                <th>EJE</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="label-cell">OJO DERECHO (OD)</td>
+                <td><input type="text" name="refrac_ciclo_esf_od" placeholder="0.00"></td>
+                <td><input type="text" name="refrac_ciclo_cil_od" placeholder="0.00"></td>
+                <td><input type="text" name="refrac_ciclo_eje_od" placeholder="0°"></td>
+              </tr>
+              <tr>
+                <td class="label-cell">OJO IZQUIERDO (OI)</td>
+                <td><input type="text" name="refrac_ciclo_esf_oi" placeholder="0.00"></td>
+                <td><input type="text" name="refrac_ciclo_cil_oi" placeholder="0.00"></td>
+                <td><input type="text" name="refrac_ciclo_eje_oi" placeholder="0°"></td>
+              </tr>
+            </tbody>
+          </table>
 
-          <div class="section-title">Otros Datos</div>
+          <!-- OTROS DATOS -->
+          <div class="section-title">📝 Otros Datos</div>
           <div class="row">
-            <div class="col-md-4 form-group">
-              <label>F.O (Fondo de Ojo)</label>
-              <input type="text" name="fo" class="form-control">
+            <div class="col-md-3 form-group">
+              <label>F.O - OD (Fondo de Ojo)</label>
+              <input type="text" name="fo_od" class="form-control" placeholder="Ej: Normal">
             </div>
-            <div class="col-md-4 form-group">
+            <div class="col-md-3 form-group">
+              <label>F.O - OI (Fondo de Ojo)</label>
+              <input type="text" name="fo_oi" class="form-control" placeholder="Ej: Normal">
+            </div>
+            <div class="col-md-3 form-group">
+              <label>F.O General</label>
+              <input type="text" name="fo" class="form-control" placeholder="Ej: Normal">
+            </div>
+            <div class="col-md-3 form-group">
               <label>Cicloplejia</label>
-              <input type="text" name="cicloplejia" class="form-control">
+              <input type="text" name="cicloplejia" class="form-control" placeholder="Ej: Tropicamida">
             </div>
-            <div class="col-md-4 form-group">
+            <div class="col-md-3 form-group">
               <label>Hora T.P.</label>
               <input type="time" name="hora_tp" class="form-control">
             </div>
@@ -731,7 +702,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
               <i class="fas fa-times"></i> Cancelar
             </button>
             <button type="submit" class="btn btn-primary">
-              <i class="fas fa-save"></i> Guardar
+              <i class="fas fa-save"></i> Guardar Evaluación
             </button>
           </div>
         </form>
@@ -764,7 +735,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
     });
     const result = await res.json();
     if (res.ok) {
-      Swal.fire("Éxito", result.mensaje, "success");
+      Swal.fire("✅ Éxito", result.mensaje, "success");
       formDiv.style.display = "none";
       filtro.style.display = "block";
       document.getElementById("tablaOpto").style.display = "block";
@@ -772,7 +743,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
       $('#filtroRangoOpto').val('Hoy');
       cargarOptometrias(hoy, hoy);
     } else {
-      Swal.fire("Error", result.error, "error");
+      Swal.fire("❌ Error", result.error, "error");
     }
   });
 });
