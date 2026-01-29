@@ -15,6 +15,8 @@
       --accent-color: #e74c3c;
       --success-color: #27ae60;
       --border-color: #dfe6e9;
+      --bg-light: #f5f7fa;
+      --bg-section: #e8f4f8;
     }
     
     body {
@@ -74,33 +76,318 @@
     }
     
     .section-title {
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       font-weight: 600;
-      color: var(--primary-color);
-      margin: 25px 0 15px 0;
-      padding: 10px 15px;
-      background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-      border-left: 4px solid var(--secondary-color);
+      color: #5a6c7d;
+      margin: 30px 0 20px 0;
+      padding: 0;
+      background: transparent;
+      border: none;
+    }
+    
+    .section-bg {
+      background: var(--bg-section);
+      padding: 25px;
+      border-radius: 10px;
+      margin-bottom: 25px;
+    }
+    
+    .section-row {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+    
+    .section-label {
+      font-weight: 600;
+      color: #495057;
+      min-width: 140px;
+      font-size: 0.95rem;
+    }
+    
+    .input-group-custom {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex: 1;
+    }
+    
+    .input-group-custom input {
+      flex: 1;
+      max-width: 80px;
+      padding: 8px;
+      border: 1px solid #ced4da;
       border-radius: 5px;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+    
+    .input-group-custom .separator {
+      font-weight: bold;
+      color: #6c757d;
+    }
+    
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: 20px;
+    }
+    
+    .checkbox-group input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+    
+    .checkbox-group label {
+      margin: 0;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: #6c757d;
+    }
+    
+    .observaciones-input {
+      width: 100%;
+      min-height: 80px;
+      padding: 10px;
+      border: 1px solid #ced4da;
+      border-radius: 5px;
+      resize: vertical;
+      font-size: 0.9rem;
+    }
+    
+    .two-column-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 25px;
+    }
+    
+    .column-box {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+    }
+    
+    .column-title {
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 15px;
+      font-size: 1rem;
+    }
+    
+    .field-row {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 15px;
+      align-items: center;
+    }
+    
+    .field-label {
+      font-weight: 600;
+      color: #495057;
+      min-width: 30px;
+      font-size: 0.9rem;
+    }
+    
+    .field-input {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #ced4da;
+      border-radius: 5px;
+      text-align: center;
+    }
+    
+    .grados-label {
+      color: #6c757d;
+      font-size: 0.85rem;
+      font-style: italic;
+    }
+    
+    .wide-section {
+      background: white;
+      padding: 25px;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+      margin-bottom: 25px;
+    }
+    
+    .grid-3col {
+      display: grid;
+      grid-template-columns: 200px 1fr 1fr;
+      gap: 20px;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: var(--bg-section);
+      border-radius: 8px;
+    }
+    
+    .grid-3col.no-bg {
+      background: white;
+      border: 1px solid #e9ecef;
+    }
+    
+    .retino-section {
+      background: white;
+      padding: 25px;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+      margin-bottom: 25px;
+    }
+    
+    .retino-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+    }
+    
+    .retino-eye {
+      text-align: center;
+    }
+    
+    .retino-eye-label {
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 15px;
+      font-size: 1rem;
+    }
+    
+    .retino-input-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    
+    .retino-input-group input {
+      width: 120px;
+      padding: 8px;
+      border: 1px solid #ced4da;
+      border-radius: 5px;
+      text-align: center;
+    }
+    
+    .grados-selector {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-top: 15px;
+    }
+    
+    .grado-option {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .circle-selector {
+      width: 80px;
+      height: 80px;
+      border: 2px solid #adb5bd;
+      border-radius: 50%;
+      position: relative;
+      cursor: pointer;
+      background: white;
+      transition: all 0.3s;
+    }
+    
+    .circle-selector.selected {
+      border-color: var(--secondary-color);
+      background: #e3f2fd;
+    }
+    
+    .circle-selector::before {
+      content: '';
+      position: absolute;
+      width: 2px;
+      height: 100%;
+      background: #adb5bd;
+      left: 50%;
+      top: 0;
+      transform: translateX(-50%);
+    }
+    
+    .circle-selector::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 2px;
+      background: #adb5bd;
+      top: 50%;
+      left: 0;
+      transform: translateY(-50%);
+    }
+    
+    .circle-selector.deg-90::before {
+      transform: translateX(-50%) rotate(0deg);
+    }
+    
+    .circle-selector.deg-180::after {
+      transform: translateY(-50%) rotate(0deg);
+    }
+    
+    .grado-label {
+      font-weight: 600;
+      color: #495057;
+      font-size: 0.9rem;
+    }
+    
+    .kerato-section {
+      background: white;
+      padding: 25px;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+      margin-bottom: 25px;
+    }
+    
+    .kerato-row {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .kerato-row .field-label {
+      min-width: 120px;
+    }
+    
+    .kerato-inputs {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    
+    .kerato-inputs input {
+      width: 80px;
+      padding: 8px;
+      border: 1px solid #ced4da;
+      border-radius: 5px;
+      text-align: center;
     }
     
     label {
       font-weight: 600;
       margin-bottom: 8px;
       color: #2c3e50;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
     }
     
-    input, select {
-      padding: 8px 10px;
-      border: 2px solid var(--border-color);
+    input, select, textarea {
+      padding: 10px;
+      border: 1px solid var(--border-color);
       border-radius: 6px;
       font-size: 0.9rem;
       width: 100%;
       transition: all 0.3s;
     }
     
-    input:focus, select:focus {
+    input:focus, select:focus, textarea:focus {
       border-color: var(--secondary-color);
       box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.1);
       outline: none;
@@ -211,71 +498,6 @@
       margin-bottom: 15px;
     }
 
-    .opto-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 15px 0;
-    }
-
-    .opto-table th {
-      background: #34495e;
-      color: white;
-      padding: 10px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      text-align: center;
-      border: 1px solid #2c3e50;
-    }
-
-    .opto-table td {
-      padding: 8px;
-      text-align: center;
-      border: 1px solid #ddd;
-      background: white;
-    }
-
-    .opto-table td.label-cell {
-      background: #ecf0f1;
-      font-weight: 600;
-      text-align: left;
-      padding-left: 15px;
-      color: #2c3e50;
-    }
-
-    .opto-table input {
-      width: 100%;
-      padding: 6px;
-      border: 1px solid #bdc3c7;
-      border-radius: 4px;
-      text-align: center;
-    }
-
-    .grid-2x2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-      margin: 15px 0;
-    }
-
-    .grid-item {
-      background: #f8f9fa;
-      padding: 15px;
-      border-radius: 8px;
-      border: 2px solid #e9ecef;
-    }
-
-    .grid-item label {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 0.9rem;
-      color: #495057;
-    }
-
-    .modal-graduacion .modal-dialog {
-      max-width: 95%;
-      margin: 20px auto;
-    }
-
     .btn-sm {
       padding: 5px 10px;
       font-size: 0.875rem;
@@ -288,6 +510,15 @@
       padding: 3px 8px;
       border-radius: 4px;
       font-size: 0.75rem;
+    }
+
+    .modal-graduacion .modal-dialog {
+      max-width: 95%;
+      margin: 20px auto;
+    }
+
+    input[type="checkbox"] {
+      width: auto;
     }
   </style>
 </head>
@@ -391,7 +622,7 @@ async function cargarOptometrias(desde, hasta) {
           <td>${horaFormateada ? `<span class="badge-tp">${horaFormateada}</span>` : '<span style="color:#999;">No aplicado</span>'}</td>
           <td>
             <button class="btn btn-info btn-sm" onclick="verGraduacion(${o.id})">
-              <i class="fas fa-file-medical"></i> Ver Evaluación Completa
+              <i class="fas fa-file-medical"></i> Ver Evaluación
             </button>
             <button class="btn btn-danger btn-sm" onclick="borrarOpto(${o.id})">
               <i class="fas fa-trash"></i>
@@ -422,213 +653,59 @@ async function verGraduacion(id) {
       }
 
       let html = `
-        <div class="section-title">Datos del Paciente</div>
-        <div class="row mb-3">
-          <div class="col-md-4">
-            <p><strong>Expediente:</strong> ${data.expediente_id}</p>
-          </div>
-          <div class="col-md-4">
-            <p><strong>Fecha:</strong> ${data.fecha.split('T')[0].split('-').reverse().join('/')}</p>
-          </div>
-          <div class="col-md-4">
-            <p><strong>TP Aplicado:</strong> ${horaFormateada || 'No aplicado'}</p>
-          </div>
-        </div>
+        <div style="padding: 20px;">
+          <h4>Datos del Paciente</h4>
+          <p><strong>Expediente:</strong> ${data.expediente_id} | <strong>Fecha:</strong> ${data.fecha.split('T')[0].split('-').reverse().join('/')} | <strong>TP:</strong> ${horaFormateada || 'No aplicado'}</p>
+          
+          <h5 class="mt-4">Agudeza visual sin corrección lejos</h5>
+          <p><strong>OD:</strong> ${data.av_sc_od || '-'} (s/c) | ${data.av_cl_od || '-'} (c/L) | Discrimina color: ${data.av_sc_od_color ? 'Sí' : 'No'}</p>
+          <p><strong>OI:</strong> ${data.av_sc_oi || '-'} (s/c) | ${data.av_cl_oi || '-'} (c/L) | Discrimina color: ${data.av_sc_oi_color ? 'Sí' : 'No'}</p>
+          <p><strong>Observaciones OD:</strong> ${data.av_sc_od_obs || '-'}</p>
+          <p><strong>Observaciones OI:</strong> ${data.av_sc_oi_obs || '-'}</p>
 
-        <div class="section-title">Agudeza Visual</div>
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <p><strong>Agudeza Visual sin Corrección (Lejos) - s/c:</strong></p>
-            <p>OD: ${data.av_sc_od || '-'} | OI: ${data.av_sc_oi || '-'}</p>
-          </div>
-          <div class="col-md-6">
-            <p><strong>Agudeza Visual con Lentes c/L:</strong></p>
-            <p>OD: ${data.av_cl_od || '-'} | OI: ${data.av_cl_oi || '-'}</p>
-          </div>
-        </div>
+          <h5 class="mt-4">Agudeza visual con estenopeico</h5>
+          <p><strong>OD:</strong> ${data.av_est_od || '-'} | Discrimina color: ${data.av_est_od_color ? 'Sí' : 'No'}</p>
+          <p><strong>OI:</strong> ${data.av_est_oi || '-'} | Discrimina color: ${data.av_est_oi_color ? 'Sí' : 'No'}</p>
+          <p><strong>Observaciones OD:</strong> ${data.av_est_od_obs || '-'}</p>
+          <p><strong>Observaciones OI:</strong> ${data.av_est_oi_obs || '-'}</p>
 
-        <div class="row mb-3">
-          <div class="col-md-12">
-            <p><strong>Agudeza Visual con Estereoptico (BMP):</strong></p>
-            <p>OD: ${data.bmp_od || '-'} | OI: ${data.bmp_oi || '-'}</p>
-          </div>
-        </div>
+          <h5 class="mt-4">Agudeza visual de cerca</h5>
+          <p><strong>OD:</strong> ${data.av_cerca_od || '-'} | Discrimina color: ${data.av_cerca_od_color ? 'Sí' : 'No'}</p>
+          <p><strong>OI:</strong> ${data.av_cerca_oi || '-'} | Discrimina color: ${data.av_cerca_oi_color ? 'Sí' : 'No'}</p>
+          <p><strong>Observaciones OD:</strong> ${data.av_cerca_od_obs || '-'}</p>
+          <p><strong>Observaciones OI:</strong> ${data.av_cerca_oi_obs || '-'}</p>
 
-        <div class="section-title">Autorefractor (Sin Cicloplejía)</div>
-        <table class="opto-table mb-3">
-          <thead>
-            <tr>
-              <th style="width: 25%;">OJO</th>
-              <th>ESF</th>
-              <th>CIL</th>
-              <th>EJE</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="label-cell">OJO DERECHO (OD)</td>
-              <td>${data.auto_esf_od || '0.00'}</td>
-              <td>${data.auto_cil_od || '0.00'}</td>
-              <td>${data.auto_eje_od || '0°'}</td>
-            </tr>
-            <tr>
-              <td class="label-cell">OJO IZQUIERDO (OI)</td>
-              <td>${data.auto_esf_oi || '0.00'}</td>
-              <td>${data.auto_cil_oi || '0.00'}</td>
-              <td>${data.auto_eje_oi || '0°'}</td>
-            </tr>
-          </tbody>
-        </table>
+          <h5 class="mt-4">Autorefractor</h5>
+          <p><strong>OD:</strong> ${data.auto_od_1 || '-'}, ${data.auto_od_2 || '-'} (${data.auto_od_grados || '-'}°)</p>
+          <p><strong>OI:</strong> ${data.auto_oi_1 || '-'}, ${data.auto_oi_2 || '-'} (${data.auto_oi_grados || '-'}°)</p>
 
-        <div class="section-title">Autorefractor con Cicloplejía</div>
-        <table class="opto-table mb-3">
-          <thead>
-            <tr>
-              <th style="width: 25%;">OJO</th>
-              <th>ESF</th>
-              <th>CIL</th>
-              <th>EJE</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="label-cell">OJO DERECHO (OD)</td>
-              <td>${data.auto_ciclo_esf_od || '0.00'}</td>
-              <td>${data.auto_ciclo_cil_od || '0.00'}</td>
-              <td>${data.auto_ciclo_eje_od || '0°'}</td>
-            </tr>
-            <tr>
-              <td class="label-cell">OJO IZQUIERDO (OI)</td>
-              <td>${data.auto_ciclo_esf_oi || '0.00'}</td>
-              <td>${data.auto_ciclo_cil_oi || '0.00'}</td>
-              <td>${data.auto_ciclo_eje_oi || '0°'}</td>
-            </tr>
-          </tbody>
-        </table>
+          <h5 class="mt-4">Autorefractor con ciclopejía</h5>
+          <p><strong>OD:</strong> ${data.auto_ciclo_od_1 || '-'}, ${data.auto_ciclo_od_2 || '-'} (${data.auto_ciclo_od_grados || '-'}°)</p>
+          <p><strong>OI:</strong> ${data.auto_ciclo_oi_1 || '-'}, ${data.auto_ciclo_oi_2 || '-'} (${data.auto_ciclo_oi_grados || '-'}°)</p>
 
-        <div class="section-title">Graduación, Subjetivo, Adición y AV Cerca</div>
-        <div class="table-responsive">
-          <table class="opto-table">
-            <thead>
-              <tr>
-                <th rowspan="2" style="width: 15%;">SECCIÓN</th>
-                <th rowspan="2" style="width: 10%;">OJO</th>
-                <th colspan="3">GRADUACIÓN SUBJETIVA</th>
-                <th colspan="3">(AGUDEZA VISUAL LEJOS)</th>
-                <th colspan="3">ADICIÓN</th>
-                <th colspan="3">AV CERCA</th>
-              </tr>
-              <tr>
-                <th>ESF</th>
-                <th>CIL</th>
-                <th>EJE</th>
-                <th>ESF</th>
-                <th>CIL</th>
-                <th>EJE</th>
-                <th>ESF</th>
-                <th>CIL</th>
-                <th>EJE</th>
-                <th>ESF</th>
-                <th>CIL</th>
-                <th>EJE</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="label-cell" rowspan="2">Lentes Anteriores</td>
-                <td class="label-cell">OD</td>
-                <td>${data.lentes_esf_od || '0.00'}</td>
-                <td>${data.lentes_cil_od || '0.00'}</td>
-                <td>${data.lentes_eje_od || '0°'}</td>
-                <td>${data.lentes_avc_esf_od || '0.00'}</td>
-                <td>${data.lentes_avc_cil_od || '0.00'}</td>
-                <td>${data.lentes_avc_eje_od || '0°'}</td>
-                <td>${data.lentes_add_esf_od || '0.00'}</td>
-                <td>${data.lentes_add_cil_od || '0.00'}</td>
-                <td>${data.lentes_add_eje_od || '0°'}</td>
-                <td>${data.lentes_avcerca_esf_od || '0.00'}</td>
-                <td>${data.lentes_avcerca_cil_od || '0.00'}</td>
-                <td>${data.lentes_avcerca_eje_od || '0°'}</td>
-              </tr>
-              <tr>
-                <td class="label-cell">OI</td>
-                <td>${data.lentes_esf_oi || '0.00'}</td>
-                <td>${data.lentes_cil_oi || '0.00'}</td>
-                <td>${data.lentes_eje_oi || '0°'}</td>
-                <td>${data.lentes_avc_esf_oi || '0.00'}</td>
-                <td>${data.lentes_avc_cil_oi || '0.00'}</td>
-                <td>${data.lentes_avc_eje_oi || '0°'}</td>
-                <td>${data.lentes_add_esf_oi || '0.00'}</td>
-                <td>${data.lentes_add_cil_oi || '0.00'}</td>
-                <td>${data.lentes_add_eje_oi || '0°'}</td>
-                <td>${data.lentes_avcerca_esf_oi || '0.00'}</td>
-                <td>${data.lentes_avcerca_cil_oi || '0.00'}</td>
-                <td>${data.lentes_avcerca_eje_oi || '0°'}</td>
-              </tr>
-              <tr>
-                <td class="label-cell" rowspan="2">Refracción Subjetiva</td>
-                <td class="label-cell">OD</td>
-                <td>${data.refrac_subj_esf_od || '0.00'}</td>
-                <td>${data.refrac_subj_cil_od || '0.00'}</td>
-                <td>${data.refrac_subj_eje_od || '0°'}</td>
-                <td>${data.refrac_subj_avc_esf_od || '0.00'}</td>
-                <td>${data.refrac_subj_avc_cil_od || '0.00'}</td>
-                <td>${data.refrac_subj_avc_eje_od || '0°'}</td>
-                <td>${data.refrac_subj_add_esf_od || '0.00'}</td>
-                <td>${data.refrac_subj_add_cil_od || '0.00'}</td>
-                <td>${data.refrac_subj_add_eje_od || '0°'}</td>
-                <td>${data.refrac_subj_avcerca_esf_od || '0.00'}</td>
-                <td>${data.refrac_subj_avcerca_cil_od || '0.00'}</td>
-                <td>${data.refrac_subj_avcerca_eje_od || '0°'}</td>
-              </tr>
-              <tr>
-                <td class="label-cell">OI</td>
-                <td>${data.refrac_subj_esf_oi || '0.00'}</td>
-                <td>${data.refrac_subj_cil_oi || '0.00'}</td>
-                <td>${data.refrac_subj_eje_oi || '0°'}</td>
-                <td>${data.refrac_subj_avc_esf_oi || '0.00'}</td>
-                <td>${data.refrac_subj_avc_cil_oi || '0.00'}</td>
-                <td>${data.refrac_subj_avc_eje_oi || '0°'}</td>
-                <td>${data.refrac_subj_add_esf_oi || '0.00'}</td>
-                <td>${data.refrac_subj_add_cil_oi || '0.00'}</td>
-                <td>${data.refrac_subj_add_eje_oi || '0°'}</td>
-                <td>${data.refrac_subj_avcerca_esf_oi || '0.00'}</td>
-                <td>${data.refrac_subj_avcerca_cil_oi || '0.00'}</td>
-                <td>${data.refrac_subj_avcerca_eje_oi || '0°'}</td>
-              </tr>
-              <tr>
-                <td class="label-cell" rowspan="2">Refracción Cicloplejía</td>
-                <td class="label-cell">OD</td>
-                <td>${data.refrac_ciclo_esf_od || '0.00'}</td>
-                <td>${data.refrac_ciclo_cil_od || '0.00'}</td>
-                <td>${data.refrac_ciclo_eje_od || '0°'}</td>
-                <td>${data.refrac_ciclo_avc_esf_od || '0.00'}</td>
-                <td>${data.refrac_ciclo_avc_cil_od || '0.00'}</td>
-                <td>${data.refrac_ciclo_avc_eje_od || '0°'}</td>
-                <td>${data.refrac_ciclo_add_esf_od || '0.00'}</td>
-                <td>${data.refrac_ciclo_add_cil_od || '0.00'}</td>
-                <td>${data.refrac_ciclo_add_eje_od || '0°'}</td>
-                <td>${data.refrac_ciclo_avcerca_esf_od || '0.00'}</td>
-                <td>${data.refrac_ciclo_avcerca_cil_od || '0.00'}</td>
-                <td>${data.refrac_ciclo_avcerca_eje_od || '0°'}</td>
-              </tr>
-              <tr>
-                <td class="label-cell">OI</td>
-                <td>${data.refrac_ciclo_esf_oi || '0.00'}</td>
-                <td>${data.refrac_ciclo_cil_oi || '0.00'}</td>
-                <td>${data.refrac_ciclo_eje_oi || '0°'}</td>
-                <td>${data.refrac_ciclo_avc_esf_oi || '0.00'}</td>
-                <td>${data.refrac_ciclo_avc_cil_oi || '0.00'}</td>
-                <td>${data.refrac_ciclo_avc_eje_oi || '0°'}</td>
-                <td>${data.refrac_ciclo_add_esf_oi || '0.00'}</td>
-                <td>${data.refrac_ciclo_add_cil_oi || '0.00'}</td>
-                <td>${data.refrac_ciclo_add_eje_oi || '0°'}</td>
-                <td>${data.refrac_ciclo_avcerca_esf_oi || '0.00'}</td>
-                <td>${data.refrac_ciclo_avcerca_cil_oi || '0.00'}</td>
-                <td>${data.refrac_ciclo_avcerca_eje_oi || '0.00'}</td>
-              </tr>
-            </tbody>
-          </table>
+          <h5 class="mt-4">Lentes Anteriores</h5>
+          <p><strong>OD:</strong> AV: ${data.lentes_ant_od_av_1 || '-'}/${data.lentes_ant_od_av_2 || '-'}/${data.lentes_ant_od_av_3 || '-'} | Adición: ${data.lentes_ant_od_ad_1 || '-'}/${data.lentes_ant_od_ad_2 || '-'}</p>
+          <p><strong>OI:</strong> AV: ${data.lentes_ant_oi_av_1 || '-'}/${data.lentes_ant_oi_av_2 || '-'}/${data.lentes_ant_oi_av_3 || '-'} | Adición: ${data.lentes_ant_oi_ad_1 || '-'}/${data.lentes_ant_oi_ad_2 || '-'}</p>
+
+          <h5 class="mt-4">Refracción Subjetiva</h5>
+          <p><strong>OD:</strong> AV: ${data.refrac_subj_od_av_1 || '-'}/${data.refrac_subj_od_av_2 || '-'}/${data.refrac_subj_od_av_3 || '-'} | Adición: ${data.refrac_subj_od_ad_1 || '-'}/${data.refrac_subj_od_ad_2 || '-'}</p>
+          <p><strong>OI:</strong> AV: ${data.refrac_subj_oi_av_1 || '-'}/${data.refrac_subj_oi_av_2 || '-'}/${data.refrac_subj_oi_av_3 || '-'} | Adición: ${data.refrac_subj_oi_ad_1 || '-'}/${data.refrac_subj_oi_ad_2 || '-'}</p>
+
+          <h5 class="mt-4">Subjetiva Ciclopejía</h5>
+          <p><strong>OD:</strong> AV: ${data.subj_ciclo_od_av_1 || '-'}/${data.subj_ciclo_od_av_2 || '-'}/${data.subj_ciclo_od_av_3 || '-'} | Adición: ${data.subj_ciclo_od_ad_1 || '-'}/${data.subj_ciclo_od_ad_2 || '-'}</p>
+          <p><strong>OI:</strong> AV: ${data.subj_ciclo_oi_av_1 || '-'}/${data.subj_ciclo_oi_av_2 || '-'}/${data.subj_ciclo_oi_av_3 || '-'} | Adición: ${data.subj_ciclo_oi_ad_1 || '-'}/${data.subj_ciclo_oi_ad_2 || '-'}</p>
+
+          <h5 class="mt-4">Retinoscopía</h5>
+          <p><strong>OD:</strong> ${data.retino_od_1 || '-'} / ${data.retino_od_2 || '-'} (${data.retino_od_grado || '-'}°)</p>
+          <p><strong>OI:</strong> ${data.retino_oi_1 || '-'} / ${data.retino_oi_2 || '-'} (${data.retino_oi_grado || '-'}°)</p>
+
+          <h5 class="mt-4">Retinoscopía con ciclopejía</h5>
+          <p><strong>OD:</strong> ${data.retino_ciclo_od_1 || '-'} / ${data.retino_ciclo_od_2 || '-'} (${data.retino_ciclo_od_grado || '-'}°)</p>
+          <p><strong>OI:</strong> ${data.retino_ciclo_oi_1 || '-'} / ${data.retino_ciclo_oi_2 || '-'} (${data.retino_ciclo_oi_grado || '-'}°)</p>
+
+          <h5 class="mt-4">Queratometría</h5>
+          <p><strong>OD:</strong> ${data.kerato_od_1 || '-'} / ${data.kerato_od_2 || '-'} / ${data.kerato_od_3 || '-'}</p>
+          <p><strong>OI:</strong> ${data.kerato_oi_1 || '-'} / ${data.kerato_oi_2 || '-'} / ${data.kerato_oi_3 || '-'}</p>
         </div>
       `;
 
@@ -752,215 +829,414 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
 
           <input type="hidden" name="hora_tp" id="horaTPInput">
 
-          <div class="section-title"> Agudeza Visual sin Corrección (Lejos) - s/c y con Lentes c/L</div>
-          <div class="grid-2x2">
-            <div class="grid-item">
-              <label>OJO DERECHO - s/c</label>
-              <input type="text" name="av_sc_od" class="form-control" placeholder="20/20">
+          <!-- AGUDEZA VISUAL SIN CORRECCIÓN LEJOS -->
+          <div class="section-title">Agudeza visual sin corrección lejos</div>
+          <div class="section-bg">
+            <div class="section-row">
+              <div class="section-label">Ojo derecho</div>
+              <div class="input-group-custom">
+                <input type="text" name="av_sc_od" placeholder="20/20">
+                <span class="separator">/</span>
+                <input type="text" placeholder="">
+                <input type="text" placeholder="">
+                <input type="text" name="av_cl_od" placeholder="20/20">
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" name="av_sc_od_color" id="av_sc_od_color">
+                <label for="av_sc_od_color">Discrimina color</label>
+              </div>
+              <label style="margin-left: 20px; margin-bottom: 0;">Observaciones</label>
             </div>
-            <div class="grid-item">
-              <label>OJO DERECHO - c/L</label>
-              <input type="text" name="av_cl_od" class="form-control" placeholder="20/20">
+            <div class="section-row">
+              <div class="section-label"></div>
+              <textarea name="av_sc_od_obs" class="observaciones-input" placeholder="Observaciones para ojo derecho..."></textarea>
             </div>
-            <div class="grid-item">
-              <label>OJO IZQUIERDO - s/c</label>
-              <input type="text" name="av_sc_oi" class="form-control" placeholder="20/20">
+
+            <div class="section-row" style="margin-top: 20px;">
+              <div class="section-label">Ojo izquierdo</div>
+              <div class="input-group-custom">
+                <input type="text" name="av_sc_oi" placeholder="20/20">
+                <span class="separator">/</span>
+                <input type="text" placeholder="">
+                <input type="text" placeholder="">
+                <input type="text" name="av_cl_oi" placeholder="20/20">
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" name="av_sc_oi_color" id="av_sc_oi_color">
+                <label for="av_sc_oi_color">Discrimina color</label>
+              </div>
+              <label style="margin-left: 20px; margin-bottom: 0;">Observaciones</label>
             </div>
-            <div class="grid-item">
-              <label>OJO IZQUIERDO - c/L</label>
-              <input type="text" name="av_cl_oi" class="form-control" placeholder="20/20">
+            <div class="section-row">
+              <div class="section-label"></div>
+              <textarea name="av_sc_oi_obs" class="observaciones-input" placeholder="Observaciones para ojo izquierdo..."></textarea>
             </div>
           </div>
 
-          <div class="section-title"> Agudeza Visual con Estereoptico (BMP)</div>
-          <div class="row">
-            <div class="col-md-6 form-group">
-              <label>OJO DERECHO</label>
-              <input type="text" name="bmp_od" class="form-control" placeholder="Ej: 20/20">
+          <!-- AGUDEZA VISUAL CON ESTENOPEICO -->
+          <div class="section-title">Agudeza visual con estenopeico</div>
+          <div class="section-bg">
+            <div class="section-row">
+              <div class="section-label">Ojo derecho</div>
+              <div class="input-group-custom">
+                <input type="text" name="av_est_od" placeholder="20/20">
+                <span class="separator">/</span>
+                <input type="text" placeholder="">
+                <input type="text" placeholder="">
+                <input type="text" placeholder="">
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" name="av_est_od_color" id="av_est_od_color">
+                <label for="av_est_od_color">Discrimina color</label>
+              </div>
+              <label style="margin-left: 20px; margin-bottom: 0;">Observaciones</label>
             </div>
-            <div class="col-md-6 form-group">
-              <label>OJO IZQUIERDO</label>
-              <input type="text" name="bmp_oi" class="form-control" placeholder="Ej: 20/20">
+            <div class="section-row">
+              <div class="section-label"></div>
+              <textarea name="av_est_od_obs" class="observaciones-input" placeholder="Observaciones para ojo derecho..."></textarea>
+            </div>
+
+            <div class="section-row" style="margin-top: 20px;">
+              <div class="section-label">Ojo izquierdo</div>
+              <div class="input-group-custom">
+                <input type="text" name="av_est_oi" placeholder="20/20">
+                <span class="separator">/</span>
+                <input type="text" placeholder="">
+                <input type="text" placeholder="">
+                <input type="text" placeholder="">
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" name="av_est_oi_color" id="av_est_oi_color">
+                <label for="av_est_oi_color">Discrimina color</label>
+              </div>
+              <label style="margin-left: 20px; margin-bottom: 0;">Observaciones</label>
+            </div>
+            <div class="section-row">
+              <div class="section-label"></div>
+              <textarea name="av_est_oi_obs" class="observaciones-input" placeholder="Observaciones para ojo izquierdo..."></textarea>
             </div>
           </div>
 
-          <div class="section-title"> Autorefractor (Sin Cicloplejía)</div>
-          <table class="opto-table">
-            <thead>
-              <tr>
-                <th style="width: 25%;">OJO</th>
-                <th>ESF</th>
-                <th>CIL</th>
-                <th>EJE</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="label-cell">OJO DERECHO (OD)</td>
-                <td><input type="text" name="auto_esf_od" placeholder="0.00"></td>
-                <td><input type="text" name="auto_cil_od" placeholder="0.00"></td>
-                <td><input type="text" name="auto_eje_od" placeholder="0°"></td>
-              </tr>
-              <tr>
-                <td class="label-cell">OJO IZQUIERDO (OI)</td>
-                <td><input type="text" name="auto_esf_oi" placeholder="0.00"></td>
-                <td><input type="text" name="auto_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="auto_eje_oi" placeholder="0°"></td>
-              </tr>
-            </tbody>
-          </table>
+          <!-- AGUDEZA VISUAL DE CERCA -->
+          <div class="section-title">Agudeza visual de cerca</div>
+          <div class="section-bg">
+            <div class="section-row">
+              <div class="section-label">Ojo derecho</div>
+              <div class="input-group-custom">
+                <input type="text" name="av_cerca_od" placeholder="20/20">
+                <span class="separator">/</span>
+                <input type="text" placeholder="">
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" name="av_cerca_od_color" id="av_cerca_od_color">
+                <label for="av_cerca_od_color">Discrimina color</label>
+              </div>
+              <label style="margin-left: 20px; margin-bottom: 0;">Observaciones</label>
+            </div>
+            <div class="section-row">
+              <div class="section-label"></div>
+              <textarea name="av_cerca_od_obs" class="observaciones-input" placeholder="Observaciones para ojo derecho..."></textarea>
+            </div>
 
-          <div class="section-title"> Autorefractor con Cicloplejía</div>
-          <table class="opto-table">
-            <thead>
-              <tr>
-                <th style="width: 25%;">OJO</th>
-                <th>ESF</th>
-                <th>CIL</th>
-                <th>EJE</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="label-cell">OJO DERECHO (OD)</td>
-                <td><input type="text" name="auto_ciclo_esf_od" placeholder="0.00"></td>
-                <td><input type="text" name="auto_ciclo_cil_od" placeholder="0.00"></td>
-                <td><input type="text" name="auto_ciclo_eje_od" placeholder="0°"></td>
-              </tr>
-              <tr>
-                <td class="label-cell">OJO IZQUIERDO (OI)</td>
-                <td><input type="text" name="auto_ciclo_esf_oi" placeholder="0.00"></td>
-                <td><input type="text" name="auto_ciclo_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="auto_ciclo_eje_oi" placeholder="0°"></td>
-              </tr>
-            </tbody>
-          </table>
+            <div class="section-row" style="margin-top: 20px;">
+              <div class="section-label">Ojo izquierdo</div>
+              <div class="input-group-custom">
+                <input type="text" name="av_cerca_oi" placeholder="20/20">
+                <span class="separator">/</span>
+                <input type="text" placeholder="">
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" name="av_cerca_oi_color" id="av_cerca_oi_color">
+                <label for="av_cerca_oi_color">Discrimina color</label>
+              </div>
+              <label style="margin-left: 20px; margin-bottom: 0;">Observaciones</label>
+            </div>
+            <div class="section-row">
+              <div class="section-label"></div>
+              <textarea name="av_cerca_oi_obs" class="observaciones-input" placeholder="Observaciones para ojo izquierdo..."></textarea>
+            </div>
+          </div>
 
-          <div class="section-title"> Graduación, Subjetivo, Adición y AV Cerca</div>
-          <table class="opto-table">
-            <thead>
-              <tr>
-                <th rowspan="2" style="width: 15%;">SECCIÓN</th>
-                <th rowspan="2" style="width: 10%;">OJO</th>
-                <th colspan="3">GRADUACIÓN SUBJETIVA</th>
-                <th colspan="3"> (AGUDEZA VISUAL LEJOS)</th>
-                <th colspan="3">ADICIÓN</th>
-                <th colspan="3">AV CERCA</th>
-              </tr>
-              <tr>
-                <th>ESF</th>
-                <th>CIL</th>
-                <th>EJE</th>
-                <th>ESF</th>
-                <th>CIL</th>
-                <th>EJE</th>
-                <th>ESF</th>
-                <th>CIL</th>
-                <th>EJE</th>
-                <th>ESF</th>
-                <th>CIL</th>
-                <th>EJE</th>
-              </tr>
-            </thead>
-            <tbody>
-              
-              <tr>
-                <td class="label-cell" rowspan="2">Lentes Anteriores</td>
-                <td class="label-cell">OD</td>
-                <td><input type="text" name="lentes_esf_od" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_cil_od" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_eje_od" placeholder="0°"></td>
-                <td><input type="text" name="lentes_avc_esf_od" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_avc_cil_od" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_avc_eje_od" placeholder="0°"></td>
-                <td><input type="text" name="lentes_add_esf_od" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_add_cil_od" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_add_eje_od" placeholder="0°"></td>
-                <td><input type="text" name="lentes_avcerca_esf_od" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_avcerca_cil_od" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_avcerca_eje_od" placeholder="0°"></td>
-              </tr>
-              <tr>
-                <td class="label-cell">OI</td>
-                <td><input type="text" name="lentes_esf_oi" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_eje_oi" placeholder="0°"></td>
-                <td><input type="text" name="lentes_avc_esf_oi" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_avc_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_avc_eje_oi" placeholder="0°"></td>
-                <td><input type="text" name="lentes_add_esf_oi" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_add_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_add_eje_oi" placeholder="0°"></td>
-                <td><input type="text" name="lentes_avcerca_esf_oi" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_avcerca_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_avcerca_eje_oi" placeholder="0°"></td>
-              </tr>
+          <!-- AUTOREFRACTOR Y CICLOPEJÍA -->
+          <div class="section-title">Autorefractor y Autorefractor con ciclopejía</div>
+          <div class="two-column-section">
+            <div class="column-box">
+              <div class="column-title">Autorefractor</div>
+              <div class="field-row">
+                <span class="field-label">OD</span>
+                <input type="text" name="auto_od_1" class="field-input" placeholder="">
+                <input type="text" name="auto_od_2" class="field-input" placeholder="">
+                <input type="text" name="auto_od_grados" class="field-input" placeholder="0">
+                <span class="grados-label">° Grados</span>
+              </div>
+              <div class="field-row">
+                <span class="field-label">OI</span>
+                <input type="text" name="auto_oi_1" class="field-input" placeholder="">
+                <input type="text" name="auto_oi_2" class="field-input" placeholder="">
+                <input type="text" name="auto_oi_grados" class="field-input" placeholder="0">
+                <span class="grados-label">° Grados</span>
+              </div>
+            </div>
 
-              <tr>
-                <td class="label-cell" rowspan="2">Refracción Subjetiva</td>
-                <td class="label-cell">OD</td>
-                <td><input type="text" name="refrac_subj_esf_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_cil_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_eje_od" placeholder="0°"></td>
-                <td><input type="text" name="refrac_subj_avc_esf_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_avc_cil_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_avc_eje_od" placeholder="0°"></td>
-                <td><input type="text" name="refrac_subj_add_esf_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_add_cil_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_add_eje_od" placeholder="0°"></td>
-                <td><input type="text" name="refrac_subj_avcerca_esf_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_avcerca_cil_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_avcerca_eje_od" placeholder="0°"></td>
-              </tr>
-              <tr>
-                <td class="label-cell">OI</td>
-                <td><input type="text" name="refrac_subj_esf_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_eje_oi" placeholder="0°"></td>
-                <td><input type="text" name="refrac_subj_avc_esf_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_avc_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_avc_eje_oi" placeholder="0°"></td>
-                <td><input type="text" name="refrac_subj_add_esf_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_add_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_add_eje_oi" placeholder="0°"></td>
-                <td><input type="text" name="refrac_subj_avcerca_esf_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_avcerca_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_avcerca_eje_oi" placeholder="0°"></td>
-              </tr>
+            <div class="column-box">
+              <div class="column-title">Autorefractor con ciclopejía</div>
+              <div class="field-row">
+                <span class="field-label">OD</span>
+                <input type="text" name="auto_ciclo_od_1" class="field-input" placeholder="">
+                <input type="text" name="auto_ciclo_od_2" class="field-input" placeholder="">
+                <input type="text" name="auto_ciclo_od_grados" class="field-input" placeholder="0">
+                <span class="grados-label">° Grados</span>
+              </div>
+              <div class="field-row">
+                <span class="field-label">OI</span>
+                <input type="text" name="auto_ciclo_oi_1" class="field-input" placeholder="">
+                <input type="text" name="auto_ciclo_oi_2" class="field-input" placeholder="">
+                <input type="text" name="auto_ciclo_oi_grados" class="field-input" placeholder="0">
+                <span class="grados-label">° Grados</span>
+              </div>
+            </div>
+          </div>
 
-              <tr>
-                <td class="label-cell" rowspan="2">Refracción Cicloplejía</td>
-                <td class="label-cell">OD</td>
-                <td><input type="text" name="refrac_ciclo_esf_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_cil_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_eje_od" placeholder="0°"></td>
-                <td><input type="text" name="refrac_ciclo_avc_esf_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_avc_cil_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_avc_eje_od" placeholder="0°"></td>
-                <td><input type="text" name="refrac_ciclo_add_esf_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_add_cil_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_add_eje_od" placeholder="0°"></td>
-                <td><input type="text" name="refrac_ciclo_avcerca_esf_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_avcerca_cil_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_avcerca_eje_od" placeholder="0°"></td>
-              </tr>
-              <tr>
-                <td class="label-cell">OI</td>
-                <td><input type="text" name="refrac_ciclo_esf_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_eje_oi" placeholder="0°"></td>
-                <td><input type="text" name="refrac_ciclo_avc_esf_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_avc_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_avc_eje_oi" placeholder="0°"></td>
-                <td><input type="text" name="refrac_ciclo_add_esf_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_add_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_add_eje_oi" placeholder="0°"></td>
-                <td><input type="text" name="refrac_ciclo_avcerca_esf_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_avcerca_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_avcerca_eje_oi" placeholder="0.00"></td>
-              </tr>
-            </tbody>
-          </table>
+          <!-- LENTES ANTERIORES, REFRACCIÓN SUBJETIVA, SUBJETIVA CICLOPEJÍA -->
+          <div class="section-title">Agudeza visual y Adición</div>
+          <div class="wide-section">
+            <div class="grid-3col no-bg">
+              <div></div>
+              <div style="text-align: center; font-weight: 600; color: #495057;">Agudeza visual</div>
+              <div style="text-align: center; font-weight: 600; color: #495057;">Adición</div>
+            </div>
+
+            <div class="grid-3col">
+              <div style="font-weight: 600; color: #495057;">Lentes anteriores</div>
+              <div style="display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                  <div style="font-weight: 600; margin-bottom: 8px; text-align: center; font-size: 0.85rem;">OD</div>
+                  <div style="display: flex; gap: 5px;">
+                    <input type="text" name="lentes_ant_od_av_1" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                    <span style="color: #6c757d;">/</span>
+                    <input type="text" name="lentes_ant_od_av_2" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                    <span style="color: #6c757d;">/</span>
+                    <input type="text" name="lentes_ant_od_av_3" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                  </div>
+                  <div style="font-weight: 600; margin: 12px 0 8px 0; text-align: center; font-size: 0.85rem;">OI</div>
+                  <div style="display: flex; gap: 5px;">
+                    <input type="text" name="lentes_ant_oi_av_1" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                    <span style="color: #6c757d;">/</span>
+                    <input type="text" name="lentes_ant_oi_av_2" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                    <span style="color: #6c757d;">/</span>
+                    <input type="text" name="lentes_ant_oi_av_3" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                  </div>
+                </div>
+              </div>
+              <div style="display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                  <div style="display: flex; gap: 5px; margin-bottom: 12px;">
+                    <input type="text" name="lentes_ant_od_ad_1" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                    <span style="color: #6c757d;">/</span>
+                    <input type="text" name="lentes_ant_od_ad_2" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                  </div>
+                  <div style="display: flex; gap: 5px; margin-top: 28px;">
+                    <input type="text" name="lentes_ant_oi_ad_1" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                    <span style="color: #6c757d;">/</span>
+                    <input type="text" name="lentes_ant_oi_ad_2" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid-3col">
+              <div style="font-weight: 600; color: #495057;">Refracción subjetiva</div>
+              <div style="display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                  <div style="font-weight: 600; margin-bottom: 8px; text-align: center; font-size: 0.85rem;">OD</div>
+                  <div style="display: flex; gap: 5px;">
+                    <input type="text" name="refrac_subj_od_av_1" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                    <span style="color: #6c757d;">/</span>
+                    <input type="text" name="refrac_subj_od_av_2" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                    <span style="color: #6c757d;">/</span>
+                    <input type="text" name="refrac_subj_od_av_3" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                  </div>
+                  <div style="font-weight: 600; margin: 12px 0 8px 0; text-align: center; font-size: 0.85rem;">OI</div>
+                  <div style="display: flex; gap: 5px;">
+                    <input type="text" name="refrac_subj_oi_av_1" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                    <span style="color: #6c757d;">/</span>
+                    <input type="text" name="refrac_subj_oi_av_2" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                    <span style="color: #6c757d;">/</span>
+                    <input type="text" name="refrac_subj_oi_av_3" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                  </div>
+                </div>
+              </div>
+              <div style="display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                  <div style="display: flex; gap: 5px; margin-bottom: 12px;">
+                    <input type="text" name="refrac_subj_od_ad_1" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                    <span style="color: #6c757d;">/</span>
+                    <input type="text" name="refrac_subj_od_ad_2" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                  </div>
+                  <div style="display: flex; gap: 5px; margin-top: 28px;">
+                    <input type="text" name="refrac_subj_oi_ad_1" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                    <span style="color: #6c757d;">/</span>
+                    <input type="text" name="refrac_subj_oi_ad_2" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid-3col no-bg">
+              <div style="font-weight: 600; color: #495057;">Subjetiva Ciclopejía</div>
+              <div style="display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                  <div style="font-weight: 600; margin-bottom: 8px; text-align: center; font-size: 0.85rem;">OD</div>
+                  <div style="display: flex; gap: 5px;">
+                    <input type="text" name="subj_ciclo_od_av_1" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                    <span style="color: #6c757d;">/</span>
+                    <input type="text" name="subj_ciclo_od_av_2" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                    <span style="color: #6c757d;">/</span>
+                    <input type="text" name="subj_ciclo_od_av_3" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                  </div>
+                  <div style="font-weight: 600; margin: 12px 0 8px 0; text-align: center; font-size: 0.85rem;">OI</div>
+                  <div style="display: flex; gap: 5px;">
+                    <input type="text" name="subj_ciclo_oi_av_1" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                    <span style="color: #6c757d;">/</span>
+                    <input type="text" name="subj_ciclo_oi_av_2" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                    <span style="color: #6c757d;">/</span>
+                    <input type="text" name="subj_ciclo_oi_av_3" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                  </div>
+                </div>
+              </div>
+              <div style="display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                  <div style="display: flex; gap: 5px; margin-bottom: 12px;">
+                    <input type="text" name="subj_ciclo_od_ad_1" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                    <span style="color: #6c757d;">/</span>
+                    <input type="text" name="subj_ciclo_od_ad_2" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                  </div>
+                  <div style="display: flex; gap: 5px; margin-top: 28px;">
+                    <input type="text" name="subj_ciclo_oi_ad_1" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                    <span style="color: #6c757d;">/</span>
+                    <input type="text" name="subj_ciclo_oi_ad_2" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RETINOSCOPÍA -->
+          <div class="section-title">Retinoscopía</div>
+          <div class="retino-section">
+            <div class="retino-grid">
+              <div class="retino-eye">
+                <div class="retino-eye-label">Ojo derecho</div>
+                <div class="retino-input-group">
+                  <input type="text" name="retino_od_1" placeholder="">
+                  <span>/</span>
+                  <input type="text" name="retino_od_2" placeholder="">
+                </div>
+                <div class="grados-selector">
+                  <div class="grado-option">
+                    <div class="circle-selector deg-90" data-grado="90" data-ojo="od"></div>
+                    <div class="grado-label">90 ° Grados</div>
+                  </div>
+                  <div class="grado-option">
+                    <div class="circle-selector deg-180" data-grado="180" data-ojo="od"></div>
+                    <div class="grado-label">180 ° Grados</div>
+                  </div>
+                </div>
+                <input type="hidden" name="retino_od_grado" id="retino_od_grado">
+              </div>
+
+              <div class="retino-eye">
+                <div class="retino-eye-label">Ojo izquierdo</div>
+                <div class="retino-input-group">
+                  <input type="text" name="retino_oi_1" placeholder="">
+                  <span>/</span>
+                  <input type="text" name="retino_oi_2" placeholder="">
+                </div>
+                <div class="grados-selector">
+                  <div class="grado-option">
+                    <div class="circle-selector deg-90" data-grado="90" data-ojo="oi"></div>
+                    <div class="grado-label">90 ° Grados</div>
+                  </div>
+                  <div class="grado-option">
+                    <div class="circle-selector deg-180" data-grado="180" data-ojo="oi"></div>
+                    <div class="grado-label">180 ° Grados</div>
+                  </div>
+                </div>
+                <input type="hidden" name="retino_oi_grado" id="retino_oi_grado">
+              </div>
+            </div>
+          </div>
+
+          <!-- RETINOSCOPÍA CON CICLOPEJÍA -->
+          <div class="section-title">Retinoscopía con ciclopejía</div>
+          <div class="retino-section">
+            <div class="retino-grid">
+              <div class="retino-eye">
+                <div class="retino-eye-label">Ojo derecho</div>
+                <div class="retino-input-group">
+                  <input type="text" name="retino_ciclo_od_1" placeholder="">
+                  <span>/</span>
+                  <input type="text" name="retino_ciclo_od_2" placeholder="">
+                </div>
+                <div class="grados-selector">
+                  <div class="grado-option">
+                    <div class="circle-selector deg-90" data-grado="90" data-ojo="ciclo_od"></div>
+                    <div class="grado-label">90 ° Grados</div>
+                  </div>
+                  <div class="grado-option">
+                    <div class="circle-selector deg-180" data-grado="180" data-ojo="ciclo_od"></div>
+                    <div class="grado-label">180 ° Grados</div>
+                  </div>
+                </div>
+                <input type="hidden" name="retino_ciclo_od_grado" id="retino_ciclo_od_grado">
+              </div>
+
+              <div class="retino-eye">
+                <div class="retino-eye-label">Ojo izquierdo</div>
+                <div class="retino-input-group">
+                  <input type="text" name="retino_ciclo_oi_1" placeholder="">
+                  <span>/</span>
+                  <input type="text" name="retino_ciclo_oi_2" placeholder="">
+                </div>
+                <div class="grados-selector">
+                  <div class="grado-option">
+                    <div class="circle-selector deg-90" data-grado="90" data-ojo="ciclo_oi"></div>
+                    <div class="grado-label">90 ° Grados</div>
+                  </div>
+                  <div class="grado-option">
+                    <div class="circle-selector deg-180" data-grado="180" data-ojo="ciclo_oi"></div>
+                    <div class="grado-label">180 ° Grados</div>
+                  </div>
+                </div>
+                <input type="hidden" name="retino_ciclo_oi_grado" id="retino_ciclo_oi_grado">
+              </div>
+            </div>
+          </div>
+
+          <!-- QUERATOMETRÍA -->
+          <div class="section-title">Queratometría</div>
+          <div class="kerato-section">
+            <div class="kerato-row">
+              <span class="field-label">Ojo derecho</span>
+              <div class="kerato-inputs">
+                <input type="text" name="kerato_od_1" placeholder="x">
+                <span>/</span>
+                <input type="text" name="kerato_od_2" placeholder="x">
+                <span>/</span>
+                <input type="text" name="kerato_od_3" placeholder="x">
+              </div>
+            </div>
+            <div class="kerato-row">
+              <span class="field-label">Ojo izquierdo</span>
+              <div class="kerato-inputs">
+                <input type="text" name="kerato_oi_1" placeholder="x">
+                <span>/</span>
+                <input type="text" name="kerato_oi_2" placeholder="x">
+                <span>/</span>
+                <input type="text" name="kerato_oi_3" placeholder="x">
+              </div>
+            </div>
+          </div>
 
           <div class="d-flex justify-content-between mt-4">
             <button type="button" class="btn btn-secondary" id="cancelarOpto">
@@ -979,10 +1255,12 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
   formDiv.innerHTML = html;
   formDiv.style.display = "block";
 
+  // Búsqueda de paciente
   document.getElementById("expedienteInput").addEventListener("input", function(e) {
     buscarNombrePaciente(e.target.value);
   });
 
+  // Botón TP
   document.getElementById("btnTP").addEventListener("click", function() {
     if (!tpAplicado) {
       const ahora = new Date();
@@ -1012,16 +1290,45 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
     }
   });
 
+  // Selectores circulares de grados
+  document.querySelectorAll('.circle-selector').forEach(circle => {
+    circle.addEventListener('click', function() {
+      const ojo = this.dataset.ojo;
+      const grado = this.dataset.grado;
+      
+      // Remover selección previa del mismo ojo
+      document.querySelectorAll(`.circle-selector[data-ojo="${ojo}"]`).forEach(c => {
+        c.classList.remove('selected');
+      });
+      
+      // Seleccionar actual
+      this.classList.add('selected');
+      
+      // Actualizar input hidden
+      document.getElementById(`retino_${ojo}_grado`).value = grado;
+    });
+  });
+
+  // Cancelar
   document.getElementById("cancelarOpto").onclick = () => {
     formDiv.style.display = "none";
     filtro.style.display = "block";
     document.getElementById("tablaOpto").style.display = "block";
   };
 
+  // Submit
   document.getElementById("formOptometria").addEventListener("submit", async e => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData);
+    
+    // Convertir checkboxes a booleanos
+    data.av_sc_od_color = formData.get('av_sc_od_color') === 'on';
+    data.av_sc_oi_color = formData.get('av_sc_oi_color') === 'on';
+    data.av_est_od_color = formData.get('av_est_od_color') === 'on';
+    data.av_est_oi_color = formData.get('av_est_oi_color') === 'on';
+    data.av_cerca_od_color = formData.get('av_cerca_od_color') === 'on';
+    data.av_cerca_oi_color = formData.get('av_cerca_oi_color') === 'on';
     
     const res = await fetch("/api/optometria", {
       method: "POST",
