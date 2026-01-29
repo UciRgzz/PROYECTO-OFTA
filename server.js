@@ -9,6 +9,9 @@
   const multer = require('multer');
   const xlsx = require('xlsx');
   const { deprecate } = require('util');
+  const cron = require('node-cron');
+  const { createBackup } = require('./scripts/backup');
+
 
 
   const app = express();
@@ -62,6 +65,25 @@
   pool.connect()
       .then(() => console.log('Conexión a PostgreSQL exitosa'))
       .catch(err => console.error('Error conectando a PostgreSQL', err));
+
+
+// ==================== RESPALDO DE HORA ====================
+// Programar backup automático diario a las 2:00 AM
+cron.schedule('0 2 * * *', () => {
+  console.log('⏰ Ejecutando backup automático programado...');
+  createBackup();
+});
+
+// También puedes crear un endpoint manual para hacer backup cuando quieras
+app.post('/api/admin/backup', isAdmin, (req, res) => {
+  try {
+    createBackup();
+    res.json({ mensaje: '✅ Backup iniciado correctamente' });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al crear backup' });
+  }
+});
+
 
   // ==================== MIDDLEWARE ====================
   // Proteger rutas con sesión
@@ -2576,7 +2598,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
     res.json({ ok: true, sucursal });
   });
 
-  
+
 // ==================== MODULO DE OPTOMETRÍA ====================
 // Guardar nueva evaluación de optometría
 app.post("/api/optometria", verificarSesion, async (req, res) => {
