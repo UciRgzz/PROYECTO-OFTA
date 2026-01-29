@@ -2576,192 +2576,325 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
     res.json({ ok: true, sucursal });
   });
 
-  // ==================== MODULO DE OPTOMETRÍA ====================
   
-  // Guardar nueva evaluación de optometría
-  app.post("/api/optometria", verificarSesion, async (req, res) => {
-    try {
-      const {
-        expediente_id,
-        esfera_od, cilindro_od, eje_od, avcc_od, adicion_od, avcc2_od,
-        esfera_oi, cilindro_oi, eje_oi, avcc_oi, adicion_oi, avcc2_oi,
-        bmp, bmp_od, bmp_oi, fo, fo_od, fo_oi,
-        cicloplejia, hora_tp,
-        av_lejos_od1, av_lejos_od2, av_lejos_od3,
-        av_cerca_od1, av_cerca_od2,
-        av_lentes_od1, av_lentes_od2,
-        av_lejos_oi1, av_lejos_oi2, av_lejos_oi3,
-        av_cerca_oi1, av_cerca_oi2,
-        av_lentes_oi1, av_lentes_oi2
-      } = req.body;
+// ==================== MODULO DE OPTOMETRÍA ====================
+// Guardar nueva evaluación de optometría
+app.post("/api/optometria", verificarSesion, async (req, res) => {
+  try {
+    const {
+      expediente_id,
+      hora_tp,
+      
+      // Agudeza Visual
+      av_sc_od, av_sc_oi,
+      av_cl_od, av_cl_oi,
+      bmp_od, bmp_oi,
+      
+      // Autorefractor sin cicloplejía
+      auto_esf_od, auto_cil_od, auto_eje_od,
+      auto_esf_oi, auto_cil_oi, auto_eje_oi,
+      
+      // Autorefractor con cicloplejía
+      auto_ciclo_esf_od, auto_ciclo_cil_od, auto_ciclo_eje_od,
+      auto_ciclo_esf_oi, auto_ciclo_cil_oi, auto_ciclo_eje_oi,
+      
+      // Lentes Anteriores - Graduación
+      lentes_esf_od, lentes_cil_od, lentes_eje_od,
+      lentes_esf_oi, lentes_cil_oi, lentes_eje_oi,
+      
+      // Lentes Anteriores - AV Lejos
+      lentes_avc_esf_od, lentes_avc_cil_od, lentes_avc_eje_od,
+      lentes_avc_esf_oi, lentes_avc_cil_oi, lentes_avc_eje_oi,
+      
+      // Lentes Anteriores - Adición
+      lentes_add_esf_od, lentes_add_cil_od, lentes_add_eje_od,
+      lentes_add_esf_oi, lentes_add_cil_oi, lentes_add_eje_oi,
+      
+      // Lentes Anteriores - AV Cerca
+      lentes_avcerca_esf_od, lentes_avcerca_cil_od, lentes_avcerca_eje_od,
+      lentes_avcerca_esf_oi, lentes_avcerca_cil_oi, lentes_avcerca_eje_oi,
+      
+      // Refracción Subjetiva - Graduación
+      refrac_subj_esf_od, refrac_subj_cil_od, refrac_subj_eje_od,
+      refrac_subj_esf_oi, refrac_subj_cil_oi, refrac_subj_eje_oi,
+      
+      // Refracción Subjetiva - AV Lejos
+      refrac_subj_avc_esf_od, refrac_subj_avc_cil_od, refrac_subj_avc_eje_od,
+      refrac_subj_avc_esf_oi, refrac_subj_avc_cil_oi, refrac_subj_avc_eje_oi,
+      
+      // Refracción Subjetiva - Adición
+      refrac_subj_add_esf_od, refrac_subj_add_cil_od, refrac_subj_add_eje_od,
+      refrac_subj_add_esf_oi, refrac_subj_add_cil_oi, refrac_subj_add_eje_oi,
+      
+      // Refracción Subjetiva - AV Cerca
+      refrac_subj_avcerca_esf_od, refrac_subj_avcerca_cil_od, refrac_subj_avcerca_eje_od,
+      refrac_subj_avcerca_esf_oi, refrac_subj_avcerca_cil_oi, refrac_subj_avcerca_eje_oi,
+      
+      // Refracción Cicloplejía - Graduación
+      refrac_ciclo_esf_od, refrac_ciclo_cil_od, refrac_ciclo_eje_od,
+      refrac_ciclo_esf_oi, refrac_ciclo_cil_oi, refrac_ciclo_eje_oi,
+      
+      // Refracción Cicloplejía - AV Lejos
+      refrac_ciclo_avc_esf_od, refrac_ciclo_avc_cil_od, refrac_ciclo_avc_eje_od,
+      refrac_ciclo_avc_esf_oi, refrac_ciclo_avc_cil_oi, refrac_ciclo_avc_eje_oi,
+      
+      // Refracción Cicloplejía - Adición
+      refrac_ciclo_add_esf_od, refrac_ciclo_add_cil_od, refrac_ciclo_add_eje_od,
+      refrac_ciclo_add_esf_oi, refrac_ciclo_add_cil_oi, refrac_ciclo_add_eje_oi,
+      
+      // Refracción Cicloplejía - AV Cerca
+      refrac_ciclo_avcerca_esf_od, refrac_ciclo_avcerca_cil_od, refrac_ciclo_avcerca_eje_od,
+      refrac_ciclo_avcerca_esf_oi, refrac_ciclo_avcerca_cil_oi, refrac_ciclo_avcerca_eje_oi
+      
+    } = req.body;
 
-      let depto = getDepartamento(req);
+    let depto = getDepartamento(req);
+    const fechaMX = fechaLocalMX();
 
-      // ✅ Usa la función fechaLocalMX() que ya tienes definida al inicio
-      const fechaMX = fechaLocalMX();
+    const result = await pool.query(
+      `INSERT INTO optometria (
+        expediente_id, hora_tp, fecha, departamento,
+        
+        av_sc_od, av_sc_oi,
+        av_cl_od, av_cl_oi,
+        bmp_od, bmp_oi,
+        
+        auto_esf_od, auto_cil_od, auto_eje_od,
+        auto_esf_oi, auto_cil_oi, auto_eje_oi,
+        
+        auto_ciclo_esf_od, auto_ciclo_cil_od, auto_ciclo_eje_od,
+        auto_ciclo_esf_oi, auto_ciclo_cil_oi, auto_ciclo_eje_oi,
+        
+        lentes_esf_od, lentes_cil_od, lentes_eje_od,
+        lentes_esf_oi, lentes_cil_oi, lentes_eje_oi,
+        
+        lentes_avc_esf_od, lentes_avc_cil_od, lentes_avc_eje_od,
+        lentes_avc_esf_oi, lentes_avc_cil_oi, lentes_avc_eje_oi,
+        
+        lentes_add_esf_od, lentes_add_cil_od, lentes_add_eje_od,
+        lentes_add_esf_oi, lentes_add_cil_oi, lentes_add_eje_oi,
+        
+        lentes_avcerca_esf_od, lentes_avcerca_cil_od, lentes_avcerca_eje_od,
+        lentes_avcerca_esf_oi, lentes_avcerca_cil_oi, lentes_avcerca_eje_oi,
+        
+        refrac_subj_esf_od, refrac_subj_cil_od, refrac_subj_eje_od,
+        refrac_subj_esf_oi, refrac_subj_cil_oi, refrac_subj_eje_oi,
+        
+        refrac_subj_avc_esf_od, refrac_subj_avc_cil_od, refrac_subj_avc_eje_od,
+        refrac_subj_avc_esf_oi, refrac_subj_avc_cil_oi, refrac_subj_avc_eje_oi,
+        
+        refrac_subj_add_esf_od, refrac_subj_add_cil_od, refrac_subj_add_eje_od,
+        refrac_subj_add_esf_oi, refrac_subj_add_cil_oi, refrac_subj_add_eje_oi,
+        
+        refrac_subj_avcerca_esf_od, refrac_subj_avcerca_cil_od, refrac_subj_avcerca_eje_od,
+        refrac_subj_avcerca_esf_oi, refrac_subj_avcerca_cil_oi, refrac_subj_avcerca_eje_oi,
+        
+        refrac_ciclo_esf_od, refrac_ciclo_cil_od, refrac_ciclo_eje_od,
+        refrac_ciclo_esf_oi, refrac_ciclo_cil_oi, refrac_ciclo_eje_oi,
+        
+        refrac_ciclo_avc_esf_od, refrac_ciclo_avc_cil_od, refrac_ciclo_avc_eje_od,
+        refrac_ciclo_avc_esf_oi, refrac_ciclo_avc_cil_oi, refrac_ciclo_avc_eje_oi,
+        
+        refrac_ciclo_add_esf_od, refrac_ciclo_add_cil_od, refrac_ciclo_add_eje_od,
+        refrac_ciclo_add_esf_oi, refrac_ciclo_add_cil_oi, refrac_ciclo_add_eje_oi,
+        
+        refrac_ciclo_avcerca_esf_od, refrac_ciclo_avcerca_cil_od, refrac_ciclo_avcerca_eje_od,
+        refrac_ciclo_avcerca_esf_oi, refrac_ciclo_avcerca_cil_oi, refrac_ciclo_avcerca_eje_oi
+      )
+      VALUES (
+        $1, $2, $3::date, $4,
+        $5, $6, $7, $8, $9, $10,
+        $11, $12, $13, $14, $15, $16,
+        $17, $18, $19, $20, $21, $22,
+        $23, $24, $25, $26, $27, $28,
+        $29, $30, $31, $32, $33, $34,
+        $35, $36, $37, $38, $39, $40,
+        $41, $42, $43, $44, $45, $46,
+        $47, $48, $49, $50, $51, $52,
+        $53, $54, $55, $56, $57, $58,
+        $59, $60, $61, $62, $63, $64,
+        $65, $66, $67, $68, $69, $70,
+        $71, $72, $73, $74, $75, $76,
+        $77, $78, $79, $80, $81, $82,
+        $83, $84, $85, $86, $87, $88,
+        $89, $90, $91, $92, $93, $94
+      )
+      RETURNING *`,
+      [
+        expediente_id, hora_tp, fechaMX, depto,
+        av_sc_od, av_sc_oi, av_cl_od, av_cl_oi, bmp_od, bmp_oi,
+        auto_esf_od, auto_cil_od, auto_eje_od, auto_esf_oi, auto_cil_oi, auto_eje_oi,
+        auto_ciclo_esf_od, auto_ciclo_cil_od, auto_ciclo_eje_od,
+        auto_ciclo_esf_oi, auto_ciclo_cil_oi, auto_ciclo_eje_oi,
+        lentes_esf_od, lentes_cil_od, lentes_eje_od, lentes_esf_oi, lentes_cil_oi, lentes_eje_oi,
+        lentes_avc_esf_od, lentes_avc_cil_od, lentes_avc_eje_od,
+        lentes_avc_esf_oi, lentes_avc_cil_oi, lentes_avc_eje_oi,
+        lentes_add_esf_od, lentes_add_cil_od, lentes_add_eje_od,
+        lentes_add_esf_oi, lentes_add_cil_oi, lentes_add_eje_oi,
+        lentes_avcerca_esf_od, lentes_avcerca_cil_od, lentes_avcerca_eje_od,
+        lentes_avcerca_esf_oi, lentes_avcerca_cil_oi, lentes_avcerca_eje_oi,
+        refrac_subj_esf_od, refrac_subj_cil_od, refrac_subj_eje_od,
+        refrac_subj_esf_oi, refrac_subj_cil_oi, refrac_subj_eje_oi,
+        refrac_subj_avc_esf_od, refrac_subj_avc_cil_od, refrac_subj_avc_eje_od,
+        refrac_subj_avc_esf_oi, refrac_subj_avc_cil_oi, refrac_subj_avc_eje_oi,
+        refrac_subj_add_esf_od, refrac_subj_add_cil_od, refrac_subj_add_eje_od,
+        refrac_subj_add_esf_oi, refrac_subj_add_cil_oi, refrac_subj_add_eje_oi,
+        refrac_subj_avcerca_esf_od, refrac_subj_avcerca_cil_od, refrac_subj_avcerca_eje_od,
+        refrac_subj_avcerca_esf_oi, refrac_subj_avcerca_cil_oi, refrac_subj_avcerca_eje_oi,
+        refrac_ciclo_esf_od, refrac_ciclo_cil_od, refrac_ciclo_eje_od,
+        refrac_ciclo_esf_oi, refrac_ciclo_cil_oi, refrac_ciclo_eje_oi,
+        refrac_ciclo_avc_esf_od, refrac_ciclo_avc_cil_od, refrac_ciclo_avc_eje_od,
+        refrac_ciclo_avc_esf_oi, refrac_ciclo_avc_cil_oi, refrac_ciclo_avc_eje_oi,
+        refrac_ciclo_add_esf_od, refrac_ciclo_add_cil_od, refrac_ciclo_add_eje_od,
+        refrac_ciclo_add_esf_oi, refrac_ciclo_add_cil_oi, refrac_ciclo_add_eje_oi,
+        refrac_ciclo_avcerca_esf_od, refrac_ciclo_avcerca_cil_od, refrac_ciclo_avcerca_eje_od,
+        refrac_ciclo_avcerca_esf_oi, refrac_ciclo_avcerca_cil_oi, refrac_ciclo_avcerca_eje_oi
+      ]
+    );
 
-      const result = await pool.query(
-        `INSERT INTO optometria (
-          expediente_id, esfera_od, cilindro_od, eje_od, avcc_od, adicion_od, avcc2_od,
-          esfera_oi, cilindro_oi, eje_oi, avcc_oi, adicion_oi, avcc2_oi,
-          bmp, bmp_od, bmp_oi, fo, fo_od, fo_oi,
-          cicloplejia, hora_tp,
-          av_lejos_od1, av_lejos_od2, av_lejos_od3,
-          av_cerca_od1, av_cerca_od2,
-          av_lentes_od1, av_lentes_od2,
-          av_lejos_oi1, av_lejos_oi2, av_lejos_oi3,
-          av_cerca_oi1, av_cerca_oi2,
-          av_lentes_oi1, av_lentes_oi2,
-          fecha, departamento
-        )
-        VALUES (
-          $1,$2,$3,$4,$5,$6,$7,
-          $8,$9,$10,$11,$12,$13,
-          $14,$15,$16,$17,$18,$19,
-          $20,$21,
-          $22,$23,$24,
-          $25,$26,
-          $27,$28,
-          $29,$30,$31,
-          $32,$33,
-          $34,$35,
-          $36::date,$37
-        )
-        RETURNING *`,
-        [
-          expediente_id,
-          esfera_od, cilindro_od, eje_od, avcc_od, adicion_od, avcc2_od,
-          esfera_oi, cilindro_oi, eje_oi, avcc_oi, adicion_oi, avcc2_oi,
-          bmp, bmp_od, bmp_oi, fo, fo_od, fo_oi,
-          cicloplejia, hora_tp,
-          av_lejos_od1, av_lejos_od2, av_lejos_od3,
-          av_cerca_od1, av_cerca_od2,
-          av_lentes_od1, av_lentes_od2,
-          av_lejos_oi1, av_lejos_oi2, av_lejos_oi3,
-          av_cerca_oi1, av_cerca_oi2,
-          av_lentes_oi1, av_lentes_oi2,
-          fechaMX,  // 👈 Fecha real de México
-          depto
-        ]
-      );
+    res.json({ mensaje: "Optometría guardada con éxito", data: result.rows[0] });
+  } catch (err) {
+    console.error("Error al guardar optometría:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
-      res.json({ mensaje: "Optometría guardada con éxito", data: result.rows[0] });
-    } catch (err) {
-      console.error("Error al guardar optometría:", err);
-      res.status(500).json({ error: err.message });
+
+// 🆕 NUEVO: Obtener UNA evaluación específica (para el modal de graduación)
+app.get("/api/optometria/:id", verificarSesion, async (req, res) => {
+  try {
+    const { id } = req.params;
+    let depto = getDepartamento(req);
+
+    const result = await pool.query(
+      `SELECT * FROM optometria 
+       WHERE id = $1 AND departamento = $2`,
+      [id, depto]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Evaluación no encontrada" });
     }
-  });
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Error en /api/optometria/:id:", err);
+    res.status(500).json({ error: "Error al obtener evaluación" });
+  }
+});
 
 
-  // Obtener evaluaciones de optometría (con nombre de paciente) con filtros
-  app.get("/api/optometria", verificarSesion, async (req, res) => {
-    try {
-      let depto = getDepartamento(req);
-      const { filtro, desde, hasta } = req.query;
+// Obtener evaluaciones de optometría (con nombre de paciente) con filtros
+app.get("/api/optometria", verificarSesion, async (req, res) => {
+  try {
+    let depto = getDepartamento(req);
+    const { filtro, desde, hasta } = req.query;
 
-      let query = `
-        SELECT o.*, e.nombre_completo AS nombre
-        FROM optometria o
-        JOIN expedientes e 
-          ON o.expediente_id = e.numero_expediente 
+    let query = `
+      SELECT o.*, e.nombre_completo AS nombre
+      FROM optometria o
+      JOIN expedientes e 
+        ON o.expediente_id = e.numero_expediente 
         AND o.departamento = e.departamento
-        WHERE o.departamento = $1
-      `;
+      WHERE o.departamento = $1
+    `;
 
-      let params = [depto];
+    let params = [depto];
 
-      if (desde && hasta) {
-        query += " AND o.fecha BETWEEN $2::date AND $3::date";
-        params.push(desde, hasta);
-      } else if (filtro === "hoy") {
-        query += " AND o.fecha = CURRENT_DATE";
-      } else if (filtro === "ayer") {
-        query += " AND o.fecha = CURRENT_DATE - INTERVAL '1 day'";
-      } else if (filtro === "mes") {
-        query += " AND DATE_TRUNC('month', o.fecha) = DATE_TRUNC('month', CURRENT_DATE)";
-      }
-
-      query += " ORDER BY o.fecha DESC";
-
-      const result = await pool.query(query, params);
-      res.json(result.rows);
-
-    } catch (err) {
-      console.error("Error en /api/optometria:", err);
-      res.status(500).json({ error: "Error al obtener registros de optometría" });
+    if (desde && hasta) {
+      query += " AND o.fecha BETWEEN $2::date AND $3::date";
+      params.push(desde, hasta);
+    } else if (filtro === "hoy") {
+      query += " AND o.fecha = CURRENT_DATE";
+    } else if (filtro === "ayer") {
+      query += " AND o.fecha = CURRENT_DATE - INTERVAL '1 day'";
+    } else if (filtro === "mes") {
+      query += " AND DATE_TRUNC('month', o.fecha) = DATE_TRUNC('month', CURRENT_DATE)";
     }
-  });
+
+    query += " ORDER BY o.fecha DESC, o.id DESC";
+
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error("Error en /api/optometria:", err);
+    res.status(500).json({ error: "Error al obtener registros de optometría" });
+  }
+});
 
 
-  // Obtener las evaluaciones de optometría de un expediente específico
-  app.get("/api/expedientes/:id/optometria", verificarSesion, async (req, res) => {
-    try {
-      const { id } = req.params;
-      let depto = getDepartamento(req);
+// Obtener las evaluaciones de optometría de un expediente específico
+app.get("/api/expedientes/:id/optometria", verificarSesion, async (req, res) => {
+  try {
+    const { id } = req.params;
+    let depto = getDepartamento(req);
 
-      const result = await pool.query(
-        `SELECT *
-        FROM optometria
-        WHERE expediente_id = $1 AND departamento = $2
-        ORDER BY fecha DESC`,
-        [id, depto]
-      );
+    const result = await pool.query(
+      `SELECT *
+      FROM optometria
+      WHERE expediente_id = $1 AND departamento = $2
+      ORDER BY fecha DESC, id DESC`,
+      [id, depto]
+    );
 
-      res.json(result.rows);
-    } catch (err) {
-      console.error("Error en /api/expedientes/:id/optometria:", err);
-      res.status(500).json({ error: "Error al obtener optometría del expediente" });
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error en /api/expedientes/:id/optometria:", err);
+    res.status(500).json({ error: "Error al obtener optometría del expediente" });
+  }
+});
+
+
+// Eliminar evaluación de optometría
+app.delete("/api/optometria/:id", isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    let depto = getDepartamento(req);
+
+    const result = await pool.query(
+      "DELETE FROM optometria WHERE id = $1 AND departamento = $2 RETURNING *",
+      [id, depto]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Evaluación no encontrada o no pertenece a tu sucursal" });
     }
-  });
+
+    res.json({ mensaje: "🗑️ Evaluación de optometría eliminada" });
+  } catch (err) {
+    console.error("Error al eliminar optometría:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 
-  // Eliminar evaluación de optometría
-  app.delete("/api/optometria/:id", isAdmin, async (req, res) => {
-    try {
-      const { id } = req.params;
-      let depto = getDepartamento(req);
+// Obtener nombre del paciente por número de expediente
+app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
+  try {
+    const { id } = req.params;
+    let depto = getDepartamento(req);
 
-      const result = await pool.query(
-        "DELETE FROM optometria WHERE id = $1 AND departamento = $2 RETURNING *",
-        [id, depto]
-      );
+    const result = await pool.query(
+      `SELECT nombre_completo 
+        FROM expedientes 
+        WHERE numero_expediente = $1 
+          AND departamento = $2`,
+      [id, depto]
+    );
 
-      if (result.rows.length === 0) {
-        return res.status(404).json({ error: "Evaluación no encontrada o no pertenece a tu sucursal" });
-      }
-
-      res.json({ mensaje: "🗑️ Evaluación de optometría eliminada" });
-    } catch (err) {
-      console.error("Error al eliminar optometría:", err);
-      res.status(500).json({ error: err.message });
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Expediente no encontrado" });
     }
-  });
+
+    res.json({ nombre: result.rows[0].nombre_completo });
+  } catch (err) {
+    console.error("Error en /api/expedientes/:id/nombre:", err);
+    res.status(500).json({ error: "Error al obtener nombre del paciente" });
+  }
+});
 
 
-  // Obtener nombre del paciente por número de expediente
-  app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
-    try {
-      const { id } = req.params;
-      let depto = getDepartamento(req);
-
-      const result = await pool.query(
-        `SELECT nombre_completo 
-          FROM expedientes 
-          WHERE numero_expediente = $1 
-            AND departamento = $2`,
-        [id, depto]
-      );
-
-      if (result.rows.length === 0) {
-        return res.status(404).json({ error: "Expediente no encontrado" });
-      }
-
-      res.json({ nombre: result.rows[0].nombre_completo });
-    } catch (err) {
-      console.error("Error en /api/expedientes/:id/nombre:", err);
-      res.status(500).json({ error: "Error al obtener nombre del paciente" });
-    }
-  });
 
   // ==================== MODULO DE INSUMOS ====================
   // Configuración de multer para guardar con nombre único
