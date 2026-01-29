@@ -162,6 +162,7 @@
       border-radius: 8px;
       cursor: pointer;
       transition: all 0.3s ease;
+      border: none;
     }
 
     .btn-tp.aplicado {
@@ -411,38 +412,49 @@ async function verGraduacion(id) {
     const data = await res.json();
     
     if (res.ok) {
+      let horaFormateada = "";
+      if (data.hora_tp) {
+        const [hora, minuto] = data.hora_tp.split(':');
+        const horaNum = parseInt(hora);
+        const periodo = horaNum >= 12 ? 'p.m.' : 'a.m.';
+        const hora12 = horaNum % 12 || 12;
+        horaFormateada = `${hora12.toString().padStart(2, '0')}:${minuto} ${periodo}`;
+      }
+
       let html = `
         <div class="section-title">Datos del Paciente</div>
         <div class="row mb-3">
-          <div class="col-md-6">
+          <div class="col-md-4">
             <p><strong>Expediente:</strong> ${data.expediente_id}</p>
+          </div>
+          <div class="col-md-4">
             <p><strong>Fecha:</strong> ${data.fecha.split('T')[0].split('-').reverse().join('/')}</p>
           </div>
-          <div class="col-md-6">
-            <p><strong>TP Aplicado:</strong> ${data.hora_tp ? data.hora_tp : 'No aplicado'}</p>
+          <div class="col-md-4">
+            <p><strong>TP Aplicado:</strong> ${horaFormateada || 'No aplicado'}</p>
           </div>
         </div>
 
         <div class="section-title">Agudeza Visual</div>
         <div class="row mb-3">
           <div class="col-md-6">
-            <p><strong>Agudeza Visual sin Corrección:</strong></p>
+            <p><strong>Agudeza Visual sin Corrección (Lejos) - s/c:</strong></p>
             <p>OD: ${data.av_sc_od || '-'} | OI: ${data.av_sc_oi || '-'}</p>
           </div>
           <div class="col-md-6">
-            <p><strong>Agudeza Visual con Lentes:</strong></p>
+            <p><strong>Agudeza Visual con Lentes c/L:</strong></p>
             <p>OD: ${data.av_cl_od || '-'} | OI: ${data.av_cl_oi || '-'}</p>
           </div>
         </div>
 
         <div class="row mb-3">
           <div class="col-md-12">
-            <p><strong>BMP (Estereoptico):</strong></p>
+            <p><strong>Agudeza Visual con Estereoptico (BMP):</strong></p>
             <p>OD: ${data.bmp_od || '-'} | OI: ${data.bmp_oi || '-'}</p>
           </div>
         </div>
 
-        <div class="section-title">Autorefractor sin Cicloplejía</div>
+        <div class="section-title">Autorefractor (Sin Cicloplejía)</div>
         <table class="opto-table mb-3">
           <thead>
             <tr>
@@ -494,7 +506,7 @@ async function verGraduacion(id) {
           </tbody>
         </table>
 
-        <div class="section-title">Graduación Completa</div>
+        <div class="section-title">Graduación, Subjetivo, Adición y AV Cerca</div>
         <div class="table-responsive">
           <table class="opto-table">
             <thead>
@@ -502,7 +514,7 @@ async function verGraduacion(id) {
                 <th rowspan="2" style="width: 15%;">SECCIÓN</th>
                 <th rowspan="2" style="width: 10%;">OJO</th>
                 <th colspan="3">GRADUACIÓN SUBJETIVA</th>
-                <th colspan="3">AV LEJOS</th>
+                <th colspan="3">(AGUDEZA VISUAL LEJOS)</th>
                 <th colspan="3">ADICIÓN</th>
                 <th colspan="3">AV CERCA</th>
               </tr>
@@ -613,7 +625,7 @@ async function verGraduacion(id) {
                 <td>${data.refrac_ciclo_add_eje_oi || '0°'}</td>
                 <td>${data.refrac_ciclo_avcerca_esf_oi || '0.00'}</td>
                 <td>${data.refrac_ciclo_avcerca_cil_oi || '0.00'}</td>
-                <td>${data.refrac_ciclo_avcerca_eje_oi || '0°'}</td>
+                <td>${data.refrac_ciclo_avcerca_eje_oi || '0.00'}</td>
               </tr>
             </tbody>
           </table>
@@ -651,13 +663,13 @@ document.addEventListener("DOMContentLoaded", function() {
     startDate: moment(),
     endDate: moment(),
     ranges: {
-  'Hoy': [moment(), moment()],
-  'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-  'Últimos 7 Días': [moment().subtract(6, 'days'), moment()],
-  'Últimos 30 Días': [moment().subtract(29, 'days'), moment()],  // ✅ CORREGIDO
-  'Este Mes': [moment().startOf('month'), moment().endOf('month')],
-  'Mes Pasado': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-}
+      'Hoy': [moment(), moment()],
+      'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+      'Últimos 7 Días': [moment().subtract(6, 'days'), moment()],
+      'Últimos 30 Días': [moment().subtract(29, 'days'), moment()],
+      'Este Mes': [moment().startOf('month'), moment().endOf('month')],
+      'Mes Pasado': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+    }
   });
 
   $('#filtroRangoOpto').on('apply.daterangepicker', function(ev, picker) {
@@ -945,7 +957,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                 <td><input type="text" name="refrac_ciclo_add_eje_oi" placeholder="0°"></td>
                 <td><input type="text" name="refrac_ciclo_avcerca_esf_oi" placeholder="0.00"></td>
                 <td><input type="text" name="refrac_ciclo_avcerca_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_avcerca_eje_oi" placeholder="0°"></td>
+                <td><input type="text" name="refrac_ciclo_avcerca_eje_oi" placeholder="0.00"></td>
               </tr>
             </tbody>
           </table>
