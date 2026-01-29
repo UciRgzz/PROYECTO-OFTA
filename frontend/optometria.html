@@ -154,7 +154,6 @@
       margin-right: 8px;
     }
 
-    /* Botón TP */
     .btn-tp {
       background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
       color: white;
@@ -211,7 +210,6 @@
       margin-bottom: 15px;
     }
 
-    /* Tabla de formulario estilo optometría */
     .opto-table {
       width: 100%;
       border-collapse: collapse;
@@ -272,7 +270,6 @@
       color: #495057;
     }
 
-    /* Modal para graduación */
     .modal-graduacion .modal-dialog {
       max-width: 95%;
       margin: 20px auto;
@@ -322,17 +319,14 @@
     </div>
   </div>
 
-  <!-- Modal para mostrar graduación -->
   <div class="modal fade modal-graduacion" id="modalGraduacion" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title"><i class="fas fa-glasses"></i> Graduación Completa</h5>
+          <h5 class="modal-title"><i class="fas fa-file-medical"></i> Evaluación Completa</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body" id="modalGraduacionBody">
-          <!-- Contenido dinámico de graduación -->
-        </div>
+        <div class="modal-body" id="modalGraduacionBody"></div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
         </div>
@@ -368,12 +362,6 @@ async function cargarOptometrias(desde, hasta) {
               <th>Nombre</th>
               <th>Fecha</th>
               <th>TP Aplicado</th>
-              <th>AV SC OD</th>
-              <th>AV SC OI</th>
-              <th>AV CL OD</th>
-              <th>AV CL OI</th>
-              <th>AutoRef OD</th>
-              <th>AutoRef OI</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -381,7 +369,7 @@ async function cargarOptometrias(desde, hasta) {
   `;
 
   if (data.length === 0) {
-    html += `<tr><td colspan="12">Sin registros</td></tr>`;
+    html += `<tr><td colspan="6">Sin registros</td></tr>`;
   } else {
     data.forEach(o => {
       let horaFormateada = "";
@@ -393,10 +381,6 @@ async function cargarOptometrias(desde, hasta) {
         horaFormateada = `${hora12.toString().padStart(2, '0')}:${minuto} ${periodo}`;
       }
 
-      // Formatear autorefractor para mostrar
-      const autoOd = `${o.auto_esf_od || '0.00'} / ${o.auto_cil_od || '0.00'} x ${o.auto_eje_od || '0°'}`;
-      const autoOi = `${o.auto_esf_oi || '0.00'} / ${o.auto_cil_oi || '0.00'} x ${o.auto_eje_oi || '0°'}`;
-
       html += `
         <tr>
           <td>${o.id}</td>
@@ -404,15 +388,9 @@ async function cargarOptometrias(desde, hasta) {
           <td>${o.nombre || ""}</td>
           <td>${o.fecha.split('T')[0].split('-').reverse().join('/')}</td>
           <td>${horaFormateada ? `<span class="badge-tp">${horaFormateada}</span>` : '<span style="color:#999;">No aplicado</span>'}</td>
-          <td>${o.av_sc_od || '-'}</td>
-          <td>${o.av_sc_oi || '-'}</td>
-          <td>${o.av_cl_od || '-'}</td>
-          <td>${o.av_cl_oi || '-'}</td>
-          <td>${autoOd}</td>
-          <td>${autoOi}</td>
           <td>
             <button class="btn btn-info btn-sm" onclick="verGraduacion(${o.id})">
-              <i class="fas fa-glasses"></i> Graduación
+              <i class="fas fa-file-medical"></i> Ver Evaluación Completa
             </button>
             <button class="btn btn-danger btn-sm" onclick="borrarOpto(${o.id})">
               <i class="fas fa-trash"></i>
@@ -433,8 +411,90 @@ async function verGraduacion(id) {
     const data = await res.json();
     
     if (res.ok) {
-      // Crear tabla de graduación completa
       let html = `
+        <div class="section-title">Datos del Paciente</div>
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <p><strong>Expediente:</strong> ${data.expediente_id}</p>
+            <p><strong>Fecha:</strong> ${data.fecha.split('T')[0].split('-').reverse().join('/')}</p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>TP Aplicado:</strong> ${data.hora_tp ? data.hora_tp : 'No aplicado'}</p>
+          </div>
+        </div>
+
+        <div class="section-title">Agudeza Visual</div>
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <p><strong>Agudeza Visual sin Corrección:</strong></p>
+            <p>OD: ${data.av_sc_od || '-'} | OI: ${data.av_sc_oi || '-'}</p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Agudeza Visual con Lentes:</strong></p>
+            <p>OD: ${data.av_cl_od || '-'} | OI: ${data.av_cl_oi || '-'}</p>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-12">
+            <p><strong>BMP (Estereoptico):</strong></p>
+            <p>OD: ${data.bmp_od || '-'} | OI: ${data.bmp_oi || '-'}</p>
+          </div>
+        </div>
+
+        <div class="section-title">Autorefractor sin Cicloplejía</div>
+        <table class="opto-table mb-3">
+          <thead>
+            <tr>
+              <th style="width: 25%;">OJO</th>
+              <th>ESF</th>
+              <th>CIL</th>
+              <th>EJE</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="label-cell">OJO DERECHO (OD)</td>
+              <td>${data.auto_esf_od || '0.00'}</td>
+              <td>${data.auto_cil_od || '0.00'}</td>
+              <td>${data.auto_eje_od || '0°'}</td>
+            </tr>
+            <tr>
+              <td class="label-cell">OJO IZQUIERDO (OI)</td>
+              <td>${data.auto_esf_oi || '0.00'}</td>
+              <td>${data.auto_cil_oi || '0.00'}</td>
+              <td>${data.auto_eje_oi || '0°'}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="section-title">Autorefractor con Cicloplejía</div>
+        <table class="opto-table mb-3">
+          <thead>
+            <tr>
+              <th style="width: 25%;">OJO</th>
+              <th>ESF</th>
+              <th>CIL</th>
+              <th>EJE</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="label-cell">OJO DERECHO (OD)</td>
+              <td>${data.auto_ciclo_esf_od || '0.00'}</td>
+              <td>${data.auto_ciclo_cil_od || '0.00'}</td>
+              <td>${data.auto_ciclo_eje_od || '0°'}</td>
+            </tr>
+            <tr>
+              <td class="label-cell">OJO IZQUIERDO (OI)</td>
+              <td>${data.auto_ciclo_esf_oi || '0.00'}</td>
+              <td>${data.auto_ciclo_cil_oi || '0.00'}</td>
+              <td>${data.auto_ciclo_eje_oi || '0°'}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="section-title">Graduación Completa</div>
         <div class="table-responsive">
           <table class="opto-table">
             <thead>
@@ -442,7 +502,7 @@ async function verGraduacion(id) {
                 <th rowspan="2" style="width: 15%;">SECCIÓN</th>
                 <th rowspan="2" style="width: 10%;">OJO</th>
                 <th colspan="3">GRADUACIÓN SUBJETIVA</th>
-                <th colspan="3"> (AGUDEZA VISUAL LEJOS)</th>
+                <th colspan="3">AV LEJOS</th>
                 <th colspan="3">ADICIÓN</th>
                 <th colspan="3">AV CERCA</th>
               </tr>
@@ -462,8 +522,6 @@ async function verGraduacion(id) {
               </tr>
             </thead>
             <tbody>
-              
-              <!-- LENTES ANTERIORES -->
               <tr>
                 <td class="label-cell" rowspan="2">Lentes Anteriores</td>
                 <td class="label-cell">OD</td>
@@ -495,8 +553,6 @@ async function verGraduacion(id) {
                 <td>${data.lentes_avcerca_cil_oi || '0.00'}</td>
                 <td>${data.lentes_avcerca_eje_oi || '0°'}</td>
               </tr>
-
-              <!-- REFRACCIÓN SUBJETIVA -->
               <tr>
                 <td class="label-cell" rowspan="2">Refracción Subjetiva</td>
                 <td class="label-cell">OD</td>
@@ -528,8 +584,6 @@ async function verGraduacion(id) {
                 <td>${data.refrac_subj_avcerca_cil_oi || '0.00'}</td>
                 <td>${data.refrac_subj_avcerca_eje_oi || '0°'}</td>
               </tr>
-
-              <!-- REFRACCIÓN CICLOPLEJÍA -->
               <tr>
                 <td class="label-cell" rowspan="2">Refracción Cicloplejía</td>
                 <td class="label-cell">OD</td>
@@ -564,36 +618,16 @@ async function verGraduacion(id) {
             </tbody>
           </table>
         </div>
-
-        <div class="section-title mt-4">Datos Adicionales</div>
-        <div class="row">
-          <div class="col-md-6">
-            <p><strong>Agudeza Visual sin Corrección:</strong></p>
-            <p>OD: ${data.av_sc_od || '-'} | OI: ${data.av_sc_oi || '-'}</p>
-            <p><strong>Agudeza Visual con Lentes:</strong></p>
-            <p>OD: ${data.av_cl_od || '-'} | OI: ${data.av_cl_oi || '-'}</p>
-            <p><strong>BMP (Estereoptico):</strong></p>
-            <p>OD: ${data.bmp_od || '-'} | OI: ${data.bmp_oi || '-'}</p>
-          </div>
-          <div class="col-md-6">
-            <p><strong>Autorefractor sin Cicloplejía:</strong></p>
-            <p>OD: ${data.auto_esf_od || '0.00'} / ${data.auto_cil_od || '0.00'} x ${data.auto_eje_od || '0°'}</p>
-            <p>OI: ${data.auto_esf_oi || '0.00'} / ${data.auto_cil_oi || '0.00'} x ${data.auto_eje_oi || '0°'}</p>
-            <p><strong>Autorefractor con Cicloplejía:</strong></p>
-            <p>OD: ${data.auto_ciclo_esf_od || '0.00'} / ${data.auto_ciclo_cil_od || '0.00'} x ${data.auto_ciclo_eje_od || '0°'}</p>
-            <p>OI: ${data.auto_ciclo_esf_oi || '0.00'} / ${data.auto_ciclo_cil_oi || '0.00'} x ${data.auto_ciclo_eje_oi || '0°'}</p>
-          </div>
-        </div>
       `;
 
       document.getElementById('modalGraduacionBody').innerHTML = html;
       const modal = new bootstrap.Modal(document.getElementById('modalGraduacion'));
       modal.show();
     } else {
-      Swal.fire('Error', 'No se pudo cargar la graduación', 'error');
+      Swal.fire('Error', 'No se pudo cargar la evaluación', 'error');
     }
   } catch (error) {
-    Swal.fire('Error', 'Error al cargar la graduación', 'error');
+    Swal.fire('Error', 'Error al cargar la evaluación', 'error');
   }
 }
 
@@ -617,13 +651,13 @@ document.addEventListener("DOMContentLoaded", function() {
     startDate: moment(),
     endDate: moment(),
     ranges: {
-      'Hoy': [moment(), moment()],
-      'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-      'Últimos 7 Días': [moment().subtract(6, 'days'), moment()],
-      'Últimos 30 Días': [moment().subtract(29, 'days'), moment()],
-      'Este Mes': [moment().startOf('month'), moment().endOf('month')],
-      'Mes Pasado': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-    }
+  'Hoy': [moment(), moment()],
+  'Ayer': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+  'Últimos 7 Días': [moment().subtract(6, 'days'), moment()],
+  'Últimos 30 Días': [moment().subtract(29, 'days'), moment()],  // ✅ CORREGIDO
+  'Este Mes': [moment().startOf('month'), moment().endOf('month')],
+  'Mes Pasado': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+}
   });
 
   $('#filtroRangoOpto').on('apply.daterangepicker', function(ev, picker) {
@@ -671,7 +705,6 @@ async function buscarNombrePaciente(expedienteId) {
   }
 }
 
-// Variable para controlar el estado del TP
 let tpAplicado = false;
 let horaTP = '';
 
@@ -680,7 +713,6 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
   filtro.style.display = "none";
   document.getElementById("tablaOpto").style.display = "none";
 
-  // Resetear estado del TP
   tpAplicado = false;
   horaTP = '';
 
@@ -695,7 +727,6 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
       <div class="card-body">
         <form id="formOptometria">
           
-          <!-- DATOS DEL PACIENTE -->
           <div class="row">
             <div class="col-md-6 form-group">
               <label>Número de Expediente *</label>
@@ -707,10 +738,8 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
             </div>
           </div>
 
-          <!-- Campo oculto para hora_tp -->
           <input type="hidden" name="hora_tp" id="horaTPInput">
 
-          <!-- AGUDEZA VISUAL SIN CORRECCIÓN (LEJOS) -->
           <div class="section-title"> Agudeza Visual sin Corrección (Lejos) - s/c y con Lentes c/L</div>
           <div class="grid-2x2">
             <div class="grid-item">
@@ -731,7 +760,6 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
             </div>
           </div>
 
-          <!-- AGUDEZA VISUAL CON ESTEREOPTICO (BMP) -->
           <div class="section-title"> Agudeza Visual con Estereoptico (BMP)</div>
           <div class="row">
             <div class="col-md-6 form-group">
@@ -744,7 +772,6 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
             </div>
           </div>
 
-          <!-- AUTOREFRACTOR (SIN CICLOPLEJÍA) -->
           <div class="section-title"> Autorefractor (Sin Cicloplejía)</div>
           <table class="opto-table">
             <thead>
@@ -771,7 +798,6 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
             </tbody>
           </table>
 
-          <!-- AUTOREFRACTOR CON CICLOPLEJÍA -->
           <div class="section-title"> Autorefractor con Cicloplejía</div>
           <table class="opto-table">
             <thead>
@@ -798,7 +824,6 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
             </tbody>
           </table>
 
-          <!-- GRADUACIÓN, SUBJETIVO, ADICIÓN Y AV CERCA - TODO EN UNA TABLA -->
           <div class="section-title"> Graduación, Subjetivo, Adición y AV Cerca</div>
           <table class="opto-table">
             <thead>
@@ -827,7 +852,6 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
             </thead>
             <tbody>
               
-              <!-- LENTES ANTERIORES -->
               <tr>
                 <td class="label-cell" rowspan="2">Lentes Anteriores</td>
                 <td class="label-cell">OD</td>
@@ -860,7 +884,6 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                 <td><input type="text" name="lentes_avcerca_eje_oi" placeholder="0°"></td>
               </tr>
 
-              <!-- REFRACCIÓN SUBJETIVA -->
               <tr>
                 <td class="label-cell" rowspan="2">Refracción Subjetiva</td>
                 <td class="label-cell">OD</td>
@@ -893,7 +916,6 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                 <td><input type="text" name="refrac_subj_avcerca_eje_oi" placeholder="0°"></td>
               </tr>
 
-              <!-- REFRACCIÓN CICLOPLEJÍA -->
               <tr>
                 <td class="label-cell" rowspan="2">Refracción Cicloplejía</td>
                 <td class="label-cell">OD</td>
@@ -945,25 +967,19 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
   formDiv.innerHTML = html;
   formDiv.style.display = "block";
 
-  // Evento para buscar nombre del paciente
   document.getElementById("expedienteInput").addEventListener("input", function(e) {
     buscarNombrePaciente(e.target.value);
   });
 
-  // Evento para botón TP
   document.getElementById("btnTP").addEventListener("click", function() {
     if (!tpAplicado) {
-      // Aplicar TP - obtener hora actual
       const ahora = new Date();
       const horas = String(ahora.getHours()).padStart(2, '0');
       const minutos = String(ahora.getMinutes()).padStart(2, '0');
       horaTP = `${horas}:${minutos}`;
       
-      // Cambiar apariencia del botón
       this.classList.add('aplicado');
       document.getElementById('tpTexto').textContent = `TP Aplicado - ${horaTP}`;
-      
-      // Guardar en campo oculto
       document.getElementById('horaTPInput').value = horaTP;
       
       tpAplicado = true;
@@ -976,7 +992,6 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
         showConfirmButton: false
       });
     } else {
-      // Desaplicar TP
       this.classList.remove('aplicado');
       document.getElementById('tpTexto').textContent = 'TP No Aplicado';
       document.getElementById('horaTPInput').value = '';
@@ -985,14 +1000,12 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
     }
   });
 
-  // Evento cancelar
   document.getElementById("cancelarOpto").onclick = () => {
     formDiv.style.display = "none";
     filtro.style.display = "block";
     document.getElementById("tablaOpto").style.display = "block";
   };
 
-  // Evento submit
   document.getElementById("formOptometria").addEventListener("submit", async e => {
     e.preventDefault();
     const formData = new FormData(e.target);
