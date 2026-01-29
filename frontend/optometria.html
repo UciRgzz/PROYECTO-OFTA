@@ -144,6 +144,11 @@
       background: linear-gradient(135deg, var(--accent-color) 0%, #c0392b 100%);
       color: white;
     }
+
+    .btn-info {
+      background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+      color: white;
+    }
     
     .btn i {
       margin-right: 8px;
@@ -266,6 +271,26 @@
       font-size: 0.9rem;
       color: #495057;
     }
+
+    /* Modal para graduación */
+    .modal-graduacion .modal-dialog {
+      max-width: 95%;
+      margin: 20px auto;
+    }
+
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 0.875rem;
+      margin: 2px;
+    }
+
+    .badge-tp {
+      background: linear-gradient(135deg, var(--success-color) 0%, #229954 100%);
+      color: white;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+    }
   </style>
 </head>
 <body>
@@ -297,6 +322,24 @@
     </div>
   </div>
 
+  <!-- Modal para mostrar graduación -->
+  <div class="modal fade modal-graduacion" id="modalGraduacion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="fas fa-glasses"></i> Graduación Completa</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="modalGraduacionBody">
+          <!-- Contenido dinámico de graduación -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
@@ -325,6 +368,12 @@ async function cargarOptometrias(desde, hasta) {
               <th>Nombre</th>
               <th>Fecha</th>
               <th>TP Aplicado</th>
+              <th>AV SC OD</th>
+              <th>AV SC OI</th>
+              <th>AV CL OD</th>
+              <th>AV CL OI</th>
+              <th>AutoRef OD</th>
+              <th>AutoRef OI</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -332,7 +381,7 @@ async function cargarOptometrias(desde, hasta) {
   `;
 
   if (data.length === 0) {
-    html += `<tr><td colspan="6">Sin registros</td></tr>`;
+    html += `<tr><td colspan="12">Sin registros</td></tr>`;
   } else {
     data.forEach(o => {
       let horaFormateada = "";
@@ -344,14 +393,27 @@ async function cargarOptometrias(desde, hasta) {
         horaFormateada = `${hora12.toString().padStart(2, '0')}:${minuto} ${periodo}`;
       }
 
+      // Formatear autorefractor para mostrar
+      const autoOd = `${o.auto_esf_od || '0.00'} / ${o.auto_cil_od || '0.00'} x ${o.auto_eje_od || '0°'}`;
+      const autoOi = `${o.auto_esf_oi || '0.00'} / ${o.auto_cil_oi || '0.00'} x ${o.auto_eje_oi || '0°'}`;
+
       html += `
         <tr>
           <td>${o.id}</td>
           <td>${o.expediente_id}</td>
           <td>${o.nombre || ""}</td>
           <td>${o.fecha.split('T')[0].split('-').reverse().join('/')}</td>
-          <td>${horaFormateada || '<span style="color:#999;">No aplicado</span>'}</td>
+          <td>${horaFormateada ? `<span class="badge-tp">${horaFormateada}</span>` : '<span style="color:#999;">No aplicado</span>'}</td>
+          <td>${o.av_sc_od || '-'}</td>
+          <td>${o.av_sc_oi || '-'}</td>
+          <td>${o.av_cl_od || '-'}</td>
+          <td>${o.av_cl_oi || '-'}</td>
+          <td>${autoOd}</td>
+          <td>${autoOi}</td>
           <td>
+            <button class="btn btn-info btn-sm" onclick="verGraduacion(${o.id})">
+              <i class="fas fa-glasses"></i> Graduación
+            </button>
             <button class="btn btn-danger btn-sm" onclick="borrarOpto(${o.id})">
               <i class="fas fa-trash"></i>
             </button>
@@ -363,6 +425,176 @@ async function cargarOptometrias(desde, hasta) {
 
   html += `</tbody></table></div></div>`;
   document.getElementById("tablaOpto").innerHTML = html;
+}
+
+async function verGraduacion(id) {
+  try {
+    const res = await fetch(`/api/optometria/${id}`);
+    const data = await res.json();
+    
+    if (res.ok) {
+      // Crear tabla de graduación completa
+      let html = `
+        <div class="table-responsive">
+          <table class="opto-table">
+            <thead>
+              <tr>
+                <th rowspan="2" style="width: 15%;">SECCIÓN</th>
+                <th rowspan="2" style="width: 10%;">OJO</th>
+                <th colspan="3">GRADUACIÓN SUBJETIVA</th>
+                <th colspan="3"> (AGUDEZA VISUAL LEJOS)</th>
+                <th colspan="3">ADICIÓN</th>
+                <th colspan="3">AV CERCA</th>
+              </tr>
+              <tr>
+                <th>ESF</th>
+                <th>CIL</th>
+                <th>EJE</th>
+                <th>ESF</th>
+                <th>CIL</th>
+                <th>EJE</th>
+                <th>ESF</th>
+                <th>CIL</th>
+                <th>EJE</th>
+                <th>ESF</th>
+                <th>CIL</th>
+                <th>EJE</th>
+              </tr>
+            </thead>
+            <tbody>
+              
+              <!-- LENTES ANTERIORES -->
+              <tr>
+                <td class="label-cell" rowspan="2">Lentes Anteriores</td>
+                <td class="label-cell">OD</td>
+                <td>${data.lentes_esf_od || '0.00'}</td>
+                <td>${data.lentes_cil_od || '0.00'}</td>
+                <td>${data.lentes_eje_od || '0°'}</td>
+                <td>${data.lentes_avc_esf_od || '0.00'}</td>
+                <td>${data.lentes_avc_cil_od || '0.00'}</td>
+                <td>${data.lentes_avc_eje_od || '0°'}</td>
+                <td>${data.lentes_add_esf_od || '0.00'}</td>
+                <td>${data.lentes_add_cil_od || '0.00'}</td>
+                <td>${data.lentes_add_eje_od || '0°'}</td>
+                <td>${data.lentes_avcerca_esf_od || '0.00'}</td>
+                <td>${data.lentes_avcerca_cil_od || '0.00'}</td>
+                <td>${data.lentes_avcerca_eje_od || '0°'}</td>
+              </tr>
+              <tr>
+                <td class="label-cell">OI</td>
+                <td>${data.lentes_esf_oi || '0.00'}</td>
+                <td>${data.lentes_cil_oi || '0.00'}</td>
+                <td>${data.lentes_eje_oi || '0°'}</td>
+                <td>${data.lentes_avc_esf_oi || '0.00'}</td>
+                <td>${data.lentes_avc_cil_oi || '0.00'}</td>
+                <td>${data.lentes_avc_eje_oi || '0°'}</td>
+                <td>${data.lentes_add_esf_oi || '0.00'}</td>
+                <td>${data.lentes_add_cil_oi || '0.00'}</td>
+                <td>${data.lentes_add_eje_oi || '0°'}</td>
+                <td>${data.lentes_avcerca_esf_oi || '0.00'}</td>
+                <td>${data.lentes_avcerca_cil_oi || '0.00'}</td>
+                <td>${data.lentes_avcerca_eje_oi || '0°'}</td>
+              </tr>
+
+              <!-- REFRACCIÓN SUBJETIVA -->
+              <tr>
+                <td class="label-cell" rowspan="2">Refracción Subjetiva</td>
+                <td class="label-cell">OD</td>
+                <td>${data.refrac_subj_esf_od || '0.00'}</td>
+                <td>${data.refrac_subj_cil_od || '0.00'}</td>
+                <td>${data.refrac_subj_eje_od || '0°'}</td>
+                <td>${data.refrac_subj_avc_esf_od || '0.00'}</td>
+                <td>${data.refrac_subj_avc_cil_od || '0.00'}</td>
+                <td>${data.refrac_subj_avc_eje_od || '0°'}</td>
+                <td>${data.refrac_subj_add_esf_od || '0.00'}</td>
+                <td>${data.refrac_subj_add_cil_od || '0.00'}</td>
+                <td>${data.refrac_subj_add_eje_od || '0°'}</td>
+                <td>${data.refrac_subj_avcerca_esf_od || '0.00'}</td>
+                <td>${data.refrac_subj_avcerca_cil_od || '0.00'}</td>
+                <td>${data.refrac_subj_avcerca_eje_od || '0°'}</td>
+              </tr>
+              <tr>
+                <td class="label-cell">OI</td>
+                <td>${data.refrac_subj_esf_oi || '0.00'}</td>
+                <td>${data.refrac_subj_cil_oi || '0.00'}</td>
+                <td>${data.refrac_subj_eje_oi || '0°'}</td>
+                <td>${data.refrac_subj_avc_esf_oi || '0.00'}</td>
+                <td>${data.refrac_subj_avc_cil_oi || '0.00'}</td>
+                <td>${data.refrac_subj_avc_eje_oi || '0°'}</td>
+                <td>${data.refrac_subj_add_esf_oi || '0.00'}</td>
+                <td>${data.refrac_subj_add_cil_oi || '0.00'}</td>
+                <td>${data.refrac_subj_add_eje_oi || '0°'}</td>
+                <td>${data.refrac_subj_avcerca_esf_oi || '0.00'}</td>
+                <td>${data.refrac_subj_avcerca_cil_oi || '0.00'}</td>
+                <td>${data.refrac_subj_avcerca_eje_oi || '0°'}</td>
+              </tr>
+
+              <!-- REFRACCIÓN CICLOPLEJÍA -->
+              <tr>
+                <td class="label-cell" rowspan="2">Refracción Cicloplejía</td>
+                <td class="label-cell">OD</td>
+                <td>${data.refrac_ciclo_esf_od || '0.00'}</td>
+                <td>${data.refrac_ciclo_cil_od || '0.00'}</td>
+                <td>${data.refrac_ciclo_eje_od || '0°'}</td>
+                <td>${data.refrac_ciclo_avc_esf_od || '0.00'}</td>
+                <td>${data.refrac_ciclo_avc_cil_od || '0.00'}</td>
+                <td>${data.refrac_ciclo_avc_eje_od || '0°'}</td>
+                <td>${data.refrac_ciclo_add_esf_od || '0.00'}</td>
+                <td>${data.refrac_ciclo_add_cil_od || '0.00'}</td>
+                <td>${data.refrac_ciclo_add_eje_od || '0°'}</td>
+                <td>${data.refrac_ciclo_avcerca_esf_od || '0.00'}</td>
+                <td>${data.refrac_ciclo_avcerca_cil_od || '0.00'}</td>
+                <td>${data.refrac_ciclo_avcerca_eje_od || '0°'}</td>
+              </tr>
+              <tr>
+                <td class="label-cell">OI</td>
+                <td>${data.refrac_ciclo_esf_oi || '0.00'}</td>
+                <td>${data.refrac_ciclo_cil_oi || '0.00'}</td>
+                <td>${data.refrac_ciclo_eje_oi || '0°'}</td>
+                <td>${data.refrac_ciclo_avc_esf_oi || '0.00'}</td>
+                <td>${data.refrac_ciclo_avc_cil_oi || '0.00'}</td>
+                <td>${data.refrac_ciclo_avc_eje_oi || '0°'}</td>
+                <td>${data.refrac_ciclo_add_esf_oi || '0.00'}</td>
+                <td>${data.refrac_ciclo_add_cil_oi || '0.00'}</td>
+                <td>${data.refrac_ciclo_add_eje_oi || '0°'}</td>
+                <td>${data.refrac_ciclo_avcerca_esf_oi || '0.00'}</td>
+                <td>${data.refrac_ciclo_avcerca_cil_oi || '0.00'}</td>
+                <td>${data.refrac_ciclo_avcerca_eje_oi || '0°'}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="section-title mt-4">Datos Adicionales</div>
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>Agudeza Visual sin Corrección:</strong></p>
+            <p>OD: ${data.av_sc_od || '-'} | OI: ${data.av_sc_oi || '-'}</p>
+            <p><strong>Agudeza Visual con Lentes:</strong></p>
+            <p>OD: ${data.av_cl_od || '-'} | OI: ${data.av_cl_oi || '-'}</p>
+            <p><strong>BMP (Estereoptico):</strong></p>
+            <p>OD: ${data.bmp_od || '-'} | OI: ${data.bmp_oi || '-'}</p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Autorefractor sin Cicloplejía:</strong></p>
+            <p>OD: ${data.auto_esf_od || '0.00'} / ${data.auto_cil_od || '0.00'} x ${data.auto_eje_od || '0°'}</p>
+            <p>OI: ${data.auto_esf_oi || '0.00'} / ${data.auto_cil_oi || '0.00'} x ${data.auto_eje_oi || '0°'}</p>
+            <p><strong>Autorefractor con Cicloplejía:</strong></p>
+            <p>OD: ${data.auto_ciclo_esf_od || '0.00'} / ${data.auto_ciclo_cil_od || '0.00'} x ${data.auto_ciclo_eje_od || '0°'}</p>
+            <p>OI: ${data.auto_ciclo_esf_oi || '0.00'} / ${data.auto_ciclo_cil_oi || '0.00'} x ${data.auto_ciclo_eje_oi || '0°'}</p>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('modalGraduacionBody').innerHTML = html;
+      const modal = new bootstrap.Modal(document.getElementById('modalGraduacion'));
+      modal.show();
+    } else {
+      Swal.fire('Error', 'No se pudo cargar la graduación', 'error');
+    }
+  } catch (error) {
+    Swal.fire('Error', 'Error al cargar la graduación', 'error');
+  }
 }
 
 document.addEventListener("DOMContentLoaded", function() {
