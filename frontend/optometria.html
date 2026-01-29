@@ -316,23 +316,132 @@ async function cargarOptometrias(desde, hasta) {
   let html = `
     <div class="card">
       <div class="card-header"><i class="fas fa-table"></i> Registros de Optometría</div>
-      <div class="card-body table-responsive">
-        <table class="table text-center align-middle">
+      <div class="card-body table-responsive" style="overflow-x: auto;">
+        <table class="table text-center align-middle" style="min-width: 3000px;">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Expediente</th>
-              <th>Nombre</th>
-              <th>Fecha</th>
-              <th>TP Aplicado</th>
-              <th>Acciones</th>
+              <th rowspan="2">ID</th>
+              <th rowspan="2">Expediente</th>
+              <th rowspan="2">Nombre</th>
+              <th rowspan="2">Fecha</th>
+              <th rowspan="2">TP Aplicado</th>
+              <th colspan="4">Agudeza Visual s/c y c/L</th>
+              <th colspan="2">BMP</th>
+              <th colspan="6">Autorefractor</th>
+              <th colspan="6">Autorefractor Ciclo</th>
+              <th colspan="12">Lentes Anteriores</th>
+              <th colspan="12">Refracción Subjetiva</th>
+              <th colspan="12">Refracción Cicloplejía</th>
+              <th rowspan="2">Acciones</th>
+            </tr>
+            <tr>
+              <!-- AV s/c y c/L -->
+              <th>OD s/c</th>
+              <th>OD c/L</th>
+              <th>OI s/c</th>
+              <th>OI c/L</th>
+              <!-- BMP -->
+              <th>OD</th>
+              <th>OI</th>
+              <!-- Autorefractor -->
+              <th>OD ESF</th>
+              <th>OD CIL</th>
+              <th>OD EJE</th>
+              <th>OI ESF</th>
+              <th>OI CIL</th>
+              <th>OI EJE</th>
+              <!-- Autorefractor Ciclo -->
+              <th>OD ESF</th>
+              <th>OD CIL</th>
+              <th>OD EJE</th>
+              <th>OI ESF</th>
+              <th>OI CIL</th>
+              <th>OI EJE</th>
+              <!-- Lentes Anteriores -->
+              <th>OD Grad ESF</th>
+              <th>OD Grad CIL</th>
+              <th>OD Grad EJE</th>
+              <th>OD AVL ESF</th>
+              <th>OD AVL CIL</th>
+              <th>OD AVL EJE</th>
+              <th>OD Add ESF</th>
+              <th>OD Add CIL</th>
+              <th>OD Add EJE</th>
+              <th>OD AVC ESF</th>
+              <th>OD AVC CIL</th>
+              <th>OD AVC EJE</th>
+              <!-- Lentes Anteriores OI (fila 2) -->
+              <th>OI Grad ESF</th>
+              <th>OI Grad CIL</th>
+              <th>OI Grad EJE</th>
+              <th>OI AVL ESF</th>
+              <th>OI AVL CIL</th>
+              <th>OI AVL EJE</th>
+              <th>OI Add ESF</th>
+              <th>OI Add CIL</th>
+              <th>OI Add EJE</th>
+              <th>OI AVC ESF</th>
+              <th>OI AVC CIL</th>
+              <th>OI AVC EJE</th>
+              <!-- Refracción Subjetiva OD -->
+              <th>OD Grad ESF</th>
+              <th>OD Grad CIL</th>
+              <th>OD Grad EJE</th>
+              <th>OD AVL ESF</th>
+              <th>OD AVL CIL</th>
+              <th>OD AVL EJE</th>
+              <th>OD Add ESF</th>
+              <th>OD Add CIL</th>
+              <th>OD Add EJE</th>
+              <th>OD AVC ESF</th>
+              <th>OD AVC CIL</th>
+              <th>OD AVC EJE</th>
+              <!-- Refracción Subjetiva OI -->
+              <th>OI Grad ESF</th>
+              <th>OI Grad CIL</th>
+              <th>OI Grad EJE</th>
+              <th>OI AVL ESF</th>
+              <th>OI AVL CIL</th>
+              <th>OI AVL EJE</th>
+              <th>OI Add ESF</th>
+              <th>OI Add CIL</th>
+              <th>OI Add EJE</th>
+              <th>OI AVC ESF</th>
+              <th>OI AVC CIL</th>
+              <th>OI AVC EJE</th>
+              <!-- Refracción Cicloplejía OD -->
+              <th>OD Grad ESF</th>
+              <th>OD Grad CIL</th>
+              <th>OD Grad EJE</th>
+              <th>OD AVL ESF</th>
+              <th>OD AVL CIL</th>
+              <th>OD AVL EJE</th>
+              <th>OD Add ESF</th>
+              <th>OD Add CIL</th>
+              <th>OD Add EJE</th>
+              <th>OD AVC ESF</th>
+              <th>OD AVC CIL</th>
+              <th>OD AVC EJE</th>
+              <!-- Refracción Cicloplejía OI -->
+              <th>OI Grad ESF</th>
+              <th>OI Grad CIL</th>
+              <th>OI Grad EJE</th>
+              <th>OI AVL ESF</th>
+              <th>OI AVL CIL</th>
+              <th>OI AVL EJE</th>
+              <th>OI Add ESF</th>
+              <th>OI Add CIL</th>
+              <th>OI Add EJE</th>
+              <th>OI AVC ESF</th>
+              <th>OI AVC CIL</th>
+              <th>OI AVC EJE</th>
             </tr>
           </thead>
           <tbody>
   `;
 
   if (data.length === 0) {
-    html += `<tr><td colspan="6">Sin registros</td></tr>`;
+    html += `<tr><td colspan="79">Sin registros</td></tr>`;
   } else {
     data.forEach(o => {
       let horaFormateada = "";
@@ -350,7 +459,118 @@ async function cargarOptometrias(desde, hasta) {
           <td>${o.expediente_id}</td>
           <td>${o.nombre || ""}</td>
           <td>${o.fecha.split('T')[0].split('-').reverse().join('/')}</td>
-          <td>${horaFormateada || '<span style="color:#999;">No aplicado</span>'}</td>
+          <td>${horaFormateada || '<span style="color:#999;">No</span>'}</td>
+          
+          <!-- AV s/c y c/L -->
+          <td>${o.av_sc_od || ""}</td>
+          <td>${o.av_cl_od || ""}</td>
+          <td>${o.av_sc_oi || ""}</td>
+          <td>${o.av_cl_oi || ""}</td>
+          
+          <!-- BMP -->
+          <td>${o.bmp_od || ""}</td>
+          <td>${o.bmp_oi || ""}</td>
+          
+          <!-- Autorefractor -->
+          <td>${o.auto_esf_od || ""}</td>
+          <td>${o.auto_cil_od || ""}</td>
+          <td>${o.auto_eje_od || ""}</td>
+          <td>${o.auto_esf_oi || ""}</td>
+          <td>${o.auto_cil_oi || ""}</td>
+          <td>${o.auto_eje_oi || ""}</td>
+          
+          <!-- Autorefractor Ciclo -->
+          <td>${o.auto_ciclo_esf_od || ""}</td>
+          <td>${o.auto_ciclo_cil_od || ""}</td>
+          <td>${o.auto_ciclo_eje_od || ""}</td>
+          <td>${o.auto_ciclo_esf_oi || ""}</td>
+          <td>${o.auto_ciclo_cil_oi || ""}</td>
+          <td>${o.auto_ciclo_eje_oi || ""}</td>
+          
+          <!-- Lentes Anteriores OD -->
+          <td>${o.lentes_esf_od || ""}</td>
+          <td>${o.lentes_cil_od || ""}</td>
+          <td>${o.lentes_eje_od || ""}</td>
+          <td>${o.lentes_avc_esf_od || ""}</td>
+          <td>${o.lentes_avc_cil_od || ""}</td>
+          <td>${o.lentes_avc_eje_od || ""}</td>
+          <td>${o.lentes_add_esf_od || ""}</td>
+          <td>${o.lentes_add_cil_od || ""}</td>
+          <td>${o.lentes_add_eje_od || ""}</td>
+          <td>${o.lentes_avcerca_esf_od || ""}</td>
+          <td>${o.lentes_avcerca_cil_od || ""}</td>
+          <td>${o.lentes_avcerca_eje_od || ""}</td>
+          
+          <!-- Lentes Anteriores OI -->
+          <td>${o.lentes_esf_oi || ""}</td>
+          <td>${o.lentes_cil_oi || ""}</td>
+          <td>${o.lentes_eje_oi || ""}</td>
+          <td>${o.lentes_avc_esf_oi || ""}</td>
+          <td>${o.lentes_avc_cil_oi || ""}</td>
+          <td>${o.lentes_avc_eje_oi || ""}</td>
+          <td>${o.lentes_add_esf_oi || ""}</td>
+          <td>${o.lentes_add_cil_oi || ""}</td>
+          <td>${o.lentes_add_eje_oi || ""}</td>
+          <td>${o.lentes_avcerca_esf_oi || ""}</td>
+          <td>${o.lentes_avcerca_cil_oi || ""}</td>
+          <td>${o.lentes_avcerca_eje_oi || ""}</td>
+          
+          <!-- Refracción Subjetiva OD -->
+          <td>${o.refrac_subj_esf_od || ""}</td>
+          <td>${o.refrac_subj_cil_od || ""}</td>
+          <td>${o.refrac_subj_eje_od || ""}</td>
+          <td>${o.refrac_subj_avc_esf_od || ""}</td>
+          <td>${o.refrac_subj_avc_cil_od || ""}</td>
+          <td>${o.refrac_subj_avc_eje_od || ""}</td>
+          <td>${o.refrac_subj_add_esf_od || ""}</td>
+          <td>${o.refrac_subj_add_cil_od || ""}</td>
+          <td>${o.refrac_subj_add_eje_od || ""}</td>
+          <td>${o.refrac_subj_avcerca_esf_od || ""}</td>
+          <td>${o.refrac_subj_avcerca_cil_od || ""}</td>
+          <td>${o.refrac_subj_avcerca_eje_od || ""}</td>
+          
+          <!-- Refracción Subjetiva OI -->
+          <td>${o.refrac_subj_esf_oi || ""}</td>
+          <td>${o.refrac_subj_cil_oi || ""}</td>
+          <td>${o.refrac_subj_eje_oi || ""}</td>
+          <td>${o.refrac_subj_avc_esf_oi || ""}</td>
+          <td>${o.refrac_subj_avc_cil_oi || ""}</td>
+          <td>${o.refrac_subj_avc_eje_oi || ""}</td>
+          <td>${o.refrac_subj_add_esf_oi || ""}</td>
+          <td>${o.refrac_subj_add_cil_oi || ""}</td>
+          <td>${o.refrac_subj_add_eje_oi || ""}</td>
+          <td>${o.refrac_subj_avcerca_esf_oi || ""}</td>
+          <td>${o.refrac_subj_avcerca_cil_oi || ""}</td>
+          <td>${o.refrac_subj_avcerca_eje_oi || ""}</td>
+          
+          <!-- Refracción Cicloplejía OD -->
+          <td>${o.refrac_ciclo_esf_od || ""}</td>
+          <td>${o.refrac_ciclo_cil_od || ""}</td>
+          <td>${o.refrac_ciclo_eje_od || ""}</td>
+          <td>${o.refrac_ciclo_avc_esf_od || ""}</td>
+          <td>${o.refrac_ciclo_avc_cil_od || ""}</td>
+          <td>${o.refrac_ciclo_avc_eje_od || ""}</td>
+          <td>${o.refrac_ciclo_add_esf_od || ""}</td>
+          <td>${o.refrac_ciclo_add_cil_od || ""}</td>
+          <td>${o.refrac_ciclo_add_eje_od || ""}</td>
+          <td>${o.refrac_ciclo_avcerca_esf_od || ""}</td>
+          <td>${o.refrac_ciclo_avcerca_cil_od || ""}</td>
+          <td>${o.refrac_ciclo_avcerca_eje_od || ""}</td>
+          
+          <!-- Refracción Cicloplejía OI -->
+          <td>${o.refrac_ciclo_esf_oi || ""}</td>
+          <td>${o.refrac_ciclo_cil_oi || ""}</td>
+          <td>${o.refrac_ciclo_eje_oi || ""}</td>
+          <td>${o.refrac_ciclo_avc_esf_oi || ""}</td>
+          <td>${o.refrac_ciclo_avc_cil_oi || ""}</td>
+          <td>${o.refrac_ciclo_avc_eje_oi || ""}</td>
+          <td>${o.refrac_ciclo_add_esf_oi || ""}</td>
+          <td>${o.refrac_ciclo_add_cil_oi || ""}</td>
+          <td>${o.refrac_ciclo_add_eje_oi || ""}</td>
+          <td>${o.refrac_ciclo_avcerca_esf_oi || ""}</td>
+          <td>${o.refrac_ciclo_avcerca_cil_oi || ""}</td>
+          <td>${o.refrac_ciclo_avcerca_eje_oi || ""}</td>
+          
           <td>
             <button class="btn btn-danger btn-sm" onclick="borrarOpto(${o.id})">
               <i class="fas fa-trash"></i>
@@ -479,7 +699,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
           <input type="hidden" name="hora_tp" id="horaTPInput">
 
           <!-- AGUDEZA VISUAL SIN CORRECCIÓN (LEJOS) -->
-          <div class="section-title"> Agudeza Visual sin Corrección (Lejos) - s/c y con Lentes c/L</div>
+          <div class="section-title">📊 Agudeza Visual sin Corrección (Lejos) - s/c y con Lentes c/L</div>
           <div class="grid-2x2">
             <div class="grid-item">
               <label>OJO DERECHO - s/c</label>
@@ -500,7 +720,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
           </div>
 
           <!-- AGUDEZA VISUAL CON ESTEREOPTICO (BMP) -->
-          <div class="section-title"> Agudeza Visual con Estereoptico (BMP)</div>
+          <div class="section-title">👓 Agudeza Visual con Estereoptico (BMP)</div>
           <div class="row">
             <div class="col-md-6 form-group">
               <label>OJO DERECHO</label>
@@ -513,7 +733,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
           </div>
 
           <!-- AUTOREFRACTOR (SIN CICLOPLEJÍA) -->
-          <div class="section-title"> Autorefractor (Sin Cicloplejía)</div>
+          <div class="section-title">🔬 Autorefractor (Sin Cicloplejía)</div>
           <table class="opto-table">
             <thead>
               <tr>
@@ -540,7 +760,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
           </table>
 
           <!-- AUTOREFRACTOR CON CICLOPLEJÍA -->
-          <div class="section-title"> Autorefractor con Cicloplejía</div>
+          <div class="section-title">💉 Autorefractor con Cicloplejía</div>
           <table class="opto-table">
             <thead>
               <tr>
@@ -567,33 +787,50 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
           </table>
 
           <!-- GRADUACIÓN, SUBJETIVO, ADICIÓN Y AV CERCA - TODO EN UNA TABLA -->
-          <div class="section-title"> Graduación, Subjetivo, Adición y AV Cerca</div>
+          <div class="section-title">📐 Graduación, Subjetivo, Adición y AV Cerca</div>
           <table class="opto-table">
             <thead>
               <tr>
                 <th rowspan="2" style="width: 15%;">SECCIÓN</th>
                 <th rowspan="2" style="width: 10%;">OJO</th>
-                <th colspan="3">GRADUACIÓN SUBJETIVA</th>
-                <th colspan="3"> (AGUDEZA VISUAL LEJOS)</th>
-                <th colspan="3">ADICIÓN</th>
-                <th colspan="3">AV CERCA</th>
+                <th colspan="3">GRADUACIÓN</th>
+                <th colspan="2">SUBJETIVO (AVcC)</th>
+                <th>ADICIÓN</th>
+                <th>AV CERCA</th>
               </tr>
               <tr>
                 <th>ESF</th>
                 <th>CIL</th>
                 <th>EJE</th>
-                <th>ESF</th>
-                <th>CIL</th>
-                <th>EJE</th>
-                <th>ESF</th>
-                <th>CIL</th>
-                <th>EJE</th>
-                <th>ESF</th>
-                <th>CIL</th>
-                <th>EJE</th>
+                <th>AVcC</th>
+                <th>AVcC2</th>
+                <th>Adición</th>
+                <th>Cerca</th>
               </tr>
             </thead>
             <tbody>
+              <!-- GRADUACIÓN Y SUBJETIVO OD -->
+              <tr>
+                <td class="label-cell" rowspan="2">Graduación</td>
+                <td class="label-cell">OD</td>
+                <td><input type="text" name="grad_esf_od" placeholder="0.00"></td>
+                <td><input type="text" name="grad_cil_od" placeholder="0.00"></td>
+                <td><input type="text" name="grad_eje_od" placeholder="0°"></td>
+                <td><input type="text" name="subj_avcc_od" placeholder="20/20"></td>
+                <td><input type="text" name="subj_avcc2_od" placeholder="20/20"></td>
+                <td><input type="text" name="adicion_od" placeholder="+1.00"></td>
+                <td><input type="text" name="av_cerca_od" placeholder="20/20"></td>
+              </tr>
+              <tr>
+                <td class="label-cell">OI</td>
+                <td><input type="text" name="grad_esf_oi" placeholder="0.00"></td>
+                <td><input type="text" name="grad_cil_oi" placeholder="0.00"></td>
+                <td><input type="text" name="grad_eje_oi" placeholder="0°"></td>
+                <td><input type="text" name="subj_avcc_oi" placeholder="20/20"></td>
+                <td><input type="text" name="subj_avcc2_oi" placeholder="20/20"></td>
+                <td><input type="text" name="adicion_oi" placeholder="+1.00"></td>
+                <td><input type="text" name="av_cerca_oi" placeholder="20/20"></td>
+              </tr>
               
               <!-- LENTES ANTERIORES -->
               <tr>
@@ -602,30 +839,14 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                 <td><input type="text" name="lentes_esf_od" placeholder="0.00"></td>
                 <td><input type="text" name="lentes_cil_od" placeholder="0.00"></td>
                 <td><input type="text" name="lentes_eje_od" placeholder="0°"></td>
-                <td><input type="text" name="lentes_avc_esf_od" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_avc_cil_od" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_avc_eje_od" placeholder="0°"></td>
-                <td><input type="text" name="lentes_add_esf_od" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_add_cil_od" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_add_eje_od" placeholder="0°"></td>
-                <td><input type="text" name="lentes_avcerca_esf_od" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_avcerca_cil_od" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_avcerca_eje_od" placeholder="0°"></td>
+                <td colspan="4" style="background:#f8f9fa;"></td>
               </tr>
               <tr>
                 <td class="label-cell">OI</td>
                 <td><input type="text" name="lentes_esf_oi" placeholder="0.00"></td>
                 <td><input type="text" name="lentes_cil_oi" placeholder="0.00"></td>
                 <td><input type="text" name="lentes_eje_oi" placeholder="0°"></td>
-                <td><input type="text" name="lentes_avc_esf_oi" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_avc_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_avc_eje_oi" placeholder="0°"></td>
-                <td><input type="text" name="lentes_add_esf_oi" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_add_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_add_eje_oi" placeholder="0°"></td>
-                <td><input type="text" name="lentes_avcerca_esf_oi" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_avcerca_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="lentes_avcerca_eje_oi" placeholder="0°"></td>
+                <td colspan="4" style="background:#f8f9fa;"></td>
               </tr>
 
               <!-- REFRACCIÓN SUBJETIVA -->
@@ -635,30 +856,14 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                 <td><input type="text" name="refrac_subj_esf_od" placeholder="0.00"></td>
                 <td><input type="text" name="refrac_subj_cil_od" placeholder="0.00"></td>
                 <td><input type="text" name="refrac_subj_eje_od" placeholder="0°"></td>
-                <td><input type="text" name="refrac_subj_avc_esf_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_avc_cil_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_avc_eje_od" placeholder="0°"></td>
-                <td><input type="text" name="refrac_subj_add_esf_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_add_cil_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_add_eje_od" placeholder="0°"></td>
-                <td><input type="text" name="refrac_subj_avcerca_esf_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_avcerca_cil_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_avcerca_eje_od" placeholder="0°"></td>
+                <td colspan="4" style="background:#f8f9fa;"></td>
               </tr>
               <tr>
                 <td class="label-cell">OI</td>
                 <td><input type="text" name="refrac_subj_esf_oi" placeholder="0.00"></td>
                 <td><input type="text" name="refrac_subj_cil_oi" placeholder="0.00"></td>
                 <td><input type="text" name="refrac_subj_eje_oi" placeholder="0°"></td>
-                <td><input type="text" name="refrac_subj_avc_esf_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_avc_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_avc_eje_oi" placeholder="0°"></td>
-                <td><input type="text" name="refrac_subj_add_esf_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_add_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_add_eje_oi" placeholder="0°"></td>
-                <td><input type="text" name="refrac_subj_avcerca_esf_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_avcerca_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_subj_avcerca_eje_oi" placeholder="0°"></td>
+                <td colspan="4" style="background:#f8f9fa;"></td>
               </tr>
 
               <!-- REFRACCIÓN CICLOPLEJÍA -->
@@ -668,30 +873,14 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                 <td><input type="text" name="refrac_ciclo_esf_od" placeholder="0.00"></td>
                 <td><input type="text" name="refrac_ciclo_cil_od" placeholder="0.00"></td>
                 <td><input type="text" name="refrac_ciclo_eje_od" placeholder="0°"></td>
-                <td><input type="text" name="refrac_ciclo_avc_esf_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_avc_cil_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_avc_eje_od" placeholder="0°"></td>
-                <td><input type="text" name="refrac_ciclo_add_esf_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_add_cil_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_add_eje_od" placeholder="0°"></td>
-                <td><input type="text" name="refrac_ciclo_avcerca_esf_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_avcerca_cil_od" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_avcerca_eje_od" placeholder="0°"></td>
+                <td colspan="4" style="background:#f8f9fa;"></td>
               </tr>
               <tr>
                 <td class="label-cell">OI</td>
                 <td><input type="text" name="refrac_ciclo_esf_oi" placeholder="0.00"></td>
                 <td><input type="text" name="refrac_ciclo_cil_oi" placeholder="0.00"></td>
                 <td><input type="text" name="refrac_ciclo_eje_oi" placeholder="0°"></td>
-                <td><input type="text" name="refrac_ciclo_avc_esf_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_avc_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_avc_eje_oi" placeholder="0°"></td>
-                <td><input type="text" name="refrac_ciclo_add_esf_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_add_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_add_eje_oi" placeholder="0°"></td>
-                <td><input type="text" name="refrac_ciclo_avcerca_esf_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_avcerca_cil_oi" placeholder="0.00"></td>
-                <td><input type="text" name="refrac_ciclo_avcerca_eje_oi" placeholder="0°"></td>
+                <td colspan="4" style="background:#f8f9fa;"></td>
               </tr>
             </tbody>
           </table>
