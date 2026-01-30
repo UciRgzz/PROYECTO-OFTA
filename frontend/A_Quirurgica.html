@@ -504,7 +504,8 @@
     let ordenSeleccionada = null;
     let fechaSemana = new Date();
     let vistaActual = 'mensual';
-    let fechaAgendadaActual = null; // NUEVA VARIABLE PARA GUARDAR LA FECHA AGENDADA
+    let fechaAgendadaActual = null;
+    let todasLasOrdenes = []; // GUARDAR TODAS LAS ÓRDENES PARA BUSCAR LUEGO
 
     function formatFecha(fecha) {
       if (!fecha) return '<span class="text-muted">No asignado</span>';
@@ -527,6 +528,7 @@
       try {
         const res = await fetch('/api/ordenes');
         let ordenes = await res.json();
+        todasLasOrdenes = ordenes; // GUARDAR LAS ÓRDENES
 
         if (year !== undefined && month !== undefined) {
           ordenes = ordenes.filter(o => {
@@ -587,6 +589,7 @@
       try {
         const res = await fetch(`/api/ordenes?desde=${desde}&hasta=${hasta}`);
         let ordenes = await res.json();
+        todasLasOrdenes = ordenes; // GUARDAR LAS ÓRDENES
 
         const tbody = document.getElementById("tablaOrdenes");
 
@@ -768,23 +771,19 @@
       });
     }
 
-    async function editarCirugia(idOrden) {
+    function editarCirugia(idOrden) {
       ordenSeleccionada = idOrden;
       
-      // OBTENER LA FECHA AGENDADA DE LA ORDEN
-      try {
-        const res = await fetch(`/api/ordenes/${idOrden}`);
-        const orden = await res.json();
-        
-        if (orden.fecha_agendada) {
-          fechaAgendadaActual = orden.fecha_agendada.split("T")[0];
-        } else {
-          fechaAgendadaActual = null;
-        }
-      } catch (err) {
-        console.error("Error obteniendo datos de orden:", err);
+      // BUSCAR LA ORDEN EN EL ARRAY GUARDADO
+      const orden = todasLasOrdenes.find(o => o.id === idOrden);
+      
+      if (orden && orden.fecha_agendada) {
+        fechaAgendadaActual = orden.fecha_agendada.split("T")[0];
+      } else {
         fechaAgendadaActual = null;
       }
+      
+      console.log("Editando cirugía:", idOrden, "Fecha agendada:", fechaAgendadaActual);
       
       const modal = new bootstrap.Modal(document.getElementById("modalCalendario"));
       modal.show();
@@ -827,23 +826,19 @@
       });
     }
 
-    async function abrirCalendario(idOrden) {
+    function abrirCalendario(idOrden) {
       ordenSeleccionada = idOrden;
       
-      // OBTENER LA FECHA AGENDADA DE LA ORDEN
-      try {
-        const res = await fetch(`/api/ordenes/${idOrden}`);
-        const orden = await res.json();
-        
-        if (orden.fecha_agendada) {
-          fechaAgendadaActual = orden.fecha_agendada.split("T")[0];
-        } else {
-          fechaAgendadaActual = null;
-        }
-      } catch (err) {
-        console.error("Error obteniendo datos de orden:", err);
+      // BUSCAR LA ORDEN EN EL ARRAY GUARDADO
+      const orden = todasLasOrdenes.find(o => o.id === idOrden);
+      
+      if (orden && orden.fecha_agendada) {
+        fechaAgendadaActual = orden.fecha_agendada.split("T")[0];
+      } else {
         fechaAgendadaActual = null;
       }
+      
+      console.log("Abriendo calendario:", idOrden, "Fecha agendada:", fechaAgendadaActual);
       
       const modal = new bootstrap.Modal(document.getElementById("modalCalendario"));
       modal.show();
@@ -863,7 +858,10 @@
         ordenSeleccionada = null;
         fechaAgendadaActual = null;
         renderCalendarCirugias();   
-        cargarOrdenes();
+        
+        // Recargar órdenes para actualizar todasLasOrdenes
+        const hoyStr = moment().format("YYYY-MM-DD");
+        await cargarOrdenesPorRango(hoyStr, hoyStr);
 
         const modal = bootstrap.Modal.getInstance(document.getElementById("modalCalendario"));
         modal.hide();
@@ -893,7 +891,10 @@
             });
             mostrarExito("Cirugía eliminada", "La cirugía ha sido eliminada del calendario");
             renderCalendarCirugias(); 
-            cargarOrdenes();
+            
+            // Recargar órdenes
+            const hoyStr = moment().format("YYYY-MM-DD");
+            await cargarOrdenesPorRango(hoyStr, hoyStr);
           } catch (err) {
             console.error("Error al eliminar cirugía:", err);
             mostrarError("Error", "No se pudo eliminar la cirugía");
@@ -1002,6 +1003,8 @@
       const calendarioHoras = document.getElementById("calendarioHoras");
       const semanaActual = document.getElementById("semanaActual");
       
+      console.log("Renderizando calendario de horas. Fecha agendada:", fechaAgendadaActual);
+      
       // SI NO HAY FECHA AGENDADA, MOSTRAR ADVERTENCIA
       if (!fechaAgendadaActual) {
         calendarioHoras.innerHTML = `
@@ -1057,6 +1060,8 @@
       dias.forEach(dia => {
         const fechaDia = `${dia.getFullYear()}-${String(dia.getMonth() + 1).padStart(2, "0")}-${String(dia.getDate()).padStart(2, "0")}`;
         const esDiaAgendado = fechaDia === fechaAgendadaActual;
+        
+        console.log("Comparando:", fechaDia, "con", fechaAgendadaActual, "=", esDiaAgendado);
         
         html += `<div class="day-header-hourly ${esDiaAgendado ? 'dia-agendado' : ''}">${dia.toLocaleDateString("es-ES", { weekday: "short", day: "2-digit" })}</div>`;
       });
@@ -1136,7 +1141,10 @@
         ordenSeleccionada = null;
         fechaAgendadaActual = null;
         renderCalendarHoras();   
-        cargarOrdenes();
+        
+        // Recargar órdenes
+        const hoyStr = moment().format("YYYY-MM-DD");
+        await cargarOrdenesPorRango(hoyStr, hoyStr);
 
         const modal = bootstrap.Modal.getInstance(document.getElementById("modalCalendario"));
         modal.hide();
