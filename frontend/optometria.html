@@ -1576,7 +1576,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
       
       Swal.fire({
         icon: 'success',
-        title: '✅ TP Aplicado',
+        title: ' TP Aplicado',
         text: `Hora registrada: ${horaTP}`,
         timer: 2000,
         showConfirmButton: false
@@ -1620,7 +1620,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
     const result = await res.json();
     
     if (res.ok) {
-      Swal.fire("✅ Éxito", result.mensaje, "success");
+      Swal.fire(" Éxito", result.mensaje, "success");
       formDiv.style.display = "none";
       filtro.style.display = "block";
       document.getElementById("tablaOpto").style.display = "block";
