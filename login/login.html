@@ -728,19 +728,27 @@
   // Bloquear clic derecho
   document.addEventListener("contextmenu", event => event.preventDefault());
 
-  // Bloquear teclas de inspección comunes
-  document.onkeydown = function(e) {
+ // Bloquear atajos comunes de inspección
+  document.addEventListener("keydown", function (e) {
+    const key = e.key.toUpperCase();
+
     if (
-      e.keyCode == 123 || // F12
-      (e.ctrlKey && e.shiftKey && e.keyCode == "I".charCodeAt(0)) || // Ctrl+Shift+I
-      (e.ctrlKey && e.shiftKey && e.keyCode == "J".charCodeAt(0)) || // Ctrl+Shift+J
-      (e.ctrlKey && e.keyCode == "U".charCodeAt(0)) || // Ctrl+U
-      (e.ctrlKey && e.keyCode == "S".charCodeAt(0))    // Ctrl+S
+      key === "F12" ||
+
+      // DevTools
+      (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(key)) ||
+
+      // Ver código fuente / guardar / imprimir
+      (e.ctrlKey && ["U", "S", "P"].includes(key)) ||
+
+      // Mac
+      (e.metaKey && e.altKey && ["I", "J", "C"].includes(key))
     ) {
       e.preventDefault();
+      e.stopPropagation();
       return false;
     }
-  };
+  });
 </script>
 
 </body>
