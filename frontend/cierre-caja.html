@@ -216,19 +216,19 @@ $(document).ready(() => {
     $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
     document.getElementById('filtroRango').dataset.desde = picker.startDate.format("YYYY-MM-DD");
     document.getElementById('filtroRango').dataset.hasta = picker.endDate.format("YYYY-MM-DD");
-    cargarCierre(true); // ✅ Mostrar loading solo cuando se cambia manualmente
+    cargarCierre(true);
   });
 
-  // ✅ Inicializar valores por defecto (hoy)
+  // Inicializar valores por defecto (hoy)
   document.getElementById('filtroRango').dataset.desde = hoy;
   document.getElementById('filtroRango').dataset.hasta = hoy;
   $('#filtroRango').val(moment().format('DD/MM/YYYY') + " - " + moment().format('DD/MM/YYYY'));
   
-  // ✅ CARGAR DATOS DEL DÍA AUTOMÁTICAMENTE (sin loading)
+  // Cargar datos del día automáticamente
   cargarCierre(false);
 });
 
-// Formateador global para todo el sistema y Excel (estilo español: 1.234,56)
+// Formateador global
 const formato = new Intl.NumberFormat('en-US', {
   style: 'decimal',
   minimumFractionDigits: 2,
@@ -244,7 +244,6 @@ async function cargarCierre(showLoading = false) {
     console.log('📊 Cargando cierre de caja desde:', desde, 'hasta:', hasta);
 
     try {
-        // ✅ Mostrar loading solo si se solicita explícitamente (cambio manual)
         if (showLoading) {
             Swal.fire({
                 title: 'Generando cierre...',
@@ -256,83 +255,160 @@ async function cargarCierre(showLoading = false) {
             });
         }
 
-        // Limpiar tablas antes de recargar
-        document.getElementById("tbodyResumen").innerHTML = "<tr><td colspan='5'>Sin datos</td></tr>";
-        document.getElementById("tablaPacientes").innerHTML = "";
+        // Limpiar tablas
+        document.getElementById("tbodyResumen").innerHTML = "<tr><td colspan='5'>Cargando...</td></tr>";
+        document.getElementById("tablaPacientes").innerHTML = "<tr><td colspan='10'>Cargando...</td></tr>";
 
-        // ====== RESUMEN ======
-        const resResumen = await fetch(`/api/cierre-caja?desde=${desde}&hasta=${hasta}`);
-        const datosResumen = await resResumen.json();
+        // ====== OBTENER TODOS LOS RECIBOS EN EL RANGO DE FECHAS ======
+        const resRecibos = await fetch(`/api/recibos?desde=${desde}&hasta=${hasta}`);
+        const recibos = await resRecibos.json();
 
-        if (Array.isArray(datosResumen) && datosResumen.length > 0) {
-            const procedimientos = [...new Set(datosResumen.map(d => d.procedimiento))];
-            const pagos = {};
-            datosResumen.forEach(d => {
-                if (!pagos[d.pago]) pagos[d.pago] = {};
-                if (!pagos[d.pago][d.procedimiento]) pagos[d.pago][d.procedimiento] = 0;
-                pagos[d.pago][d.procedimiento] += parseFloat(d.total);
-            });
+        console.log('📋 Recibos obtenidos:', recibos);
 
-            let thead = `<tr><th>Forma de Cobro</th>`;
-            procedimientos.forEach(p => { thead += `<th>${p}</th>`; });
-            thead += `<th>Total</th></tr>`;
-            document.querySelector("#tablaResumen thead").innerHTML = thead;
+        if (!Array.isArray(recibos) || recibos.length === 0) {
+            document.getElementById("tbodyResumen").innerHTML = "<tr><td colspan='5'>Sin datos en este rango</td></tr>";
+            document.getElementById("tablaPacientes").innerHTML = "<tr><td colspan='10'>Sin datos en este rango</td></tr>";
+            if (showLoading) Swal.close();
+            return;
+        }
 
-            let tbody = "";
-            const totalesColumnas = {};
-            Object.keys(pagos).forEach(pago => {
-                let totalFila = 0;
-                let fila = `<tr><td>${pago}</td>`;
-                procedimientos.forEach(proc => {
-                    const val = pagos[pago][proc] || 0;
-                    totalFila += val;
-                    totalesColumnas[proc] = (totalesColumnas[proc] || 0) + val;  
-                    fila += `<td>$${formato.format(val)}</td>`;
+        // ====== AGRUPAR RECIBOS POR ORDEN PARA OBTENER DATOS DEL PACIENTE ======
+        const ordenesProcesadas = new Map();
+
+        for (const recibo of recibos) {
+            const ordenId = recibo.orden_id;
+            
+            if (!ordenesProcesadas.has(ordenId)) {
+                // Obtener datos de la orden
+                try {
+                    const resOrden = await fetch(`/api/ordenes/${ordenId}`);
+                    const orden = await resOrden.json();
+                    
+                    ordenesProcesadas.set(ordenId, {
+                        n_orden: orden.n_orden || '-',
+                        n_folio: recibo.n_folio,
+                        expediente: orden.expediente,
+                        nombre: orden.nombre,
+                        procedimiento: orden.procedimiento,
+                        total: parseFloat(orden.total),
+                        pagado: 0,
+                        recibos: []
+                    });
+                } catch (err) {
+                    console.error('Error obteniendo orden:', ordenId, err);
+                }
+            }
+
+            // Agregar el recibo al registro de la orden
+            if (ordenesProcesadas.has(ordenId)) {
+                const ordenData = ordenesProcesadas.get(ordenId);
+                ordenData.pagado += parseFloat(recibo.monto);
+                ordenData.recibos.push({
+                    fecha: recibo.fecha_pago,
+                    forma_pago: recibo.forma_pago,
+                    monto: parseFloat(recibo.monto)
                 });
-                fila += `<td class="fw-bold">$${formato.format(totalFila)}</td></tr>`;
-                tbody += fila;
-            });
-
-            let filaTotal = `<tr class="table-dark"><td><b>Total</b></td>`;
-            let totalGeneral = 0;
-            procedimientos.forEach(proc => {
-                const val = totalesColumnas[proc] || 0;
-                totalGeneral += val;
-                filaTotal += `<td><b>$${formato.format(val)}</b></td>`;
-            });
-            filaTotal += `<td><b>$${formato.format(totalGeneral)}</b></td></tr>`;
-            tbody += filaTotal;
-
-            document.getElementById("tbodyResumen").innerHTML = tbody;
-            console.log('✅ Resumen cargado correctamente');
+            }
         }
 
-        // ====== PACIENTES CON N.ORDEN Y N.FOLIO ======
-        const resPacientes = await fetch(`/api/listado-pacientes?desde=${desde}&hasta=${hasta}`);
-        const pacientes = await resPacientes.json();
+        console.log('💰 Órdenes procesadas:', ordenesProcesadas);
 
-        if (Array.isArray(pacientes) && pacientes.length > 0) {
-            document.getElementById("tablaPacientes").innerHTML = pacientes.map(p => `
+        // ====== GENERAR RESUMEN POR FORMA DE PAGO Y PROCEDIMIENTO ======
+        const resumenPagos = {};
+        const procedimientos = new Set();
+
+        ordenesProcesadas.forEach((orden) => {
+            procedimientos.add(orden.procedimiento);
+            
+            orden.recibos.forEach(recibo => {
+                const formaPago = recibo.forma_pago;
+                const proc = orden.procedimiento;
+                
+                if (!resumenPagos[formaPago]) {
+                    resumenPagos[formaPago] = {};
+                }
+                
+                if (!resumenPagos[formaPago][proc]) {
+                    resumenPagos[formaPago][proc] = 0;
+                }
+                
+                resumenPagos[formaPago][proc] += recibo.monto;
+            });
+        });
+
+        console.log('📊 Resumen de pagos:', resumenPagos);
+
+        // ====== RENDERIZAR TABLA DE RESUMEN ======
+        const arrayProcedimientos = Array.from(procedimientos);
+        
+        let thead = `<tr><th>Forma de Cobro</th>`;
+        arrayProcedimientos.forEach(p => { thead += `<th>${p}</th>`; });
+        thead += `<th>Total</th></tr>`;
+        document.querySelector("#tablaResumen thead").innerHTML = thead;
+
+        let tbody = "";
+        const totalesColumnas = {};
+        
+        Object.keys(resumenPagos).forEach(formaPago => {
+            let totalFila = 0;
+            let fila = `<tr><td><strong>${formaPago}</strong></td>`;
+            
+            arrayProcedimientos.forEach(proc => {
+                const val = resumenPagos[formaPago][proc] || 0;
+                totalFila += val;
+                totalesColumnas[proc] = (totalesColumnas[proc] || 0) + val;
+                fila += `<td>$${formato.format(val)}</td>`;
+            });
+            
+            fila += `<td class="fw-bold">$${formato.format(totalFila)}</td></tr>`;
+            tbody += fila;
+        });
+
+        // Fila de totales
+        let filaTotal = `<tr class="table-dark"><td><b>Total</b></td>`;
+        let totalGeneral = 0;
+        
+        arrayProcedimientos.forEach(proc => {
+            const val = totalesColumnas[proc] || 0;
+            totalGeneral += val;
+            filaTotal += `<td><b>$${formato.format(val)}</b></td>`;
+        });
+        
+        filaTotal += `<td><b>$${formato.format(totalGeneral)}</b></td></tr>`;
+        tbody += filaTotal;
+
+        document.getElementById("tbodyResumen").innerHTML = tbody;
+
+        // ====== RENDERIZAR TABLA DE PACIENTES ======
+        let htmlPacientes = "";
+        
+        ordenesProcesadas.forEach((orden) => {
+            const saldo = orden.total - orden.pagado;
+            const status = saldo <= 0 ? 'Pagado' : 'Pendiente';
+            
+            // Mostrar las formas de pago usadas
+            const formasPago = [...new Set(orden.recibos.map(r => r.forma_pago))].join(', ');
+            
+            htmlPacientes += `
                 <tr>
-                    <td><strong>${p.n_orden || '-'}</strong></td>
-                    <td><strong>${p.n_folio || '-'}</strong></td>
-                    <td><strong>${p.expediente}</strong></td>
-                    <td>${p.nombre}</td>
-                    <td>${p.fecha}</td>
-                    <td>${p.procedimiento}</td>
-                    <td><span class="badge ${p.status === 'Pagado' ? 'bg-success' : 'bg-warning'}">${p.status}</span></td>
-                    <td>${p.pago || 'N/A'}</td>
-                    <td><span class="badge bg-primary">$${formato.format(p.total)}</span></td>
-                    <td><span class="badge ${p.saldo < 0 ? 'bg-danger' : 'bg-success'}">$${formato.format(Math.abs(p.saldo))}</span></td>
+                    <td><strong>${orden.n_orden}</strong></td>
+                    <td><strong>${orden.n_folio}</strong></td>
+                    <td><strong>${orden.expediente}</strong></td>
+                    <td>${orden.nombre}</td>
+                    <td>${orden.recibos[0]?.fecha ? new Date(orden.recibos[0].fecha).toLocaleDateString('es-MX') : '-'}</td>
+                    <td>${orden.procedimiento}</td>
+                    <td><span class="badge ${status === 'Pagado' ? 'bg-success' : 'bg-warning'}">${status}</span></td>
+                    <td>${formasPago || 'N/A'}</td>
+                    <td><span class="badge bg-primary">$${formato.format(orden.total)}</span></td>
+                    <td><span class="badge ${saldo > 0 ? 'bg-danger' : 'bg-success'}">$${formato.format(Math.abs(saldo))}</span></td>
                 </tr>
-            `).join('');
-            console.log('✅ Listado de pacientes cargado:', pacientes.length, 'registros');
-        } else {
-            document.getElementById("tablaPacientes").innerHTML = "<tr><td colspan='10'>Sin datos</td></tr>";
-            console.log('⚠️ No se encontraron pacientes para el rango seleccionado');
-        }
+            `;
+        });
 
-        // ✅ Cerrar loading solo si se mostró
+        document.getElementById("tablaPacientes").innerHTML = htmlPacientes || "<tr><td colspan='10'>Sin datos</td></tr>";
+
+        console.log('✅ Cierre de caja cargado correctamente');
+
         if (showLoading) {
             Swal.close();
         }
@@ -341,7 +417,7 @@ async function cargarCierre(showLoading = false) {
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'Hubo un problema al cargar los datos del cierre.',
+            text: 'Hubo un problema al cargar los datos del cierre: ' + error.message,
             confirmButtonColor: '#d33'
         });
     }
@@ -378,7 +454,6 @@ async function exportarExcel() {
             } else {
                 cell.alignment = { horizontal:"center" };
             }
-            // Formato numérico
             if (!isNaN(cell.value) && idx > 0) {
                 cell.numFmt = '#,##0.00';
             }
@@ -386,7 +461,7 @@ async function exportarExcel() {
         rowIndex++;
     });
 
-    rowIndex += 2; // Dejar 2 filas en blanco
+    rowIndex += 2;
 
     // ====== PACIENTES ======
     ws.addRow(["Listado de Pacientes"]);
@@ -407,7 +482,6 @@ async function exportarExcel() {
             } else {
                 cell.alignment = { horizontal:"center" };
             }
-            // Formato numérico
             if (!isNaN(cell.value) && idx > 0) {
                 cell.numFmt = '#,##0.00';
             }
