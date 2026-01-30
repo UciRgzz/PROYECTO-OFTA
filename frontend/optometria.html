@@ -242,11 +242,12 @@
     .retino-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 30px;
+      gap: 40px;
     }
     
     .retino-eye {
-      text-align: center;
+      display: flex;
+      flex-direction: column;
     }
     
     .retino-eye-label {
@@ -256,53 +257,55 @@
       font-size: 1rem;
     }
     
-    .retino-input-group {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 20px;
+    .retino-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 10px;
+      border: 1px solid #ced4da;
+      border-radius: 5px;
+      resize: vertical;
+      font-size: 0.9rem;
+      margin-bottom: 15px;
     }
     
-    .retino-input-group input {
-      width: 120px;
+    .retino-grados-container {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .retino-grados-container input {
+      width: 80px;
       padding: 8px;
       border: 1px solid #ced4da;
       border-radius: 5px;
       text-align: center;
     }
     
-    .grados-selector {
-      display: flex;
-      gap: 20px;
-      justify-content: center;
-      margin-top: 15px;
+    .retino-grados-label {
+      color: #6c757d;
+      font-size: 0.85rem;
+      white-space: nowrap;
     }
     
-    .grado-option {
+    .retino-circle-row {
       display: flex;
-      flex-direction: column;
+      gap: 15px;
       align-items: center;
-      gap: 10px;
     }
     
-    .circle-selector {
-      width: 80px;
-      height: 80px;
+    .circle-display {
+      width: 60px;
+      height: 60px;
       border: 2px solid #adb5bd;
       border-radius: 50%;
       position: relative;
-      cursor: pointer;
       background: white;
-      transition: all 0.3s;
+      flex-shrink: 0;
     }
     
-    .circle-selector.selected {
-      border-color: var(--secondary-color);
-      background: #e3f2fd;
-    }
-    
-    .circle-selector::before {
+    .circle-display::before {
       content: '';
       position: absolute;
       width: 2px;
@@ -313,7 +316,7 @@
       transform: translateX(-50%);
     }
     
-    .circle-selector::after {
+    .circle-display::after {
       content: '';
       position: absolute;
       width: 100%;
@@ -322,20 +325,6 @@
       top: 50%;
       left: 0;
       transform: translateY(-50%);
-    }
-    
-    .circle-selector.deg-90::before {
-      transform: translateX(-50%) rotate(0deg);
-    }
-    
-    .circle-selector.deg-180::after {
-      transform: translateY(-50%) rotate(0deg);
-    }
-    
-    .grado-label {
-      font-weight: 600;
-      color: #495057;
-      font-size: 0.9rem;
     }
     
     .kerato-section {
@@ -696,12 +685,12 @@ async function verGraduacion(id) {
           <p><strong>OI:</strong> AV: ${data.subj_ciclo_oi_av_1 || '-'}/${data.subj_ciclo_oi_av_2 || '-'}/${data.subj_ciclo_oi_av_3 || '-'} | Adición: ${data.subj_ciclo_oi_ad_1 || '-'}/${data.subj_ciclo_oi_ad_2 || '-'}</p>
 
           <h5 class="mt-4">Retinoscopía</h5>
-          <p><strong>OD:</strong> ${data.retino_od_1 || '-'} / ${data.retino_od_2 || '-'} (${data.retino_od_grado || '-'}°)</p>
-          <p><strong>OI:</strong> ${data.retino_oi_1 || '-'} / ${data.retino_oi_2 || '-'} (${data.retino_oi_grado || '-'}°)</p>
+          <p><strong>OD:</strong> ${data.retino_od_obs || '-'} | 90°: ${data.retino_od_90 || '-'} | 180°: ${data.retino_od_180 || '-'}</p>
+          <p><strong>OI:</strong> ${data.retino_oi_obs || '-'} | 90°: ${data.retino_oi_90 || '-'} | 180°: ${data.retino_oi_180 || '-'}</p>
 
           <h5 class="mt-4">Retinoscopía con ciclopejía</h5>
-          <p><strong>OD:</strong> ${data.retino_ciclo_od_1 || '-'} / ${data.retino_ciclo_od_2 || '-'} (${data.retino_ciclo_od_grado || '-'}°)</p>
-          <p><strong>OI:</strong> ${data.retino_ciclo_oi_1 || '-'} / ${data.retino_ciclo_oi_2 || '-'} (${data.retino_ciclo_oi_grado || '-'}°)</p>
+          <p><strong>OD:</strong> ${data.retino_ciclo_od_obs || '-'} | 90°: ${data.retino_ciclo_od_90 || '-'} | 180°: ${data.retino_ciclo_od_180 || '-'}</p>
+          <p><strong>OI:</strong> ${data.retino_ciclo_oi_obs || '-'} | 90°: ${data.retino_ciclo_oi_90 || '-'} | 180°: ${data.retino_ciclo_oi_180 || '-'}</p>
 
           <h5 class="mt-4">Queratometría</h5>
           <p><strong>OD:</strong> ${data.kerato_od_1 || '-'} / ${data.kerato_od_2 || '-'} / ${data.kerato_od_3 || '-'}</p>
@@ -1125,44 +1114,38 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
           <div class="section-title">Retinoscopía</div>
           <div class="retino-section">
             <div class="retino-grid">
+              <!-- OJO DERECHO -->
               <div class="retino-eye">
                 <div class="retino-eye-label">Ojo derecho</div>
-                <div class="retino-input-group">
-                  <input type="text" name="retino_od_1" placeholder="">
-                  <span>/</span>
-                  <input type="text" name="retino_od_2" placeholder="">
+                <textarea name="retino_od_obs" class="retino-textarea" placeholder="Observaciones..."></textarea>
+                
+                <div class="retino-grados-container">
+                  <input type="text" name="retino_od_90" placeholder="90">
+                  <span class="retino-grados-label">° Grados</span>
                 </div>
-                <div class="grados-selector">
-                  <div class="grado-option">
-                    <div class="circle-selector deg-90" data-grado="90" data-ojo="od"></div>
-                    <div class="grado-label">90 ° Grados</div>
-                  </div>
-                  <div class="grado-option">
-                    <div class="circle-selector deg-180" data-grado="180" data-ojo="od"></div>
-                    <div class="grado-label">180 ° Grados</div>
-                  </div>
+                
+                <div class="retino-circle-row">
+                  <div class="circle-display"></div>
+                  <input type="text" name="retino_od_180" placeholder="180" style="width: 80px; padding: 8px; border: 1px solid #ced4da; border-radius: 5px; text-align: center;">
+                  <span class="retino-grados-label">° Grados</span>
                 </div>
-                <input type="hidden" name="retino_od_grado" id="retino_od_grado">
               </div>
 
+              <!-- OJO IZQUIERDO -->
               <div class="retino-eye">
                 <div class="retino-eye-label">Ojo izquierdo</div>
-                <div class="retino-input-group">
-                  <input type="text" name="retino_oi_1" placeholder="">
-                  <span>/</span>
-                  <input type="text" name="retino_oi_2" placeholder="">
+                <textarea name="retino_oi_obs" class="retino-textarea" placeholder="Observaciones..."></textarea>
+                
+                <div class="retino-grados-container">
+                  <input type="text" name="retino_oi_90" placeholder="90">
+                  <span class="retino-grados-label">° Grados</span>
                 </div>
-                <div class="grados-selector">
-                  <div class="grado-option">
-                    <div class="circle-selector deg-90" data-grado="90" data-ojo="oi"></div>
-                    <div class="grado-label">90 ° Grados</div>
-                  </div>
-                  <div class="grado-option">
-                    <div class="circle-selector deg-180" data-grado="180" data-ojo="oi"></div>
-                    <div class="grado-label">180 ° Grados</div>
-                  </div>
+                
+                <div class="retino-circle-row">
+                  <div class="circle-display"></div>
+                  <input type="text" name="retino_oi_180" placeholder="180" style="width: 80px; padding: 8px; border: 1px solid #ced4da; border-radius: 5px; text-align: center;">
+                  <span class="retino-grados-label">° Grados</span>
                 </div>
-                <input type="hidden" name="retino_oi_grado" id="retino_oi_grado">
               </div>
             </div>
           </div>
@@ -1171,44 +1154,38 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
           <div class="section-title">Retinoscopía con ciclopejía</div>
           <div class="retino-section">
             <div class="retino-grid">
+              <!-- OJO DERECHO -->
               <div class="retino-eye">
                 <div class="retino-eye-label">Ojo derecho</div>
-                <div class="retino-input-group">
-                  <input type="text" name="retino_ciclo_od_1" placeholder="">
-                  <span>/</span>
-                  <input type="text" name="retino_ciclo_od_2" placeholder="">
+                <textarea name="retino_ciclo_od_obs" class="retino-textarea" placeholder="Observaciones..."></textarea>
+                
+                <div class="retino-grados-container">
+                  <input type="text" name="retino_ciclo_od_90" placeholder="90">
+                  <span class="retino-grados-label">° Grados</span>
                 </div>
-                <div class="grados-selector">
-                  <div class="grado-option">
-                    <div class="circle-selector deg-90" data-grado="90" data-ojo="ciclo_od"></div>
-                    <div class="grado-label">90 ° Grados</div>
-                  </div>
-                  <div class="grado-option">
-                    <div class="circle-selector deg-180" data-grado="180" data-ojo="ciclo_od"></div>
-                    <div class="grado-label">180 ° Grados</div>
-                  </div>
+                
+                <div class="retino-circle-row">
+                  <div class="circle-display"></div>
+                  <input type="text" name="retino_ciclo_od_180" placeholder="180" style="width: 80px; padding: 8px; border: 1px solid #ced4da; border-radius: 5px; text-align: center;">
+                  <span class="retino-grados-label">° Grados</span>
                 </div>
-                <input type="hidden" name="retino_ciclo_od_grado" id="retino_ciclo_od_grado">
               </div>
 
+              <!-- OJO IZQUIERDO -->
               <div class="retino-eye">
                 <div class="retino-eye-label">Ojo izquierdo</div>
-                <div class="retino-input-group">
-                  <input type="text" name="retino_ciclo_oi_1" placeholder="">
-                  <span>/</span>
-                  <input type="text" name="retino_ciclo_oi_2" placeholder="">
+                <textarea name="retino_ciclo_oi_obs" class="retino-textarea" placeholder="Observaciones..."></textarea>
+                
+                <div class="retino-grados-container">
+                  <input type="text" name="retino_ciclo_oi_90" placeholder="90">
+                  <span class="retino-grados-label">° Grados</span>
                 </div>
-                <div class="grados-selector">
-                  <div class="grado-option">
-                    <div class="circle-selector deg-90" data-grado="90" data-ojo="ciclo_oi"></div>
-                    <div class="grado-label">90 ° Grados</div>
-                  </div>
-                  <div class="grado-option">
-                    <div class="circle-selector deg-180" data-grado="180" data-ojo="ciclo_oi"></div>
-                    <div class="grado-label">180 ° Grados</div>
-                  </div>
+                
+                <div class="retino-circle-row">
+                  <div class="circle-display"></div>
+                  <input type="text" name="retino_ciclo_oi_180" placeholder="180" style="width: 80px; padding: 8px; border: 1px solid #ced4da; border-radius: 5px; text-align: center;">
+                  <span class="retino-grados-label">° Grados</span>
                 </div>
-                <input type="hidden" name="retino_ciclo_oi_grado" id="retino_ciclo_oi_grado">
               </div>
             </div>
           </div>
@@ -1292,25 +1269,6 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
       tpAplicado = false;
       horaTP = '';
     }
-  });
-
-  // Selectores circulares de grados
-  document.querySelectorAll('.circle-selector').forEach(circle => {
-    circle.addEventListener('click', function() {
-      const ojo = this.dataset.ojo;
-      const grado = this.dataset.grado;
-      
-      // Remover selección previa del mismo ojo
-      document.querySelectorAll(`.circle-selector[data-ojo="${ojo}"]`).forEach(c => {
-        c.classList.remove('selected');
-      });
-      
-      // Seleccionar actual
-      this.classList.add('selected');
-      
-      // Actualizar input hidden
-      document.getElementById(`retino_${ojo}_grado`).value = grado;
-    });
   });
 
   // Cancelar
