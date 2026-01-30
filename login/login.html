@@ -612,72 +612,53 @@
             }
         });
 
-        // OLVIDAR CONTRASEÑA (NÓMINA)
-        forgotForm.addEventListener('submit', async e => {
-            e.preventDefault();
-            const nomina = document.getElementById('forgotNomina').value;
+        // OLVIDAR CONTRASEÑA (ENVÍO DE CÓDIGO POR CORREO)
+forgotForm.addEventListener('submit', async e => {
+  e.preventDefault();
 
-            try {
-                const res = await fetch('/api/forgot-password', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nomina })
-                });
+  const nomina = document.getElementById('forgotNomina').value;
 
-                // Obtener codigo de recuperación
-                const data = await res.json();
-                if (res.ok) {
-                    Swal.fire({
-                        title: '🔑 Código de recuperación',
-                        html: `
-                        <p style="font-size: 1.1rem; color:#333;">Usa este código para restablecer tu contraseña:</p>
-                        <div style="
-                            background:#f1f5ff; 
-                            color:#1b3e83; 
-                            font-size:1.5rem; 
-                            font-weight:bold; 
-                            padding:12px 20px; 
-                            border-radius:8px; 
-                            margin:15px auto; 
-                            display:inline-block;
-                            letter-spacing:2px;">
-                            ${data.token}
-                        </div>
-                        <p style="font-size:0.9rem; color:#555;">Guárdalo en un lugar seguro.</p>
-                        `,
-                        icon: 'info',
-                        confirmButtonText: 'Entendido',
-                        confirmButtonColor: '#1b3e83',
-                        backdrop: `
-                        rgba(0,0,0,0.4)
-                        url("/uploads/secure-icon.gif")
-                        no-repeat right top
-                        `
-                        
-                    }).then(() => {
-                        forgotForm.reset();
-                        forgotForm.classList.add('d-none');
-                        resetForm.classList.remove('d-none');
-                        document.getElementById('resetNomina').value = nomina;
-                        formTitle.textContent = 'Restablecer Contraseña';
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: data.error || 'No se pudo generar el código',
-                        confirmButtonColor: '#ea4335'
-                    });
-                }
-            } catch (err) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error de conexión',
-                    text: 'No se pudo conectar con el servidor',
-                    confirmButtonColor: '#ea4335'
-                });
-            }
-        });
+  try {
+    const res = await fetch('/api/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nomina })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Código enviado',
+        text: 'Revisa tu correo electrónico. El código expira en 10 minutos.',
+        confirmButtonColor: '#1b3e83'
+      }).then(() => {
+        forgotForm.reset();
+        forgotForm.classList.add('d-none');
+        resetForm.classList.remove('d-none');
+        document.getElementById('resetNomina').value = nomina;
+        formTitle.textContent = 'Restablecer Contraseña';
+      });
+
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: data.error || 'No se pudo enviar el código',
+        confirmButtonColor: '#ea4335'
+      });
+    }
+
+  } catch (err) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error de conexión',
+      text: 'No se pudo conectar con el servidor',
+      confirmButtonColor: '#ea4335'
+    });
+  }
+});
 
         // RESTABLECER CONTRASEÑA
         resetForm.addEventListener('submit', async e => {

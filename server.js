@@ -11,6 +11,9 @@
   const { deprecate } = require('util');
   const cron = require('node-cron');
   const { createBackup } = require('./scripts/backup');
+  const nodemailer = require('nodemailer');
+
+  
 
 
 
@@ -65,6 +68,15 @@
   pool.connect()
       .then(() => console.log('Conexión a PostgreSQL exitosa'))
       .catch(err => console.error('Error conectando a PostgreSQL', err));
+
+//===================ENVIO POR CORRERO====================//
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.MAIL_USER,
+    pass: process.env.MAIL_PASS
+  }
+});
 
 
 // ==================== RESPALDO DE HORA ====================
@@ -143,6 +155,10 @@ app.post('/api/admin/backup', isAdmin, (req, res) => {
     return fechaFormateada; // Ejemplo: 2025-10-08
   }
 
+// ==================== FUNCIÓN: generar código de recuperación ====================
+function generarCodigo() {
+  return Math.floor(100000 + Math.random() * 900000).toString(); // 6 dígitos
+}
 
 
 
@@ -337,69 +353,103 @@ app.post('/api/admin/backup', isAdmin, (req, res) => {
   });
 
 
-  // ==================== OLVIDAR CONTRASEÑA POR NÓMINA ====================
-  app.post('/api/forgot-password', async (req, res) => {
-      const { nomina } = req.body;
-      try {
-          const user = await pool.query('SELECT * FROM usuarios WHERE nomina = $1', [nomina]);
-          if (user.rows.length === 0) {
-              return res.status(400).json({ error: 'Nómina no encontrada' });
-          }
+// ==================== OLVIDAR CONTRASEÑA POR NOMINA (ENVÍO DE CÓDIGO POR CORREO) ====================
+app.post('/api/forgot-password', async (req, res) => {
+  const { nomina } = req.body;
 
-          const token = crypto.randomBytes(4).toString('hex'); // Token de 8 caracteres
-          const expireTime = new Date(Date.now() + 15 * 60 * 1000); // Expira en 15 minutos
+  try {
+    const result = await pool.query(
+      'SELECT email FROM usuarios WHERE nomina = $1',
+      [nomina]
+    );
 
-          await pool.query(
-              'UPDATE usuarios SET reset_token = $1, reset_token_expire = $2 WHERE nomina = $3',
-              [token, expireTime, nomina]
-          );
-
-          res.json({
-              mensaje: 'Token generado. Úsalo para restablecer la contraseña.',
-              token // Solo para pruebas
-          });
-      } catch (err) {
-          console.error(err);
-          res.status(500).json({ error: 'Error generando token' });
-      }
-  });
-
-  // ==================== RESTABLECER CONTRASEÑA POR NÓMINA ====================
-  app.post('/api/reset-password', async (req, res) => {
-    const { nomina, token, password } = req.body;
-    try {
-      // Buscar usuario válido con token
-      const user = await pool.query(
-        'SELECT * FROM usuarios WHERE nomina = $1 AND reset_token = $2 AND reset_token_expire > NOW()',
-        [nomina, token]
-      );
-
-      if (user.rows.length === 0) {
-        return res.status(400).json({ error: 'Token inválido o expirado' });
-      }
-
-      // Encriptar nueva contraseña
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      // Actualizar contraseña y limpiar token
-      await pool.query(
-        'UPDATE usuarios SET password = $1, reset_token = NULL, reset_token_expire = NULL WHERE nomina = $2',
-        [hashedPassword, nomina]
-      );
-
-      // Registrar notificación en la BD
-      const username = user.rows[0].username;
-      await pool.query(
-        "INSERT INTO notificaciones (mensaje, usuario) VALUES ($1, $2)",
-        [` El usuario ${username} cambió su contraseña`, username]
-      );
-
-      res.json({ mensaje: 'Contraseña restablecida con éxito' });
-    } catch (err) {
-      console.error("❌ Error en /api/reset-password:", err);
-      res.status(500).json({ error: 'Error restableciendo contraseña' });
+    if (result.rows.length === 0) {
+      return res.status(400).json({ error: 'Nómina no encontrada' });
     }
-  });
+
+    const email = result.rows[0].email;
+
+    const codigo = generarCodigo();
+    const hash = await bcrypt.hash(codigo, 10);
+    const expira = new Date(Date.now() + 10 * 60 * 1000); // 10 minutos
+
+    await pool.query(
+      `UPDATE usuarios
+       SET reset_token = $1,
+           reset_token_expire = $2
+       WHERE nomina = $3`,
+      [hash, expira, nomina]
+    );
+
+    await transporter.sendMail({
+      from: '"OFTASIS" <no-reply@oftavision.shop>',
+      to: email,
+      subject: 'Recuperación de contraseña',
+      html: `
+        <p>Tu código de recuperación es:</p>
+        <h2>${codigo}</h2>
+        <p>Este código expira en 10 minutos.</p>
+      `
+    });
+
+    res.json({ mensaje: 'Código enviado al correo' });
+
+  } catch (err) {
+    console.error('❌ Error forgot-password:', err);
+    res.status(500).json({ error: 'Error enviando el código' });
+  }
+});
+
+ // ==================== RESTABLECER CONTRASEÑA (VALIDANDO CÓDIGO) ====================
+app.post('/api/reset-password', async (req, res) => {
+  const { nomina, token, password } = req.body;
+
+  try {
+    const result = await pool.query(
+      `SELECT reset_token, reset_token_expire, username
+       FROM usuarios
+       WHERE nomina = $1`,
+      [nomina]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ error: 'Usuario no encontrado' });
+    }
+
+    const user = result.rows[0];
+
+    if (!user.reset_token || new Date() > user.reset_token_expire) {
+      return res.status(400).json({ error: 'Código vencido' });
+    }
+
+    const valido = await bcrypt.compare(token, user.reset_token);
+    if (!valido) {
+      return res.status(400).json({ error: 'Código incorrecto' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await pool.query(
+      `UPDATE usuarios
+       SET password = $1,
+           reset_token = NULL,
+           reset_token_expire = NULL
+       WHERE nomina = $2`,
+      [hashedPassword, nomina]
+    );
+
+    await pool.query(
+      "INSERT INTO notificaciones (mensaje, usuario) VALUES ($1, $2)",
+      [` El usuario ${user.username} cambió su contraseña`, user.username]
+    );
+
+    res.json({ mensaje: 'Contraseña restablecida con éxito' });
+
+  } catch (err) {
+    console.error('❌ Error reset-password:', err);
+    res.status(500).json({ error: 'Error restableciendo contraseña' });
+  }
+});
 
   // ==================== ELIMINAR USUARIO (SOLO ADMIN) ====================
   app.delete('/api/admin/delete-user/:nomina', isAdmin, async (req, res) => {
