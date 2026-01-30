@@ -70,7 +70,7 @@
 // ==================== RESPALDO DE HORA ====================
 // Programar backup automático diario a las 2:00 AM
 cron.schedule('0 2 * * *', () => {
-  console.log('⏰ Ejecutando backup automático programado...');
+  console.log(' Ejecutando backup automático programado...');
   createBackup();
 });
 
@@ -78,7 +78,7 @@ cron.schedule('0 2 * * *', () => {
 app.post('/api/admin/backup', isAdmin, (req, res) => {
   try {
     createBackup();
-    res.json({ mensaje: '✅ Backup iniciado correctamente' });
+    res.json({ mensaje: ' Backup iniciado correctamente' });
   } catch (error) {
     res.status(500).json({ error: 'Error al crear backup' });
   }
@@ -190,7 +190,7 @@ app.post('/api/admin/backup', isAdmin, (req, res) => {
       const user = req.session.usuario?.username || "desconocido";
       await pool.query(
     "INSERT INTO notificaciones (mensaje, usuario, fecha) VALUES ($1, $2, $3)",
-    [`🔑 El usuario ${user} cambió su contraseña`, user, fechaHoraLocalMX()]
+    [` El usuario ${user} cambió su contraseña`, user, fechaHoraLocalMX()]
   );
 
       res.json({ ok: true });
@@ -229,7 +229,7 @@ app.post('/api/admin/backup', isAdmin, (req, res) => {
 
   // ==================== SERVIR PÁGINAS ====================
 
-  // ⚠️ Solo login es público
+  //  Solo login es público
   app.use('/login', express.static(path.join(__dirname, 'login')));
 
   //Redirigir la raíz al login (link principal)
@@ -242,7 +242,7 @@ app.post('/api/admin/backup', isAdmin, (req, res) => {
     if (
       req.path.endsWith(".html") && 
       !req.path.startsWith("/login/") && 
-      !(req.session && req.session.usuario) // ✅ permitir si ya hay sesión
+      !(req.session && req.session.usuario) //  permitir si ya hay sesión
     ) {
       return res.redirect("/login/login.html");
     }
@@ -320,8 +320,8 @@ app.post('/api/admin/backup', isAdmin, (req, res) => {
             username: usuario.username,
             nombre_completo: usuario.nombre_completo || usuario.username,
             rol: usuario.rol,
-            departamento: usuario.departamento, // ✅ GUARDAR EL DEPARTAMENTO REAL DE LA BD
-            esAdminGlobal: usuario.rol === "admin" && (!usuario.departamento || usuario.departamento === 'N/A') // ✅ FLAG PARA ADMIN SIN SUCURSAL
+            departamento: usuario.departamento, //  GUARDAR EL DEPARTAMENTO REAL DE LA BD
+            esAdminGlobal: usuario.rol === "admin" && (!usuario.departamento || usuario.departamento === 'N/A') // FLAG PARA ADMIN SIN SUCURSAL
         };
             
           res.json({ 
@@ -391,7 +391,7 @@ app.post('/api/admin/backup', isAdmin, (req, res) => {
       const username = user.rows[0].username;
       await pool.query(
         "INSERT INTO notificaciones (mensaje, usuario) VALUES ($1, $2)",
-        [`🔑 El usuario ${username} cambió su contraseña`, username]
+        [` El usuario ${username} cambió su contraseña`, username]
       );
 
       res.json({ mensaje: 'Contraseña restablecida con éxito' });
@@ -419,10 +419,10 @@ app.post('/api/admin/backup', isAdmin, (req, res) => {
       const eliminado = result.rows[0].username;
       await pool.query(
         "INSERT INTO notificaciones (mensaje, usuario) VALUES ($1, $2)",
-        [`🗑️ El usuario ${eliminado} fue eliminado por un administrador`, 'admin']
+        [` El usuario ${eliminado} fue eliminado por un administrador`, 'admin']
       );
 
-      res.json({ mensaje: '🗑️ Usuario eliminado correctamente' });
+      res.json({ mensaje: ' Usuario eliminado correctamente' });
     } catch (err) {
       console.error("❌ Error en /api/admin/delete-user:", err);
       res.status(500).json({ error: 'Error eliminando usuario' });
@@ -436,7 +436,7 @@ app.post('/api/admin/backup', isAdmin, (req, res) => {
 function getDepartamento(req) {
   const usuario = req.session.usuario;
   
-  // ✅ TODOS los admins pueden cambiar de sucursal
+  //  TODOS los admins pueden cambiar de sucursal
   if (usuario.rol === "admin") {
     return usuario.sucursalSeleccionada || usuario.departamento || "ADMIN";
   }
@@ -562,7 +562,7 @@ function getDepartamento(req) {
 
   // 5. OBTENER UN EXPEDIENTE POR NÚMERO (DESPUÉS DE RUTAS ESPECÍFICAS)
   app.get('/api/expedientes/:numero', verificarSesion, async (req, res) => {
-    console.log("📍 GET /api/expedientes/:numero");
+    console.log(" GET /api/expedientes/:numero");
     
     const numero = parseInt(req.params.numero, 10);
     const departamentoQuery = req.query.departamento; // ← Recibir depto desde query params
@@ -579,7 +579,7 @@ function getDepartamento(req) {
       depto = departamentoQuery;
     }
 
-    console.log("🏢 Buscando expediente", numero, "en departamento:", depto);
+    console.log(" Buscando expediente", numero, "en departamento:", depto);
 
     try {
       const result = await pool.query(
@@ -587,14 +587,14 @@ function getDepartamento(req) {
         [numero, depto]
       );
 
-      console.log("📊 Resultados encontrados:", result.rows.length);
+      console.log(" Resultados encontrados:", result.rows.length);
 
       if (result.rows.length === 0) {
         console.log("❌ No se encontró expediente:", numero, "en departamento:", depto);
         return res.status(404).json({ error: "Expediente no encontrado" });
       }
 
-      console.log("✅ Expediente encontrado:", result.rows[0].nombre_completo);
+      console.log("Expediente encontrado:", result.rows[0].nombre_completo);
       res.json(result.rows[0]);
     } catch (err) {
       console.error("❌ Error al obtener expediente:", err);
@@ -604,7 +604,7 @@ function getDepartamento(req) {
 
   // 6. ACTUALIZAR EXPEDIENTE
   app.put('/api/expedientes/:numero', verificarSesion, async (req, res) => {
-    console.log("📍 PUT /api/expedientes/:numero");
+    console.log(" PUT /api/expedientes/:numero");
     
     const numero = parseInt(req.params.numero, 10);
     
@@ -631,8 +631,8 @@ function getDepartamento(req) {
       depto = departamento;
     }
 
-    console.log("🏢 Actualizando expediente", numero, "en departamento:", depto);
-    console.log("📦 Datos:", { nombre_completo, edad, padecimientos });
+    console.log(" Actualizando expediente", numero, "en departamento:", depto);
+    console.log(" Datos:", { nombre_completo, edad, padecimientos });
 
     try {
       const result = await pool.query(
@@ -650,14 +650,14 @@ function getDepartamento(req) {
         [nombre_completo, fecha_nacimiento, edad, padecimientos, colonia, ciudad, telefono1, telefono2, numero, depto]
       );
 
-      console.log("📊 Filas actualizadas:", result.rows.length);
+      console.log(" Filas actualizadas:", result.rows.length);
 
       if (result.rows.length === 0) {
         console.log("❌ No se encontró expediente para actualizar");
         return res.status(404).json({ error: "Expediente no encontrado" });
       }
 
-      console.log("✅ Expediente actualizado correctamente:", result.rows[0].nombre_completo);
+      console.log(" Expediente actualizado correctamente:", result.rows[0].nombre_completo);
       res.json({ mensaje: "Expediente actualizado correctamente", expediente: result.rows[0] });
     } catch (err) {
       console.error("❌ Error al actualizar expediente:", err);
@@ -667,7 +667,7 @@ function getDepartamento(req) {
 
   // 7. ELIMINAR EXPEDIENTE (SOLO ADMIN) - CON ELIMINACIÓN EN CASCADA
   app.delete('/api/expedientes/:numero', verificarSesion, isAdmin, async (req, res) => {
-    console.log("📍 DELETE /api/expedientes/:numero");
+    console.log(" DELETE /api/expedientes/:numero");
     
     const numero = parseInt(req.params.numero, 10);
     
@@ -676,7 +676,7 @@ function getDepartamento(req) {
     }
 
     const depto = getDepartamento(req);
-    console.log("🏢 Eliminando expediente", numero, "en departamento:", depto);
+    console.log(" Eliminando expediente", numero, "en departamento:", depto);
 
     const client = await pool.connect();
     
@@ -691,12 +691,12 @@ function getDepartamento(req) {
 
       if (expResult.rows.length === 0) {
         await client.query('ROLLBACK');
-        console.log("❌ No se encontró expediente para eliminar");
+        console.log(" No se encontró expediente para eliminar");
         return res.status(404).json({ error: "Expediente no encontrado o no pertenece a tu sucursal" });
       }
 
       const expediente = expResult.rows[0];
-      console.log("📋 Expediente encontrado:", expediente.nombre_completo);
+      console.log(" Expediente encontrado:", expediente.nombre_completo);
 
       // 2. Eliminar pagos de órdenes médicas asociadas
       await client.query(
@@ -707,14 +707,14 @@ function getDepartamento(req) {
         )`,
         [numero, depto]
       );
-      console.log("✅ Pagos eliminados");
+      console.log(" Pagos eliminados");
 
       // 3. Eliminar órdenes médicas
       await client.query(
         "DELETE FROM ordenes_medicas WHERE expediente_id = $1 AND departamento = $2",
         [numero, depto]
       );
-      console.log("✅ Órdenes médicas eliminadas");
+      console.log(" Órdenes médicas eliminadas");
 
       // 4. Eliminar abonos de recibos
       await client.query(
@@ -725,39 +725,39 @@ function getDepartamento(req) {
         )`,
         [numero, depto]
       );
-      console.log("✅ Abonos eliminados");
+      console.log(" Abonos eliminados");
 
       // 5. Eliminar recibos
       await client.query(
         "DELETE FROM recibos WHERE paciente_id = $1 AND departamento = $2",
         [numero, depto]
       );
-      console.log("✅ Recibos eliminados");
+      console.log(" Recibos eliminados");
 
       // 6. Eliminar registros de optometría
       await client.query(
         "DELETE FROM optometria WHERE expediente_id = $1 AND departamento = $2",
         [numero, depto]
       );
-      console.log("✅ Registros de optometría eliminados");
+      console.log(" Registros de optometría eliminados");
 
       // 7. Eliminar agenda quirúrgica
       await client.query(
         "DELETE FROM agenda_quirurgica WHERE paciente_id = $1 AND departamento = $2",
         [numero, depto]
       );
-      console.log("✅ Agenda quirúrgica eliminada");
+      console.log(" Agenda quirúrgica eliminada");
 
       // 8. Finalmente eliminar el expediente
       await client.query(
         "DELETE FROM expedientes WHERE numero_expediente = $1 AND departamento = $2",
         [numero, depto]
       );
-      console.log("✅ Expediente eliminado:", expediente.nombre_completo);
+      console.log(" Expediente eliminado:", expediente.nombre_completo);
 
       await client.query('COMMIT');
       
-      res.json({ mensaje: `🗑️ Expediente ${numero} y todos sus registros asociados eliminados correctamente` });
+      res.json({ mensaje: ` Expediente ${numero} y todos sus registros asociados eliminados correctamente` });
 
     } catch (err) {
       await client.query('ROLLBACK');
@@ -1035,7 +1035,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
     const recibo = result.rows[0];
 
     if (monto_pagado > 0) {
-      console.log(`✅ Registrando pago inicial de $${monto_pagado} en abonos_recibos para recibo ${recibo.id}`);
+      console.log(` Registrando pago inicial de $${monto_pagado} en abonos_recibos para recibo ${recibo.id}`);
       
       await client.query(
         `INSERT INTO abonos_recibos (recibo_id, monto, forma_pago, fecha, departamento)
@@ -1084,7 +1084,7 @@ app.post('/api/recibos', verificarSesion, async (req, res) => {
       );
 
       const ordenId = orden.rows[0].id;
-      console.log(`✅ Orden médica N°${numero_orden} creada (tipo: ${tipoOrden}, medico: cadena vacía para Módulo Médico)`);
+      console.log(` Orden médica N°${numero_orden} creada (tipo: ${tipoOrden}, medico: cadena vacía para Módulo Médico)`);
 
       if (monto_pagado > 0) {
         await client.query(
@@ -1128,7 +1128,7 @@ app.get('/api/recibos', verificarSesion, async (req, res) => {
         r.numero_recibo,
         r.fecha,
         r.folio,
-        -- ✅ CORREGIDO: Obtener nombre desde expedientes O pacientes_agenda
+        --  CORREGIDO: Obtener nombre desde expedientes O pacientes_agenda
         COALESCE(
           e.nombre_completo,
           (pa.nombre || ' ' || pa.apellido)
@@ -1196,13 +1196,13 @@ app.get('/api/recibos/:id', verificarSesion, async (req, res) => {
         r.tipo, 
         r.forma_pago, 
         r.precio,
-        -- ✅ CALCULAR monto_pagado desde abonos_recibos
+        --  CALCULAR monto_pagado desde abonos_recibos
         COALESCE(
           (SELECT SUM(a.monto) FROM abonos_recibos a 
            WHERE a.recibo_id = r.id AND a.departamento = r.departamento),
           0
         ) AS monto_pagado,
-        -- ✅ CALCULAR pendiente correctamente
+        --  CALCULAR pendiente correctamente
         (r.precio - COALESCE(
           (SELECT SUM(a.monto) FROM abonos_recibos a 
            WHERE a.recibo_id = r.id AND a.departamento = r.departamento),
@@ -1237,14 +1237,14 @@ app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
   try {
     await client.query("BEGIN");
 
-    // 1️⃣ Insertar el abono en abonos_recibos
+    // 1️ Insertar el abono en abonos_recibos
     await client.query(
       `INSERT INTO abonos_recibos (recibo_id, monto, forma_pago, fecha, departamento)
       VALUES ($1, $2, $3, $4, $5)`,
       [id, monto, forma_pago, fechaLocalMX(), depto]
     );
 
-    // 2️⃣ Actualizar monto_pagado en el recibo
+    // 2️ Actualizar monto_pagado en el recibo
     const result = await client.query(
       `UPDATE recibos
       SET monto_pagado = monto_pagado + $1
@@ -1260,7 +1260,7 @@ app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
 
     const recibo = result.rows[0];
 
-    // 3️⃣ Si el recibo es de tipo OrdenCirugia → actualizar orden y registrar pago
+    // 3️ Si el recibo es de tipo OrdenCirugia → actualizar orden y registrar pago
     if (recibo.tipo && recibo.tipo.toLowerCase().includes("orden")) {
       const ordenResult = await client.query(
         `SELECT id, expediente_id, precio, pagado, pendiente
@@ -1294,7 +1294,7 @@ app.post('/api/recibos/:id/abonos', verificarSesion, async (req, res) => {
     }
 
     await client.query("COMMIT");
-    res.json({ mensaje: "✅ Abono registrado correctamente" });
+    res.json({ mensaje: " Abono registrado correctamente" });
 
   } catch (err) {
     await client.query("ROLLBACK");
@@ -1316,7 +1316,7 @@ app.delete('/api/recibos/:id', verificarSesion, async (req, res) => {
   try {
     await client.query("BEGIN");
 
-    // 1️⃣ Verificar que el recibo existe y pertenece al departamento
+    // 1️ Verificar que el recibo existe y pertenece al departamento
     const reciboCheck = await client.query(
       "SELECT id FROM recibos WHERE id = $1 AND departamento = $2",
       [id, depto]
@@ -1327,9 +1327,9 @@ app.delete('/api/recibos/:id', verificarSesion, async (req, res) => {
       return res.status(404).json({ error: "Recibo no encontrado o no pertenece a este departamento" });
     }
 
-    console.log(`🗑️ Eliminando recibo ${id} y todas sus dependencias...`);
+    console.log(` Eliminando recibo ${id} y todas sus dependencias...`);
 
-    // 2️⃣ Buscar órdenes médicas asociadas a este recibo
+    // 2️ Buscar órdenes médicas asociadas a este recibo
     const ordenesResult = await client.query(
       "SELECT id FROM ordenes_medicas WHERE folio_recibo = $1 AND departamento = $2",
       [id, depto]
@@ -1338,50 +1338,50 @@ app.delete('/api/recibos/:id', verificarSesion, async (req, res) => {
     const ordenIds = ordenesResult.rows.map(r => r.id);
 
     if (ordenIds.length > 0) {
-      console.log(`📋 Encontradas ${ordenIds.length} órdenes médicas asociadas`);
+      console.log(` Encontradas ${ordenIds.length} órdenes médicas asociadas`);
 
-      // 3️⃣ Eliminar pagos de las órdenes
+      // 3️ Eliminar pagos de las órdenes
       await client.query(
         "DELETE FROM pagos WHERE orden_id = ANY($1) AND departamento = $2",
         [ordenIds, depto]
       );
-      console.log(`✅ Pagos de órdenes eliminados`);
+      console.log(` Pagos de órdenes eliminados`);
 
-      // 4️⃣ Eliminar consultas asociadas (si existen)
+      // 4️ Eliminar consultas asociadas (si existen)
       await client.query(
         "DELETE FROM consultas WHERE id IN (SELECT consulta_id FROM ordenes_medicas WHERE id = ANY($1)) AND departamento = $2",
         [ordenIds, depto]
       );
-      console.log(`✅ Consultas asociadas eliminadas`);
+      console.log(` Consultas asociadas eliminadas`);
 
-      // 5️⃣ Eliminar registros de agenda quirúrgica
+      // 5️ Eliminar registros de agenda quirúrgica
       await client.query(
         "DELETE FROM agenda_quirurgica WHERE orden_id = ANY($1) AND departamento = $2",
         [ordenIds, depto]
       );
-      console.log(`✅ Registros de agenda quirúrgica eliminados`);
+      console.log(` Registros de agenda quirúrgica eliminados`);
 
-      // 6️⃣ Eliminar las órdenes médicas
+      // 6️ Eliminar las órdenes médicas
       await client.query(
         "DELETE FROM ordenes_medicas WHERE id = ANY($1) AND departamento = $2",
         [ordenIds, depto]
       );
-      console.log(`✅ Órdenes médicas eliminadas`);
+      console.log(` Órdenes médicas eliminadas`);
     }
 
-    // 7️⃣ Eliminar abonos del recibo
+    // 7️ Eliminar abonos del recibo
     await client.query(
       "DELETE FROM abonos_recibos WHERE recibo_id = $1 AND departamento = $2",
       [id, depto]
     );
-    console.log(`✅ Abonos del recibo eliminados`);
+    console.log(` Abonos del recibo eliminados`);
 
-    // 8️⃣ Finalmente, eliminar el recibo
+    // 8️ Finalmente, eliminar el recibo
     await client.query(
       "DELETE FROM recibos WHERE id = $1 AND departamento = $2",
       [id, depto]
     );
-    console.log(`✅ Recibo ${id} eliminado correctamente`);
+    console.log(` Recibo ${id} eliminado correctamente`);
 
     await client.query("COMMIT");
     res.json({ mensaje: "Recibo y todas sus dependencias eliminados correctamente" });
@@ -1404,7 +1404,7 @@ app.get('/api/procedimientos', verificarSesion, async (req, res) => {
   try {
     const depto = getDepartamento(req);
     
-    console.log('🔍 Consultando procedimientos para:', depto);
+    console.log(' Consultando procedimientos para:', depto);
 
     const result = await pool.query(`
       SELECT 
@@ -1418,8 +1418,8 @@ app.get('/api/procedimientos', verificarSesion, async (req, res) => {
       ORDER BY cp.nombre
     `, [depto]);
 
-    console.log('✅ Procedimientos encontrados:', result.rows.length);
-    console.log('📋 Primeros 3:', result.rows.slice(0, 3));
+    console.log(' Procedimientos encontrados:', result.rows.length);
+    console.log(' Primeros 3:', result.rows.slice(0, 3));
 
     res.json(result.rows);
   } catch (err) {
@@ -1461,7 +1461,7 @@ app.get('/api/recibos/paciente/:folio', verificarSesion, async (req, res) => {
   let depto = getDepartamento(req);
 
   try {
-    // 1️⃣ Primero buscar en expedientes normales
+    // 1️ Primero buscar en expedientes normales
     const expedienteResult = await pool.query(
       `SELECT numero_expediente AS id, numero_expediente AS folio, nombre_completo
        FROM expedientes
@@ -1474,7 +1474,7 @@ app.get('/api/recibos/paciente/:folio', verificarSesion, async (req, res) => {
       return res.json(expedienteResult.rows[0]);
     }
 
-    // 2️⃣ Si no se encuentra, buscar en pacientes_agenda
+    // 2️ Si no se encuentra, buscar en pacientes_agenda
     const pacienteAgendaResult = await pool.query(
       `SELECT id, id AS folio, (nombre || ' ' || apellido) AS nombre_completo
        FROM pacientes_agenda
@@ -1487,7 +1487,7 @@ app.get('/api/recibos/paciente/:folio', verificarSesion, async (req, res) => {
       return res.json(pacienteAgendaResult.rows[0]);
     }
 
-    // 3️⃣ Si no se encuentra en ninguna tabla
+    // 3️ Si no se encuentra en ninguna tabla
     return res.status(404).json({ error: "No se encontró paciente con ese folio" });
 
   } catch (err) {
@@ -1502,7 +1502,7 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
     const depto = getDepartamento(req);
 
     const result = await pool.query(`
-      -- 1️⃣ Consultas que YA fueron enviadas al módulo médico (estado = 'En Módulo Médico')
+      -- 1️ Consultas que YA fueron enviadas al módulo médico (estado = 'En Módulo Médico')
       SELECT 
         c.id AS recibo_id,
         COALESCE(c.numero_expediente, c.paciente_agenda_id) AS expediente_id,
@@ -1531,7 +1531,7 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
 
       UNION ALL
 
-      -- 2️⃣ Órdenes médicas creadas directamente desde RECIBOS (tipo Normal/Atención Médica)
+      -- 2️ Órdenes médicas creadas directamente desde RECIBOS (tipo Normal/Atención Médica)
       SELECT 
         o.folio_recibo AS recibo_id,
         COALESCE(o.expediente_id, o.paciente_agenda_id) AS expediente_id,
@@ -1556,7 +1556,7 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
       ORDER BY nombre_completo ASC
     `, [depto]);
 
-    console.log(`✅ Módulo Médico: ${result.rows.length} pacientes pendientes`);
+    console.log(` Módulo Médico: ${result.rows.length} pacientes pendientes`);
     res.json(result.rows);
 
   } catch (err) {
@@ -1565,7 +1565,7 @@ app.get('/api/pendientes-medico', verificarSesion, async (req, res) => {
   }
 });
 
-// ==================== GUARDAR O ACTUALIZAR ORDEN MÉDICA (✅ CORREGIDO - CREA NUEVA ORDEN SI CAMBIA PROCEDIMIENTO) ====================
+// ==================== GUARDAR O ACTUALIZAR ORDEN MÉDICA ( CORREGIDO - CREA NUEVA ORDEN SI CAMBIA PROCEDIMIENTO) ====================
 app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
   const client = await pool.connect();
   
@@ -1596,9 +1596,9 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
 
     await client.query("BEGIN");
 
-    // ✅ CASO 1: VIENE DE CONSULTA (consulta_id existe)
+    //  CASO 1: VIENE DE CONSULTA (consulta_id existe)
     if (consulta_id) {
-      console.log('📋 Procesando orden desde CONSULTA ID:', consulta_id);
+      console.log(' Procesando orden desde CONSULTA ID:', consulta_id);
 
       const consultaResult = await client.query(
         `SELECT expediente_id, numero_expediente, paciente_agenda_id, tipo_paciente FROM consultas WHERE id = $1 AND departamento = $2`,
@@ -1777,8 +1777,8 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
       }
 
     } else if (folio_recibo) {
-      // ✅ CASO 2: VIENE DE RECIBO DIRECTO
-      console.log('💵 Procesando orden desde RECIBO ID:', folio_recibo);
+      //  CASO 2: VIENE DE RECIBO DIRECTO
+      console.log(' Procesando orden desde RECIBO ID:', folio_recibo);
 
       const reciboResult = await client.query(
         `SELECT id, paciente_id, paciente_agenda_id, tipo, procedimiento, precio FROM recibos WHERE id = $1 AND departamento = $2`,
@@ -1816,12 +1816,12 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         const precioOriginal = parseFloat(ordenExistente.rows[0].precio);
         const precioNuevo = parseFloat(procedimientoPrecio);
 
-        // 🔍 DETECTAR SI CAMBIÓ DE CONSULTA A CIRUGÍA
+        //  DETECTAR SI CAMBIÓ DE CONSULTA A CIRUGÍA
         const esConsultaOriginal = procedimientoOriginal.toLowerCase().includes('consulta') && precioOriginal <= 500;
         const esCirugiaNueva = !procedimientoNombre.toLowerCase().includes('consulta') && precioNuevo > 500;
 
         if (esConsultaOriginal && esCirugiaNueva) {
-          console.log('🔄 CAMBIÓ DE CONSULTA A CIRUGÍA - Crear nueva orden');
+          console.log(' CAMBIÓ DE CONSULTA A CIRUGÍA - Crear nueva orden');
 
           // 1. Actualizar orden de consulta CON DATOS MÉDICOS (sin cambiar procedimiento/precio)
           await client.query(
@@ -2050,7 +2050,7 @@ app.post("/api/ordenes_medicas", verificarSesion, async (req, res) => {
     }
   });
 
-// ==================== LISTAR TODAS LAS ÓRDENES (✅ CORREGIDO - INCLUYE CONSULTAS) ====================
+// ==================== LISTAR TODAS LAS ÓRDENES ( CORREGIDO - INCLUYE CONSULTAS) ====================
 app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
   try {
     let depto = getDepartamento(req);
@@ -2105,7 +2105,7 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
 
     const result = await pool.query(query, params);
     
-    console.log("✅ Órdenes médicas cargadas:", result.rows.length);
+    console.log(" Órdenes médicas cargadas:", result.rows.length);
     
     res.json(result.rows);
   } catch (err) {
@@ -2193,7 +2193,7 @@ app.get("/api/ordenes_medicas", verificarSesion, async (req, res) => {
         return res.status(404).json({ error: "Orden no encontrada después del update" });
 
       res.json({
-        mensaje: "✅ Campo actualizado correctamente",
+        mensaje: " Campo actualizado correctamente",
         orden: result.rows[0],
       });
     } catch (err) {
@@ -2221,7 +2221,7 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 
     await client.query("BEGIN");
 
-    // 1️⃣ Obtener la orden médica
+    // 1️ Obtener la orden médica
     const ordenResult = await client.query(
       `SELECT id, expediente_id, tipo, precio, pagado, pendiente, folio_recibo
       FROM ordenes_medicas
@@ -2236,7 +2236,7 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 
     const orden = ordenResult.rows[0];
 
-    // 2️⃣ Registrar el pago
+    // 2️ Registrar el pago
     const pagoResult = await client.query(
       `INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
       VALUES ($1, $2, $3, $4, $5, $6)
@@ -2244,12 +2244,12 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
       [orden.id, orden.expediente_id, monto, forma_pago, fechaLocalMX(), depto]
     );
 
-    // 3️⃣ Calcular nuevos totales de la orden
+    // 3️ Calcular nuevos totales de la orden
     const nuevoPagado = Number(orden.pagado || 0) + monto;
     const nuevoPendiente = Math.max(0, Number(orden.precio || 0) - nuevoPagado);
     const nuevoEstatus = nuevoPendiente <= 0 ? "Pagado" : "Pendiente";
 
-    // 4️⃣ Actualizar orden médica
+    // 4️ Actualizar orden médica
     await client.query(
       `UPDATE ordenes_medicas
       SET pagado = $1, pendiente = $2, estatus = $3
@@ -2257,9 +2257,9 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
       [nuevoPagado, nuevoPendiente, nuevoEstatus, orden.id, depto]
     );
 
-    // 5️⃣ ✅ CORREGIDO: Registrar abono en abonos_recibos si hay recibo vinculado
+    // 5️ CORREGIDO: Registrar abono en abonos_recibos si hay recibo vinculado
     if (orden.folio_recibo) {
-      console.log(`✅ Registrando abono en recibo ${orden.folio_recibo} por $${monto}`);
+      console.log(` Registrando abono en recibo ${orden.folio_recibo} por $${monto}`);
       
       // Registrar abono en abonos_recibos
       await client.query(
@@ -2268,13 +2268,13 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
         [orden.folio_recibo, monto, forma_pago, fechaLocalMX(), depto]
       );
       
-      console.log(`✅ Abono registrado en abonos_recibos para recibo ${orden.folio_recibo}`);
+      console.log(` Abono registrado en abonos_recibos para recibo ${orden.folio_recibo}`);
     }
 
     await client.query("COMMIT");
 
     res.json({
-      mensaje: "✅ Pago registrado correctamente",
+      mensaje: " Pago registrado correctamente",
       pago: pagoResult.rows[0],
       totalPagado: nuevoPagado,
       pendiente: nuevoPendiente
@@ -2299,7 +2299,7 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 
       await client.query('BEGIN');
 
-      // 1️⃣ Actualizar la orden con el folio_recibo y el pago
+      // 1️ Actualizar la orden con el folio_recibo y el pago
       const result = await client.query(`
         UPDATE ordenes_medicas
         SET folio_recibo = $1,
@@ -2315,7 +2315,7 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
         return res.status(404).json({ error: 'Orden no encontrada' });
       }
 
-      // 2️⃣ Registrar el pago en la tabla pagos
+      // 2️ Registrar el pago en la tabla pagos
       const orden = result.rows[0];
       await client.query(`
         INSERT INTO pagos (orden_id, expediente_id, monto, forma_pago, fecha, departamento)
@@ -2364,7 +2364,7 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 
       const query = `
         WITH resumen AS (
-          -- ✅ SOLO Recibos tipo "Normal" QUE NO TIENEN ORDEN MÉDICA (evita duplicados)
+          --  SOLO Recibos tipo "Normal" QUE NO TIENEN ORDEN MÉDICA (evita duplicados)
           SELECT 
             r.forma_pago AS pago,
             r.procedimiento AS procedimiento,
@@ -2381,7 +2381,7 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 
           UNION ALL
 
-          -- ✅ Recibos tipo "OrdenCirugia" que NO tienen orden médica aún (evitar duplicados)
+          --  Recibos tipo "OrdenCirugia" que NO tienen orden médica aún (evitar duplicados)
           SELECT 
             r.forma_pago AS pago,
             r.procedimiento AS procedimiento,
@@ -2398,7 +2398,7 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
 
           UNION ALL
 
-          -- ✅ Pagos de órdenes médicas (desde tabla pagos - la fuente correcta)
+          --  Pagos de órdenes médicas (desde tabla pagos - la fuente correcta)
           SELECT 
             p.forma_pago AS pago,
             o.procedimiento AS procedimiento,
@@ -2416,9 +2416,9 @@ app.post("/api/pagos", verificarSesion, async (req, res) => {
         ORDER BY pago, procedimiento;
       `;
 
-      console.log('📊 Ejecutando cierre de caja con params:', params);
+      console.log(' Ejecutando cierre de caja con params:', params);
       const result = await pool.query(query, params);
-      console.log('✅ Resumen generado con', result.rows.length, 'registros');
+      console.log(' Resumen generado con', result.rows.length, 'registros');
       
       res.json(result.rows);
     } catch (err) {
@@ -2460,7 +2460,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
     // --- Consulta SQL FINAL CORREGIDA ---
     const query = `
       WITH datos_completos AS (
-        -- 1️⃣ Recibos tipo NORMAL (✅ EXCLUIR si tienen orden médica)
+        -- 1️ Recibos tipo NORMAL ( EXCLUIR si tienen orden médica)
         SELECT 
           r.paciente_id AS numero_expediente,
           r.paciente_agenda_id,
@@ -2487,7 +2487,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
 
         UNION ALL
 
-        -- 2️⃣ Recibos tipo "OrdenCirugia" sin orden médica
+        -- 2️ Recibos tipo "OrdenCirugia" sin orden médica
         SELECT 
           r.paciente_id AS numero_expediente,
           r.paciente_agenda_id,
@@ -2514,7 +2514,7 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
 
         UNION ALL
 
-        -- 3️⃣ Órdenes médicas con pagos
+        -- 3️ Órdenes médicas con pagos
         SELECT 
           o.expediente_id AS numero_expediente,
           o.paciente_agenda_id,
@@ -2543,13 +2543,13 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
       SELECT 
         COALESCE(d.n_orden, 0) AS n_orden,
         COALESCE(d.n_folio, 0) AS n_folio,
-        -- ✅ Mostrar expediente normal O mini expediente
+        --  Mostrar expediente normal O mini expediente
         COALESCE(
           e.numero_expediente::text,
           ('PA-' || d.paciente_agenda_id::text),
           'Sin expediente'
         ) AS expediente,
-        -- ✅ Obtener nombre desde expedientes O pacientes_agenda
+        --  Obtener nombre desde expedientes O pacientes_agenda
         COALESCE(
           e.nombre_completo,
           (pa.nombre || ' ' || pa.apellido),
@@ -2562,20 +2562,20 @@ app.get("/api/listado-pacientes", verificarSesion, async (req, res) => {
         d.pagado AS total,
         -d.pendiente AS saldo
       FROM datos_completos d
-      -- ✅ LEFT JOIN con expedientes (puede no existir)
+      --  LEFT JOIN con expedientes (puede no existir)
       LEFT JOIN expedientes e 
         ON e.numero_expediente = d.numero_expediente 
         AND e.departamento = $1
-      -- ✅ LEFT JOIN con pacientes_agenda (puede no existir)
+      --  LEFT JOIN con pacientes_agenda (puede no existir)
       LEFT JOIN pacientes_agenda pa
         ON pa.id = d.paciente_agenda_id
         AND pa.departamento = $1
       ORDER BY d.fecha DESC, COALESCE(d.n_orden, 0) DESC;
     `;
 
-    console.log('📊 Ejecutando query con params:', params);
+    console.log(' Ejecutando query con params:', params);
     const result = await pool.query(query, params);
-    console.log('✅ Registros obtenidos:', result.rows.length);
+    console.log(' Registros obtenidos:', result.rows.length);
     res.json(result.rows);
 
   } catch (err) {
@@ -2876,7 +2876,7 @@ app.delete("/api/optometria/:id", isAdmin, async (req, res) => {
       return res.status(404).json({ error: "Evaluación no encontrada o no pertenece a tu sucursal" });
     }
 
-    res.json({ mensaje: "🗑️ Evaluación de optometría eliminada" });
+    res.json({ mensaje: " Evaluación de optometría eliminada" });
   } catch (err) {
     console.error("Error al eliminar optometría:", err);
     res.status(500).json({ error: err.message });
@@ -2935,7 +2935,7 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
       let depto = getDepartamento(req);
 
       if (!depto) {
-        console.warn("⚠️ Departamento no detectado en sesión");
+        console.warn(" Departamento no detectado en sesión");
         return res
           .status(401)
           .json({ error: "No se pudo identificar el departamento del usuario" });
@@ -2960,7 +2960,7 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
       let depto = getDepartamento(req);
 
       if (!depto) {
-        console.warn("⚠️ Departamento no detectado al listar insumos");
+        console.warn(" Departamento no detectado al listar insumos");
         return res
           .status(401)
           .json({ error: "No se pudo identificar el departamento del usuario" });
@@ -2995,7 +2995,7 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
         const workbook = xlsx.readFile(req.file.path);
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         
-        // ✅ FLEXIBLE: Acepta cualquier formato
+        //  FLEXIBLE: Acepta cualquier formato
         const data = xlsx.utils.sheet_to_json(sheet, { defval: "", raw: true });
 
         let insertados = 0;
@@ -3007,7 +3007,7 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
           const numFila = index + 2;
           
           try {
-            // ✅ BUSCAR columnas de forma FLEXIBLE (no importa mayúsculas/minúsculas)
+            //  BUSCAR columnas de forma FLEXIBLE (no importa mayúsculas/minúsculas)
             const keys = Object.keys(row).map(k => k.toLowerCase().trim());
             
             // Buscar FECHA
@@ -3114,7 +3114,7 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
               continue;
             }
 
-            // ✅ SOLO INSERTAR (no actualizar registros existentes)
+            //  SOLO INSERTAR (no actualizar registros existentes)
             await pool.query(
               `INSERT INTO insumos (fecha, folio, concepto, monto, archivo, departamento)
               VALUES ($1, $2, $3, $4, $5, $6)`,
@@ -3123,7 +3123,7 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
             insertados++;
 
           } catch (rowError) {
-            // ✅ Si hay error de folio duplicado, seguir adelante
+            //  Si hay error de folio duplicado, seguir adelante
             if (rowError.code === '23505') { // Código de error de PostgreSQL para duplicate key
               errores.push(`Fila ${numFila}: Folio duplicado - omitido`);
               omitidos++;
@@ -3166,7 +3166,7 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
       let depto = getDepartamento(req);
 
       if (!depto) {
-        console.warn("⚠️ Departamento no detectado al eliminar insumo");
+        console.warn(" Departamento no detectado al eliminar insumo");
         return res
           .status(401)
           .json({ error: "No se pudo identificar el departamento del usuario" });
@@ -3183,7 +3183,7 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
         });
       }
 
-      res.json({ mensaje: "🗑️ Insumo eliminado correctamente" });
+      res.json({ mensaje: " Insumo eliminado correctamente" });
     } catch (err) {
       console.error("Error eliminando insumo:", err);
       res.status(500).json({ error: "Error eliminando insumo" });
@@ -3408,8 +3408,8 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
 
       res.json({
         mensaje: fecha_cirugia
-          ? "✅ Cirugía agendada"
-          : "🗑️ Cirugía eliminada",
+          ? " Cirugía agendada"
+          : " Cirugía eliminada",
         orden: result.rows[0]
       });
     } catch (err) {
@@ -3437,7 +3437,7 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
       if (result.rows.length === 0)
         return res.status(404).json({ error: "Orden no encontrada" });
 
-      res.json({ mensaje: "✅ Tipo de lente actualizado", orden: result.rows[0] });
+      res.json({ mensaje: " Tipo de lente actualizado", orden: result.rows[0] });
     } catch (err) {
       console.error("Error en /api/ordenes/:id/lente:", err);
       res.status(500).json({ error: err.message });
@@ -3524,7 +3524,7 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
       const { numero } = req.params;
       let depto = getDepartamento(req);
 
-      console.log('🔍 Buscando expediente número:', numero, 'en departamento:', depto);
+      console.log('Buscando expediente número:', numero, 'en departamento:', depto);
 
       const result = await pool.query(
         `SELECT * FROM expedientes WHERE numero_expediente = $1 AND departamento = $2`,
@@ -3536,7 +3536,7 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
         return res.status(404).json({ error: 'Expediente no encontrado' });
       }
 
-      console.log('✅ Expediente encontrado:', result.rows[0].nombre_completo);
+      console.log(' Expediente encontrado:', result.rows[0].nombre_completo);
       res.json(result.rows[0]);
 
     } catch (err) {
@@ -3698,14 +3698,14 @@ app.post('/api/consultas', verificarSesion, async (req, res) => {
 
       await client.query('BEGIN');
 
-      // 1️⃣ Obtener órdenes
+      // 1️ Obtener órdenes
       const ordenes = await client.query(
         'SELECT id, folio_recibo FROM ordenes_medicas WHERE consulta_id = $1 AND departamento = $2',
         [id, depto]
       );
 
       if (ordenes.rowCount > 0) {
-        // 2️⃣ Verificar pagos
+        // 2️ Verificar pagos
         let tienePagos = false;
         for (const orden of ordenes.rows) {
           const pagos = await client.query(
@@ -3726,7 +3726,7 @@ app.post('/api/consultas', verificarSesion, async (req, res) => {
           });
         }
 
-        // 3️⃣ Eliminar pagos y órdenes
+        // 3️ Eliminar pagos y órdenes
         for (const orden of ordenes.rows) {
           // A) Eliminar pagos
           await client.query('DELETE FROM pagos WHERE orden_id = $1', [orden.id]);
@@ -3746,7 +3746,7 @@ app.post('/api/consultas', verificarSesion, async (req, res) => {
           );
         }
 
-        // 4️⃣ ✅ ELIMINAR RECIBOS SOLO SI NO HAY OTRAS ÓRDENES USÁNDOLOS
+        // 4️ ELIMINAR RECIBOS SOLO SI NO HAY OTRAS ÓRDENES USÁNDOLOS
         for (const orden of ordenes.rows) {
           if (orden.folio_recibo) {
             // Verificar si otras órdenes usan este recibo
@@ -3761,9 +3761,9 @@ app.post('/api/consultas', verificarSesion, async (req, res) => {
                 'DELETE FROM recibos WHERE id = $1 AND departamento = $2',
                 [orden.folio_recibo, depto]
               );
-              console.log(`✅ Recibo ${orden.folio_recibo} eliminado`);
+              console.log(` Recibo ${orden.folio_recibo} eliminado`);
             } else {
-              console.log(`⚠️ Recibo ${orden.folio_recibo} NO eliminado (usado por otras órdenes)`);
+              console.log(` Recibo ${orden.folio_recibo} NO eliminado (usado por otras órdenes)`);
             }
           }
         }
@@ -3788,7 +3788,7 @@ app.post('/api/consultas', verificarSesion, async (req, res) => {
 
       await client.query('COMMIT');
       
-      res.json({ mensaje: '🗑️ Consulta eliminada correctamente' });
+      res.json({ mensaje: ' Consulta eliminada correctamente' });
 
     } catch (err) {
       await client.query('ROLLBACK');
@@ -3814,7 +3814,7 @@ app.post('/api/consultas', verificarSesion, async (req, res) => {
 
       let depto = getDepartamento(req);
 
-      console.log('📥 Guardando atención médica para consulta:', consulta_id);
+      console.log(' Guardando atención médica para consulta:', consulta_id);
 
       const result = await pool.query(`
         INSERT INTO atencion_consultas (
@@ -3839,7 +3839,7 @@ app.post('/api/consultas', verificarSesion, async (req, res) => {
         depto
       ]);
 
-      console.log('✅ Atención médica guardada:', result.rows[0]);
+      console.log(' Atención médica guardada:', result.rows[0]);
       res.json(result.rows[0]);
 
     } catch (err) {
@@ -3976,7 +3976,7 @@ app.post("/api/ordenes_medicas_consulta", verificarSesion, async (req, res) => {
       ]
     );
 
-    // ✅ NO ACTUALIZAR EL ESTADO - La consulta debe seguir en "Pendiente"
+    //  NO ACTUALIZAR EL ESTADO - La consulta debe seguir en "Pendiente"
     // ELIMINAR O COMENTAR ESTAS LÍNEAS:
     // await client.query(
     //   `UPDATE consultas SET estado = 'En Módulo Médico' WHERE id = $1 AND departamento = $2`,
@@ -4026,7 +4026,7 @@ app.get("/api/ordenes_medicas/consulta/:consultaId", verificarSesion, async (req
     const { consultaId } = req.params;
     const depto = getDepartamento(req);
 
-    console.log('🔍 Buscando orden para consulta:', consultaId);
+    console.log(' Buscando orden para consulta:', consultaId);
 
     const result = await pool.query(`
       SELECT 
@@ -4077,7 +4077,7 @@ app.get("/api/ordenes_medicas/consulta/:consultaId", verificarSesion, async (req
       return res.status(404).json({ error: "No se encontró información médica para esta consulta" });
     }
 
-    console.log('✅ Orden encontrada:', result.rows[0]);
+    console.log(' Orden encontrada:', result.rows[0]);
     res.json(result.rows[0]);
   } catch (err) {
     console.error("❌ Error en /api/ordenes_medicas/consulta/:consultaId:", err);
@@ -4091,11 +4091,11 @@ app.get("/api/ordenes_medicas/consulta/:consultaId", verificarSesion, async (req
       const { id } = req.params;
       const depto = getDepartamento(req);
 
-      console.log('\n🔍 ===== ENVIANDO A MÓDULO MÉDICO =====');
-      console.log('📋 Consulta ID:', id);
-      console.log('🏢 Departamento:', depto);
+      console.log('\n ===== ENVIANDO A MÓDULO MÉDICO =====');
+      console.log(' Consulta ID:', id);
+      console.log(' Departamento:', depto);
 
-      // 🔒 Verificar que la consulta existe y obtener su estado actual
+      //  Verificar que la consulta existe y obtener su estado actual
       const verificar = await pool.query(
         'SELECT * FROM consultas WHERE id = $1 AND departamento = $2',
         [id, depto]
@@ -4107,12 +4107,12 @@ app.get("/api/ordenes_medicas/consulta/:consultaId", verificarSesion, async (req
       }
 
       const consultaActual = verificar.rows[0];
-      console.log('✅ Consulta encontrada:', consultaActual.paciente);
-      console.log('📊 Estado actual:', consultaActual.estado);
+      console.log(' Consulta encontrada:', consultaActual.paciente);
+      console.log(' Estado actual:', consultaActual.estado);
 
-      // 🔒 PREVENIR DUPLICADOS: Si ya está en Módulo Médico, no hacer nada
+      //  PREVENIR DUPLICADOS: Si ya está en Módulo Médico, no hacer nada
       if (consultaActual.estado === 'En Módulo Médico') {
-        console.log('⚠️ La consulta ya está en Módulo Médico');
+        console.log(' La consulta ya está en Módulo Médico');
         return res.status(200).json({
           ...consultaActual,
           mensaje: 'La consulta ya está en el Módulo Médico',
@@ -4129,7 +4129,7 @@ app.get("/api/ordenes_medicas/consulta/:consultaId", verificarSesion, async (req
       `, [id, depto]);
 
       if (result.rows.length === 0) {
-        console.log('⚠️ La consulta ya fue actualizada por otra solicitud');
+        console.log(' La consulta ya fue actualizada por otra solicitud');
         return res.status(200).json({
           ...consultaActual,
           mensaje: 'La consulta ya está en proceso',
@@ -4137,9 +4137,9 @@ app.get("/api/ordenes_medicas/consulta/:consultaId", verificarSesion, async (req
         });
       }
 
-      console.log('✅ Estado actualizado a:', result.rows[0].estado);
-      console.log('✅ Consulta enviada exitosamente');
-      console.log('🔍 ===== FIN =====\n');
+      console.log(' Estado actualizado a:', result.rows[0].estado);
+      console.log(' Consulta enviada exitosamente');
+      console.log(' ===== FIN =====\n');
 
       res.json(result.rows[0]);
 
@@ -4311,7 +4311,7 @@ app.get("/api/ordenes_medicas/consulta/:consultaId", verificarSesion, async (req
 const uploadDirPerfiles = path.join(__dirname, 'uploads', 'perfiles');
 if (!fs.existsSync(uploadDirPerfiles)) {
   fs.mkdirSync(uploadDirPerfiles, { recursive: true });
-  console.log('✅ Carpeta uploads/perfiles creada');
+  console.log(' Carpeta uploads/perfiles creada');
 }
 
 // Configuración de multer para fotos de perfil
@@ -4378,7 +4378,7 @@ app.post('/api/actualizar-foto-perfil', verificarSesion, uploadFoto.single('foto
       
       if (fs.existsSync(archivoAnterior)) {
         fs.unlinkSync(archivoAnterior);
-        console.log('🗑️ Foto anterior eliminada:', archivoAnterior);
+        console.log(' Foto anterior eliminada:', archivoAnterior);
       }
 
       // Actualizar el registro existente
@@ -4404,7 +4404,7 @@ app.post('/api/actualizar-foto-perfil', verificarSesion, uploadFoto.single('foto
 
     await client.query('COMMIT');
 
-    console.log('✅ Foto de perfil actualizada para usuario:', usuarioId);
+    console.log(' Foto de perfil actualizada para usuario:', usuarioId);
 
     res.json({ 
       success: true, 
@@ -4501,7 +4501,7 @@ app.delete('/api/eliminar-foto-perfil', verificarSesion, async (req, res) => {
       // Eliminar archivo físico
       if (fs.existsSync(archivoFisico)) {
         fs.unlinkSync(archivoFisico);
-        console.log('🗑️ Archivo físico eliminado:', archivoFisico);
+        console.log(' Archivo físico eliminado:', archivoFisico);
       }
 
       // Eliminar registro de la base de datos
@@ -4536,7 +4536,7 @@ app.delete('/api/eliminar-foto-perfil', verificarSesion, async (req, res) => {
   }
 });
 
-console.log('✅ Endpoints de fotos de perfil configurados');
+console.log(' Endpoints de fotos de perfil configurados');
   
 // ==================== INICIAR SERVIDOR ====================
   app.listen(3000, "0.0.0.0", () => {
