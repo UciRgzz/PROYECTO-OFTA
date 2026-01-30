@@ -514,6 +514,63 @@
     input[type="checkbox"] {
       width: auto;
     }
+
+    /* Estilos para el modal de vista */
+    .view-data-box {
+      background: var(--bg-section);
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+
+    .view-data-row {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 10px;
+      align-items: center;
+    }
+
+    .view-data-label {
+      font-weight: 600;
+      color: #495057;
+      min-width: 120px;
+      font-size: 0.9rem;
+    }
+
+    .view-data-value {
+      color: #2c3e50;
+      font-size: 0.9rem;
+    }
+
+    .view-section-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin: 25px 0 15px 0;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--secondary-color);
+    }
+
+    .view-two-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 25px;
+      margin-bottom: 20px;
+    }
+
+    .view-info-badge {
+      display: inline-block;
+      background: var(--success-color);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      margin-left: 10px;
+    }
+
+    .view-info-badge.no {
+      background: #95a5a6;
+    }
   </style>
 </head>
 <body>
@@ -647,59 +704,297 @@ async function verGraduacion(id) {
       }
 
       let html = `
-        <div style="padding: 20px;">
-          <h4>Datos del Paciente</h4>
-          <p><strong>Expediente:</strong> ${data.expediente_id} | <strong>Fecha:</strong> ${data.fecha.split('T')[0].split('-').reverse().join('/')} | <strong>TP:</strong> ${horaFormateada || 'No aplicado'}</p>
+        <div style="padding: 10px;">
           
-          <h5 class="mt-4">Agudeza visual sin corrección lejos</h5>
-          <p><strong>OD:</strong> ${data.av_sc_od || '-'} (s/c) | ${data.av_cl_od || '-'} (c/L) | Discrimina color: ${data.av_sc_od_color ? 'Sí' : 'No'}</p>
-          <p><strong>OI:</strong> ${data.av_sc_oi || '-'} (s/c) | ${data.av_cl_oi || '-'} (c/L) | Discrimina color: ${data.av_sc_oi_color ? 'Sí' : 'No'}</p>
-          <p><strong>Observaciones OD:</strong> ${data.av_sc_od_obs || '-'}</p>
-          <p><strong>Observaciones OI:</strong> ${data.av_sc_oi_obs || '-'}</p>
+          <div class="view-data-box">
+            <div class="view-data-row">
+              <span class="view-data-label"><i class="fas fa-id-card"></i> Expediente:</span>
+              <span class="view-data-value">${data.expediente_id}</span>
+            </div>
+            <div class="view-data-row">
+              <span class="view-data-label"><i class="fas fa-calendar"></i> Fecha:</span>
+              <span class="view-data-value">${data.fecha.split('T')[0].split('-').reverse().join('/')}</span>
+            </div>
+            <div class="view-data-row">
+              <span class="view-data-label"><i class="fas fa-clock"></i> TP Aplicado:</span>
+              <span class="view-data-value">${horaFormateada || 'No aplicado'}</span>
+            </div>
+          </div>
 
-          <h5 class="mt-4">Agudeza visual con estenopeico</h5>
-          <p><strong>OD:</strong> ${data.av_est_od || '-'} | Discrimina color: ${data.av_est_od_color ? 'Sí' : 'No'}</p>
-          <p><strong>OI:</strong> ${data.av_est_oi || '-'} | Discrimina color: ${data.av_est_oi_color ? 'Sí' : 'No'}</p>
-          <p><strong>Observaciones OD:</strong> ${data.av_est_od_obs || '-'}</p>
-          <p><strong>Observaciones OI:</strong> ${data.av_est_oi_obs || '-'}</p>
+          <div class="view-section-title">Agudeza Visual sin Corrección Lejos</div>
+          <div class="view-two-columns">
+            <div class="view-data-box">
+              <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Derecho</h6>
+              <div class="view-data-row">
+                <span class="view-data-label">S/C:</span>
+                <span class="view-data-value">${data.av_sc_od || '-'}</span>
+              </div>
+              <div class="view-data-row">
+                <span class="view-data-label">C/L:</span>
+                <span class="view-data-value">${data.av_cl_od || '-'}</span>
+              </div>
+              <div class="view-data-row">
+                <span class="view-data-label">Color:</span>
+                <span class="view-info-badge ${data.av_sc_od_color ? '' : 'no'}">${data.av_sc_od_color ? 'Sí discrimina' : 'No discrimina'}</span>
+              </div>
+              ${data.av_sc_od_obs ? `<div class="view-data-row"><span class="view-data-label">Obs:</span><span class="view-data-value">${data.av_sc_od_obs}</span></div>` : ''}
+            </div>
+            <div class="view-data-box">
+              <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Izquierdo</h6>
+              <div class="view-data-row">
+                <span class="view-data-label">S/C:</span>
+                <span class="view-data-value">${data.av_sc_oi || '-'}</span>
+              </div>
+              <div class="view-data-row">
+                <span class="view-data-label">C/L:</span>
+                <span class="view-data-value">${data.av_cl_oi || '-'}</span>
+              </div>
+              <div class="view-data-row">
+                <span class="view-data-label">Color:</span>
+                <span class="view-info-badge ${data.av_sc_oi_color ? '' : 'no'}">${data.av_sc_oi_color ? 'Sí discrimina' : 'No discrimina'}</span>
+              </div>
+              ${data.av_sc_oi_obs ? `<div class="view-data-row"><span class="view-data-label">Obs:</span><span class="view-data-value">${data.av_sc_oi_obs}</span></div>` : ''}
+            </div>
+          </div>
 
-          <h5 class="mt-4">Agudeza visual de cerca</h5>
-          <p><strong>OD:</strong> ${data.av_cerca_od || '-'} | Discrimina color: ${data.av_cerca_od_color ? 'Sí' : 'No'}</p>
-          <p><strong>OI:</strong> ${data.av_cerca_oi || '-'} | Discrimina color: ${data.av_cerca_oi_color ? 'Sí' : 'No'}</p>
-          <p><strong>Observaciones OD:</strong> ${data.av_cerca_od_obs || '-'}</p>
-          <p><strong>Observaciones OI:</strong> ${data.av_cerca_oi_obs || '-'}</p>
+          <div class="view-section-title">Agudeza Visual con Estenopeico</div>
+          <div class="view-two-columns">
+            <div class="view-data-box">
+              <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Derecho</h6>
+              <div class="view-data-row">
+                <span class="view-data-label">Valor:</span>
+                <span class="view-data-value">${data.av_est_od || '-'}</span>
+              </div>
+              <div class="view-data-row">
+                <span class="view-data-label">Color:</span>
+                <span class="view-info-badge ${data.av_est_od_color ? '' : 'no'}">${data.av_est_od_color ? 'Sí discrimina' : 'No discrimina'}</span>
+              </div>
+              ${data.av_est_od_obs ? `<div class="view-data-row"><span class="view-data-label">Obs:</span><span class="view-data-value">${data.av_est_od_obs}</span></div>` : ''}
+            </div>
+            <div class="view-data-box">
+              <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Izquierdo</h6>
+              <div class="view-data-row">
+                <span class="view-data-label">Valor:</span>
+                <span class="view-data-value">${data.av_est_oi || '-'}</span>
+              </div>
+              <div class="view-data-row">
+                <span class="view-data-label">Color:</span>
+                <span class="view-info-badge ${data.av_est_oi_color ? '' : 'no'}">${data.av_est_oi_color ? 'Sí discrimina' : 'No discrimina'}</span>
+              </div>
+              ${data.av_est_oi_obs ? `<div class="view-data-row"><span class="view-data-label">Obs:</span><span class="view-data-value">${data.av_est_oi_obs}</span></div>` : ''}
+            </div>
+          </div>
 
-          <h5 class="mt-4">Autorefractor</h5>
-          <p><strong>OD:</strong> ${data.auto_od_1 || '-'}, ${data.auto_od_2 || '-'} (${data.auto_od_grados || '-'}°)</p>
-          <p><strong>OI:</strong> ${data.auto_oi_1 || '-'}, ${data.auto_oi_2 || '-'} (${data.auto_oi_grados || '-'}°)</p>
+          <div class="view-section-title">Agudeza Visual de Cerca</div>
+          <div class="view-two-columns">
+            <div class="view-data-box">
+              <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Derecho</h6>
+              <div class="view-data-row">
+                <span class="view-data-label">Valor:</span>
+                <span class="view-data-value">${data.av_cerca_od || '-'}</span>
+              </div>
+              <div class="view-data-row">
+                <span class="view-data-label">Color:</span>
+                <span class="view-info-badge ${data.av_cerca_od_color ? '' : 'no'}">${data.av_cerca_od_color ? 'Sí discrimina' : 'No discrimina'}</span>
+              </div>
+              ${data.av_cerca_od_obs ? `<div class="view-data-row"><span class="view-data-label">Obs:</span><span class="view-data-value">${data.av_cerca_od_obs}</span></div>` : ''}
+            </div>
+            <div class="view-data-box">
+              <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Izquierdo</h6>
+              <div class="view-data-row">
+                <span class="view-data-label">Valor:</span>
+                <span class="view-data-value">${data.av_cerca_oi || '-'}</span>
+              </div>
+              <div class="view-data-row">
+                <span class="view-data-label">Color:</span>
+                <span class="view-info-badge ${data.av_cerca_oi_color ? '' : 'no'}">${data.av_cerca_oi_color ? 'Sí discrimina' : 'No discrimina'}</span>
+              </div>
+              ${data.av_cerca_oi_obs ? `<div class="view-data-row"><span class="view-data-label">Obs:</span><span class="view-data-value">${data.av_cerca_oi_obs}</span></div>` : ''}
+            </div>
+          </div>
 
-          <h5 class="mt-4">Autorefractor con ciclopejía</h5>
-          <p><strong>OD:</strong> ${data.auto_ciclo_od_1 || '-'}, ${data.auto_ciclo_od_2 || '-'} (${data.auto_ciclo_od_grados || '-'}°)</p>
-          <p><strong>OI:</strong> ${data.auto_ciclo_oi_1 || '-'}, ${data.auto_ciclo_oi_2 || '-'} (${data.auto_ciclo_oi_grados || '-'}°)</p>
+          <div class="view-section-title">Autorefractor</div>
+          <div class="view-two-columns">
+            <div class="view-data-box">
+              <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Derecho</h6>
+              <div class="view-data-row">
+                <span class="view-data-value">${data.auto_od_1 || '-'} / ${data.auto_od_2 || '-'} @ ${data.auto_od_grados || '-'}°</span>
+              </div>
+            </div>
+            <div class="view-data-box">
+              <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Izquierdo</h6>
+              <div class="view-data-row">
+                <span class="view-data-value">${data.auto_oi_1 || '-'} / ${data.auto_oi_2 || '-'} @ ${data.auto_oi_grados || '-'}°</span>
+              </div>
+            </div>
+          </div>
 
-          <h5 class="mt-4">Lentes Anteriores</h5>
-          <p><strong>OD:</strong> AV: ${data.lentes_ant_od_av_1 || '-'}/${data.lentes_ant_od_av_2 || '-'}/${data.lentes_ant_od_av_3 || '-'} | Adición: ${data.lentes_ant_od_ad_1 || '-'}/${data.lentes_ant_od_ad_2 || '-'}</p>
-          <p><strong>OI:</strong> AV: ${data.lentes_ant_oi_av_1 || '-'}/${data.lentes_ant_oi_av_2 || '-'}/${data.lentes_ant_oi_av_3 || '-'} | Adición: ${data.lentes_ant_oi_ad_1 || '-'}/${data.lentes_ant_oi_ad_2 || '-'}</p>
+          <div class="view-section-title">Autorefractor con Ciclopejía</div>
+          <div class="view-two-columns">
+            <div class="view-data-box">
+              <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Derecho</h6>
+              <div class="view-data-row">
+                <span class="view-data-value">${data.auto_ciclo_od_1 || '-'} / ${data.auto_ciclo_od_2 || '-'} @ ${data.auto_ciclo_od_grados || '-'}°</span>
+              </div>
+            </div>
+            <div class="view-data-box">
+              <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Izquierdo</h6>
+              <div class="view-data-row">
+                <span class="view-data-value">${data.auto_ciclo_oi_1 || '-'} / ${data.auto_ciclo_oi_2 || '-'} @ ${data.auto_ciclo_oi_grados || '-'}°</span>
+              </div>
+            </div>
+          </div>
 
-          <h5 class="mt-4">Refracción Subjetiva</h5>
-          <p><strong>OD:</strong> AV: ${data.refrac_subj_od_av_1 || '-'}/${data.refrac_subj_od_av_2 || '-'}/${data.refrac_subj_od_av_3 || '-'} | Adición: ${data.refrac_subj_od_ad_1 || '-'}/${data.refrac_subj_od_ad_2 || '-'}</p>
-          <p><strong>OI:</strong> AV: ${data.refrac_subj_oi_av_1 || '-'}/${data.refrac_subj_oi_av_2 || '-'}/${data.refrac_subj_oi_av_3 || '-'} | Adición: ${data.refrac_subj_oi_ad_1 || '-'}/${data.refrac_subj_oi_ad_2 || '-'}</p>
+          <div class="view-section-title">Lentes Anteriores</div>
+          <div class="view-two-columns">
+            <div class="view-data-box">
+              <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Derecho</h6>
+              <div class="view-data-row">
+                <span class="view-data-label">AV:</span>
+                <span class="view-data-value">${data.lentes_ant_od_av_1 || '-'} / ${data.lentes_ant_od_av_2 || '-'} / ${data.lentes_ant_od_av_3 || '-'}</span>
+              </div>
+              <div class="view-data-row">
+                <span class="view-data-label">Adición:</span>
+                <span class="view-data-value">${data.lentes_ant_od_ad_1 || '-'} / ${data.lentes_ant_od_ad_2 || '-'}</span>
+              </div>
+            </div>
+            <div class="view-data-box">
+              <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Izquierdo</h6>
+              <div class="view-data-row">
+                <span class="view-data-label">AV:</span>
+                <span class="view-data-value">${data.lentes_ant_oi_av_1 || '-'} / ${data.lentes_ant_oi_av_2 || '-'} / ${data.lentes_ant_oi_av_3 || '-'}</span>
+              </div>
+              <div class="view-data-row">
+                <span class="view-data-label">Adición:</span>
+                <span class="view-data-value">${data.lentes_ant_oi_ad_1 || '-'} / ${data.lentes_ant_oi_ad_2 || '-'}</span>
+              </div>
+            </div>
+          </div>
 
-          <h5 class="mt-4">Subjetiva Ciclopejía</h5>
-          <p><strong>OD:</strong> AV: ${data.subj_ciclo_od_av_1 || '-'}/${data.subj_ciclo_od_av_2 || '-'}/${data.subj_ciclo_od_av_3 || '-'} | Adición: ${data.subj_ciclo_od_ad_1 || '-'}/${data.subj_ciclo_od_ad_2 || '-'}</p>
-          <p><strong>OI:</strong> AV: ${data.subj_ciclo_oi_av_1 || '-'}/${data.subj_ciclo_oi_av_2 || '-'}/${data.subj_ciclo_oi_av_3 || '-'} | Adición: ${data.subj_ciclo_oi_ad_1 || '-'}/${data.subj_ciclo_oi_ad_2 || '-'}</p>
+          <div class="view-section-title">Refracción Subjetiva</div>
+          <div class="view-two-columns">
+            <div class="view-data-box">
+              <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Derecho</h6>
+              <div class="view-data-row">
+                <span class="view-data-label">AV:</span>
+                <span class="view-data-value">${data.refrac_subj_od_av_1 || '-'} / ${data.refrac_subj_od_av_2 || '-'} / ${data.refrac_subj_od_av_3 || '-'}</span>
+              </div>
+              <div class="view-data-row">
+                <span class="view-data-label">Adición:</span>
+                <span class="view-data-value">${data.refrac_subj_od_ad_1 || '-'} / ${data.refrac_subj_od_ad_2 || '-'}</span>
+              </div>
+            </div>
+            <div class="view-data-box">
+              <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Izquierdo</h6>
+              <div class="view-data-row">
+                <span class="view-data-label">AV:</span>
+                <span class="view-data-value">${data.refrac_subj_oi_av_1 || '-'} / ${data.refrac_subj_oi_av_2 || '-'} / ${data.refrac_subj_oi_av_3 || '-'}</span>
+              </div>
+              <div class="view-data-row">
+                <span class="view-data-label">Adición:</span>
+                <span class="view-data-value">${data.refrac_subj_oi_ad_1 || '-'} / ${data.refrac_subj_oi_ad_2 || '-'}</span>
+              </div>
+            </div>
+          </div>
 
-          <h5 class="mt-4">Retinoscopía</h5>
-          <p><strong>OD:</strong> ${data.retino_od_obs || '-'} | 90°: ${data.retino_od_90 || '-'} | 180°: ${data.retino_od_180 || '-'}</p>
-          <p><strong>OI:</strong> ${data.retino_oi_obs || '-'} | 90°: ${data.retino_oi_90 || '-'} | 180°: ${data.retino_oi_180 || '-'}</p>
+          <div class="view-section-title">Subjetiva Ciclopejía</div>
+          <div class="view-two-columns">
+            <div class="view-data-box">
+              <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Derecho</h6>
+              <div class="view-data-row">
+                <span class="view-data-label">AV:</span>
+                <span class="view-data-value">${data.subj_ciclo_od_av_1 || '-'} / ${data.subj_ciclo_od_av_2 || '-'} / ${data.subj_ciclo_od_av_3 || '-'}</span>
+              </div>
+              <div class="view-data-row">
+                <span class="view-data-label">Adición:</span>
+                <span class="view-data-value">${data.subj_ciclo_od_ad_1 || '-'} / ${data.subj_ciclo_od_ad_2 || '-'}</span>
+              </div>
+            </div>
+            <div class="view-data-box">
+              <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Izquierdo</h6>
+              <div class="view-data-row">
+                <span class="view-data-label">AV:</span>
+                <span class="view-data-value">${data.subj_ciclo_oi_av_1 || '-'} / ${data.subj_ciclo_oi_av_2 || '-'} / ${data.subj_ciclo_oi_av_3 || '-'}</span>
+              </div>
+              <div class="view-data-row">
+                <span class="view-data-label">Adición:</span>
+                <span class="view-data-value">${data.subj_ciclo_oi_ad_1 || '-'} / ${data.subj_ciclo_oi_ad_2 || '-'}</span>
+              </div>
+            </div>
+          </div>
 
-          <h5 class="mt-4">Retinoscopía con ciclopejía</h5>
-          <p><strong>OD:</strong> ${data.retino_ciclo_od_obs || '-'} | 90°: ${data.retino_ciclo_od_90 || '-'} | 180°: ${data.retino_ciclo_od_180 || '-'}</p>
-          <p><strong>OI:</strong> ${data.retino_ciclo_oi_obs || '-'} | 90°: ${data.retino_ciclo_oi_90 || '-'} | 180°: ${data.retino_ciclo_oi_180 || '-'}</p>
+          <div class="view-section-title">Retinoscopía</div>
+          <div class="view-two-columns">
+            <div class="view-data-box">
+              <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Derecho</h6>
+              ${data.retino_od_obs ? `<div class="view-data-row"><span class="view-data-label">Obs:</span><span class="view-data-value">${data.retino_od_obs}</span></div>` : ''}
+              <div class="view-data-row">
+                <span class="view-data-label">90°:</span>
+                <span class="view-data-value">${data.retino_od_90 || '-'}</span>
+              </div>
+              <div class="view-data-row">
+                <span class="view-data-label">180°:</span>
+                <span class="view-data-value">${data.retino_od_180 || '-'}</span>
+              </div>
+            </div>
+            <div class="view-data-box">
+              <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Izquierdo</h6>
+              ${data.retino_oi_obs ? `<div class="view-data-row"><span class="view-data-label">Obs:</span><span class="view-data-value">${data.retino_oi_obs}</span></div>` : ''}
+              <div class="view-data-row">
+                <span class="view-data-label">90°:</span>
+                <span class="view-data-value">${data.retino_oi_90 || '-'}</span>
+              </div>
+              <div class="view-data-row">
+                <span class="view-data-label">180°:</span>
+                <span class="view-data-value">${data.retino_oi_180 || '-'}</span>
+              </div>
+            </div>
+          </div>
 
-          <h5 class="mt-4">Queratometría</h5>
-          <p><strong>OD:</strong> ${data.kerato_od_1 || '-'} / ${data.kerato_od_2 || '-'} / ${data.kerato_od_3 || '-'}</p>
-          <p><strong>OI:</strong> ${data.kerato_oi_1 || '-'} / ${data.kerato_oi_2 || '-'} / ${data.kerato_oi_3 || '-'}</p>
+          <div class="view-section-title">Retinoscopía con Ciclopejía</div>
+          <div class="view-two-columns">
+            <div class="view-data-box">
+              <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Derecho</h6>
+              ${data.retino_ciclo_od_obs ? `<div class="view-data-row"><span class="view-data-label">Obs:</span><span class="view-data-value">${data.retino_ciclo_od_obs}</span></div>` : ''}
+              <div class="view-data-row">
+                <span class="view-data-label">90°:</span>
+                <span class="view-data-value">${data.retino_ciclo_od_90 || '-'}</span>
+              </div>
+              <div class="view-data-row">
+                <span class="view-data-label">180°:</span>
+                <span class="view-data-value">${data.retino_ciclo_od_180 || '-'}</span>
+              </div>
+            </div>
+            <div class="view-data-box">
+              <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Izquierdo</h6>
+              ${data.retino_ciclo_oi_obs ? `<div class="view-data-row"><span class="view-data-label">Obs:</span><span class="view-data-value">${data.retino_ciclo_oi_obs}</span></div>` : ''}
+              <div class="view-data-row">
+                <span class="view-data-label">90°:</span>
+                <span class="view-data-value">${data.retino_ciclo_oi_90 || '-'}</span>
+              </div>
+              <div class="view-data-row">
+                <span class="view-data-label">180°:</span>
+                <span class="view-data-value">${data.retino_ciclo_oi_180 || '-'}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="view-section-title">Queratometría</div>
+          <div class="view-two-columns">
+            <div class="view-data-box">
+              <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Derecho</h6>
+              <div class="view-data-row">
+                <span class="view-data-value">${data.kerato_od_1 || '-'} x ${data.kerato_od_2 || '-'} / ${data.kerato_od_3 || '-'} x ${data.kerato_od_4 || '-'}</span>
+              </div>
+            </div>
+            <div class="view-data-box">
+              <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Izquierdo</h6>
+              <div class="view-data-row">
+                <span class="view-data-value">${data.kerato_oi_1 || '-'} x ${data.kerato_oi_2 || '-'} / ${data.kerato_oi_3 || '-'} x ${data.kerato_oi_4 || '-'}</span>
+              </div>
+            </div>
+          </div>
+
         </div>
       `;
 
@@ -1238,7 +1533,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                 <span>/</span>
                 <input type="text" name="kerato_oi_3" placeholder=" ">
                 <span>x</span>
-                <input type="text" name="kerato_od_4" placeholder=" ">
+                <input type="text" name="kerato_oi_4" placeholder=" ">
               </div>
             </div>
           </div>
@@ -1281,7 +1576,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
       
       Swal.fire({
         icon: 'success',
-        title: 'TP Aplicado',
+        title: '✅ TP Aplicado',
         text: `Hora registrada: ${horaTP}`,
         timer: 2000,
         showConfirmButton: false
