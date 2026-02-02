@@ -3307,27 +3307,50 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
   //==================== MÓDULO CREAR USUARIO ADMIN ====================//
   // Crear usuario
   app.post('/api/admin/add-user', isAdmin, async (req, res) => {
-    const { nomina, username, nombre_completo, email, password, rol, departamento } = req.body; // ✅ AGREGAR email
+    const { nomina, username, nombre_completo, email, password, rol, departamento } = req.body;
     const client = await pool.connect();
 
       try {
           await client.query("BEGIN");
 
-          const hashedPassword = await bcrypt.hash(password, 10);
-          await client.query(
-              'INSERT INTO usuarios (nomina, username, nombre_completo, email, password, rol, departamento) VALUES ($1,$2,$3,$4,$5,$6,$7)', // ✅ AGREGAR email
-              [nomina, username, nombre_completo, email, hashedPassword, rol, departamento] // ✅ AGREGAR email
+          // ✅ Validar que todos los campos estén presentes
+          if (!nomina || !username || !nombre_completo || !email || !password || !rol) {
+              await client.query("ROLLBACK");
+              return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+          }
+
+          // ✅ Verificar si el usuario ya existe
+          const usuarioExistente = await client.query(
+              'SELECT nomina FROM usuarios WHERE nomina = $1 OR username = $2',
+              [nomina, username]
           );
 
-          // 🔹 Insertar los 10 módulos por defecto (permitido = false)
+          if (usuarioExistente.rows.length > 0) {
+              await client.query("ROLLBACK");
+              return res.status(400).json({ error: 'Ya existe un usuario con esa nómina o nombre de usuario' });
+          }
+
+          // ✅ Crear el usuario
+          const hashedPassword = await bcrypt.hash(password, 10);
+          await client.query(
+              'INSERT INTO usuarios (nomina, username, nombre_completo, email, password, rol, departamento) VALUES ($1,$2,$3,$4,$5,$6,$7)',
+              [nomina, username, nombre_completo, email, hashedPassword, rol, departamento]
+          );
+
+          // ✅ Insertar los 10 módulos por defecto (permitido = false)
+          // Usar ON CONFLICT para evitar duplicados
           const modulos = [
               'expedientes', 'recibos', 'cierredecaja', 'medico',
               'ordenes', 'optometria', 'insumos', 'usuarios',
               'agendaquirurgica', 'asignarmodulos'
           ];
+          
           for (const m of modulos) {
               await client.query(
-                  'INSERT INTO permisos (usuario_nomina, modulo, permitido) VALUES ($1,$2,$3)',
+                  `INSERT INTO permisos (usuario_nomina, modulo, permitido) 
+                   VALUES ($1, $2, $3)
+                   ON CONFLICT (usuario_nomina, modulo) 
+                   DO UPDATE SET permitido = $3`,
                   [nomina, m, false]
               );
           }
@@ -3337,8 +3360,8 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
 
       } catch (err) {
           await client.query("ROLLBACK");
-          console.error(err);
-          res.status(500).json({ error: 'Error creando usuario con permisos' });
+          console.error('❌ Error creando usuario:', err);
+          res.status(500).json({ error: 'Error creando usuario con permisos: ' + err.message });
       } finally {
           client.release();
       }
@@ -3348,7 +3371,7 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
   // Listar usuarios
   app.get('/api/admin/list-users', isAdmin, async (req, res) => {
     try {
-        const result = await pool.query('SELECT nomina, username, nombre_completo, email, rol, departamento FROM usuarios ORDER BY username ASC'); // ✅ AGREGAR email
+        const result = await pool.query('SELECT nomina, username, nombre_completo, email, rol, departamento FROM usuarios ORDER BY username ASC');
         res.json(result.rows);
       } catch (err) {
           console.error(err);
@@ -3356,7 +3379,6 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
       }
   });
 
-  
   // ==================== ADMIN CAMBIE DE SUCURSAL ====================
   // Cambiar sucursal activa (solo admin)
   app.post('/api/set-departamento', isAdmin, (req, res) => {
