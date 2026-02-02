@@ -3307,7 +3307,7 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
   //==================== MÓDULO CREAR USUARIO ADMIN ====================//
   // Crear usuario
   app.post('/api/admin/add-user', isAdmin, async (req, res) => {
-    const { nomina, username, nombre_completo, password, rol, departamento } = req.body; // ✅ AGREGAR nombre_completo
+    const { nomina, username, nombre_completo, email, password, rol, departamento } = req.body; // ✅ AGREGAR email
     const client = await pool.connect();
 
       try {
@@ -3315,8 +3315,8 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
 
           const hashedPassword = await bcrypt.hash(password, 10);
           await client.query(
-              'INSERT INTO usuarios (nomina, username, nombre_completo, password, rol, departamento) VALUES ($1,$2,$3,$4,$5,$6)',
-              [nomina, username, nombre_completo, hashedPassword, rol, departamento]
+              'INSERT INTO usuarios (nomina, username, nombre_completo, email, password, rol, departamento) VALUES ($1,$2,$3,$4,$5,$6,$7)', // ✅ AGREGAR email
+              [nomina, username, nombre_completo, email, hashedPassword, rol, departamento] // ✅ AGREGAR email
           );
 
           // 🔹 Insertar los 10 módulos por defecto (permitido = false)
@@ -3348,7 +3348,7 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
   // Listar usuarios
   app.get('/api/admin/list-users', isAdmin, async (req, res) => {
     try {
-        const result = await pool.query('SELECT nomina, username, nombre_completo, rol, departamento FROM usuarios ORDER BY username ASC'); // ✅ AGREGAR nombre_completo
+        const result = await pool.query('SELECT nomina, username, nombre_completo, email, rol, departamento FROM usuarios ORDER BY username ASC'); // ✅ AGREGAR email
         res.json(result.rows);
       } catch (err) {
           console.error(err);
@@ -3356,6 +3356,7 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
       }
   });
 
+  
   // ==================== ADMIN CAMBIE DE SUCURSAL ====================
   // Cambiar sucursal activa (solo admin)
   app.post('/api/set-departamento', isAdmin, (req, res) => {

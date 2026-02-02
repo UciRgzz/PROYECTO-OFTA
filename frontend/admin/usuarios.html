@@ -489,7 +489,7 @@
             </div>
           </div>
           
-          <!-- ✅ CAMPO NOMBRE COMPLETO AGREGADO -->
+          <!-- ✅ CAMPO NOMBRE COMPLETO -->
           <div class="row">
             <div class="col-md-12">
               <div class="form-group">
@@ -497,6 +497,18 @@
                   <i class="fas fa-user-circle"></i> Nombre Completo
                 </label>
                 <input type="text" class="form-control" id="nombreCompleto" required placeholder="Ingrese el nombre completo del usuario">
+              </div>
+            </div>
+          </div>
+
+          <!-- ✅ CAMPO EMAIL AGREGADO -->
+          <div class="row">
+            <div class="col-md-12">
+              <div class="form-group">
+                <label for="email" class="form-label">
+                  <i class="fas fa-envelope"></i> Correo Electrónico
+                </label>
+                <input type="email" class="form-control" id="email" required placeholder="ejemplo@oftavision.com">
               </div>
             </div>
           </div>
@@ -567,6 +579,7 @@
                   <th><i class="fas fa-id-badge"></i> Nómina</th>
                   <th><i class="fas fa-user"></i> Usuario</th>
                   <th><i class="fas fa-user-circle"></i> Nombre Completo</th>
+                  <th><i class="fas fa-envelope"></i> Email</th>
                   <th><i class="fas fa-user-tag"></i> Rol</th>
                   <th><i class="fas fa-building"></i> Departamento</th>
                   <th><i class="fas fa-cog"></i> Acciones</th>
@@ -598,20 +611,28 @@
     const tableBody = document.getElementById('usersTable');
     const emptyState = document.getElementById('emptyState');
 
-    // ✅ CREAR USUARIO CON NOMBRE COMPLETO
+    // ✅ CREAR USUARIO CON EMAIL
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const data = {
         nomina: document.getElementById('nomina').value.trim(),
         username: document.getElementById('username').value.trim(),
-        nombre_completo: document.getElementById('nombreCompleto').value.trim(), // ✅ AGREGADO
+        nombre_completo: document.getElementById('nombreCompleto').value.trim(),
+        email: document.getElementById('email').value.trim(), // ✅ EMAIL AGREGADO
         password: document.getElementById('password').value,
         rol: document.getElementById('rol').value,
         departamento: document.getElementById('departamento').value
       };
 
-      // Validación
-      if (!data.nomina || !data.username || !data.nombre_completo || !data.password || !data.rol) {
+      // Validación de email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(data.email)) {
+        mostrarError("Error", "Por favor ingresa un correo electrónico válido");
+        return;
+      }
+
+      // Validación general
+      if (!data.nomina || !data.username || !data.nombre_completo || !data.email || !data.password || !data.rol) {
         mostrarError("Error", "Todos los campos son obligatorios");
         return;
       }
@@ -633,7 +654,7 @@
       }
     });
 
-    // ✅ LISTAR USUARIOS CON NOMBRE COMPLETO
+    // ✅ LISTAR USUARIOS CON EMAIL
     async function loadUsers() {
       try {
         const res = await fetch('/api/admin/list-users');
@@ -650,6 +671,7 @@
                 <td><strong>${u.nomina}</strong></td>
                 <td><i class="fas fa-user-circle"></i> ${u.username}</td>
                 <td><strong style="color: var(--primary-color);">${u.nombre_completo || u.username}</strong></td>
+                <td><i class="fas fa-envelope"></i> ${u.email || 'No registrado'}</td>
                 <td><span class="badge ${u.rol === 'admin' ? 'badge-admin' : 'badge-user'}">${u.rol === 'admin' ? 'Administrador' : 'Usuario'}</span></td>
                 <td><i class="fas fa-map-marker-alt"></i> ${u.departamento || 'N/A'}</td>
                 <td>
