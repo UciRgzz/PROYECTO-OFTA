@@ -371,7 +371,7 @@ app.post('/api/forgot-password', async (req, res) => {
 
     const codigo = generarCodigo();
     const hash = await bcrypt.hash(codigo, 10);
-    const expira = new Date(Date.now() + 10 * 60 * 1000); // 10 minutos
+const expira = new Date(Date.now() + 3 * 60 * 1000); // 3 minutos
 
     await pool.query(
       `UPDATE usuarios
@@ -388,7 +388,7 @@ app.post('/api/forgot-password', async (req, res) => {
       html: `
         <p>Tu código de recuperación es:</p>
         <h2>${codigo}</h2>
-        <p>Este código expira en 10 minutos.</p>
+        <p>Este código expira en 3 minutos.</p>
       `
     });
 
@@ -3377,7 +3377,7 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
     }
   });
 
-  
+
   
   // ==================== ADMIN CAMBIE DE SUCURSAL ====================
   // Cambiar sucursal activa (solo admin)
