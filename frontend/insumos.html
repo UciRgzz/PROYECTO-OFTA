@@ -7,51 +7,51 @@
   <!-- Favicon (logo empresa)-->
   <link rel="icon" type="image/png" href="/uploads/logo-oftavision2.png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
+<style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f5ff; padding: 20px; color: #333; }
     .container { max-width: 1200px; margin: 0 auto; }
-    header { text-align: center; margin-bottom: 30px; padding: 15px; background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); color: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-    h1 { font-size: 2.2rem; margin-bottom: 10px; }
-    .description { font-size: 1.1rem; opacity: 0.9; }
+    header { text-align: center; margin-bottom: 20px; padding: 8px 15px; background: linear-gradient(135deg, #1e3a52 0%, #2c5f7f 100%); color: white; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    h1 { font-size: 1.6rem; margin-bottom: 2px; }
+    .description { font-size: 0.85rem; opacity: 0.9; }
 
-    .card { background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 30px; overflow: hidden; }
-    .card-header { background: #2c3e50; color: white; padding: 15px 20px; font-size: 1.2rem; font-weight: 600; display: flex; align-items: center; justify-content: space-between; }
-    .card-header i { margin-right: 10px; }
-    .card-body { padding: 20px; }
-    .form-group { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 15px; }
-    input, button { padding: 12px 15px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; }
-    input[type="date"], input[type="text"], input[type="number"] { flex: 1; min-width: 160px; }
+    .card { background: white; border-radius: 8px; box-shadow: 0 3px 12px rgba(0,0,0,0.08); margin-bottom: 20px; overflow: hidden; }
+    .card-header { background: #2c3e50; color: white; padding: 10px 15px; font-size: 1rem; font-weight: 600; display: flex; align-items: center; justify-content: space-between; }
+    .card-header i { margin-right: 8px; }
+    .card-body { padding: 15px; }
+    .form-group { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+    input, button { padding: 8px 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.9rem; }
+    input[type="date"], input[type="text"], input[type="number"] { flex: 1; min-width: 140px; }
 
     .btn { cursor: pointer; font-weight: 600; transition: all 0.3s ease; border: none; }
     .btn-add { background: #27ae60; color: white; }
     .btn-add:hover { background: #219653; }
     .btn-upload { background: #2980b9; color: white; display: flex; align-items: center; }
     .btn-upload:hover { background: #2573a7; }
-    .btn-delete { background: #e74c3c; color: white; padding: 6px 12px; font-size: 0.9rem; border-radius: 5px; }
+    .btn-delete { background: #e74c3c; color: white; padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; }
     .btn-delete:hover { background: #c0392b; }
 
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: center; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { padding: 8px; border-bottom: 1px solid #eee; text-align: center; font-size: 0.85rem; }
     th { background-color: #f8f9fa; font-weight: 600; color: #2c3e50; }
 
-    .calendar-nav { display: flex; justify-content: space-between; align-items: center; margin: 20px 0; padding: 15px; background: white; border-radius: 10px; }
-    .current-month { font-size: 1.5rem; font-weight: 600; color: #2c3e50; }
-    .nav-btn { background: #3498db; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
-    .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
-    .day-header { text-align: center; padding: 8px; background: #2c3e50; color: white; border-radius: 6px; }
-    .calendar-day { background: white; border-radius: 8px; min-height: 140px; padding: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-    .day-number { font-weight: 600; margin-bottom: 8px; color: #2c3e50; font-size: 1.1rem; }
+    .calendar-nav { display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 12px; background: white; border-radius: 8px; }
+    .current-month { font-size: 1.2rem; font-weight: 600; color: #2c3e50; }
+    .nav-btn { background: #3498db; color: white; padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
+    .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+    .day-header { text-align: center; padding: 6px; background: #2c3e50; color: white; border-radius: 5px; font-size: 0.85rem; }
+    .calendar-day { background: white; border-radius: 6px; min-height: 120px; padding: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .day-number { font-weight: 600; margin-bottom: 6px; color: #2c3e50; font-size: 0.95rem; }
     
     /* NUEVOS ESTILOS PARA LAS ETIQUETAS */
     .nota-editable {
       background: #d1ecf1;
       border: 2px dashed #3498db;
-      padding: 8px;
-      margin-bottom: 8px;
-      border-radius: 5px;
-      min-height: 40px;
-      font-size: 0.85rem;
+      padding: 6px;
+      margin-bottom: 6px;
+      border-radius: 4px;
+      min-height: 35px;
+      font-size: 0.75rem;
       color: #0c5460;
       cursor: text;
       transition: all 0.2s;
@@ -77,23 +77,23 @@
     
     .total-dia {
       background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
-      padding: 10px;
-      border-radius: 5px;
+      padding: 8px;
+      border-radius: 4px;
       color: white;
       font-weight: 600;
       text-align: center;
-      box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+      box-shadow: 0 2px 6px rgba(52, 152, 219, 0.3);
     }
     
     .total-dia .label {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       opacity: 0.9;
       display: block;
-      margin-bottom: 3px;
+      margin-bottom: 2px;
     }
     
     .total-dia .monto {
-      font-size: 1.1rem;
+      font-size: 0.95rem;
       font-weight: 700;
     }
 
@@ -102,7 +102,7 @@
 /* Admin (azul) */
 .total-dia.admin {
   background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
-  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 2px 6px rgba(52, 152, 219, 0.3);
 }
 .nota-editable.admin {
   background: #d1ecf1;
@@ -113,17 +113,15 @@
 /* Usuario (verde) */
 .total-dia.usuario {
   background: linear-gradient(135deg, #1b5e20 0%, #43a047 100%);
-  box-shadow: 0 2px 8px rgba(67, 160, 71, 0.3);
+  box-shadow: 0 2px 6px rgba(67, 160, 71, 0.3);
 }
 .nota-editable.usuario {
   background: #d4edda;
   border: 2px dashed #28a745;
   color: #155724;
 }
+</style>
 
-
-
-  </style>
 </head>
 <body>
   <div class="container">
