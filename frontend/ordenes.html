@@ -9,351 +9,352 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
   
-  <style>
-    :root {
-      --primary-color: #2c3e50;
-      --secondary-color: #3498db;
-      --accent-color: #e74c3c;
-      --success-color: #27ae60;
-      --light-color: #f8f9fa;
-      --dark-color: #343a40;
-    }
-    
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #f0f5ff 0%, #e3f2fd 100%);
-      padding: 20px;
-      color: #333;
-      min-height: 100vh;
-    }
-    
-    .container {
-      max-width: 100%;
-      margin: 0 auto;
-      padding: 0 15px;
-    }
-    
-    header {
-      text-align: center;
-      margin-bottom: 30px;
-      padding: 20px;
-      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-      color: white;
-      border-radius: 10px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-    }
-    
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 10px;
-      font-weight: 700;
-    }
-    
-    .description {
-      font-size: 1.1rem;
-      opacity: 0.9;
-    }
-    
-    .card {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-      margin-bottom: 30px;
-      overflow: hidden;
-      border: none;
-    }
-    
-    .card-header {
-      background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
-      color: white;
-      padding: 18px 25px;
-      font-size: 1.3rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-    }
-    
-    .card-header i {
-      margin-right: 12px;
-      font-size: 1.5rem;
-    }
-    
-    .card-body {
-      padding: 25px;
-    }
-    
-    .table-container {
-      width: 100%;
-      overflow-x: auto;
-    }
-    
-    .table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 20px 0;
-      background: white;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-      table-layout: auto;
-    }
-    
-    .table th {
-      background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
-      color: white;
-      padding: 15px 10px;
-      text-align: center;
-      font-weight: 600;
-      font-size: 0.9rem;
-      white-space: nowrap;
-    }
-    
-    .table td {
-      padding: 12px 10px;
-      border-bottom: 1px solid #eee;
-      text-align: center;
-      font-size: 0.9rem;
-      vertical-align: middle;
-    }
-    
-    .table tr:last-child td {
-      border-bottom: none;
-    }
-    
-    .table tr:nth-child(odd) {
-      background: #f9f9f9;
-    }
-    
-    .table tr:hover {
-      background-color: #eef6ff;
-    }
-    
-    .success-alert {
-      display: none;
-      padding: 15px;
-      background: #d4edda;
-      color: #155724;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      border: 1px solid #c3e6cb;
-    }
-    
-    .footer {
-      text-align: center;
-      margin-top: 40px;
-      color: #6c757d;
-      font-size: 0.9rem;
+<style>
+  :root {
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --accent-color: #e74c3c;
+    --success-color: #27ae60;
+    --light-color: #f8f9fa;
+    --dark-color: #343a40;
+  }
+  
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f0f5ff 0%, #e3f2fd 100%);
+    padding: 20px;
+    color: #333;
+    min-height: 100vh;
+  }
+  
+  .container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 15px;
+  }
+  
+  header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #1e3a52 0%, #2c5f7f 100%);
+    color: white;
+    border-radius: 10px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  }
+  
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 3px;
+    font-weight: 700;
+  }
+  
+  .description {
+    font-size: 0.95rem;
+    opacity: 0.9;
+  }
+  
+  .card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    margin-bottom: 30px;
+    overflow: hidden;
+    border: none;
+  }
+  
+  .card-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
+    color: white;
+    padding: 18px 25px;
+    font-size: 1.3rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+  }
+  
+  .card-header i {
+    margin-right: 12px;
+    font-size: 1.5rem;
+  }
+  
+  .card-body {
+    padding: 25px;
+  }
+  
+  .table-container {
+    width: 100%;
+    overflow-x: auto;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    table-layout: auto;
+  }
+  
+  .table th {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
+  
+  .table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #eee;
+    text-align: center;
+    font-size: 0.9rem;
+    vertical-align: middle;
+  }
+  
+  .table tr:last-child td {
+    border-bottom: none;
+  }
+  
+  .table tr:nth-child(odd) {
+    background: #f9f9f9;
+  }
+  
+  .table tr:hover {
+    background-color: #eef6ff;
+  }
+  
+  .success-alert {
+    display: none;
+    padding: 15px;
+    background: #d4edda;
+    color: #155724;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #c3e6cb;
+  }
+  
+  .footer {
+    text-align: center;
+    margin-top: 40px;
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+  
+  .badge {
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  
+  .badge.bg-info {
+    background: linear-gradient(135deg, var(--secondary-color) 0%, #2c80b9 100%) !important;
+  }
+  
+  .badge.bg-success {
+    background: linear-gradient(135deg, var(--success-color) 0%, #219653 100%) !important;
+  }
+  
+  .badge.bg-warning {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%) !important;
+    color: white !important;
+  }
+  
+  .badge.bg-danger {
+    background: linear-gradient(135deg, var(--accent-color) 0%, #c0392b 100%) !important;
+  }
+  
+  .modal-content {
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    border: none;
+  }
+  
+  .modal-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
+    color: white;
+    border-radius: 12px 12px 0 0;
+    padding: 18px 25px;
+  }
+  
+  .modal-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+  }
+  
+  .modal-title i {
+    margin-right: 10px;
+  }
+  
+  .btn-close {
+    filter: invert(1);
+  }
+
+  .recibo-preview {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    width: 100%;
+    max-width: 850px;
+    margin: auto;
+    border: 1px solid #ddd;
+    background: white;
+  }
+  
+  .recibo-header {
+    text-align: center;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 15px;
+  }
+  
+  .recibo-logo {
+    width: 120px;
+    height: auto;
+    margin-bottom: 10px;
+  }
+  
+  .recibo-details {
+    margin-bottom: 20px;
+    font-size: 14px;
+  }
+  
+  .recibo-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: 12px;
+    table-layout: fixed;
+  }
+  
+  .recibo-table th, .recibo-table td {
+    border: 1px solid #ddd;
+    padding: 10px 6px;
+    text-align: left;
+    vertical-align: middle;
+  }
+  
+  .recibo-table th {
+    background: #f0f0f0;
+    font-weight: bold;
+  }
+  
+  .recibo-footer {
+    font-size: 12px;
+    text-align: center;
+    color: #555;
+    margin-top: 30px;
+  }
+
+  .swal-wide {
+    width: 1000px !important;
+    max-width: 95vw;
+  }
+
+  .btn-icon {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    margin: 2px;
+  }
+
+  .info-link {
+    color: var(--secondary-color);
+    cursor: pointer;
+    text-decoration: underline;
+    font-weight: 600;
+  }
+
+  .info-link:hover {
+    color: #2c80b9;
+  }
+
+  .recibo-item {
+    padding: 12px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #f9f9f9;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .recibo-item:hover {
+    background: #e3f2fd;
+    border-color: var(--secondary-color);
+    transform: translateY(-2px);
+  }
+
+  .recibo-item-info {
+    flex: 1;
+  }
+
+  .recibo-item-numero {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 5px;
+  }
+
+  .recibo-item-detalles {
+    font-size: 0.9rem;
+    color: #666;
+  }
+
+  .recibo-item-monto {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--success-color);
+  }
+  
+  @media (max-width: 1200px) {
+    .table th, .table td {
+      font-size: 0.85rem;
+      padding: 10px 8px;
     }
     
     .badge {
-      padding: 5px 10px;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      white-space: nowrap;
+      font-size: 0.75rem;
+      padding: 4px 8px;
+    }
+  }
+  
+  @media (max-width: 992px) {
+    .container {
+      padding: 0 10px;
     }
     
-    .badge.bg-info {
-      background: linear-gradient(135deg, var(--secondary-color) 0%, #2c80b9 100%) !important;
+    .card-body {
+      padding: 15px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 2rem;
     }
     
-    .badge.bg-success {
-      background: linear-gradient(135deg, var(--success-color) 0%, #219653 100%) !important;
-    }
-    
-    .badge.bg-warning {
-      background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%) !important;
-      color: white !important;
-    }
-    
-    .badge.bg-danger {
-      background: linear-gradient(135deg, var(--accent-color) 0%, #c0392b 100%) !important;
-    }
-    
-    .modal-content {
-      border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-      border: none;
-    }
-    
-    .modal-header {
-      background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
-      color: white;
-      border-radius: 12px 12px 0 0;
-      padding: 18px 25px;
-    }
-    
-    .modal-title {
-      font-size: 1.3rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-    }
-    
-    .modal-title i {
-      margin-right: 10px;
-    }
-    
-    .btn-close {
-      filter: invert(1);
-    }
-
-    .recibo-preview {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      width: 100%;
-      max-width: 850px;
-      margin: auto;
-      border: 1px solid #ddd;
-      background: white;
-    }
-    
-    .recibo-header {
-      text-align: center;
-      margin-bottom: 20px;
-      border-bottom: 2px solid var(--primary-color);
-      padding-bottom: 15px;
-    }
-    
-    .recibo-logo {
-      width: 120px;
-      height: auto;
-      margin-bottom: 10px;
-    }
-    
-    .recibo-details {
-      margin-bottom: 20px;
-      font-size: 14px;
-    }
-    
-    .recibo-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 20px;
-      font-size: 12px;
-      table-layout: fixed;
-    }
-    
-    .recibo-table th, .recibo-table td {
-      border: 1px solid #ddd;
-      padding: 10px 6px;
-      text-align: left;
-      vertical-align: middle;
-    }
-    
-    .recibo-table th {
-      background: #f0f0f0;
-      font-weight: bold;
-    }
-    
-    .recibo-footer {
-      font-size: 12px;
-      text-align: center;
-      color: #555;
-      margin-top: 30px;
-    }
-
-    .swal-wide {
-      width: 1000px !important;
-      max-width: 95vw;
-    }
-
-    .btn-icon {
-      padding: 6px 12px;
-      font-size: 0.85rem;
-      margin: 2px;
-    }
-
-    .info-link {
-      color: var(--secondary-color);
-      cursor: pointer;
-      text-decoration: underline;
-      font-weight: 600;
-    }
-
-    .info-link:hover {
-      color: #2c80b9;
-    }
-
-    .recibo-item {
-      padding: 12px;
-      margin-bottom: 10px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      background: #f9f9f9;
-      cursor: pointer;
-      transition: all 0.3s;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .recibo-item:hover {
-      background: #e3f2fd;
-      border-color: var(--secondary-color);
-      transform: translateY(-2px);
-    }
-
-    .recibo-item-info {
-      flex: 1;
-    }
-
-    .recibo-item-numero {
+    .card-header {
       font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--primary-color);
-      margin-bottom: 5px;
+      padding: 15px;
     }
+    
+    .table th, .table td {
+      font-size: 0.8rem;
+      padding: 8px 5px;
+    }
+  }
+</style>
 
-    .recibo-item-detalles {
-      font-size: 0.9rem;
-      color: #666;
-    }
-
-    .recibo-item-monto {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: var(--success-color);
-    }
-    
-    @media (max-width: 1200px) {
-      .table th, .table td {
-        font-size: 0.85rem;
-        padding: 10px 8px;
-      }
-      
-      .badge {
-        font-size: 0.75rem;
-        padding: 4px 8px;
-      }
-    }
-    
-    @media (max-width: 992px) {
-      .container {
-        padding: 0 10px;
-      }
-      
-      .card-body {
-        padding: 15px;
-      }
-    }
-    
-    @media (max-width: 768px) {
-      h1 {
-        font-size: 2rem;
-      }
-      
-      .card-header {
-        font-size: 1.1rem;
-        padding: 15px;
-      }
-      
-      .table th, .table td {
-        font-size: 0.8rem;
-        padding: 8px 5px;
-      }
-    }
-  </style>
 </head>
 <body>
   <div class="container">
