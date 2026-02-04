@@ -14,9 +14,6 @@
   const nodemailer = require('nodemailer');
 
   
-
-
-
   const app = express();
 
   // ==================== CONFIGURACIONES ====================

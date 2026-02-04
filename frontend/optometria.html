@@ -860,7 +860,7 @@ async function verGraduacion(id) {
               </div>
               <div class="view-data-row">
                 <span class="view-data-label">Adición:</span>
-                <span class="view-data-value">${data.lentes_ant_od_ad_1 || '-'} / ${data.lentes_ant_od_ad_2 || '-'}</span>
+                <span class="view-data-value">${data.lentes_ant_od_ad_1 || '-'} / ${data.lentes_ant_od_ad_2 || '-'} / ${data.lentes_ant_od_ad_3 || '-'}</span>
               </div>
             </div>
             <div class="view-data-box">
@@ -871,7 +871,7 @@ async function verGraduacion(id) {
               </div>
               <div class="view-data-row">
                 <span class="view-data-label">Adición:</span>
-                <span class="view-data-value">${data.lentes_ant_oi_ad_1 || '-'} / ${data.lentes_ant_oi_ad_2 || '-'}</span>
+                <span class="view-data-value">${data.lentes_ant_oi_ad_1 || '-'} / ${data.lentes_ant_oi_ad_2 || '-'} / ${data.lentes_ant_oi_ad_3 || '-'}</span>
               </div>
             </div>
           </div>
@@ -886,7 +886,7 @@ async function verGraduacion(id) {
               </div>
               <div class="view-data-row">
                 <span class="view-data-label">Adición:</span>
-                <span class="view-data-value">${data.refrac_subj_od_ad_1 || '-'} / ${data.refrac_subj_od_ad_2 || '-'}</span>
+                <span class="view-data-value">${data.refrac_subj_od_ad_1 || '-'} / ${data.refrac_subj_od_ad_2 || '-'} / ${data.refrac_subj_od_ad_3 || '-'}</span>
               </div>
             </div>
             <div class="view-data-box">
@@ -897,7 +897,7 @@ async function verGraduacion(id) {
               </div>
               <div class="view-data-row">
                 <span class="view-data-label">Adición:</span>
-                <span class="view-data-value">${data.refrac_subj_oi_ad_1 || '-'} / ${data.refrac_subj_oi_ad_2 || '-'}</span>
+                <span class="view-data-value">${data.refrac_subj_oi_ad_1 || '-'} / ${data.refrac_subj_oi_ad_2 || '-'} / ${data.refrac_subj_oi_ad_3 || '-'}</span>
               </div>
             </div>
           </div>
@@ -912,7 +912,7 @@ async function verGraduacion(id) {
               </div>
               <div class="view-data-row">
                 <span class="view-data-label">Adición:</span>
-                <span class="view-data-value">${data.subj_ciclo_od_ad_1 || '-'} / ${data.subj_ciclo_od_ad_2 || '-'}</span>
+                <span class="view-data-value">${data.subj_ciclo_od_ad_1 || '-'} / ${data.subj_ciclo_od_ad_2 || '-'} / ${data.subj_ciclo_od_ad_3 || '-'}</span>
               </div>
             </div>
             <div class="view-data-box">
@@ -923,7 +923,7 @@ async function verGraduacion(id) {
               </div>
               <div class="view-data-row">
                 <span class="view-data-label">Adición:</span>
-                <span class="view-data-value">${data.subj_ciclo_oi_ad_1 || '-'} / ${data.subj_ciclo_oi_ad_2 || '-'}</span>
+                <span class="view-data-value">${data.subj_ciclo_oi_ad_1 || '-'} / ${data.subj_ciclo_oi_ad_2 || '-'} / ${data.subj_ciclo_oi_ad_3 || '-'}</span>
               </div>
             </div>
           </div>
@@ -1328,11 +1328,15 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                     <input type="text" name="lentes_ant_od_ad_1" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
                     <span style="color: #6c757d;">/</span>
                     <input type="text" name="lentes_ant_od_ad_2" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                    <span style="color: #6c757d;">/</span>
+                    <input type="text" name="lentes_ant_od_ad_3" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
                   </div>
                   <div style="display: flex; gap: 5px; margin-top: 28px;">
                     <input type="text" name="lentes_ant_oi_ad_1" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
                     <span style="color: #6c757d;">/</span>
                     <input type="text" name="lentes_ant_oi_ad_2" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                    <span style="color: #6c757d;">/</span>
+                    <input type="text" name="lentes_ant_oi_ad_3" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
                   </div>
                 </div>
               </div>
@@ -1366,11 +1370,15 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                     <input type="text" name="refrac_subj_od_ad_1" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
                     <span style="color: #6c757d;">/</span>
                     <input type="text" name="refrac_subj_od_ad_2" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                    <span style="color: #6c757d;">/</span>
+                    <input type="text" name="refrac_subj_od_ad_3" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
                   </div>
                   <div style="display: flex; gap: 5px; margin-top: 28px;">
                     <input type="text" name="refrac_subj_oi_ad_1" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
                     <span style="color: #6c757d;">/</span>
                     <input type="text" name="refrac_subj_oi_ad_2" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                    <span style="color: #6c757d;">/</span>
+                    <input type="text" name="refrac_subj_oi_ad_3" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
                   </div>
                 </div>
               </div>
@@ -1404,11 +1412,15 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                     <input type="text" name="subj_ciclo_od_ad_1" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
                     <span style="color: #6c757d;">/</span>
                     <input type="text" name="subj_ciclo_od_ad_2" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                    <span style="color: #6c757d;">/</span>
+                    <input type="text" name="subj_ciclo_od_ad_3" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
                   </div>
                   <div style="display: flex; gap: 5px; margin-top: 28px;">
                     <input type="text" name="subj_ciclo_oi_ad_1" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
                     <span style="color: #6c757d;">/</span>
                     <input type="text" name="subj_ciclo_oi_ad_2" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
+                    <span style="color: #6c757d;">/</span>
+                    <input type="text" name="subj_ciclo_oi_ad_3" placeholder="0" style="flex: 1; padding: 6px; border: 1px solid #ced4da; border-radius: 4px; text-align: center;">
                   </div>
                 </div>
               </div>
