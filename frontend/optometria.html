@@ -338,13 +338,14 @@
     }
     
     .retino-textarea {
-      width: 100%;
-      min-height: 90px;
-      padding: 8px;
+      width: 120px;
+      min-height: 45px;
+      max-height: 45px;
+      padding: 6px;
       border: 1px solid #ced4da;
       border-radius: 4px;
-      resize: vertical;
-      font-size: 0.85rem;
+      resize: none;
+      font-size: 0.8rem;
       margin-bottom: 12px;
     }
     
@@ -1372,8 +1373,8 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                 <tr>
                   <th style="min-width: 150px;"></th>
                   <th style="width: 35px;"></th>
-                  <th colspan="2" style="min-width: 180px;"></th>
-                  <th style="min-width: 100px;"></th>
+                  <th colspan="2" style="min-width: 180px;">Esfera / Cilindro</th>
+                  <th style="min-width: 100px;">Grados</th>
                   <th style="min-width: 220px;">Agudeza visual</th>
                   <th style="min-width: 220px;">Adición</th>
                 </tr>
@@ -1387,7 +1388,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                   <td><input type="text" name="lentes_ant_od_cil" placeholder="" style="width:60px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></td>
                   <td>
                     <div class="grados-cell">
-                      <input type="text" name="lentes_ant_od_grados" placeholder="">
+                      <input type="text" name="lentes_ant_od_grados" placeholder="0">
                       <span class="grados-txt">° Grados</span>
                     </div>
                   </td>
@@ -1396,14 +1397,14 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                       <input type="text" name="lentes_ant_od_av_1" placeholder="0">
                       <span class="sep">/</span>
                       <input type="text" name="lentes_ant_od_av_2" placeholder="0">
-                      <span class="sep"></span>
+                      <span class="sep">/</span>
                       <input type="text" name="lentes_ant_od_av_3" placeholder="0">
                     </div>
                   </td>
                   <td>
                     <div class="av-inputs">
                       <input type="text" name="lentes_ant_od_ad_1" placeholder="0">
-                      <span class="sep"></span>
+                      <span class="sep">/</span>
                       <input type="text" name="lentes_ant_od_ad_2" placeholder="0">
                       <span class="sep">/</span>
                       <input type="text" name="lentes_ant_od_ad_3" placeholder="0">
@@ -1416,7 +1417,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                   <td><input type="text" name="lentes_ant_oi_cil" placeholder="" style="width:60px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></td>
                   <td>
                     <div class="grados-cell">
-                      <input type="text" name="lentes_ant_oi_grados" placeholder="">
+                      <input type="text" name="lentes_ant_oi_grados" placeholder="0">
                       <span class="grados-txt">° Grados</span>
                     </div>
                   </td>
@@ -1425,14 +1426,14 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                       <input type="text" name="lentes_ant_oi_av_1" placeholder="0">
                       <span class="sep">/</span>
                       <input type="text" name="lentes_ant_oi_av_2" placeholder="0">
-                      <span class="sep"></span>
+                      <span class="sep">/</span>
                       <input type="text" name="lentes_ant_oi_av_3" placeholder="0">
                     </div>
                   </td>
                   <td>
                     <div class="av-inputs">
                       <input type="text" name="lentes_ant_oi_ad_1" placeholder="0">
-                      <span class="sep"></span>
+                      <span class="sep">/</span>
                       <input type="text" name="lentes_ant_oi_ad_2" placeholder="0">
                       <span class="sep">/</span>
                       <input type="text" name="lentes_ant_oi_ad_3" placeholder="0">
@@ -1448,7 +1449,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                   <td><input type="text" name="refrac_subj_od_cil" placeholder="" style="width:60px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></td>
                   <td>
                     <div class="grados-cell">
-                      <input type="text" name="refrac_subj_od_grados" placeholder="">
+                      <input type="text" name="refrac_subj_od_grados" placeholder="0">
                       <span class="grados-txt">° Grados</span>
                     </div>
                   </td>
@@ -1457,14 +1458,14 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                       <input type="text" name="refrac_subj_od_av_1" placeholder="0">
                       <span class="sep">/</span>
                       <input type="text" name="refrac_subj_od_av_2" placeholder="0">
-                      <span class="sep"></span>
+                      <span class="sep">/</span>
                       <input type="text" name="refrac_subj_od_av_3" placeholder="0">
                     </div>
                   </td>
                   <td>
                     <div class="av-inputs">
                       <input type="text" name="refrac_subj_od_ad_1" placeholder="0">
-                      <span class="sep"></span>
+                      <span class="sep">/</span>
                       <input type="text" name="refrac_subj_od_ad_2" placeholder="0">
                       <span class="sep">/</span>
                       <input type="text" name="refrac_subj_od_ad_3" placeholder="0">
@@ -1477,7 +1478,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                   <td><input type="text" name="refrac_subj_oi_cil" placeholder="" style="width:60px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></td>
                   <td>
                     <div class="grados-cell">
-                      <input type="text" name="refrac_subj_oi_grados" placeholder="">
+                      <input type="text" name="refrac_subj_oi_grados" placeholder="0">
                       <span class="grados-txt">° Grados</span>
                     </div>
                   </td>
@@ -1486,14 +1487,14 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                       <input type="text" name="refrac_subj_oi_av_1" placeholder="0">
                       <span class="sep">/</span>
                       <input type="text" name="refrac_subj_oi_av_2" placeholder="0">
-                      <span class="sep"></span>
+                      <span class="sep">/</span>
                       <input type="text" name="refrac_subj_oi_av_3" placeholder="0">
                     </div>
                   </td>
                   <td>
                     <div class="av-inputs">
                       <input type="text" name="refrac_subj_oi_ad_1" placeholder="0">
-                      <span class="sep"></span>
+                      <span class="sep">/</span>
                       <input type="text" name="refrac_subj_oi_ad_2" placeholder="0">
                       <span class="sep">/</span>
                       <input type="text" name="refrac_subj_oi_ad_3" placeholder="0">
@@ -1509,7 +1510,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                   <td><input type="text" name="subj_ciclo_od_cil" placeholder="" style="width:60px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></td>
                   <td>
                     <div class="grados-cell">
-                      <input type="text" name="subj_ciclo_od_grados" placeholder="">
+                      <input type="text" name="subj_ciclo_od_grados" placeholder="0">
                       <span class="grados-txt">° Grados</span>
                     </div>
                   </td>
@@ -1518,14 +1519,14 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                       <input type="text" name="subj_ciclo_od_av_1" placeholder="0">
                       <span class="sep">/</span>
                       <input type="text" name="subj_ciclo_od_av_2" placeholder="0">
-                      <span class="sep"></span>
+                      <span class="sep">/</span>
                       <input type="text" name="subj_ciclo_od_av_3" placeholder="0">
                     </div>
                   </td>
                   <td>
                     <div class="av-inputs">
                       <input type="text" name="subj_ciclo_od_ad_1" placeholder="0">
-                      <span class="sep"></span>
+                      <span class="sep">/</span>
                       <input type="text" name="subj_ciclo_od_ad_2" placeholder="0">
                       <span class="sep">/</span>
                       <input type="text" name="subj_ciclo_od_ad_3" placeholder="0">
@@ -1538,7 +1539,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                   <td><input type="text" name="subj_ciclo_oi_cil" placeholder="" style="width:60px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></td>
                   <td>
                     <div class="grados-cell">
-                      <input type="text" name="subj_ciclo_oi_grados" placeholder="">
+                      <input type="text" name="subj_ciclo_oi_grados" placeholder="0">
                       <span class="grados-txt">° Grados</span>
                     </div>
                   </td>
@@ -1547,14 +1548,14 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                       <input type="text" name="subj_ciclo_oi_av_1" placeholder="0">
                       <span class="sep">/</span>
                       <input type="text" name="subj_ciclo_oi_av_2" placeholder="0">
-                      <span class="sep"></span>
+                      <span class="sep">/</span>
                       <input type="text" name="subj_ciclo_oi_av_3" placeholder="0">
                     </div>
                   </td>
                   <td>
                     <div class="av-inputs">
                       <input type="text" name="subj_ciclo_oi_ad_1" placeholder="0">
-                      <span class="sep"></span>
+                      <span class="sep">/</span>
                       <input type="text" name="subj_ciclo_oi_ad_2" placeholder="0">
                       <span class="sep">/</span>
                       <input type="text" name="subj_ciclo_oi_ad_3" placeholder="0">
@@ -1572,7 +1573,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
     <!-- OJO DERECHO -->
     <div class="retino-eye">
       <div class="retino-eye-label">Ojo derecho</div>
-      <textarea name="retino_od_obs" class="retino-textarea" placeholder=""></textarea>
+      <textarea name="retino_od_obs" class="retino-textarea" placeholder="Observaciones..."></textarea>
       
       <div class="retino-grados-container">
         <input type="text" name="retino_od_90" placeholder="90">
@@ -1594,7 +1595,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
     <!-- OJO IZQUIERDO -->
     <div class="retino-eye">
       <div class="retino-eye-label">Ojo izquierdo</div>
-      <textarea name="retino_oi_obs" class="retino-textarea" placeholder=""></textarea>
+      <textarea name="retino_oi_obs" class="retino-textarea" placeholder="Observaciones..."></textarea>
       
       <div class="retino-grados-container">
         <input type="text" name="retino_oi_90" placeholder="90">
@@ -1622,7 +1623,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
     <!-- OJO DERECHO -->
     <div class="retino-eye">
       <div class="retino-eye-label">Ojo derecho</div>
-      <textarea name="retino_ciclo_od_obs" class="retino-textarea" placeholder=""></textarea>
+      <textarea name="retino_ciclo_od_obs" class="retino-textarea" placeholder="Observaciones..."></textarea>
       
       <div class="retino-grados-container">
         <input type="text" name="retino_ciclo_od_90" placeholder="90">
@@ -1644,7 +1645,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
     <!-- OJO IZQUIERDO -->
     <div class="retino-eye">
       <div class="retino-eye-label">Ojo izquierdo</div>
-      <textarea name="retino_ciclo_oi_obs" class="retino-textarea" placeholder=""></textarea>
+      <textarea name="retino_ciclo_oi_obs" class="retino-textarea" placeholder="Observaciones..."></textarea>
       
       <div class="retino-grados-container">
         <input type="text" name="retino_ciclo_oi_90" placeholder="90">
