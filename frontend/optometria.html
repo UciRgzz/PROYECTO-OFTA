@@ -1115,7 +1115,7 @@ function habilitarEdicion(id, data) {
 // Función para crear formulario de edición
 function crearFormularioEdicion(data) {
   return `
-    <form id="formEditarEvaluacion">
+    <form id="formEditarEvaluacion" style="max-height: 70vh; overflow-y: auto;">
       <div style="padding: 10px;">
 
         <div class="view-data-box">
@@ -1129,22 +1129,22 @@ function crearFormularioEdicion(data) {
           </div>
         </div>
 
+        <!-- AGUDEZA VISUAL SIN CORRECCIÓN LEJOS -->
         <div class="view-section-title">Agudeza Visual sin Corrección Lejos</div>
         <div class="view-two-columns">
           <div class="view-data-box">
             <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Derecho</h6>
             <div class="view-data-row">
               <span class="view-data-label">Valores:</span>
-              <div style="display: flex; gap: 5px;">
-                <input type="text" name="av_sc_od_1" value="${data.av_sc_od_1 || ''}" class="form-control" style="width: 60px;">
+              <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                <input type="text" name="av_sc_od_1" value="${data.av_sc_od_1 || ''}" class="form-control" style="width: 60px;" placeholder="">
                 <span>/</span>
-                <input type="text" name="av_sc_od_2" value="${data.av_sc_od_2 || ''}" class="form-control" style="width: 60px;">
-                <input type="text" name="av_sc_od_3" value="${data.av_sc_od_3 || ''}" class="form-control" style="width: 60px;">
-                <input type="text" name="av_sc_od_4" value="${data.av_sc_od_4 || ''}" class="form-control" style="width: 60px;">
+                <input type="text" name="av_sc_od_2" value="${data.av_sc_od_2 || ''}" class="form-control" style="width: 60px;" placeholder="">
+                <input type="text" name="av_sc_od_3" value="${data.av_sc_od_3 || ''}" class="form-control" style="width: 60px;" placeholder="">
+                <input type="text" name="av_sc_od_4" value="${data.av_sc_od_4 || ''}" class="form-control" style="width: 60px;" placeholder="">
               </div>
             </div>
             <div class="view-data-row">
-              <span class="view-data-label">Color:</span>
               <input type="checkbox" name="av_sc_od_color" ${data.av_sc_od_color ? 'checked' : ''}>
               <label>Discrimina color</label>
             </div>
@@ -1157,16 +1157,15 @@ function crearFormularioEdicion(data) {
             <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Izquierdo</h6>
             <div class="view-data-row">
               <span class="view-data-label">Valores:</span>
-              <div style="display: flex; gap: 5px;">
-                <input type="text" name="av_sc_oi_1" value="${data.av_sc_oi_1 || ''}" class="form-control" style="width: 60px;">
+              <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                <input type="text" name="av_sc_oi_1" value="${data.av_sc_oi_1 || ''}" class="form-control" style="width: 60px;" placeholder="">
                 <span>/</span>
-                <input type="text" name="av_sc_oi_2" value="${data.av_sc_oi_2 || ''}" class="form-control" style="width: 60px;">
-                <input type="text" name="av_sc_oi_3" value="${data.av_sc_oi_3 || ''}" class="form-control" style="width: 60px;">
-                <input type="text" name="av_sc_oi_4" value="${data.av_sc_oi_4 || ''}" class="form-control" style="width: 60px;">
+                <input type="text" name="av_sc_oi_2" value="${data.av_sc_oi_2 || ''}" class="form-control" style="width: 60px;" placeholder="">
+                <input type="text" name="av_sc_oi_3" value="${data.av_sc_oi_3 || ''}" class="form-control" style="width: 60px;" placeholder="">
+                <input type="text" name="av_sc_oi_4" value="${data.av_sc_oi_4 || ''}" class="form-control" style="width: 60px;" placeholder="">
               </div>
             </div>
             <div class="view-data-row">
-              <span class="view-data-label">Color:</span>
               <input type="checkbox" name="av_sc_oi_color" ${data.av_sc_oi_color ? 'checked' : ''}>
               <label>Discrimina color</label>
             </div>
@@ -1177,9 +1176,185 @@ function crearFormularioEdicion(data) {
           </div>
         </div>
 
-        <!-- Aquí puedes agregar más secciones editables según necesites -->
-        <p style="margin-top: 20px; color: #666; font-style: italic;">
-          <i class="fas fa-info-circle"></i> Por ahora solo se pueden editar algunos campos. Más campos estarán disponibles próximamente.
+        <!-- AGUDEZA VISUAL CON ESTENOPEICO -->
+        <div class="view-section-title">Agudeza Visual con Estenopeico</div>
+        <div class="view-two-columns">
+          <div class="view-data-box">
+            <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Derecho</h6>
+            <div class="view-data-row">
+              <span class="view-data-label">Valores:</span>
+              <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                <input type="text" name="av_est_od_1" value="${data.av_est_od_1 || ''}" class="form-control" style="width: 60px;" placeholder="">
+                <span>/</span>
+                <input type="text" name="av_est_od_2" value="${data.av_est_od_2 || ''}" class="form-control" style="width: 60px;" placeholder="">
+                <input type="text" name="av_est_od_3" value="${data.av_est_od_3 || ''}" class="form-control" style="width: 60px;" placeholder="">
+                <input type="text" name="av_est_od_4" value="${data.av_est_od_4 || ''}" class="form-control" style="width: 60px;" placeholder="">
+              </div>
+            </div>
+            <div class="view-data-row">
+              <input type="checkbox" name="av_est_od_color" ${data.av_est_od_color ? 'checked' : ''}>
+              <label>Discrimina color</label>
+            </div>
+            <div class="view-data-row">
+              <span class="view-data-label">Obs:</span>
+              <textarea name="av_est_od_obs" class="form-control" rows="2">${data.av_est_od_obs || ''}</textarea>
+            </div>
+          </div>
+          <div class="view-data-box">
+            <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Izquierdo</h6>
+            <div class="view-data-row">
+              <span class="view-data-label">Valores:</span>
+              <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                <input type="text" name="av_est_oi_1" value="${data.av_est_oi_1 || ''}" class="form-control" style="width: 60px;" placeholder="">
+                <span>/</span>
+                <input type="text" name="av_est_oi_2" value="${data.av_est_oi_2 || ''}" class="form-control" style="width: 60px;" placeholder="">
+                <input type="text" name="av_est_oi_3" value="${data.av_est_oi_3 || ''}" class="form-control" style="width: 60px;" placeholder="">
+                <input type="text" name="av_est_oi_4" value="${data.av_est_oi_4 || ''}" class="form-control" style="width: 60px;" placeholder="">
+              </div>
+            </div>
+            <div class="view-data-row">
+              <input type="checkbox" name="av_est_oi_color" ${data.av_est_oi_color ? 'checked' : ''}>
+              <label>Discrimina color</label>
+            </div>
+            <div class="view-data-row">
+              <span class="view-data-label">Obs:</span>
+              <textarea name="av_est_oi_obs" class="form-control" rows="2">${data.av_est_oi_obs || ''}</textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- AGUDEZA VISUAL DE CERCA -->
+        <div class="view-section-title">Agudeza Visual de Cerca</div>
+        <div class="view-two-columns">
+          <div class="view-data-box">
+            <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Derecho</h6>
+            <div class="view-data-row">
+              <span class="view-data-label">Valores:</span>
+              <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                <input type="text" name="av_cerca_od_1" value="${data.av_cerca_od_1 || ''}" class="form-control" style="width: 60px;" placeholder="">
+                <span>/</span>
+                <input type="text" name="av_cerca_od_2" value="${data.av_cerca_od_2 || ''}" class="form-control" style="width: 60px;" placeholder="">
+                <input type="text" name="av_cerca_od_3" value="${data.av_cerca_od_3 || ''}" class="form-control" style="width: 60px;" placeholder="">
+                <input type="text" name="av_cerca_od_4" value="${data.av_cerca_od_4 || ''}" class="form-control" style="width: 60px;" placeholder="">
+              </div>
+            </div>
+            <div class="view-data-row">
+              <input type="checkbox" name="av_cerca_od_color" ${data.av_cerca_od_color ? 'checked' : ''}>
+              <label>Discrimina color</label>
+            </div>
+            <div class="view-data-row">
+              <span class="view-data-label">Obs:</span>
+              <textarea name="av_cerca_od_obs" class="form-control" rows="2">${data.av_cerca_od_obs || ''}</textarea>
+            </div>
+          </div>
+          <div class="view-data-box">
+            <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Izquierdo</h6>
+            <div class="view-data-row">
+              <span class="view-data-label">Valores:</span>
+              <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                <input type="text" name="av_cerca_oi_1" value="${data.av_cerca_oi_1 || ''}" class="form-control" style="width: 60px;" placeholder="">
+                <span>/</span>
+                <input type="text" name="av_cerca_oi_2" value="${data.av_cerca_oi_2 || ''}" class="form-control" style="width: 60px;" placeholder="">
+                <input type="text" name="av_cerca_oi_3" value="${data.av_cerca_oi_3 || ''}" class="form-control" style="width: 60px;" placeholder="">
+                <input type="text" name="av_cerca_oi_4" value="${data.av_cerca_oi_4 || ''}" class="form-control" style="width: 60px;" placeholder="">
+              </div>
+            </div>
+            <div class="view-data-row">
+              <input type="checkbox" name="av_cerca_oi_color" ${data.av_cerca_oi_color ? 'checked' : ''}>
+              <label>Discrimina color</label>
+            </div>
+            <div class="view-data-row">
+              <span class="view-data-label">Obs:</span>
+              <textarea name="av_cerca_oi_obs" class="form-control" rows="2">${data.av_cerca_oi_obs || ''}</textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- AUTOREFRACTOR -->
+        <div class="view-section-title">Autorefractor</div>
+        <div class="view-two-columns">
+          <div class="view-data-box">
+            <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Derecho</h6>
+            <div class="view-data-row" style="display: flex; gap: 5px; align-items: center;">
+              <input type="text" name="auto_od_1" value="${data.auto_od_1 || ''}" class="form-control" style="width: 70px;" placeholder="">
+              <span>/</span>
+              <input type="text" name="auto_od_2" value="${data.auto_od_2 || ''}" class="form-control" style="width: 70px;" placeholder="">
+              <span>@</span>
+              <input type="text" name="auto_od_grados" value="${data.auto_od_grados || ''}" class="form-control" style="width: 70px;" placeholder="0">
+              <span>°</span>
+            </div>
+          </div>
+          <div class="view-data-box">
+            <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Izquierdo</h6>
+            <div class="view-data-row" style="display: flex; gap: 5px; align-items: center;">
+              <input type="text" name="auto_oi_1" value="${data.auto_oi_1 || ''}" class="form-control" style="width: 70px;" placeholder="">
+              <span>/</span>
+              <input type="text" name="auto_oi_2" value="${data.auto_oi_2 || ''}" class="form-control" style="width: 70px;" placeholder="">
+              <span>@</span>
+              <input type="text" name="auto_oi_grados" value="${data.auto_oi_grados || ''}" class="form-control" style="width: 70px;" placeholder="0">
+              <span>°</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- AUTOREFRACTOR CON CICLOPEJÍA -->
+        <div class="view-section-title">Autorefractor con Ciclopejía</div>
+        <div class="view-two-columns">
+          <div class="view-data-box">
+            <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Derecho</h6>
+            <div class="view-data-row" style="display: flex; gap: 5px; align-items: center;">
+              <input type="text" name="auto_ciclo_od_1" value="${data.auto_ciclo_od_1 || ''}" class="form-control" style="width: 70px;" placeholder="">
+              <span>/</span>
+              <input type="text" name="auto_ciclo_od_2" value="${data.auto_ciclo_od_2 || ''}" class="form-control" style="width: 70px;" placeholder="">
+              <span>@</span>
+              <input type="text" name="auto_ciclo_od_grados" value="${data.auto_ciclo_od_grados || ''}" class="form-control" style="width: 70px;" placeholder="0">
+              <span>°</span>
+            </div>
+          </div>
+          <div class="view-data-box">
+            <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Izquierdo</h6>
+            <div class="view-data-row" style="display: flex; gap: 5px; align-items: center;">
+              <input type="text" name="auto_ciclo_oi_1" value="${data.auto_ciclo_oi_1 || ''}" class="form-control" style="width: 70px;" placeholder="">
+              <span>/</span>
+              <input type="text" name="auto_ciclo_oi_2" value="${data.auto_ciclo_oi_2 || ''}" class="form-control" style="width: 70px;" placeholder="">
+              <span>@</span>
+              <input type="text" name="auto_ciclo_oi_grados" value="${data.auto_ciclo_oi_grados || ''}" class="form-control" style="width: 70px;" placeholder="0">
+              <span>°</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- QUERATOMETRÍA -->
+        <div class="view-section-title">Queratometría</div>
+        <div class="view-two-columns">
+          <div class="view-data-box">
+            <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Derecho</h6>
+            <div class="view-data-row" style="display: flex; gap: 5px; align-items: center;">
+              <input type="text" name="kerato_od_1" value="${data.kerato_od_1 || ''}" class="form-control" style="width: 60px;" placeholder="">
+              <span>x</span>
+              <input type="text" name="kerato_od_2" value="${data.kerato_od_2 || ''}" class="form-control" style="width: 60px;" placeholder="">
+              <span>/</span>
+              <input type="text" name="kerato_od_3" value="${data.kerato_od_3 || ''}" class="form-control" style="width: 60px;" placeholder="">
+              <span>x</span>
+              <input type="text" name="kerato_od_4" value="${data.kerato_od_4 || ''}" class="form-control" style="width: 60px;" placeholder="">
+            </div>
+          </div>
+          <div class="view-data-box">
+            <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Izquierdo</h6>
+            <div class="view-data-row" style="display: flex; gap: 5px; align-items: center;">
+              <input type="text" name="kerato_oi_1" value="${data.kerato_oi_1 || ''}" class="form-control" style="width: 60px;" placeholder="">
+              <span>x</span>
+              <input type="text" name="kerato_oi_2" value="${data.kerato_oi_2 || ''}" class="form-control" style="width: 60px;" placeholder="">
+              <span>/</span>
+              <input type="text" name="kerato_oi_3" value="${data.kerato_oi_3 || ''}" class="form-control" style="width: 60px;" placeholder="">
+              <span>x</span>
+              <input type="text" name="kerato_oi_4" value="${data.kerato_oi_4 || ''}" class="form-control" style="width: 60px;" placeholder="">
+            </div>
+          </div>
+        </div>
+
+        <p style="margin-top: 20px; color: #27ae60; font-style: italic;">
+          <i class="fas fa-check-circle"></i> Puedes editar cualquier campo, incluso si estaba vacío anteriormente.
         </p>
 
       </div>
