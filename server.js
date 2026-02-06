@@ -2960,15 +2960,27 @@ app.put("/api/optometria/:id", verificarSesion, async (req, res) => {
     // Extraer solo los campos que se envían en el body
     const updates = {};
     const allowedFields = [
+      // Agudeza visual sin corrección
       'av_sc_od_1', 'av_sc_od_2', 'av_sc_od_3', 'av_sc_od_4',
       'av_sc_oi_1', 'av_sc_oi_2', 'av_sc_oi_3', 'av_sc_oi_4',
       'av_sc_od_color', 'av_sc_oi_color', 'av_sc_od_obs', 'av_sc_oi_obs',
+      // Agudeza visual con estenopeico
       'av_est_od_1', 'av_est_od_2', 'av_est_od_3', 'av_est_od_4',
       'av_est_oi_1', 'av_est_oi_2', 'av_est_oi_3', 'av_est_oi_4',
       'av_est_od_color', 'av_est_oi_color', 'av_est_od_obs', 'av_est_oi_obs',
+      // Agudeza visual de cerca
       'av_cerca_od_1', 'av_cerca_od_2', 'av_cerca_od_3', 'av_cerca_od_4',
       'av_cerca_oi_1', 'av_cerca_oi_2', 'av_cerca_oi_3', 'av_cerca_oi_4',
-      'av_cerca_od_color', 'av_cerca_oi_color', 'av_cerca_od_obs', 'av_cerca_oi_obs'
+      'av_cerca_od_color', 'av_cerca_oi_color', 'av_cerca_od_obs', 'av_cerca_oi_obs',
+      // Autorefractor
+      'auto_od_1', 'auto_od_2', 'auto_od_grados',
+      'auto_oi_1', 'auto_oi_2', 'auto_oi_grados',
+      // Autorefractor con ciclopejía
+      'auto_ciclo_od_1', 'auto_ciclo_od_2', 'auto_ciclo_od_grados',
+      'auto_ciclo_oi_1', 'auto_ciclo_oi_2', 'auto_ciclo_oi_grados',
+      // Queratometría
+      'kerato_od_1', 'kerato_od_2', 'kerato_od_3', 'kerato_od_4',
+      'kerato_oi_1', 'kerato_oi_2', 'kerato_oi_3', 'kerato_oi_4'
     ];
 
     allowedFields.forEach(field => {

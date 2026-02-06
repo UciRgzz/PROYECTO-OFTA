@@ -1369,9 +1369,13 @@ async function guardarEdicion(id) {
     const formData = new FormData(form);
     const data = Object.fromEntries(formData);
 
-    // Convertir checkboxes a booleanos
+    // Convertir todos los checkboxes a booleanos
     data.av_sc_od_color = formData.get('av_sc_od_color') === 'on';
     data.av_sc_oi_color = formData.get('av_sc_oi_color') === 'on';
+    data.av_est_od_color = formData.get('av_est_od_color') === 'on';
+    data.av_est_oi_color = formData.get('av_est_oi_color') === 'on';
+    data.av_cerca_od_color = formData.get('av_cerca_od_color') === 'on';
+    data.av_cerca_oi_color = formData.get('av_cerca_oi_color') === 'on';
 
     const res = await fetch(`/api/optometria/${id}`, {
       method: 'PUT',
