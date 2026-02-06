@@ -2655,18 +2655,20 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
       hora_tp,
       
       // Agudeza Visual sin corrección lejos
-      av_sc_od, av_sc_oi,
-      av_cl_od, av_cl_oi,
+      av_sc_od_1, av_sc_od_2, av_sc_od_3, av_sc_od_4,
+      av_sc_oi_1, av_sc_oi_2, av_sc_oi_3, av_sc_oi_4,
       av_sc_od_color, av_sc_oi_color,
       av_sc_od_obs, av_sc_oi_obs,
-      
+
       // Agudeza Visual con estenopeico
-      av_est_od, av_est_oi,
+      av_est_od_1, av_est_od_2, av_est_od_3, av_est_od_4,
+      av_est_oi_1, av_est_oi_2, av_est_oi_3, av_est_oi_4,
       av_est_od_color, av_est_oi_color,
       av_est_od_obs, av_est_oi_obs,
-      
+
       // Agudeza Visual de cerca
-      av_cerca_od, av_cerca_oi,
+      av_cerca_od_1, av_cerca_od_2, av_cerca_od_3, av_cerca_od_4,
+      av_cerca_oi_1, av_cerca_oi_2, av_cerca_oi_3, av_cerca_oi_4,
       av_cerca_od_color, av_cerca_oi_color,
       av_cerca_od_obs, av_cerca_oi_obs,
       
@@ -2683,24 +2685,36 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
       lentes_ant_oi_av_1, lentes_ant_oi_av_2, lentes_ant_oi_av_3,
       
       // Lentes Anteriores - Adición
-      lentes_ant_od_ad_1, lentes_ant_od_ad_2,
-      lentes_ant_oi_ad_1, lentes_ant_oi_ad_2,
-      
+      lentes_ant_od_ad_1, lentes_ant_od_ad_2, lentes_ant_od_ad_3,
+      lentes_ant_oi_ad_1, lentes_ant_oi_ad_2, lentes_ant_oi_ad_3,
+
+      // Lentes Anteriores - Esf, Cil, Grados
+      lentes_ant_od_esf, lentes_ant_od_cil, lentes_ant_od_grados,
+      lentes_ant_oi_esf, lentes_ant_oi_cil, lentes_ant_oi_grados,
+
       // Refracción Subjetiva - AV
       refrac_subj_od_av_1, refrac_subj_od_av_2, refrac_subj_od_av_3,
       refrac_subj_oi_av_1, refrac_subj_oi_av_2, refrac_subj_oi_av_3,
-      
+
       // Refracción Subjetiva - Adición
-      refrac_subj_od_ad_1, refrac_subj_od_ad_2,
-      refrac_subj_oi_ad_1, refrac_subj_oi_ad_2,
-      
+      refrac_subj_od_ad_1, refrac_subj_od_ad_2, refrac_subj_od_ad_3,
+      refrac_subj_oi_ad_1, refrac_subj_oi_ad_2, refrac_subj_oi_ad_3,
+
+      // Refracción Subjetiva - Esf, Cil, Grados
+      refrac_subj_od_esf, refrac_subj_od_cil, refrac_subj_od_grados,
+      refrac_subj_oi_esf, refrac_subj_oi_cil, refrac_subj_oi_grados,
+
       // Subjetiva Ciclopejía - AV
       subj_ciclo_od_av_1, subj_ciclo_od_av_2, subj_ciclo_od_av_3,
       subj_ciclo_oi_av_1, subj_ciclo_oi_av_2, subj_ciclo_oi_av_3,
-      
+
       // Subjetiva Ciclopejía - Adición
-      subj_ciclo_od_ad_1, subj_ciclo_od_ad_2,
-      subj_ciclo_oi_ad_1, subj_ciclo_oi_ad_2,
+      subj_ciclo_od_ad_1, subj_ciclo_od_ad_2, subj_ciclo_od_ad_3,
+      subj_ciclo_oi_ad_1, subj_ciclo_oi_ad_2, subj_ciclo_oi_ad_3,
+
+      // Subjetiva Ciclopejía - Esf, Cil, Grados
+      subj_ciclo_od_esf, subj_ciclo_od_cil, subj_ciclo_od_grados,
+      subj_ciclo_oi_esf, subj_ciclo_oi_cil, subj_ciclo_oi_grados,
       
       // Retinoscopía
       retino_od_obs, retino_od_90, retino_od_180, retino_od_top,
@@ -2722,17 +2736,19 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
     const result = await pool.query(
       `INSERT INTO optometria (
         expediente_id, hora_tp, fecha, departamento,
-        
-        av_sc_od, av_sc_oi,
-        av_cl_od, av_cl_oi,
+
+        av_sc_od_1, av_sc_od_2, av_sc_od_3, av_sc_od_4,
+        av_sc_oi_1, av_sc_oi_2, av_sc_oi_3, av_sc_oi_4,
         av_sc_od_color, av_sc_oi_color,
         av_sc_od_obs, av_sc_oi_obs,
-        
-        av_est_od, av_est_oi,
+
+        av_est_od_1, av_est_od_2, av_est_od_3, av_est_od_4,
+        av_est_oi_1, av_est_oi_2, av_est_oi_3, av_est_oi_4,
         av_est_od_color, av_est_oi_color,
         av_est_od_obs, av_est_oi_obs,
-        
-        av_cerca_od, av_cerca_oi,
+
+        av_cerca_od_1, av_cerca_od_2, av_cerca_od_3, av_cerca_od_4,
+        av_cerca_oi_1, av_cerca_oi_2, av_cerca_oi_3, av_cerca_oi_4,
         av_cerca_od_color, av_cerca_oi_color,
         av_cerca_od_obs, av_cerca_oi_obs,
         
@@ -2744,21 +2760,30 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
         
         lentes_ant_od_av_1, lentes_ant_od_av_2, lentes_ant_od_av_3,
         lentes_ant_oi_av_1, lentes_ant_oi_av_2, lentes_ant_oi_av_3,
-        
-        lentes_ant_od_ad_1, lentes_ant_od_ad_2,
-        lentes_ant_oi_ad_1, lentes_ant_oi_ad_2,
-        
+
+        lentes_ant_od_ad_1, lentes_ant_od_ad_2, lentes_ant_od_ad_3,
+        lentes_ant_oi_ad_1, lentes_ant_oi_ad_2, lentes_ant_oi_ad_3,
+
+        lentes_ant_od_esf, lentes_ant_od_cil, lentes_ant_od_grados,
+        lentes_ant_oi_esf, lentes_ant_oi_cil, lentes_ant_oi_grados,
+
         refrac_subj_od_av_1, refrac_subj_od_av_2, refrac_subj_od_av_3,
         refrac_subj_oi_av_1, refrac_subj_oi_av_2, refrac_subj_oi_av_3,
-        
-        refrac_subj_od_ad_1, refrac_subj_od_ad_2,
-        refrac_subj_oi_ad_1, refrac_subj_oi_ad_2,
-        
+
+        refrac_subj_od_ad_1, refrac_subj_od_ad_2, refrac_subj_od_ad_3,
+        refrac_subj_oi_ad_1, refrac_subj_oi_ad_2, refrac_subj_oi_ad_3,
+
+        refrac_subj_od_esf, refrac_subj_od_cil, refrac_subj_od_grados,
+        refrac_subj_oi_esf, refrac_subj_oi_cil, refrac_subj_oi_grados,
+
         subj_ciclo_od_av_1, subj_ciclo_od_av_2, subj_ciclo_od_av_3,
         subj_ciclo_oi_av_1, subj_ciclo_oi_av_2, subj_ciclo_oi_av_3,
-        
-        subj_ciclo_od_ad_1, subj_ciclo_od_ad_2,
-        subj_ciclo_oi_ad_1, subj_ciclo_oi_ad_2,
+
+        subj_ciclo_od_ad_1, subj_ciclo_od_ad_2, subj_ciclo_od_ad_3,
+        subj_ciclo_oi_ad_1, subj_ciclo_oi_ad_2, subj_ciclo_oi_ad_3,
+
+        subj_ciclo_od_esf, subj_ciclo_od_cil, subj_ciclo_od_grados,
+        subj_ciclo_oi_esf, subj_ciclo_oi_cil, subj_ciclo_oi_grados,
         
         retino_od_obs, retino_od_90, retino_od_180, retino_od_top,
         retino_oi_obs, retino_oi_90, retino_oi_180, retino_oi_top,
@@ -2771,40 +2796,57 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
       )
       VALUES (
         $1, $2, $3::date, $4,
-        $5, $6, $7, $8, $9, $10, $11, $12,
-        $13, $14, $15, $16, $17, $18,
-        $19, $20, $21, $22, $23, $24,
-        $25, $26, $27, $28, $29, $30,
-        $31, $32, $33, $34, $35, $36,
+        $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
+        $17, $18, $19, $20, $21, $22, $23, $24, $25, $26,
+        $27, $28, $29, $30, $31, $32, $33, $34, $35, $36,
         $37, $38, $39, $40, $41, $42,
-        $43, $44, $45, $46,
-        $47, $48, $49, $50, $51, $52,
-        $53, $54, $55, $56,
-        $57, $58, $59, $60, $61, $62,
-        $63, $64, $65, $66,
-        $67, $68, $69, $70, $71, $72, $73, $74,
-        $75, $76, $77, $78, $79, $80, $81, $82,
-        $83, $84, $85, $86, $87, $88, $89, $90
+        $43, $44, $45, $46, $47, $48,
+        $49, $50, $51, $52, $53, $54,
+        $55, $56, $57, $58, $59, $60,
+        $61, $62, $63, $64, $65, $66,
+        $67, $68, $69, $70, $71, $72,
+        $73, $74, $75, $76, $77, $78,
+        $79, $80, $81, $82, $83, $84,
+        $85, $86, $87, $88, $89, $90,
+        $91, $92, $93, $94, $95, $96,
+        $97, $98, $99, $100, $101, $102,
+        $103, $104, $105, $106, $107, $108, $109, $110,
+        $111, $112, $113, $114, $115, $116, $117, $118,
+        $119, $120, $121, $122, $123, $124, $125, $126
       )
       RETURNING *`,
       [
         expediente_id, hora_tp, fechaMX, depto,
-        av_sc_od, av_sc_oi, av_cl_od, av_cl_oi, 
+        av_sc_od_1, av_sc_od_2, av_sc_od_3, av_sc_od_4,
+        av_sc_oi_1, av_sc_oi_2, av_sc_oi_3, av_sc_oi_4,
         av_sc_od_color, av_sc_oi_color, av_sc_od_obs, av_sc_oi_obs,
-        av_est_od, av_est_oi, av_est_od_color, av_est_oi_color, av_est_od_obs, av_est_oi_obs,
-        av_cerca_od, av_cerca_oi, av_cerca_od_color, av_cerca_oi_color, av_cerca_od_obs, av_cerca_oi_obs,
+        av_est_od_1, av_est_od_2, av_est_od_3, av_est_od_4,
+        av_est_oi_1, av_est_oi_2, av_est_oi_3, av_est_oi_4,
+        av_est_od_color, av_est_oi_color, av_est_od_obs, av_est_oi_obs,
+        av_cerca_od_1, av_cerca_od_2, av_cerca_od_3, av_cerca_od_4,
+        av_cerca_oi_1, av_cerca_oi_2, av_cerca_oi_3, av_cerca_oi_4,
+        av_cerca_od_color, av_cerca_oi_color, av_cerca_od_obs, av_cerca_oi_obs,
         auto_od_1, auto_od_2, auto_od_grados, auto_oi_1, auto_oi_2, auto_oi_grados,
         auto_ciclo_od_1, auto_ciclo_od_2, auto_ciclo_od_grados,
         auto_ciclo_oi_1, auto_ciclo_oi_2, auto_ciclo_oi_grados,
         lentes_ant_od_av_1, lentes_ant_od_av_2, lentes_ant_od_av_3,
         lentes_ant_oi_av_1, lentes_ant_oi_av_2, lentes_ant_oi_av_3,
-        lentes_ant_od_ad_1, lentes_ant_od_ad_2, lentes_ant_oi_ad_1, lentes_ant_oi_ad_2,
+        lentes_ant_od_ad_1, lentes_ant_od_ad_2, lentes_ant_od_ad_3,
+        lentes_ant_oi_ad_1, lentes_ant_oi_ad_2, lentes_ant_oi_ad_3,
+        lentes_ant_od_esf, lentes_ant_od_cil, lentes_ant_od_grados,
+        lentes_ant_oi_esf, lentes_ant_oi_cil, lentes_ant_oi_grados,
         refrac_subj_od_av_1, refrac_subj_od_av_2, refrac_subj_od_av_3,
         refrac_subj_oi_av_1, refrac_subj_oi_av_2, refrac_subj_oi_av_3,
-        refrac_subj_od_ad_1, refrac_subj_od_ad_2, refrac_subj_oi_ad_1, refrac_subj_oi_ad_2,
+        refrac_subj_od_ad_1, refrac_subj_od_ad_2, refrac_subj_od_ad_3,
+        refrac_subj_oi_ad_1, refrac_subj_oi_ad_2, refrac_subj_oi_ad_3,
+        refrac_subj_od_esf, refrac_subj_od_cil, refrac_subj_od_grados,
+        refrac_subj_oi_esf, refrac_subj_oi_cil, refrac_subj_oi_grados,
         subj_ciclo_od_av_1, subj_ciclo_od_av_2, subj_ciclo_od_av_3,
         subj_ciclo_oi_av_1, subj_ciclo_oi_av_2, subj_ciclo_oi_av_3,
-        subj_ciclo_od_ad_1, subj_ciclo_od_ad_2, subj_ciclo_oi_ad_1, subj_ciclo_oi_ad_2,
+        subj_ciclo_od_ad_1, subj_ciclo_od_ad_2, subj_ciclo_od_ad_3,
+        subj_ciclo_oi_ad_1, subj_ciclo_oi_ad_2, subj_ciclo_oi_ad_3,
+        subj_ciclo_od_esf, subj_ciclo_od_cil, subj_ciclo_od_grados,
+        subj_ciclo_oi_esf, subj_ciclo_oi_cil, subj_ciclo_oi_grados,
         retino_od_obs, retino_od_90, retino_od_180, retino_od_top,
         retino_oi_obs, retino_oi_90, retino_oi_180, retino_oi_top,
         retino_ciclo_od_obs, retino_ciclo_od_90, retino_ciclo_od_180, retino_ciclo_od_top,
