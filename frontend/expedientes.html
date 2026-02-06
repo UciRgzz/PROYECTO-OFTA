@@ -989,7 +989,14 @@ async function verMedico(expedienteId, nombre) {
 
 // Función para ver evaluaciones de optometría
 async function verOptometria(expedienteId, nombre) {
-    const res = await fetch(`/api/expedientes/${expedienteId}/optometria`, { credentials: 'include' });
+    const res = await fetch(`/api/expedientes/${expedienteId}/optometria`, {
+        credentials: 'include',
+        cache: 'no-cache',
+        headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+        }
+    });
     const data = await res.json();
 
     if (!data.length) {
