@@ -1382,7 +1382,7 @@ async function guardarEdicion(id) {
     const result = await res.json();
 
     if (res.ok) {
-      Swal.fire('✅ Éxito', 'Evaluación actualizada correctamente', 'success');
+      Swal.fire('Éxito', 'Evaluación actualizada correctamente', 'success');
       // Cerrar modal y recargar tabla
       bootstrap.Modal.getInstance(document.getElementById('modalGraduacion')).hide();
       const hoy = moment().format("YYYY-MM-DD");

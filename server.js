@@ -3001,7 +3001,7 @@ app.put("/api/optometria/:id", verificarSesion, async (req, res) => {
     }
 
     res.json({
-      mensaje: "✅ Evaluación actualizada correctamente",
+      mensaje: "Evaluación actualizada correctamente",
       data: result.rows[0]
     });
 
