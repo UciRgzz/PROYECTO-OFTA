@@ -2951,6 +2951,67 @@ app.get("/api/expedientes/:id/optometria", verificarSesion, async (req, res) => 
 });
 
 
+// Actualizar evaluación de optometría
+app.put("/api/optometria/:id", verificarSesion, async (req, res) => {
+  try {
+    const { id } = req.params;
+    let depto = getDepartamento(req);
+
+    // Extraer solo los campos que se envían en el body
+    const updates = {};
+    const allowedFields = [
+      'av_sc_od_1', 'av_sc_od_2', 'av_sc_od_3', 'av_sc_od_4',
+      'av_sc_oi_1', 'av_sc_oi_2', 'av_sc_oi_3', 'av_sc_oi_4',
+      'av_sc_od_color', 'av_sc_oi_color', 'av_sc_od_obs', 'av_sc_oi_obs',
+      'av_est_od_1', 'av_est_od_2', 'av_est_od_3', 'av_est_od_4',
+      'av_est_oi_1', 'av_est_oi_2', 'av_est_oi_3', 'av_est_oi_4',
+      'av_est_od_color', 'av_est_oi_color', 'av_est_od_obs', 'av_est_oi_obs',
+      'av_cerca_od_1', 'av_cerca_od_2', 'av_cerca_od_3', 'av_cerca_od_4',
+      'av_cerca_oi_1', 'av_cerca_oi_2', 'av_cerca_oi_3', 'av_cerca_oi_4',
+      'av_cerca_od_color', 'av_cerca_oi_color', 'av_cerca_od_obs', 'av_cerca_oi_obs'
+    ];
+
+    allowedFields.forEach(field => {
+      if (req.body.hasOwnProperty(field)) {
+        updates[field] = req.body[field];
+      }
+    });
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: "No hay campos para actualizar" });
+    }
+
+    // Construir query dinámicamente
+    const setClause = Object.keys(updates).map((key, idx) => `${key} = $${idx + 1}`).join(', ');
+    const values = Object.values(updates);
+    values.push(id);
+    values.push(depto);
+
+    const query = `
+      UPDATE optometria
+      SET ${setClause}, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $${values.length - 1} AND departamento = $${values.length}
+      RETURNING *
+    `;
+
+    const result = await pool.query(query, values);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Evaluación no encontrada o no pertenece a tu sucursal" });
+    }
+
+    res.json({
+      mensaje: "✅ Evaluación actualizada correctamente",
+      data: result.rows[0]
+    });
+
+  } catch (err) {
+    console.error("Error al actualizar optometría:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 // Eliminar evaluación de optometría
 app.delete("/api/optometria/:id", isAdmin, async (req, res) => {
   try {

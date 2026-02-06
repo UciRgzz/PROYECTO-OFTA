@@ -687,8 +687,17 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body" id="modalGraduacionBody"></div>
-        <div class="modal-footer">
+        <div class="modal-footer" id="modalGraduacionFooter">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+          <button type="button" class="btn btn-primary" id="btnEditarEvaluacion" style="display:none;">
+            <i class="fas fa-edit"></i> Editar Evaluación
+          </button>
+          <button type="button" class="btn btn-success" id="btnGuardarEvaluacion" style="display:none;">
+            <i class="fas fa-save"></i> Guardar Cambios
+          </button>
+          <button type="button" class="btn btn-secondary" id="btnCancelarEdicion" style="display:none;">
+            <i class="fas fa-times"></i> Cancelar
+          </button>
         </div>
       </div>
     </div>
@@ -1068,6 +1077,15 @@ async function verGraduacion(id) {
       `;
 
       document.getElementById('modalGraduacionBody').innerHTML = html;
+
+      // Mostrar botón de editar y ocultar los demás
+      document.getElementById('btnEditarEvaluacion').style.display = 'inline-flex';
+      document.getElementById('btnGuardarEvaluacion').style.display = 'none';
+      document.getElementById('btnCancelarEdicion').style.display = 'none';
+
+      // Configurar evento de edición
+      document.getElementById('btnEditarEvaluacion').onclick = () => habilitarEdicion(id, data);
+
       const modal = new bootstrap.Modal(document.getElementById('modalGraduacion'));
       modal.show();
     } else {
@@ -1075,6 +1093,130 @@ async function verGraduacion(id) {
     }
   } catch (error) {
     Swal.fire('Error', 'Error al cargar la evaluación', 'error');
+  }
+}
+
+// Función para habilitar la edición
+function habilitarEdicion(id, data) {
+  // Cambiar botones
+  document.getElementById('btnEditarEvaluacion').style.display = 'none';
+  document.getElementById('btnGuardarEvaluacion').style.display = 'inline-flex';
+  document.getElementById('btnCancelarEdicion').style.display = 'inline-flex';
+
+  // Crear formulario editable
+  const htmlEditable = crearFormularioEdicion(data);
+  document.getElementById('modalGraduacionBody').innerHTML = htmlEditable;
+
+  // Configurar eventos
+  document.getElementById('btnGuardarEvaluacion').onclick = () => guardarEdicion(id);
+  document.getElementById('btnCancelarEdicion').onclick = () => verGraduacion(id);
+}
+
+// Función para crear formulario de edición
+function crearFormularioEdicion(data) {
+  return `
+    <form id="formEditarEvaluacion">
+      <div style="padding: 10px;">
+
+        <div class="view-data-box">
+          <div class="view-data-row">
+            <span class="view-data-label"><i class="fas fa-id-card"></i> Expediente:</span>
+            <span class="view-data-value">${data.expediente_id}</span>
+          </div>
+          <div class="view-data-row">
+            <span class="view-data-label"><i class="fas fa-calendar"></i> Fecha:</span>
+            <span class="view-data-value">${data.fecha.split('T')[0].split('-').reverse().join('/')}</span>
+          </div>
+        </div>
+
+        <div class="view-section-title">Agudeza Visual sin Corrección Lejos</div>
+        <div class="view-two-columns">
+          <div class="view-data-box">
+            <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Derecho</h6>
+            <div class="view-data-row">
+              <span class="view-data-label">Valores:</span>
+              <div style="display: flex; gap: 5px;">
+                <input type="text" name="av_sc_od_1" value="${data.av_sc_od_1 || ''}" class="form-control" style="width: 60px;">
+                <span>/</span>
+                <input type="text" name="av_sc_od_2" value="${data.av_sc_od_2 || ''}" class="form-control" style="width: 60px;">
+                <input type="text" name="av_sc_od_3" value="${data.av_sc_od_3 || ''}" class="form-control" style="width: 60px;">
+                <input type="text" name="av_sc_od_4" value="${data.av_sc_od_4 || ''}" class="form-control" style="width: 60px;">
+              </div>
+            </div>
+            <div class="view-data-row">
+              <span class="view-data-label">Color:</span>
+              <input type="checkbox" name="av_sc_od_color" ${data.av_sc_od_color ? 'checked' : ''}>
+              <label>Discrimina color</label>
+            </div>
+            <div class="view-data-row">
+              <span class="view-data-label">Obs:</span>
+              <textarea name="av_sc_od_obs" class="form-control" rows="2">${data.av_sc_od_obs || ''}</textarea>
+            </div>
+          </div>
+          <div class="view-data-box">
+            <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Izquierdo</h6>
+            <div class="view-data-row">
+              <span class="view-data-label">Valores:</span>
+              <div style="display: flex; gap: 5px;">
+                <input type="text" name="av_sc_oi_1" value="${data.av_sc_oi_1 || ''}" class="form-control" style="width: 60px;">
+                <span>/</span>
+                <input type="text" name="av_sc_oi_2" value="${data.av_sc_oi_2 || ''}" class="form-control" style="width: 60px;">
+                <input type="text" name="av_sc_oi_3" value="${data.av_sc_oi_3 || ''}" class="form-control" style="width: 60px;">
+                <input type="text" name="av_sc_oi_4" value="${data.av_sc_oi_4 || ''}" class="form-control" style="width: 60px;">
+              </div>
+            </div>
+            <div class="view-data-row">
+              <span class="view-data-label">Color:</span>
+              <input type="checkbox" name="av_sc_oi_color" ${data.av_sc_oi_color ? 'checked' : ''}>
+              <label>Discrimina color</label>
+            </div>
+            <div class="view-data-row">
+              <span class="view-data-label">Obs:</span>
+              <textarea name="av_sc_oi_obs" class="form-control" rows="2">${data.av_sc_oi_obs || ''}</textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Aquí puedes agregar más secciones editables según necesites -->
+        <p style="margin-top: 20px; color: #666; font-style: italic;">
+          <i class="fas fa-info-circle"></i> Por ahora solo se pueden editar algunos campos. Más campos estarán disponibles próximamente.
+        </p>
+
+      </div>
+    </form>
+  `;
+}
+
+// Función para guardar la edición
+async function guardarEdicion(id) {
+  try {
+    const form = document.getElementById('formEditarEvaluacion');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+
+    // Convertir checkboxes a booleanos
+    data.av_sc_od_color = formData.get('av_sc_od_color') === 'on';
+    data.av_sc_oi_color = formData.get('av_sc_oi_color') === 'on';
+
+    const res = await fetch(`/api/optometria/${id}`, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data)
+    });
+
+    const result = await res.json();
+
+    if (res.ok) {
+      Swal.fire('✅ Éxito', 'Evaluación actualizada correctamente', 'success');
+      // Cerrar modal y recargar tabla
+      bootstrap.Modal.getInstance(document.getElementById('modalGraduacion')).hide();
+      const hoy = moment().format("YYYY-MM-DD");
+      cargarOptometrias(hoy, hoy);
+    } else {
+      Swal.fire('❌ Error', result.error || 'No se pudo actualizar', 'error');
+    }
+  } catch (error) {
+    Swal.fire('❌ Error', 'Error al guardar los cambios', 'error');
   }
 }
 
