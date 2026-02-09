@@ -7,165 +7,60 @@
   <link rel="icon" type="image/png" href="/uploads/logo-oftavision2.png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<style>
+  <style>
     :root {
-      --primary-color: #2c3e50;
-      --secondary-color: #3498db;
-      --accent-color: #e74c3c;
-      --success-color: #27ae60;
+      --primary-color: #4a6fa5;
+      --secondary-color: #6c8bc7;
+      --accent-color: #ff7b54;
+      --success-color: #4ecdc4;
       --light-color: #f8f9fa;
-      --dark-color: #343a40;
-      --gradient-primary: linear-gradient(135deg, #1e3a52 0%, #2c5f7f 100%);
-      --gradient-secondary: linear-gradient(135deg, #3498db 0%, #2c80b9 100%);
+      --dark-color: #2d3748;
+      --gradient-primary: linear-gradient(135deg, #4a6fa5 0%, #6c8bc7 100%);
+      --gradient-secondary: linear-gradient(135deg, #667eea 0%, #764ba2 20%, #f093fb 100%);
+      --gradient-card: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+      --shadow-light: 0 8px 30px rgba(0, 0, 0, 0.08);
+      --shadow-medium: 0 15px 35px rgba(0, 0, 0, 0.1);
+      --border-radius: 12px;
     }
-
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #f0f5ff 0%, #e3f2fd 100%);
-      padding: 20px;
-      color: #333;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+      color: #2d3748;
       min-height: 100vh;
+      padding: 20px;
+      line-height: 1.6;
     }
-
+    
     .container {
-      max-width: 1300px;
+      max-width: 1200px;
       margin: 0 auto;
     }
-
-    /* Header mejorado */
-    header {
+    
+    /* Header elegante */
+    .main-header {
       text-align: center;
-      margin-bottom: 25px;
-      padding: 15px 20px;
+      margin-bottom: 30px;
+      position: relative;
+    }
+    
+    .header-content {
       background: var(--gradient-primary);
       color: white;
-      border-radius: 12px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      border-radius: var(--border-radius);
+      padding: 25px 30px;
+      box-shadow: var(--shadow-medium);
       position: relative;
       overflow: hidden;
     }
-
-    header::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-      animation: shine 3s infinite;
-    }
-
-    @keyframes shine {
-      to { left: 100%; }
-    }
-
-    h1 {
-      font-size: 1.8rem;
-      margin-bottom: 5px;
-      font-weight: 700;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-
-    .description {
-      font-size: 0.9rem;
-      opacity: 0.95;
-      font-weight: 300;
-    }
-
-    /* Cards mejorados */
-    .card {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-      margin-bottom: 25px;
-      overflow: hidden;
-      border: none;
-      animation: fadeInUp 0.5s ease;
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .card-header {
-      background: var(--gradient-primary);
-      color: white;
-      padding: 15px 20px;
-      font-size: 1.15rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      border-bottom: 3px solid rgba(255,255,255,0.2);
-    }
-
-    .card-header i {
-      margin-right: 12px;
-      font-size: 1.3rem;
-    }
-
-    .card-body {
-      padding: 25px;
-    }
-
-    /* Select mejorado */
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    .form-label {
-      font-weight: 600;
-      color: var(--primary-color);
-      margin-bottom: 8px;
-      display: block;
-      font-size: 0.95rem;
-    }
-
-    select {
-      padding: 12px 15px;
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      width: 100%;
-      transition: all 0.3s;
-      background: white;
-      cursor: pointer;
-    }
-
-    select:focus {
-      border-color: var(--secondary-color);
-      box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.15);
-      outline: none;
-    }
-
-    /* Grid de módulos mejorado */
-    .modules-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-      gap: 18px;
-      margin: 20px 0;
-    }
-
-    /* Tarjetas de módulo completamente rediseñadas */
-    .module-card {
-      background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-      border-radius: 12px;
-      padding: 20px;
-      border: 2px solid #e9ecef;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .module-card::before {
+    
+    .header-content::before {
       content: '';
       position: absolute;
       top: 0;
@@ -173,219 +68,472 @@
       right: 0;
       height: 4px;
       background: var(--gradient-secondary);
-      transform: scaleX(0);
-      transition: transform 0.3s ease;
     }
-
-    .module-card:hover {
+    
+    .header-icon {
+      font-size: 2.8rem;
+      margin-bottom: 15px;
+      color: rgba(255, 255, 255, 0.9);
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+    
+    .subtitle {
+      font-size: 1.1rem;
+      opacity: 0.85;
+      font-weight: 400;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    /* Tarjetas mejoradas */
+    .card {
+      background: var(--gradient-card);
+      border-radius: var(--border-radius);
+      border: none;
+      box-shadow: var(--shadow-light);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      margin-bottom: 25px;
+      overflow: hidden;
+    }
+    
+    .card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 8px 25px rgba(52, 152, 219, 0.2);
-      border-color: var(--secondary-color);
+      box-shadow: var(--shadow-medium);
     }
-
-    .module-card:hover::before {
-      transform: scaleX(1);
-    }
-
-    .module-card.active {
-      background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-      border-color: var(--secondary-color);
-      box-shadow: 0 6px 20px rgba(52, 152, 219, 0.25);
-    }
-
-    .module-card.active::before {
-      transform: scaleX(1);
-    }
-
-    .module-icon {
-      width: 60px;
-      height: 60px;
-      border-radius: 12px;
-      background: var(--gradient-secondary);
+    
+    .card-header {
+      background: var(--gradient-primary);
+      color: white;
+      padding: 18px 25px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      border-bottom: none;
       display: flex;
       align-items: center;
-      justify-content: center;
-      margin-bottom: 15px;
-      font-size: 1.8rem;
-      color: white;
-      box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
-      transition: all 0.3s;
+      position: relative;
     }
-
-    .module-card:hover .module-icon {
-      transform: scale(1.1) rotate(5deg);
+    
+    .card-header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
     }
-
-    .module-card.active .module-icon {
-      background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
-      box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+    
+    .card-header i {
+      margin-right: 12px;
+      font-size: 1.3rem;
     }
-
-    .module-name {
+    
+    .card-body {
+      padding: 25px;
+    }
+    
+    /* Formulario mejorado */
+    .form-group {
+      margin-bottom: 24px;
+    }
+    
+    .form-label {
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #4a5568;
       font-size: 1rem;
+      display: flex;
+      align-items: center;
+    }
+    
+    .form-label i {
+      margin-right: 8px;
+      color: var(--primary-color);
+    }
+    
+    .custom-select {
+      width: 100%;
+      padding: 14px 18px;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 1rem;
+      background-color: white;
+      transition: all 0.3s ease;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%234a6fa5' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 18px center;
+      background-size: 14px;
+      cursor: pointer;
+    }
+    
+    .custom-select:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.15);
+      outline: none;
+    }
+    
+    /* Información del usuario */
+    .user-info-card {
+      background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+      border-radius: 10px;
+      padding: 18px 22px;
+      margin-bottom: 20px;
+      border-left: 4px solid var(--primary-color);
+      display: none;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    .user-info-title {
       font-weight: 600;
       color: var(--primary-color);
       margin-bottom: 8px;
-    }
-
-    .module-status {
-      font-size: 0.85rem;
-      color: #6c757d;
       display: flex;
       align-items: center;
-      gap: 6px;
     }
-
-    .module-card.active .module-status {
-      color: var(--success-color);
-      font-weight: 600;
+    
+    .user-info-title i {
+      margin-right: 8px;
     }
-
-    .module-checkbox {
-      display: none;
+    
+    .user-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
     }
-
-    /* Botones mejorados */
-    .btn {
-      cursor: pointer;
-      font-weight: 600;
+    
+    .user-detail-item {
+      display: flex;
+      align-items: center;
+    }
+    
+    .user-detail-item i {
+      margin-right: 8px;
+      color: var(--secondary-color);
+      width: 20px;
+    }
+    
+    /* Grid de módulos mejorado */
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+    
+    .module-card {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
       transition: all 0.3s ease;
-      border: none;
-      border-radius: 8px;
-      padding: 12px 24px;
-      font-size: 0.95rem;
-      display: inline-flex;
+      border: 1px solid #e2e8f0;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .module-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      border-color: var(--secondary-color);
+    }
+    
+    .module-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--gradient-primary);
+      transform: scaleY(0);
+      transition: transform 0.3s ease;
+    }
+    
+    .module-card:hover::before {
+      transform: scaleY(1);
+    }
+    
+    .module-checkbox {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .module-content {
+      display: flex;
+      align-items: center;
+    }
+    
+    .module-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+      display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      margin-right: 15px;
+      color: var(--primary-color);
+      font-size: 1.4rem;
+      flex-shrink: 0;
+      transition: all 0.3s ease;
     }
-
-    .btn-primary {
-      background: var(--gradient-secondary);
+    
+    .module-checkbox:checked + .module-content .module-icon {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
       color: white;
-      box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+      transform: rotate(10deg) scale(1.1);
     }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(52, 152, 219, 0.4);
+    
+    .module-info {
+      flex-grow: 1;
     }
-
-    .btn-outline-secondary {
-      background: white;
-      color: var(--primary-color);
-      border: 2px solid #e0e0e0;
+    
+    .module-name {
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 5px;
+      transition: color 0.3s ease;
     }
-
-    .btn-outline-secondary:hover {
-      background: var(--light-color);
-      border-color: var(--secondary-color);
-      color: var(--secondary-color);
-    }
-
-    /* User info mejorado */
-    .user-info {
-      background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-      padding: 15px 20px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      display: none;
-      font-size: 0.95rem;
-      border-left: 4px solid var(--secondary-color);
-      box-shadow: 0 3px 10px rgba(52, 152, 219, 0.15);
-      animation: slideIn 0.3s ease;
-    }
-
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateX(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    .user-info strong {
+    
+    .module-checkbox:checked + .module-content .module-name {
       color: var(--primary-color);
     }
-
-    /* Alert mejorado */
-    .success-alert {
-      display: none;
-      padding: 15px 20px;
-      background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-      color: #155724;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      border-left: 4px solid var(--success-color);
-      box-shadow: 0 4px 12px rgba(39, 174, 96, 0.2);
-      font-size: 0.95rem;
-      animation: slideIn 0.3s ease;
+    
+    .module-status {
+      font-size: 0.85rem;
+      color: #718096;
+      display: flex;
+      align-items: center;
     }
-
-    .success-alert i {
-      margin-right: 10px;
-      font-size: 1.2rem;
+    
+    .module-checkbox:checked + .module-content .module-status {
+      color: var(--success-color);
+      font-weight: 500;
     }
-
-    .footer {
-      text-align: center;
-      margin-top: 40px;
-      color: #6c757d;
-      font-size: 0.9rem;
-      padding: 20px;
-      border-top: 1px solid #e9ecef;
+    
+    .checkmark {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 0.8rem;
+      transition: all 0.3s ease;
     }
-
-    /* Sección de botones de acción */
-    .actions-section {
+    
+    .module-checkbox:checked + .module-content .checkmark {
+      background: var(--success-color);
+      transform: scale(1.1);
+    }
+    
+    /* Botones mejorados */
+    .action-buttons {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-top: 30px;
-      padding-top: 20px;
-      border-top: 2px solid #e9ecef;
-      flex-wrap: wrap;
-      gap: 15px;
+      padding-top: 25px;
+      border-top: 1px solid #e2e8f0;
     }
-
+    
+    .selection-buttons {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .btn {
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: none;
+      gap: 8px;
+    }
+    
+    .btn-outline {
+      background: transparent;
+      border: 2px solid #e2e8f0;
+      color: #4a5568;
+    }
+    
+    .btn-outline:hover {
+      background: #f7fafc;
+      border-color: var(--secondary-color);
+      color: var(--primary-color);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+    
+    .btn-primary {
+      background: var(--gradient-primary);
+      color: white;
+      padding: 14px 32px;
+      box-shadow: 0 5px 15px rgba(74, 111, 165, 0.3);
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(74, 111, 165, 0.4);
+      background: linear-gradient(135deg, #3a5a8c 0%, #5a7ab8 100%);
+    }
+    
+    /* Alerta de éxito */
+    .success-alert {
+      background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+      color: #155724;
+      border-radius: 10px;
+      padding: 18px 22px;
+      margin-bottom: 25px;
+      border-left: 4px solid #28a745;
+      display: none;
+      align-items: center;
+      animation: slideInDown 0.5s ease;
+      box-shadow: 0 5px 15px rgba(40, 167, 69, 0.1);
+    }
+    
+    .success-alert i {
+      font-size: 1.5rem;
+      margin-right: 15px;
+    }
+    
+    /* Footer mejorado */
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      padding-top: 25px;
+      border-top: 1px solid #e2e8f0;
+      color: #718096;
+      font-size: 0.95rem;
+    }
+    
+    .footer p {
+      margin-bottom: 5px;
+    }
+    
+    .logo-text {
+      color: var(--primary-color);
+      font-weight: 600;
+    }
+    
+    /* Animaciones */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes slideInDown {
+      from {
+        transform: translateY(-20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    
     /* Responsive */
+    @media (max-width: 992px) {
+      .modules-grid {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      }
+    }
+    
     @media (max-width: 768px) {
+      .header-content {
+        padding: 20px;
+      }
+      
+      h1 {
+        font-size: 1.8rem;
+      }
+      
+      .modules-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+        gap: 15px;
+      }
+      
+      .selection-buttons {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .btn-primary {
+        width: 100%;
+      }
+    }
+    
+    @media (max-width: 576px) {
       .modules-grid {
         grid-template-columns: 1fr;
       }
-
-      h1 {
-        font-size: 1.5rem;
-      }
-
-      .actions-section {
-        flex-direction: column;
-      }
-
-      .actions-section > div {
-        width: 100%;
-      }
-
-      .btn {
-        width: 100%;
-        margin-bottom: 10px;
+      
+      .card-body {
+        padding: 20px;
       }
     }
-</style>
-
+    
+    /* Estado deshabilitado */
+    .module-card.disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    
+    .module-card.disabled:hover {
+      transform: none;
+      border-color: #e2e8f0;
+      box-shadow: none;
+    }
+    
+    .module-card.disabled::before {
+      background: #cbd5e0;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
-    <header>
-      <h1><i class="fas fa-users-cog"></i> Asignación de Módulos</h1>
-      <p class="description">Selecciona un usuario y define qué módulos puede usar en el sistema.</p>
+    <header class="main-header">
+      <div class="header-content">
+        <div class="header-icon">
+          <i class="fas fa-users-cog"></i>
+        </div>
+        <h1>Asignación de Módulos</h1>
+        <p class="subtitle">Selecciona un usuario y define qué módulos puede usar en el sistema.</p>
+      </div>
     </header>
 
     <div class="success-alert" id="successAlert">
-      <i class="fas fa-check-circle"></i> <span id="successMessage">Permisos actualizados correctamente.</span>
+      <i class="fas fa-check-circle"></i>
+      <div>
+        <strong>¡Permisos actualizados!</strong>
+        <div id="successMessage">Los permisos se han guardado correctamente.</div>
+      </div>
     </div>
 
     <div class="card">
@@ -393,20 +541,37 @@
         <i class="fas fa-user-cog"></i> Configuración de Usuario
       </div>
       <div class="card-body">
-        <div class="user-info" id="userInfo">
-          <strong>Usuario seleccionado:</strong> <span id="selectedUserName"></span> 
-          (<span id="selectedUserNomina"></span>) - <span id="selectedUserDepto"></span>
+        <div class="user-info-card" id="userInfo">
+          <div class="user-info-title">
+            <i class="fas fa-user-check"></i> Usuario Seleccionado
+          </div>
+          <div class="user-details">
+            <div class="user-detail-item">
+              <i class="fas fa-user"></i>
+              <span><strong>Nombre:</strong> <span id="selectedUserName"></span></span>
+            </div>
+            <div class="user-detail-item">
+              <i class="fas fa-id-card"></i>
+              <span><strong>Nómina:</strong> <span id="selectedUserNomina"></span></span>
+            </div>
+            <div class="user-detail-item">
+              <i class="fas fa-building"></i>
+              <span><strong>Departamento:</strong> <span id="selectedUserDepto"></span></span>
+            </div>
+          </div>
         </div>
         
         <div class="form-group">
-          <label for="usuario" class="form-label">Seleccionar Usuario</label>
-          <select id="usuario" class="form-select">
+          <label for="usuario" class="form-label">
+            <i class="fas fa-user"></i> Seleccionar Usuario
+          </label>
+          <select id="usuario" class="custom-select">
             <option value="">Seleccione un usuario...</option>
           </select>
         </div>
 
         <div class="card">
-          <div class="card-header bg-light text-dark">
+          <div class="card-header" style="background: linear-gradient(135deg, #5a67d8 0%, #805ad5 100%);">
             <i class="fas fa-th-large"></i> Módulos Disponibles
           </div>
           <div class="card-body">
@@ -414,12 +579,12 @@
               <!-- Los módulos se cargarán dinámicamente -->
             </div>
             
-            <div class="actions-section">
-              <div>
-                <button class="btn btn-outline-secondary" onclick="selectAll()">
+            <div class="action-buttons">
+              <div class="selection-buttons">
+                <button class="btn btn-outline" onclick="selectAll()">
                   <i class="fas fa-check-square"></i> Seleccionar Todos
                 </button>
-                <button class="btn btn-outline-secondary ms-2" onclick="deselectAll()">
+                <button class="btn btn-outline" onclick="deselectAll()">
                   <i class="fas fa-times-circle"></i> Deseleccionar Todos
                 </button>
               </div>
@@ -433,7 +598,8 @@
     </div>
     
     <div class="footer">
-      <p>Sistema de Gestión Oftavisión &copy; 2025</p>
+      <p>Sistema de Gestión <span class="logo-text">Oftavisión</span> &copy; 2025</p>
+      <p><small>Módulo de Administración de Permisos</small></p>
     </div>
   </div>
 
@@ -451,7 +617,7 @@
       { id: 'insumos', name: 'Insumos', icon: 'fas fa-boxes' },
       { id: 'usuarios', name: 'Usuarios', icon: 'fas fa-users' },
       { id: 'agendaquirurgica', name: 'Agenda Quirúrgica', icon: 'fas fa-calendar-check' },
-      {id: 'agendaconsultas', name: 'Agenda Consultas', icon: 'fas fa-calendar-alt'},
+      { id: 'agendaconsultas', name: 'Agenda Consultas', icon: 'fas fa-calendar-alt' },
       { id: 'asignarmodulos', name: 'Asignar Módulos', icon: 'fas fa-tasks' }
     ];
 
@@ -461,49 +627,45 @@
       renderModules();
     });
 
-    // Renderizar los módulos en la cuadrícula con el nuevo diseño
+    // Renderizar los módulos en la cuadrícula
     function renderModules() {
       const container = document.getElementById('modulesContainer');
       container.innerHTML = '';
-
+      
       modules.forEach(module => {
-        const moduleCard = document.createElement('div');
-        moduleCard.className = 'module-card';
-        moduleCard.dataset.moduleId = module.id;
-        moduleCard.innerHTML = `
+        const moduleElement = document.createElement('label');
+        moduleElement.className = 'module-card';
+        moduleElement.innerHTML = `
           <input type="checkbox" id="mod_${module.id}" value="${module.id}" class="module-checkbox">
-          <div class="module-icon">
-            <i class="${module.icon}"></i>
-          </div>
-          <div class="module-name">${module.name}</div>
-          <div class="module-status">
-            <i class="fas fa-circle-check"></i>
-            <span class="status-text">No asignado</span>
+          <div class="module-content">
+            <div class="module-icon">
+              <i class="${module.icon}"></i>
+            </div>
+            <div class="module-info">
+              <div class="module-name">${module.name}</div>
+              <div class="module-status">No seleccionado</div>
+            </div>
+            <div class="checkmark">
+              <i class="fas fa-check"></i>
+            </div>
           </div>
         `;
-
-        // Hacer que toda la tarjeta sea clickeable
-        moduleCard.addEventListener('click', function() {
-          const checkbox = this.querySelector('.module-checkbox');
-          if (!checkbox.disabled) {
-            checkbox.checked = !checkbox.checked;
-            updateModuleCardStatus(this, checkbox.checked);
+        
+        // Actualizar estado del checkbox al cambiar
+        const checkbox = moduleElement.querySelector('.module-checkbox');
+        checkbox.addEventListener('change', function() {
+          const status = moduleElement.querySelector('.module-status');
+          if (this.checked) {
+            status.textContent = 'Seleccionado';
+            status.style.color = '#4ecdc4';
+          } else {
+            status.textContent = 'No seleccionado';
+            status.style.color = '#718096';
           }
         });
-
-        container.appendChild(moduleCard);
+        
+        container.appendChild(moduleElement);
       });
-    }
-
-    // Actualizar el estado visual de la tarjeta
-    function updateModuleCardStatus(card, isActive) {
-      if (isActive) {
-        card.classList.add('active');
-        card.querySelector('.status-text').textContent = 'Asignado';
-      } else {
-        card.classList.remove('active');
-        card.querySelector('.status-text').textContent = 'No asignado';
-      }
     }
 
     // Cargar usuarios desde la API
@@ -536,11 +698,10 @@
       // Ocultar información previa
       userInfo.style.display = 'none';
       
-      // Desmarcar todos los checkboxes y actualizar tarjetas
-      document.querySelectorAll('.module-card').forEach(card => {
-        const checkbox = card.querySelector('.module-checkbox');
-        checkbox.checked = false;
-        updateModuleCardStatus(card, false);
+      // Desmarcar todos los checkboxes
+      document.querySelectorAll('.module-checkbox').forEach(chk => {
+        chk.checked = false;
+        chk.dispatchEvent(new Event('change'));
       });
       
       if(!nomina) return;
@@ -563,17 +724,24 @@
             const checkbox = card.querySelector('.module-checkbox');
             checkbox.checked = true;
             checkbox.disabled = true;
-            updateModuleCardStatus(card, true);
-            card.style.opacity = '0.7';
-            card.style.cursor = 'not-allowed';
+            checkbox.dispatchEvent(new Event('change'));
+            card.classList.add('disabled');
           });
+          
+          Swal.fire({
+            icon: 'info',
+            title: 'Usuario Administrador',
+            text: 'El usuario administrador tiene acceso a todos los módulos por defecto.',
+            timer: 3000,
+            showConfirmButton: false
+          });
+          
           return;
         } else {
           document.querySelectorAll('.module-card').forEach(card => {
             const checkbox = card.querySelector('.module-checkbox');
             checkbox.disabled = false;
-            card.style.opacity = '1';
-            card.style.cursor = 'pointer';
+            card.classList.remove('disabled');
           });
         }
 
@@ -583,11 +751,10 @@
 
         if (res.ok) {
           permisos.forEach(p => {
-            const card = document.querySelector(`.module-card[data-module-id="${p.modulo}"]`);
-            if (card) {
-              const checkbox = card.querySelector('.module-checkbox');
-              checkbox.checked = p.permitido;
-              updateModuleCardStatus(card, p.permitido);
+            const chk = document.querySelector(`.module-checkbox[value="${p.modulo}"]`);
+            if (chk) {
+              chk.checked = p.permitido;
+              chk.dispatchEvent(new Event('change'));
             }
           });
         }
@@ -608,10 +775,10 @@
       }
 
       const permisos = [];
-      document.querySelectorAll('.module-card .module-checkbox').forEach(chk => {
-        permisos.push({
-          modulo: chk.value,
-          permitido: chk.checked
+      document.querySelectorAll('.module-checkbox').forEach(chk => {
+        permisos.push({ 
+          modulo: chk.value, 
+          permitido: chk.checked 
         });
       });
 
@@ -638,34 +805,29 @@
 
     // Seleccionar todos los módulos
     function selectAll() {
-      document.querySelectorAll('.module-card').forEach(card => {
-        const checkbox = card.querySelector('.module-checkbox');
-        if (!checkbox.disabled) {
-          checkbox.checked = true;
-          updateModuleCardStatus(card, true);
-        }
+      document.querySelectorAll('.module-checkbox:not(:disabled)').forEach(chk => {
+        chk.checked = true;
+        chk.dispatchEvent(new Event('change'));
       });
     }
 
     // Deseleccionar todos los módulos
     function deselectAll() {
-      document.querySelectorAll('.module-card').forEach(card => {
-        const checkbox = card.querySelector('.module-checkbox');
-        if (!checkbox.disabled) {
-          checkbox.checked = false;
-          updateModuleCardStatus(card, false);
-        }
+      document.querySelectorAll('.module-checkbox:not(:disabled)').forEach(chk => {
+        chk.checked = false;
+        chk.dispatchEvent(new Event('change'));
       });
     }
 
     // Mostrar mensaje de éxito
     function mostrarExito(titulo, mensaje) {
       document.getElementById('successMessage').textContent = mensaje;
-      document.getElementById('successAlert').style.display = 'block';
+      const alert = document.getElementById('successAlert');
+      alert.style.display = 'flex';
       
       // Ocultar después de 5 segundos
       setTimeout(() => {
-        document.getElementById('successAlert').style.display = 'none';
+        alert.style.display = 'none';
       }, 5000);
       
       Swal.fire({
@@ -673,7 +835,9 @@
         title: titulo,
         text: mensaje,
         timer: 3000,
-        showConfirmButton: false
+        showConfirmButton: false,
+        background: '#f8f9fa',
+        color: '#2d3748'
       });
     }
 
@@ -682,7 +846,10 @@
       Swal.fire({
         icon: 'error',
         title: titulo,
-        text: mensaje
+        text: mensaje,
+        background: '#f8f9fa',
+        color: '#2d3748',
+        confirmButtonColor: '#4a6fa5'
       });
     }
   </script>
