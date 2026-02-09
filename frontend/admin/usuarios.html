@@ -431,27 +431,77 @@
       to { opacity: 1; transform: translateY(0); }
     }
     
+    /* Estilos para el modal */
+    .modal-content {
+      border-radius: 10px;
+      border: none;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+
+    .modal-header {
+      border-bottom: none;
+      border-radius: 10px 10px 0 0;
+      padding: 20px 25px;
+    }
+
+    .modal-body {
+      padding: 25px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+
+    .modal-footer {
+      border-top: 1px solid #e9ecef;
+      padding: 15px 25px;
+      border-radius: 0 0 10px 10px;
+    }
+
+    .btn-lg {
+      padding: 12px 30px;
+      font-size: 1rem;
+      box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+    }
+
+    .btn-lg:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+      transform: translateY(-2px);
+    }
+
     @media (max-width: 768px) {
       h1 {
         font-size: 1.4rem;
       }
-      
+
       .card-body {
         padding: 15px;
       }
-      
+
       .btn {
         width: 100%;
         margin-bottom: 8px;
       }
-      
+
       .table-responsive {
         border-radius: 6px;
         overflow: hidden;
       }
-      
+
       .table th, .table td {
         padding: 8px;
+      }
+
+      .modal-body {
+        max-height: 60vh;
       }
     }
 </style>
@@ -468,106 +518,125 @@
       <i class="fas fa-check-circle"></i> <span id="successMessage">Usuario creado correctamente.</span>
     </div>
 
-    <div class="card">
-      <div class="card-header">
+    <!-- Botón para abrir el modal -->
+    <div class="mb-4 text-end">
+      <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#createUserModal">
         <i class="fas fa-user-plus"></i> Crear Nuevo Usuario
-      </div>
-      <div class="card-body">
-        <!-- Formulario para crear usuario -->
-        <form id="addUserForm">
-          <div class="row">
-            <div class="col-md-6">
-              <div class="form-group">
-                <label for="nomina" class="form-label">
-                  <i class="fas fa-id-card"></i> Nómina
-                </label>
-                <input type="text" class="form-control" id="nomina" required placeholder="Ingrese la nómina">
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="form-group">
-                <label for="username" class="form-label">
-                  <i class="fas fa-user"></i> Usuario
-                </label>
-                <input type="text" class="form-control" id="username" required placeholder="Ingrese el nombre de usuario">
-              </div>
-            </div>
-          </div>
-          
-          <!-- ✅ CAMPO NOMBRE COMPLETO -->
-          <div class="row">
-            <div class="col-md-12">
-              <div class="form-group">
-                <label for="nombreCompleto" class="form-label">
-                  <i class="fas fa-user-circle"></i> Nombre Completo
-                </label>
-                <input type="text" class="form-control" id="nombreCompleto" required placeholder="Ingrese el nombre completo del usuario">
-              </div>
-            </div>
-          </div>
+      </button>
+    </div>
 
-          <!-- ✅ CAMPO EMAIL AGREGADO -->
-          <div class="row">
-            <div class="col-md-12">
-              <div class="form-group">
-                <label for="email" class="form-label">
-                  <i class="fas fa-envelope"></i> Correo Electrónico
-                </label>
-                <input type="email" class="form-control" id="email" required placeholder="ejemplo@oftavision.com">
-              </div>
-            </div>
+    <!-- Modal para crear usuario -->
+    <div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header" style="background: var(--gradient-primary); color: white;">
+            <h5 class="modal-title" id="createUserModalLabel">
+              <i class="fas fa-user-plus"></i> Crear Nuevo Usuario
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-          
-          <div class="row">
-            <div class="col-md-6">
-              <div class="form-group">
-                <label for="password" class="form-label">
-                  <i class="fas fa-lock"></i> Contraseña
-                </label>
-                <input type="password" class="form-control" id="password" required placeholder="Ingrese la contraseña">
+          <div class="modal-body">
+            <!-- Formulario para crear usuario -->
+            <form id="addUserForm">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="nomina" class="form-label">
+                      <i class="fas fa-id-card"></i> Nómina
+                    </label>
+                    <input type="text" class="form-control" id="nomina" required placeholder="Ingrese la nómina">
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="username" class="form-label">
+                      <i class="fas fa-user"></i> Usuario
+                    </label>
+                    <input type="text" class="form-control" id="username" required placeholder="Ingrese el nombre de usuario">
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="col-md-6">
+
+              <!-- ✅ CAMPO NOMBRE COMPLETO -->
+              <div class="row">
+                <div class="col-md-12">
+                  <div class="form-group">
+                    <label for="nombreCompleto" class="form-label">
+                      <i class="fas fa-user-circle"></i> Nombre Completo
+                    </label>
+                    <input type="text" class="form-control" id="nombreCompleto" required placeholder="Ingrese el nombre completo del usuario">
+                  </div>
+                </div>
+              </div>
+
+              <!-- ✅ CAMPO EMAIL AGREGADO -->
+              <div class="row">
+                <div class="col-md-12">
+                  <div class="form-group">
+                    <label for="email" class="form-label">
+                      <i class="fas fa-envelope"></i> Correo Electrónico
+                    </label>
+                    <input type="email" class="form-control" id="email" required placeholder="ejemplo@oftavision.com">
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="password" class="form-label">
+                      <i class="fas fa-lock"></i> Contraseña
+                    </label>
+                    <input type="password" class="form-control" id="password" required placeholder="Ingrese la contraseña">
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="rol" class="form-label">
+                      <i class="fas fa-user-shield"></i> Rol
+                    </label>
+                    <div class="custom-select-wrapper">
+                      <i class="fas fa-shield-halved select-icon"></i>
+                      <select class="form-control" id="rol" required>
+                        <option value="usuario">Usuario</option>
+                        <option value="admin">Administrador</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div class="form-group">
-                <label for="rol" class="form-label">
-                  <i class="fas fa-user-shield"></i> Rol
+                <label for="departamento" class="form-label">
+                  <i class="fas fa-building"></i> Departamento / Sucursal
                 </label>
                 <div class="custom-select-wrapper">
-                  <i class="fas fa-shield-halved select-icon"></i>
-                  <select class="form-control" id="rol" required>
-                    <option value="usuario">Usuario</option>
-                    <option value="admin">Administrador</option>
+                  <i class="fas fa-map-marker-alt select-icon"></i>
+                  <select class="form-control" id="departamento" required>
+                    <option value="" disabled selected>Selecciona un departamento</option>
+                    <option value="Puebla">Puebla</option>
+                    <option value="Oaxaca">Oaxaca</option>
+                    <option value="Tlaxcala">Tlaxcala</option>
+                    <option value="CDMX">CDMX</option>
+                    <option value="Aguascalientes">Aguascalientes</option>
+                    <option value="Villahermosa">Villahermosa</option>
+                    <option value="Guerrero">Guerrero</option>
+                    <option value="Matamoros">Matamoros</option>
+                    <option value="Cozumel">Cozumel</option>
                   </select>
                 </div>
               </div>
-            </div>
+            </form>
           </div>
-          
-          <div class="form-group">
-            <label for="departamento" class="form-label">
-              <i class="fas fa-building"></i> Departamento / Sucursal
-            </label>
-            <div class="custom-select-wrapper">
-              <i class="fas fa-map-marker-alt select-icon"></i>
-              <select class="form-control" id="departamento" required>
-                <option value="" disabled selected>Selecciona un departamento</option>
-                <option value="Puebla">Puebla</option>
-                <option value="Oaxaca">Oaxaca</option>
-                <option value="Tlaxcala">Tlaxcala</option>
-                <option value="CDMX">CDMX</option>
-                <option value="Aguascalientes">Aguascalientes</option>
-                <option value="Villahermosa">Villahermosa</option>
-                <option value="Guerrero">Guerrero</option>
-                <option value="Matamoros">Matamoros</option>
-                <option value="Cozumel">Cozumel</option>
-              </select>
-            </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              <i class="fas fa-times"></i> Cancelar
+            </button>
+            <button type="submit" form="addUserForm" class="btn btn-primary">
+              <i class="fas fa-plus-circle"></i> Crear Usuario
+            </button>
           </div>
-          
-          <button type="submit" class="btn btn-primary">
-            <i class="fas fa-plus-circle"></i> Crear Usuario
-          </button>
-        </form>
+        </div>
       </div>
     </div>
 
@@ -654,6 +723,11 @@
         mostrarExito("Usuario creado", result.mensaje);
         loadUsers();
         form.reset();
+        // Cerrar el modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('createUserModal'));
+        if (modal) {
+          modal.hide();
+        }
       } else {
         mostrarError("Error al crear usuario", result.error || 'No se pudo crear el usuario');
       }
