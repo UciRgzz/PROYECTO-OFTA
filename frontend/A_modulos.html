@@ -12,10 +12,13 @@
       --primary-color: #2c3e50;
       --secondary-color: #3498db;
       --accent-color: #e74c3c;
+      --success-color: #27ae60;
       --light-color: #f8f9fa;
       --dark-color: #343a40;
+      --gradient-primary: linear-gradient(135deg, #1e3a52 0%, #2c5f7f 100%);
+      --gradient-secondary: linear-gradient(135deg, #3498db 0%, #2c80b9 100%);
     }
-    
+
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(135deg, #f0f5ff 0%, #e3f2fd 100%);
@@ -23,177 +26,352 @@
       color: #333;
       min-height: 100vh;
     }
-    
+
     .container {
-      max-width: 1200px;
+      max-width: 1300px;
       margin: 0 auto;
     }
-    
+
+    /* Header mejorado */
     header {
       text-align: center;
-      margin-bottom: 20px;
-      padding: 8px 15px;
-      background: linear-gradient(135deg, #1e3a52 0%, #2c5f7f 100%);
+      margin-bottom: 25px;
+      padding: 15px 20px;
+      background: var(--gradient-primary);
       color: white;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      position: relative;
+      overflow: hidden;
     }
-    
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      animation: shine 3s infinite;
+    }
+
+    @keyframes shine {
+      to { left: 100%; }
+    }
+
     h1 {
-      font-size: 1.6rem;
-      margin-bottom: 2px;
+      font-size: 1.8rem;
+      margin-bottom: 5px;
       font-weight: 700;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
-    
+
     .description {
-      font-size: 0.85rem;
-      opacity: 0.9;
+      font-size: 0.9rem;
+      opacity: 0.95;
+      font-weight: 300;
     }
-    
+
+    /* Cards mejorados */
     .card {
       background: white;
-      border-radius: 10px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+      margin-bottom: 25px;
       overflow: hidden;
       border: none;
+      animation: fadeInUp 0.5s ease;
     }
-    
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
     .card-header {
-      background: linear-gradient(135deg, var(--primary-color) 0%, #3d5061 100%);
+      background: var(--gradient-primary);
       color: white;
-      padding: 12px 18px;
-      font-size: 1.1rem;
+      padding: 15px 20px;
+      font-size: 1.15rem;
       font-weight: 600;
       display: flex;
       align-items: center;
+      border-bottom: 3px solid rgba(255,255,255,0.2);
     }
-    
+
     .card-header i {
-      margin-right: 10px;
-      font-size: 1.2rem;
+      margin-right: 12px;
+      font-size: 1.3rem;
     }
-    
+
     .card-body {
-      padding: 18px;
+      padding: 25px;
     }
-    
+
+    /* Select mejorado */
     .form-group {
-      margin-bottom: 18px;
+      margin-bottom: 20px;
     }
-    
+
+    .form-label {
+      font-weight: 600;
+      color: var(--primary-color);
+      margin-bottom: 8px;
+      display: block;
+      font-size: 0.95rem;
+    }
+
     select {
-      padding: 8px 12px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      font-size: 0.9rem;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 0.95rem;
       width: 100%;
       transition: all 0.3s;
+      background: white;
+      cursor: pointer;
     }
-    
+
     select:focus {
       border-color: var(--secondary-color);
-      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+      box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.15);
       outline: none;
     }
-    
+
+    /* Grid de módulos mejorado */
     .modules-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 12px;
-      margin: 15px 0;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 18px;
+      margin: 20px 0;
     }
-    
-    .module-item {
+
+    /* Tarjetas de módulo completamente rediseñadas */
+    .module-card {
+      background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+      border-radius: 12px;
+      padding: 20px;
+      border: 2px solid #e9ecef;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .module-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--gradient-secondary);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .module-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(52, 152, 219, 0.2);
+      border-color: var(--secondary-color);
+    }
+
+    .module-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .module-card.active {
+      background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+      border-color: var(--secondary-color);
+      box-shadow: 0 6px 20px rgba(52, 152, 219, 0.25);
+    }
+
+    .module-card.active::before {
+      transform: scaleX(1);
+    }
+
+    .module-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      background: var(--gradient-secondary);
       display: flex;
       align-items: center;
-      padding: 12px;
-      background: var(--light-color);
-      border-radius: 6px;
+      justify-content: center;
+      margin-bottom: 15px;
+      font-size: 1.8rem;
+      color: white;
+      box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
       transition: all 0.3s;
-      border: 1px solid #eee;
     }
-    
-    .module-item:hover {
-      background: #e9ecef;
-      transform: translateY(-2px);
+
+    .module-card:hover .module-icon {
+      transform: scale(1.1) rotate(5deg);
     }
-    
-    .module-item input {
-      margin-right: 10px;
-      transform: scale(1.2);
+
+    .module-card.active .module-icon {
+      background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+      box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
     }
-    
-    .module-item label {
-      font-weight: 500;
-      cursor: pointer;
-      margin-bottom: 0;
-      flex-grow: 1;
-      font-size: 0.9rem;
+
+    .module-name {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin-bottom: 8px;
     }
-    
+
+    .module-status {
+      font-size: 0.85rem;
+      color: #6c757d;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .module-card.active .module-status {
+      color: var(--success-color);
+      font-weight: 600;
+    }
+
+    .module-checkbox {
+      display: none;
+    }
+
+    /* Botones mejorados */
     .btn {
       cursor: pointer;
       font-weight: 600;
       transition: all 0.3s ease;
       border: none;
-      border-radius: 6px;
-      padding: 10px 18px;
-      font-size: 0.9rem;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-size: 0.95rem;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      gap: 8px;
     }
-    
+
     .btn-primary {
-      background: linear-gradient(135deg, var(--secondary-color) 0%, #2c80b9 100%);
+      background: var(--gradient-secondary);
       color: white;
-      box-shadow: 0 3px 8px rgba(52, 152, 219, 0.3);
+      box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
     }
-    
+
     .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+      box-shadow: 0 6px 16px rgba(52, 152, 219, 0.4);
     }
-    
-    .btn-primary i {
-      margin-right: 6px;
+
+    .btn-outline-secondary {
+      background: white;
+      color: var(--primary-color);
+      border: 2px solid #e0e0e0;
     }
-    
+
+    .btn-outline-secondary:hover {
+      background: var(--light-color);
+      border-color: var(--secondary-color);
+      color: var(--secondary-color);
+    }
+
+    /* User info mejorado */
     .user-info {
-      background: #e8f4ff;
-      padding: 12px;
-      border-radius: 6px;
-      margin-bottom: 15px;
+      background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+      padding: 15px 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
       display: none;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
+      border-left: 4px solid var(--secondary-color);
+      box-shadow: 0 3px 10px rgba(52, 152, 219, 0.15);
+      animation: slideIn 0.3s ease;
     }
-    
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .user-info strong {
+      color: var(--primary-color);
+    }
+
+    /* Alert mejorado */
     .success-alert {
       display: none;
-      padding: 12px;
-      background: #d4edda;
+      padding: 15px 20px;
+      background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
       color: #155724;
-      border-radius: 6px;
-      margin-bottom: 15px;
-      border: 1px solid #c3e6cb;
-      font-size: 0.9rem;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      border-left: 4px solid var(--success-color);
+      box-shadow: 0 4px 12px rgba(39, 174, 96, 0.2);
+      font-size: 0.95rem;
+      animation: slideIn 0.3s ease;
     }
-    
+
+    .success-alert i {
+      margin-right: 10px;
+      font-size: 1.2rem;
+    }
+
     .footer {
       text-align: center;
-      margin-top: 30px;
+      margin-top: 40px;
       color: #6c757d;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
+      padding: 20px;
+      border-top: 1px solid #e9ecef;
     }
-    
+
+    /* Sección de botones de acción */
+    .actions-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 2px solid #e9ecef;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    /* Responsive */
     @media (max-width: 768px) {
       .modules-grid {
         grid-template-columns: 1fr;
       }
-      
+
       h1 {
-        font-size: 1.4rem;
+        font-size: 1.5rem;
+      }
+
+      .actions-section {
+        flex-direction: column;
+      }
+
+      .actions-section > div {
+        width: 100%;
+      }
+
+      .btn {
+        width: 100%;
+        margin-bottom: 10px;
       }
     }
 </style>
@@ -236,7 +414,7 @@
               <!-- Los módulos se cargarán dinámicamente -->
             </div>
             
-            <div class="d-flex justify-content-between align-items-center mt-4">
+            <div class="actions-section">
               <div>
                 <button class="btn btn-outline-secondary" onclick="selectAll()">
                   <i class="fas fa-check-square"></i> Seleccionar Todos
@@ -283,22 +461,49 @@
       renderModules();
     });
 
-    // Renderizar los módulos en la cuadrícula
+    // Renderizar los módulos en la cuadrícula con el nuevo diseño
     function renderModules() {
       const container = document.getElementById('modulesContainer');
       container.innerHTML = '';
-      
+
       modules.forEach(module => {
-        const moduleElement = document.createElement('div');
-        moduleElement.className = 'module-item';
-        moduleElement.innerHTML = `
-          <input type="checkbox" id="mod_${module.id}" value="${module.id}" class="form-check-input">
-          <label for="mod_${module.id}" class="form-check-label">
-            <i class="${module.icon}"></i> ${module.name}
-          </label>
+        const moduleCard = document.createElement('div');
+        moduleCard.className = 'module-card';
+        moduleCard.dataset.moduleId = module.id;
+        moduleCard.innerHTML = `
+          <input type="checkbox" id="mod_${module.id}" value="${module.id}" class="module-checkbox">
+          <div class="module-icon">
+            <i class="${module.icon}"></i>
+          </div>
+          <div class="module-name">${module.name}</div>
+          <div class="module-status">
+            <i class="fas fa-circle-check"></i>
+            <span class="status-text">No asignado</span>
+          </div>
         `;
-        container.appendChild(moduleElement);
+
+        // Hacer que toda la tarjeta sea clickeable
+        moduleCard.addEventListener('click', function() {
+          const checkbox = this.querySelector('.module-checkbox');
+          if (!checkbox.disabled) {
+            checkbox.checked = !checkbox.checked;
+            updateModuleCardStatus(this, checkbox.checked);
+          }
+        });
+
+        container.appendChild(moduleCard);
       });
+    }
+
+    // Actualizar el estado visual de la tarjeta
+    function updateModuleCardStatus(card, isActive) {
+      if (isActive) {
+        card.classList.add('active');
+        card.querySelector('.status-text').textContent = 'Asignado';
+      } else {
+        card.classList.remove('active');
+        card.querySelector('.status-text').textContent = 'No asignado';
+      }
     }
 
     // Cargar usuarios desde la API
@@ -331,8 +536,12 @@
       // Ocultar información previa
       userInfo.style.display = 'none';
       
-      // Desmarcar todos los checkboxes
-      document.querySelectorAll('.module-item input').forEach(chk => chk.checked = false);
+      // Desmarcar todos los checkboxes y actualizar tarjetas
+      document.querySelectorAll('.module-card').forEach(card => {
+        const checkbox = card.querySelector('.module-checkbox');
+        checkbox.checked = false;
+        updateModuleCardStatus(card, false);
+      });
       
       if(!nomina) return;
 
@@ -350,13 +559,22 @@
         
         // Si es admin, marcar todos los módulos y deshabilitar
         if (userName.toLowerCase().includes('admin') || nomina === 'admin') {
-          document.querySelectorAll('.module-item input').forEach(chk => {
-            chk.checked = true;
-            chk.disabled = true;
+          document.querySelectorAll('.module-card').forEach(card => {
+            const checkbox = card.querySelector('.module-checkbox');
+            checkbox.checked = true;
+            checkbox.disabled = true;
+            updateModuleCardStatus(card, true);
+            card.style.opacity = '0.7';
+            card.style.cursor = 'not-allowed';
           });
           return;
         } else {
-          document.querySelectorAll('.module-item input').forEach(chk => chk.disabled = false);
+          document.querySelectorAll('.module-card').forEach(card => {
+            const checkbox = card.querySelector('.module-checkbox');
+            checkbox.disabled = false;
+            card.style.opacity = '1';
+            card.style.cursor = 'pointer';
+          });
         }
 
         // Cargar permisos del usuario
@@ -365,8 +583,12 @@
 
         if (res.ok) {
           permisos.forEach(p => {
-            const chk = document.querySelector(`.module-item input[value="${p.modulo}"]`);
-            if (chk) chk.checked = p.permitido;
+            const card = document.querySelector(`.module-card[data-module-id="${p.modulo}"]`);
+            if (card) {
+              const checkbox = card.querySelector('.module-checkbox');
+              checkbox.checked = p.permitido;
+              updateModuleCardStatus(card, p.permitido);
+            }
           });
         }
       } catch (err) {
@@ -386,10 +608,10 @@
       }
 
       const permisos = [];
-      document.querySelectorAll('.module-item input').forEach(chk => {
-        permisos.push({ 
-          modulo: chk.value, 
-          permitido: chk.checked 
+      document.querySelectorAll('.module-card .module-checkbox').forEach(chk => {
+        permisos.push({
+          modulo: chk.value,
+          permitido: chk.checked
         });
       });
 
@@ -416,12 +638,24 @@
 
     // Seleccionar todos los módulos
     function selectAll() {
-      document.querySelectorAll('.module-item input').forEach(chk => chk.checked = true);
+      document.querySelectorAll('.module-card').forEach(card => {
+        const checkbox = card.querySelector('.module-checkbox');
+        if (!checkbox.disabled) {
+          checkbox.checked = true;
+          updateModuleCardStatus(card, true);
+        }
+      });
     }
 
     // Deseleccionar todos los módulos
     function deselectAll() {
-      document.querySelectorAll('.module-item input').forEach(chk => chk.checked = false);
+      document.querySelectorAll('.module-card').forEach(card => {
+        const checkbox = card.querySelector('.module-checkbox');
+        if (!checkbox.disabled) {
+          checkbox.checked = false;
+          updateModuleCardStatus(card, false);
+        }
+      });
     }
 
     // Mostrar mensaje de éxito
