@@ -229,7 +229,6 @@
       border-collapse: collapse;
       border: 1px solid #dee2e6;
       border-radius: 6px;
-      overflow: hidden;
     }
 
     .av-table th {
@@ -300,6 +299,17 @@
       border-radius: 4px;
       text-align: center;
       font-size: 0.82rem;
+    }
+
+    .av-table .av-inputs select {
+      width: 70px;
+      padding: 5px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      text-align: center;
+      font-size: 0.82rem;
+      background: white;
+      cursor: pointer;
     }
 
     .av-table .av-inputs .sep {
@@ -2888,7 +2898,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
 
           <!-- ===== SECCIÓN REDISEÑADA: LENTES ANT / REFRACCIÓN SUBJ / SUBJ CICLOPEJÍA ===== -->
           <div class="section-title">Agudeza visual y Adición</div>
-          <div class="wide-section" style="padding: 0; overflow-x: auto;">
+          <div class="wide-section" style="padding: 0;">
             <table class="av-table">
               <thead>
                 <tr>
