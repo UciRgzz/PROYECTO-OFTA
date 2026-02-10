@@ -1417,21 +1417,34 @@ document.addEventListener("DOMContentLoaded", function() {
     o.textContent = txt || val;
     sel.appendChild(o);
   }
-  document.querySelectorAll('.select-esfera').forEach(function(sel) {
+  
+  // Función para generar opciones de dioptrías de -25.00 a +25.00
+  function populateDioptriasSelect(sel) {
     addOpt(sel, '', ' ');
     for (let v = 25.00; v >= -25.00; v = +(v - 0.25).toFixed(2)) {
       const txt = v > 0 ? '+' + v.toFixed(2) : v.toFixed(2);
       addOpt(sel, txt, txt);
     }
+  }
+  
+  // Poblar selects de esfera (dioptrías de -25.00 a +25.00)
+  document.querySelectorAll('.select-esfera').forEach(function(sel) {
+    populateDioptriasSelect(sel);
   });
+  
+  // Poblar selects de primer cuadro (20, CD, NM, etc.)
   document.querySelectorAll('.select-av1').forEach(function(sel) {
     addOpt(sel, '', ' ');
-    ['20','CD','NM','MM','NPL','NV','PL','PL/DC','PL/NDC','Sigue objetos'].forEach(function(v) { addOpt(sel, v, v); });
+    ['20','CD','NM','MM','NPL','NV','PL','PL/DC','PL/NDC'].forEach(function(v) { addOpt(sel, v, v); });
   });
+  
+  // Poblar selects de segundo cuadro (1 a 400)
   document.querySelectorAll('.select-av2').forEach(function(sel) {
     addOpt(sel, '', ' ');
     [1,2,3,4,5,10,20,25,30,40,50,60,70,80,100,200,400].forEach(function(v) { addOpt(sel, v, v); });
   });
+  
+  // Poblar selects de adición (+0.50 a +4.00)
   document.querySelectorAll('.select-adicion').forEach(function(sel) {
     addOpt(sel, '', ' ');
     for (let v = 0.50; v <= 4.00; v = +(v + 0.25).toFixed(2)) {
@@ -1524,6 +1537,16 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
   tpAplicado = false;
   horaTP = '';
 
+  // Función auxiliar para generar opciones de dioptrías
+  function generarOpcionesDioptrias() {
+    let opciones = '<option value=""> </option>';
+    for (let v = 25.00; v >= -25.00; v = +(v - 0.25).toFixed(2)) {
+      const txt = v > 0 ? `+${v.toFixed(2)}` : v.toFixed(2);
+      opciones += `<option value="${txt}">${txt}</option>`;
+    }
+    return opciones;
+  }
+
   const html = `
     <div class="card">
       <div class="card-header">
@@ -1565,7 +1588,6 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                   <option value="PL">PL</option>
                   <option value="PL/DC">PL/DC</option>
                   <option value="PL/NDC">PL/NDC</option>
-                  <option value="Sigue objetos">Sigue objetos</option>
                 </select>
                 <span class="separator">/</span>
                 <select name="av_sc_od_2">
@@ -1627,7 +1649,6 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                   <option value="PL">PL</option>
                   <option value="PL/DC">PL/DC</option>
                   <option value="PL/NDC">PL/NDC</option>
-                  <option value="Sigue objetos">Sigue objetos</option>
                 </select>
                 <span class="separator">/</span>
                 <select name="av_sc_oi_2">
@@ -1693,7 +1714,6 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                   <option value="PL">PL</option>
                   <option value="PL/DC">PL/DC</option>
                   <option value="PL/NDC">PL/NDC</option>
-                  <option value="Sigue objetos">Sigue objetos</option>
                 </select>
                 <span class="separator">/</span>
                 <select name="av_est_od_2">
@@ -1753,9 +1773,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                   <option value="NPL">NPL</option>
                   <option value="NV">NV</option>
                   <option value="PL">PL</option>
-                  <option value="PL/DC">PL/DC</option>
-                  <option value="PL/NDC">PL/NDC</option>
-                  <option value="Sigue objetos">Sigue objetos</option>
+                  <option value="PL/DC">PL/DC</option><option value="PL/NDC">PL/NDC</option>
                 </select>
                 <span class="separator">/</span>
                 <select name="av_est_oi_2">
@@ -1802,1351 +1820,470 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
               <div class="section-label"></div>
               <textarea name="av_est_oi_obs" class="observaciones-input" placeholder="Observaciones para ojo izquierdo..."></textarea>
             </div>
+          </div><!-- AGUDEZA VISUAL DE CERCA -->
+      <div class="section-title">Agudeza visual de cerca</div>
+      <div class="section-bg">
+        <div class="section-row">
+          <div class="section-label">Ojo derecho</div>
+          <div class="input-group-custom">
+            <select name="av_cerca_od_1">
+              <option value=""> </option>
+              <option value="20">20</option>
+              <option value="CD">CD</option>
+              <option value="NM">NM</option>
+              <option value="MM">MM</option>
+              <option value="NPL">NPL</option>
+              <option value="NV">NV</option>
+              <option value="PL">PL</option>
+              <option value="PL/DC">PL/DC</option>
+              <option value="PL/NDC">PL/NDC</option>
+            </select>
+            <span class="separator">/</span>
+            <select name="av_cerca_od_2">
+              <option value=""> </option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="25">25</option>
+              <option value="30">30</option>
+              <option value="40">40</option>
+              <option value="50">50</option>
+              <option value="60">60</option>
+              <option value="70">70</option>
+              <option value="80">80</option>
+              <option value="100">100</option>
+              <option value="200">200</option>
+              <option value="400">400</option>
+            </select>
+            <select name="av_cerca_od_3">
+              <option value=""> </option>
+              <option value="cm">cm</option>
+              <option value="m">m</option>
+            </select>
+            <select name="av_cerca_od_4">
+              <option value=""> </option>
+              <option value="+2">+2</option>
+              <option value="+1">+1</option>
+              <option value="0">0</option>
+              <option value="-1">-1</option>
+              <option value="-2">-2</option>
+            </select>
           </div>
-
-          <!-- AGUDEZA VISUAL DE CERCA -->
-          <div class="section-title">Agudeza visual de cerca</div>
-          <div class="section-bg">
-            <div class="section-row">
-              <div class="section-label">Ojo derecho</div>
-              <div class="input-group-custom">
-                <select name="av_cerca_od_1">
-                  <option value=""> </option>
-                  <option value="20">20</option>
-                  <option value="CD">CD</option>
-                  <option value="NM">NM</option>
-                  <option value="MM">MM</option>
-                  <option value="NPL">NPL</option>
-                  <option value="NV">NV</option>
-                  <option value="PL">PL</option>
-                  <option value="PL/DC">PL/DC</option>
-                  <option value="PL/NDC">PL/NDC</option>
-                  <option value="Sigue objetos">Sigue objetos</option>
-                </select>
-                <span class="separator">/</span>
-                <select name="av_cerca_od_2">
-                  <option value=""> </option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="10">10</option>
-                  <option value="20">20</option>
-                  <option value="25">25</option>
-                  <option value="30">30</option>
-                  <option value="40">40</option>
-                  <option value="50">50</option>
-                  <option value="60">60</option>
-                  <option value="70">70</option>
-                  <option value="80">80</option>
-                  <option value="100">100</option>
-                  <option value="200">200</option>
-                  <option value="400">400</option>
-                </select>
-                <select name="av_cerca_od_3">
-                  <option value=""> </option>
-                  <option value="cm">cm</option>
-                  <option value="m">m</option>
-                </select>
-                <select name="av_cerca_od_4">
-                  <option value=""> </option>
-                  <option value="+2">+2</option>
-                  <option value="+1">+1</option>
-                  <option value="0">0</option>
-                  <option value="-1">-1</option>
-                  <option value="-2">-2</option>
-                </select>
-              </div>
-              <div class="checkbox-group">
-                <input type="checkbox" name="av_cerca_od_color" id="av_cerca_od_color">
-                <label for="av_cerca_od_color">Discrimina color</label>
-              </div>
-              <label style="margin-left: 20px; margin-bottom: 0;">Observaciones</label>
-            </div>
-            <div class="section-row">
-              <div class="section-label"></div>
-              <textarea name="av_cerca_od_obs" class="observaciones-input" placeholder="Observaciones para ojo derecho..."></textarea>
-            </div>
-
-            <div class="section-row" style="margin-top: 20px;">
-              <div class="section-label">Ojo izquierdo</div>
-              <div class="input-group-custom">
-                <select name="av_cerca_oi_1">
-                  <option value=""> </option>
-                  <option value="20">20</option>
-                  <option value="CD">CD</option>
-                  <option value="NM">NM</option>
-                  <option value="MM">MM</option>
-                  <option value="NPL">NPL</option>
-                  <option value="NV">NV</option>
-                  <option value="PL">PL</option>
-                  <option value="PL/DC">PL/DC</option>
-                  <option value="PL/NDC">PL/NDC</option>
-                  <option value="Sigue objetos">Sigue objetos</option>
-                </select>
-                <span class="separator">/</span>
-                <select name="av_cerca_oi_2">
-                  <option value=""> </option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="10">10</option>
-                  <option value="20">20</option>
-                  <option value="25">25</option>
-                  <option value="30">30</option>
-                  <option value="40">40</option>
-                  <option value="50">50</option>
-                  <option value="60">60</option>
-                  <option value="70">70</option>
-                  <option value="80">80</option>
-                  <option value="100">100</option>
-                  <option value="200">200</option>
-                  <option value="400">400</option>
-                </select>
-                <select name="av_cerca_oi_3">
-                  <option value=""> </option>
-                  <option value="cm">cm</option>
-                  <option value="m">m</option>
-                </select>
-                <select name="av_cerca_oi_4">
-                  <option value=""> </option>
-                  <option value="+2">+2</option>
-                  <option value="+1">+1</option>
-                  <option value="0">0</option>
-                  <option value="-1">-1</option>
-                  <option value="-2">-2</option>
-                </select>
-              </div>
-              <div class="checkbox-group">
-                <input type="checkbox" name="av_cerca_oi_color" id="av_cerca_oi_color">
-                <label for="av_cerca_oi_color">Discrimina color</label>
-              </div>
-              <label style="margin-left: 20px; margin-bottom: 0;">Observaciones</label>
-            </div>
-            <div class="section-row">
-              <div class="section-label"></div>
-              <textarea name="av_cerca_oi_obs" class="observaciones-input" placeholder="Observaciones para ojo izquierdo..."></textarea>
-            </div>
+          <div class="checkbox-group">
+            <input type="checkbox" name="av_cerca_od_color" id="av_cerca_od_color">
+            <label for="av_cerca_od_color">Discrimina color</label>
           </div>
+          <label style="margin-left: 20px; margin-bottom: 0;">Observaciones</label>
+        </div>
+        <div class="section-row">
+          <div class="section-label"></div>
+          <textarea name="av_cerca_od_obs" class="observaciones-input" placeholder="Observaciones para ojo derecho..."></textarea>
+        </div>
 
-          <!-- AUTOREFRACTOR Y CICLOPEJÍA -->
-          <div class="section-title"></div>
-          <div class="two-column-section">
-            <div class="column-box">
-              <div class="column-title">Autorefractor</div>
-              <div class="field-row">
-                <span class="field-label">OD</span>
-                <select name="auto_od_1" class="field-input">
-                  <option value=""> </option>
-                  <option value="20">20</option>
-                  <option value="CD">CD</option>
-                  <option value="NM">NM</option>
-                  <option value="MM">MM</option>
-                  <option value="NPL">NPL</option>
-                  <option value="NV">NV</option>
-                  <option value="PL">PL</option>
-                  <option value="PL/DC">PL/DC</option>
-                  <option value="PL/NDC">PL/NDC</option>
-                  <option value="Sigue objetos">Sigue objetos</option>
-                </select>
-                <span>/</span>
-                <select name="auto_od_2" class="field-input">
-                  <option value=""> </option>
-                  <option value="+25.00">+25.00</option>
-                  <option value="+24.75">+24.75</option>
-                  <option value="+24.50">+24.50</option>
-                  <option value="+24.25">+24.25</option>
-                  <option value="+24.00">+24.00</option>
-                  <option value="+23.75">+23.75</option>
-                  <option value="+23.50">+23.50</option>
-                  <option value="+23.25">+23.25</option>
-                  <option value="+23.00">+23.00</option>
-                  <option value="+22.75">+22.75</option>
-                  <option value="+22.50">+22.50</option>
-                  <option value="+22.25">+22.25</option>
-                  <option value="+22.00">+22.00</option>
-                  <option value="+21.75">+21.75</option>
-                  <option value="+21.50">+21.50</option>
-                  <option value="+21.25">+21.25</option>
-                  <option value="+21.00">+21.00</option>
-                  <option value="+20.75">+20.75</option>
-                  <option value="+20.50">+20.50</option>
-                  <option value="+20.25">+20.25</option>
-                  <option value="+20.00">+20.00</option>
-                  <option value="+19.75">+19.75</option>
-                  <option value="+19.50">+19.50</option>
-                  <option value="+19.25">+19.25</option>
-                  <option value="+19.00">+19.00</option>
-                  <option value="+18.75">+18.75</option>
-                  <option value="+18.50">+18.50</option>
-                  <option value="+18.25">+18.25</option>
-                  <option value="+18.00">+18.00</option>
-                  <option value="+17.75">+17.75</option>
-                  <option value="+17.50">+17.50</option>
-                  <option value="+17.25">+17.25</option>
-                  <option value="+17.00">+17.00</option>
-                  <option value="+16.75">+16.75</option>
-                  <option value="+16.50">+16.50</option>
-                  <option value="+16.25">+16.25</option>
-                  <option value="+16.00">+16.00</option>
-                  <option value="+15.75">+15.75</option>
-                  <option value="+15.50">+15.50</option>
-                  <option value="+15.25">+15.25</option>
-                  <option value="+15.00">+15.00</option>
-                  <option value="+14.75">+14.75</option>
-                  <option value="+14.50">+14.50</option>
-                  <option value="+14.25">+14.25</option>
-                  <option value="+14.00">+14.00</option>
-                  <option value="+13.75">+13.75</option>
-                  <option value="+13.50">+13.50</option>
-                  <option value="+13.25">+13.25</option>
-                  <option value="+13.00">+13.00</option>
-                  <option value="+12.75">+12.75</option>
-                  <option value="+12.50">+12.50</option>
-                  <option value="+12.25">+12.25</option>
-                  <option value="+12.00">+12.00</option>
-                  <option value="+11.75">+11.75</option>
-                  <option value="+11.50">+11.50</option>
-                  <option value="+11.25">+11.25</option>
-                  <option value="+11.00">+11.00</option>
-                  <option value="+10.75">+10.75</option>
-                  <option value="+10.50">+10.50</option>
-                  <option value="+10.25">+10.25</option>
-                  <option value="+10.00">+10.00</option>
-                  <option value="+9.75">+9.75</option>
-                  <option value="+9.50">+9.50</option>
-                  <option value="+9.25">+9.25</option>
-                  <option value="+9.00">+9.00</option>
-                  <option value="+8.75">+8.75</option>
-                  <option value="+8.50">+8.50</option>
-                  <option value="+8.25">+8.25</option>
-                  <option value="+8.00">+8.00</option>
-                  <option value="+7.75">+7.75</option>
-                  <option value="+7.50">+7.50</option>
-                  <option value="+7.25">+7.25</option>
-                  <option value="+7.00">+7.00</option>
-                  <option value="+6.75">+6.75</option>
-                  <option value="+6.50">+6.50</option>
-                  <option value="+6.25">+6.25</option>
-                  <option value="+6.00">+6.00</option>
-                  <option value="+5.75">+5.75</option>
-                  <option value="+5.50">+5.50</option>
-                  <option value="+5.25">+5.25</option>
-                  <option value="+5.00">+5.00</option>
-                  <option value="+4.75">+4.75</option>
-                  <option value="+4.50">+4.50</option>
-                  <option value="+4.25">+4.25</option>
-                  <option value="+4.00">+4.00</option>
-                  <option value="+3.75">+3.75</option>
-                  <option value="+3.50">+3.50</option>
-                  <option value="+3.25">+3.25</option>
-                  <option value="+3.00">+3.00</option>
-                  <option value="+2.75">+2.75</option>
-                  <option value="+2.50">+2.50</option>
-                  <option value="+2.25">+2.25</option>
-                  <option value="+2.00">+2.00</option>
-                  <option value="+1.75">+1.75</option>
-                  <option value="+1.50">+1.50</option>
-                  <option value="+1.25">+1.25</option>
-                  <option value="+1.00">+1.00</option>
-                  <option value="+0.75">+0.75</option>
-                  <option value="+0.50">+0.50</option>
-                  <option value="+0.25">+0.25</option>
-                  <option value="0.00">0.00</option>
-                  <option value="-0.25">-0.25</option>
-                  <option value="-0.50">-0.50</option>
-                  <option value="-0.75">-0.75</option>
-                  <option value="-1.00">-1.00</option>
-                  <option value="-1.25">-1.25</option>
-                  <option value="-1.50">-1.50</option>
-                  <option value="-1.75">-1.75</option>
-                  <option value="-2.00">-2.00</option>
-                  <option value="-2.25">-2.25</option>
-                  <option value="-2.50">-2.50</option>
-                  <option value="-2.75">-2.75</option>
-                  <option value="-3.00">-3.00</option>
-                  <option value="-3.25">-3.25</option>
-                  <option value="-3.50">-3.50</option>
-                  <option value="-3.75">-3.75</option>
-                  <option value="-4.00">-4.00</option>
-                  <option value="-4.25">-4.25</option>
-                  <option value="-4.50">-4.50</option>
-                  <option value="-4.75">-4.75</option>
-                  <option value="-5.00">-5.00</option>
-                  <option value="-5.25">-5.25</option>
-                  <option value="-5.50">-5.50</option>
-                  <option value="-5.75">-5.75</option>
-                  <option value="-6.00">-6.00</option>
-                  <option value="-6.25">-6.25</option>
-                  <option value="-6.50">-6.50</option>
-                  <option value="-6.75">-6.75</option>
-                  <option value="-7.00">-7.00</option>
-                  <option value="-7.25">-7.25</option>
-                  <option value="-7.50">-7.50</option>
-                  <option value="-7.75">-7.75</option>
-                  <option value="-8.00">-8.00</option>
-                  <option value="-8.25">-8.25</option>
-                  <option value="-8.50">-8.50</option>
-                  <option value="-8.75">-8.75</option>
-                  <option value="-9.00">-9.00</option>
-                  <option value="-9.25">-9.25</option>
-                  <option value="-9.50">-9.50</option>
-                  <option value="-9.75">-9.75</option>
-                  <option value="-10.00">-10.00</option>
-                  <option value="-10.25">-10.25</option>
-                  <option value="-10.50">-10.50</option>
-                  <option value="-10.75">-10.75</option>
-                  <option value="-11.00">-11.00</option>
-                  <option value="-11.25">-11.25</option>
-                  <option value="-11.50">-11.50</option>
-                  <option value="-11.75">-11.75</option>
-                  <option value="-12.00">-12.00</option>
-                  <option value="-12.25">-12.25</option>
-                  <option value="-12.50">-12.50</option>
-                  <option value="-12.75">-12.75</option>
-                  <option value="-13.00">-13.00</option>
-                  <option value="-13.25">-13.25</option>
-                  <option value="-13.50">-13.50</option>
-                  <option value="-13.75">-13.75</option>
-                  <option value="-14.00">-14.00</option>
-                  <option value="-14.25">-14.25</option>
-                  <option value="-14.50">-14.50</option>
-                  <option value="-14.75">-14.75</option>
-                  <option value="-15.00">-15.00</option>
-                  <option value="-15.25">-15.25</option>
-                  <option value="-15.50">-15.50</option>
-                  <option value="-15.75">-15.75</option>
-                  <option value="-16.00">-16.00</option>
-                  <option value="-16.25">-16.25</option>
-                  <option value="-16.50">-16.50</option>
-                  <option value="-16.75">-16.75</option>
-                  <option value="-17.00">-17.00</option>
-                  <option value="-17.25">-17.25</option>
-                  <option value="-17.50">-17.50</option>
-                  <option value="-17.75">-17.75</option>
-                  <option value="-18.00">-18.00</option>
-                  <option value="-18.25">-18.25</option>
-                  <option value="-18.50">-18.50</option>
-                  <option value="-18.75">-18.75</option>
-                  <option value="-19.00">-19.00</option>
-                  <option value="-19.25">-19.25</option>
-                  <option value="-19.50">-19.50</option>
-                  <option value="-19.75">-19.75</option>
-                  <option value="-20.00">-20.00</option>
-                  <option value="-20.25">-20.25</option>
-                  <option value="-20.50">-20.50</option>
-                  <option value="-20.75">-20.75</option>
-                  <option value="-21.00">-21.00</option>
-                  <option value="-21.25">-21.25</option>
-                  <option value="-21.50">-21.50</option>
-                  <option value="-21.75">-21.75</option>
-                  <option value="-22.00">-22.00</option>
-                  <option value="-22.25">-22.25</option>
-                  <option value="-22.50">-22.50</option>
-                  <option value="-22.75">-22.75</option>
-                  <option value="-23.00">-23.00</option>
-                  <option value="-23.25">-23.25</option>
-                  <option value="-23.50">-23.50</option>
-                  <option value="-23.75">-23.75</option>
-                  <option value="-24.00">-24.00</option>
-                  <option value="-24.25">-24.25</option>
-                  <option value="-24.50">-24.50</option>
-                  <option value="-24.75">-24.75</option>
-                  <option value="-25.00">-25.00</option>
-                  <option value="Neutro">Neutro</option>
-                  <option value="NR">NR</option>
-                </select>
-                <select name="auto_od_3" class="field-input">
-                  <option value=""> </option>
-                  <option value="cm">cm</option>
-                  <option value="m">m</option>
-                </select>
-                <select name="auto_od_4" class="field-input">
-                  <option value=""> </option>
-                  <option value="+3">+3</option>
-                  <option value="+2">+2</option>
-                  <option value="+1">+1</option>
-                  <option value="0">0</option>
-                  <option value="-1">-1</option>
-                  <option value="-2">-2</option>
-                  <option value="-3">-3</option>
-                </select>
-              </div>
-              <div class="field-row">
-                <span class="field-label">OI</span>
-                <select name="auto_oi_1" class="field-input">
-                  <option value=""> </option>
-                  <option value="20">20</option>
-                  <option value="CD">CD</option>
-                  <option value="NM">NM</option>
-                  <option value="MM">MM</option>
-                  <option value="NPL">NPL</option>
-                  <option value="NV">NV</option>
-                  <option value="PL">PL</option>
-                  <option value="PL/DC">PL/DC</option>
-                  <option value="PL/NDC">PL/NDC</option>
-                  <option value="Sigue objetos">Sigue objetos</option>
-                </select>
-                <span>/</span>
-                <select name="auto_oi_2" class="field-input">
-                  <option value=""> </option>
-                  <option value="+25.00">+25.00</option>
-                  <option value="+24.75">+24.75</option>
-                  <option value="+24.50">+24.50</option>
-                  <option value="+24.25">+24.25</option>
-                  <option value="+24.00">+24.00</option>
-                  <option value="+23.75">+23.75</option>
-                  <option value="+23.50">+23.50</option>
-                  <option value="+23.25">+23.25</option>
-                  <option value="+23.00">+23.00</option>
-                  <option value="+22.75">+22.75</option>
-                  <option value="+22.50">+22.50</option>
-                  <option value="+22.25">+22.25</option>
-                  <option value="+22.00">+22.00</option>
-                  <option value="+21.75">+21.75</option>
-                  <option value="+21.50">+21.50</option>
-                  <option value="+21.25">+21.25</option>
-                  <option value="+21.00">+21.00</option>
-                  <option value="+20.75">+20.75</option>
-                  <option value="+20.50">+20.50</option>
-                  <option value="+20.25">+20.25</option>
-                  <option value="+20.00">+20.00</option>
-                  <option value="+19.75">+19.75</option>
-                  <option value="+19.50">+19.50</option>
-                  <option value="+19.25">+19.25</option>
-                  <option value="+19.00">+19.00</option>
-                  <option value="+18.75">+18.75</option>
-                  <option value="+18.50">+18.50</option>
-                  <option value="+18.25">+18.25</option>
-                  <option value="+18.00">+18.00</option>
-                  <option value="+17.75">+17.75</option>
-                  <option value="+17.50">+17.50</option>
-                  <option value="+17.25">+17.25</option>
-                  <option value="+17.00">+17.00</option>
-                  <option value="+16.75">+16.75</option>
-                  <option value="+16.50">+16.50</option>
-                  <option value="+16.25">+16.25</option>
-                  <option value="+16.00">+16.00</option>
-                  <option value="+15.75">+15.75</option>
-                  <option value="+15.50">+15.50</option>
-                  <option value="+15.25">+15.25</option>
-                  <option value="+15.00">+15.00</option>
-                  <option value="+14.75">+14.75</option>
-                  <option value="+14.50">+14.50</option>
-                  <option value="+14.25">+14.25</option>
-                  <option value="+14.00">+14.00</option>
-                  <option value="+13.75">+13.75</option>
-                  <option value="+13.50">+13.50</option>
-                  <option value="+13.25">+13.25</option>
-                  <option value="+13.00">+13.00</option>
-                  <option value="+12.75">+12.75</option>
-                  <option value="+12.50">+12.50</option>
-                  <option value="+12.25">+12.25</option>
-                  <option value="+12.00">+12.00</option>
-                  <option value="+11.75">+11.75</option>
-                  <option value="+11.50">+11.50</option>
-                  <option value="+11.25">+11.25</option>
-                  <option value="+11.00">+11.00</option>
-                  <option value="+10.75">+10.75</option>
-                  <option value="+10.50">+10.50</option>
-                  <option value="+10.25">+10.25</option>
-                  <option value="+10.00">+10.00</option>
-                  <option value="+9.75">+9.75</option>
-                  <option value="+9.50">+9.50</option>
-                  <option value="+9.25">+9.25</option>
-                  <option value="+9.00">+9.00</option>
-                  <option value="+8.75">+8.75</option>
-                  <option value="+8.50">+8.50</option>
-                  <option value="+8.25">+8.25</option>
-                  <option value="+8.00">+8.00</option>
-                  <option value="+7.75">+7.75</option>
-                  <option value="+7.50">+7.50</option>
-                  <option value="+7.25">+7.25</option>
-                  <option value="+7.00">+7.00</option>
-                  <option value="+6.75">+6.75</option>
-                  <option value="+6.50">+6.50</option>
-                  <option value="+6.25">+6.25</option>
-                  <option value="+6.00">+6.00</option>
-                  <option value="+5.75">+5.75</option>
-                  <option value="+5.50">+5.50</option>
-                  <option value="+5.25">+5.25</option>
-                  <option value="+5.00">+5.00</option>
-                  <option value="+4.75">+4.75</option>
-                  <option value="+4.50">+4.50</option>
-                  <option value="+4.25">+4.25</option>
-                  <option value="+4.00">+4.00</option>
-                  <option value="+3.75">+3.75</option>
-                  <option value="+3.50">+3.50</option>
-                  <option value="+3.25">+3.25</option>
-                  <option value="+3.00">+3.00</option>
-                  <option value="+2.75">+2.75</option>
-                  <option value="+2.50">+2.50</option>
-                  <option value="+2.25">+2.25</option>
-                  <option value="+2.00">+2.00</option>
-                  <option value="+1.75">+1.75</option>
-                  <option value="+1.50">+1.50</option>
-                  <option value="+1.25">+1.25</option>
-                  <option value="+1.00">+1.00</option>
-                  <option value="+0.75">+0.75</option>
-                  <option value="+0.50">+0.50</option>
-                  <option value="+0.25">+0.25</option>
-                  <option value="0.00">0.00</option>
-                  <option value="-0.25">-0.25</option>
-                  <option value="-0.50">-0.50</option>
-                  <option value="-0.75">-0.75</option>
-                  <option value="-1.00">-1.00</option>
-                  <option value="-1.25">-1.25</option>
-                  <option value="-1.50">-1.50</option>
-                  <option value="-1.75">-1.75</option>
-                  <option value="-2.00">-2.00</option>
-                  <option value="-2.25">-2.25</option>
-                  <option value="-2.50">-2.50</option>
-                  <option value="-2.75">-2.75</option>
-                  <option value="-3.00">-3.00</option>
-                  <option value="-3.25">-3.25</option>
-                  <option value="-3.50">-3.50</option>
-                  <option value="-3.75">-3.75</option>
-                  <option value="-4.00">-4.00</option>
-                  <option value="-4.25">-4.25</option>
-                  <option value="-4.50">-4.50</option>
-                  <option value="-4.75">-4.75</option>
-                  <option value="-5.00">-5.00</option>
-                  <option value="-5.25">-5.25</option>
-                  <option value="-5.50">-5.50</option>
-                  <option value="-5.75">-5.75</option>
-                  <option value="-6.00">-6.00</option>
-                  <option value="-6.25">-6.25</option>
-                  <option value="-6.50">-6.50</option>
-                  <option value="-6.75">-6.75</option>
-                  <option value="-7.00">-7.00</option>
-                  <option value="-7.25">-7.25</option>
-                  <option value="-7.50">-7.50</option>
-                  <option value="-7.75">-7.75</option>
-                  <option value="-8.00">-8.00</option>
-                  <option value="-8.25">-8.25</option>
-                  <option value="-8.50">-8.50</option>
-                  <option value="-8.75">-8.75</option>
-                  <option value="-9.00">-9.00</option>
-                  <option value="-9.25">-9.25</option>
-                  <option value="-9.50">-9.50</option>
-                  <option value="-9.75">-9.75</option>
-                  <option value="-10.00">-10.00</option>
-                  <option value="-10.25">-10.25</option>
-                  <option value="-10.50">-10.50</option>
-                  <option value="-10.75">-10.75</option>
-                  <option value="-11.00">-11.00</option>
-                  <option value="-11.25">-11.25</option>
-                  <option value="-11.50">-11.50</option>
-                  <option value="-11.75">-11.75</option>
-                  <option value="-12.00">-12.00</option>
-                  <option value="-12.25">-12.25</option>
-                  <option value="-12.50">-12.50</option>
-                  <option value="-12.75">-12.75</option>
-                  <option value="-13.00">-13.00</option>
-                  <option value="-13.25">-13.25</option>
-                  <option value="-13.50">-13.50</option>
-                  <option value="-13.75">-13.75</option>
-                  <option value="-14.00">-14.00</option>
-                  <option value="-14.25">-14.25</option>
-                  <option value="-14.50">-14.50</option>
-                  <option value="-14.75">-14.75</option>
-                  <option value="-15.00">-15.00</option>
-                  <option value="-15.25">-15.25</option>
-                  <option value="-15.50">-15.50</option>
-                  <option value="-15.75">-15.75</option>
-                  <option value="-16.00">-16.00</option>
-                  <option value="-16.25">-16.25</option>
-                  <option value="-16.50">-16.50</option>
-                  <option value="-16.75">-16.75</option>
-                  <option value="-17.00">-17.00</option>
-                  <option value="-17.25">-17.25</option>
-                  <option value="-17.50">-17.50</option>
-                  <option value="-17.75">-17.75</option>
-                  <option value="-18.00">-18.00</option>
-                  <option value="-18.25">-18.25</option>
-                  <option value="-18.50">-18.50</option>
-                  <option value="-18.75">-18.75</option>
-                  <option value="-19.00">-19.00</option>
-                  <option value="-19.25">-19.25</option>
-                  <option value="-19.50">-19.50</option>
-                  <option value="-19.75">-19.75</option>
-                  <option value="-20.00">-20.00</option>
-                  <option value="-20.25">-20.25</option>
-                  <option value="-20.50">-20.50</option>
-                  <option value="-20.75">-20.75</option>
-                  <option value="-21.00">-21.00</option>
-                  <option value="-21.25">-21.25</option>
-                  <option value="-21.50">-21.50</option>
-                  <option value="-21.75">-21.75</option>
-                  <option value="-22.00">-22.00</option>
-                  <option value="-22.25">-22.25</option>
-                  <option value="-22.50">-22.50</option>
-                  <option value="-22.75">-22.75</option>
-                  <option value="-23.00">-23.00</option>
-                  <option value="-23.25">-23.25</option>
-                  <option value="-23.50">-23.50</option>
-                  <option value="-23.75">-23.75</option>
-                  <option value="-24.00">-24.00</option>
-                  <option value="-24.25">-24.25</option>
-                  <option value="-24.50">-24.50</option>
-                  <option value="-24.75">-24.75</option>
-                  <option value="-25.00">-25.00</option>
-                  <option value="Neutro">Neutro</option>
-                  <option value="NR">NR</option>
-                </select>
-                <select name="auto_oi_3" class="field-input">
-                  <option value=""> </option>
-                  <option value="cm">cm</option>
-                  <option value="m">m</option>
-                </select>
-                <select name="auto_oi_4" class="field-input">
-                  <option value=""> </option>
-                  <option value="+3">+3</option>
-                  <option value="+2">+2</option>
-                  <option value="+1">+1</option>
-                  <option value="0">0</option>
-                  <option value="-1">-1</option>
-                  <option value="-2">-2</option>
-                  <option value="-3">-3</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="column-box">
-              <div class="column-title">Auto Refractor Con Ciclopléjia</div>
-              <div class="field-row">
-                <span class="field-label">OD</span>
-                <select name="auto_ciclo_od_1" class="field-input">
-                  <option value=""> </option>
-                  <option value="20">20</option>
-                  <option value="CD">CD</option>
-                  <option value="NM">NM</option>
-                  <option value="MM">MM</option>
-                  <option value="NPL">NPL</option>
-                  <option value="NV">NV</option>
-                  <option value="PL">PL</option>
-                  <option value="PL/DC">PL/DC</option>
-                  <option value="PL/NDC">PL/NDC</option>
-                  <option value="Sigue objetos">Sigue objetos</option>
-                </select>
-                <span>/</span>
-                <select name="auto_ciclo_od_2" class="field-input">
-                  <option value=""> </option>
-                  <option value="+25.00">+25.00</option>
-                  <option value="+24.75">+24.75</option>
-                  <option value="+24.50">+24.50</option>
-                  <option value="+24.25">+24.25</option>
-                  <option value="+24.00">+24.00</option>
-                  <option value="+23.75">+23.75</option>
-                  <option value="+23.50">+23.50</option>
-                  <option value="+23.25">+23.25</option>
-                  <option value="+23.00">+23.00</option>
-                  <option value="+22.75">+22.75</option>
-                  <option value="+22.50">+22.50</option>
-                  <option value="+22.25">+22.25</option>
-                  <option value="+22.00">+22.00</option>
-                  <option value="+21.75">+21.75</option>
-                  <option value="+21.50">+21.50</option>
-                  <option value="+21.25">+21.25</option>
-                  <option value="+21.00">+21.00</option>
-                  <option value="+20.75">+20.75</option>
-                  <option value="+20.50">+20.50</option>
-                  <option value="+20.25">+20.25</option>
-                  <option value="+20.00">+20.00</option>
-                  <option value="+19.75">+19.75</option>
-                  <option value="+19.50">+19.50</option>
-                  <option value="+19.25">+19.25</option>
-                  <option value="+19.00">+19.00</option>
-                  <option value="+18.75">+18.75</option>
-                  <option value="+18.50">+18.50</option>
-                  <option value="+18.25">+18.25</option>
-                  <option value="+18.00">+18.00</option>
-                  <option value="+17.75">+17.75</option>
-                  <option value="+17.50">+17.50</option>
-                  <option value="+17.25">+17.25</option>
-                  <option value="+17.00">+17.00</option>
-                  <option value="+16.75">+16.75</option>
-                  <option value="+16.50">+16.50</option>
-                  <option value="+16.25">+16.25</option>
-                  <option value="+16.00">+16.00</option>
-                  <option value="+15.75">+15.75</option>
-                  <option value="+15.50">+15.50</option>
-                  <option value="+15.25">+15.25</option>
-                  <option value="+15.00">+15.00</option>
-                  <option value="+14.75">+14.75</option>
-                  <option value="+14.50">+14.50</option>
-                  <option value="+14.25">+14.25</option>
-                  <option value="+14.00">+14.00</option>
-                  <option value="+13.75">+13.75</option>
-                  <option value="+13.50">+13.50</option>
-                  <option value="+13.25">+13.25</option>
-                  <option value="+13.00">+13.00</option>
-                  <option value="+12.75">+12.75</option>
-                  <option value="+12.50">+12.50</option>
-                  <option value="+12.25">+12.25</option>
-                  <option value="+12.00">+12.00</option>
-                  <option value="+11.75">+11.75</option>
-                  <option value="+11.50">+11.50</option>
-                  <option value="+11.25">+11.25</option>
-                  <option value="+11.00">+11.00</option>
-                  <option value="+10.75">+10.75</option>
-                  <option value="+10.50">+10.50</option>
-                  <option value="+10.25">+10.25</option>
-                  <option value="+10.00">+10.00</option>
-                  <option value="+9.75">+9.75</option>
-                  <option value="+9.50">+9.50</option>
-                  <option value="+9.25">+9.25</option>
-                  <option value="+9.00">+9.00</option>
-                  <option value="+8.75">+8.75</option>
-                  <option value="+8.50">+8.50</option>
-                  <option value="+8.25">+8.25</option>
-                  <option value="+8.00">+8.00</option>
-                  <option value="+7.75">+7.75</option>
-                  <option value="+7.50">+7.50</option>
-                  <option value="+7.25">+7.25</option>
-                  <option value="+7.00">+7.00</option>
-                  <option value="+6.75">+6.75</option>
-                  <option value="+6.50">+6.50</option>
-                  <option value="+6.25">+6.25</option>
-                  <option value="+6.00">+6.00</option>
-                  <option value="+5.75">+5.75</option>
-                  <option value="+5.50">+5.50</option>
-                  <option value="+5.25">+5.25</option>
-                  <option value="+5.00">+5.00</option>
-                  <option value="+4.75">+4.75</option>
-                  <option value="+4.50">+4.50</option>
-                  <option value="+4.25">+4.25</option>
-                  <option value="+4.00">+4.00</option>
-                  <option value="+3.75">+3.75</option>
-                  <option value="+3.50">+3.50</option>
-                  <option value="+3.25">+3.25</option>
-                  <option value="+3.00">+3.00</option>
-                  <option value="+2.75">+2.75</option>
-                  <option value="+2.50">+2.50</option>
-                  <option value="+2.25">+2.25</option>
-                  <option value="+2.00">+2.00</option>
-                  <option value="+1.75">+1.75</option>
-                  <option value="+1.50">+1.50</option>
-                  <option value="+1.25">+1.25</option>
-                  <option value="+1.00">+1.00</option>
-                  <option value="+0.75">+0.75</option>
-                  <option value="+0.50">+0.50</option>
-                  <option value="+0.25">+0.25</option>
-                  <option value="0.00">0.00</option>
-                  <option value="-0.25">-0.25</option>
-                  <option value="-0.50">-0.50</option>
-                  <option value="-0.75">-0.75</option>
-                  <option value="-1.00">-1.00</option>
-                  <option value="-1.25">-1.25</option>
-                  <option value="-1.50">-1.50</option>
-                  <option value="-1.75">-1.75</option>
-                  <option value="-2.00">-2.00</option>
-                  <option value="-2.25">-2.25</option>
-                  <option value="-2.50">-2.50</option>
-                  <option value="-2.75">-2.75</option>
-                  <option value="-3.00">-3.00</option>
-                  <option value="-3.25">-3.25</option>
-                  <option value="-3.50">-3.50</option>
-                  <option value="-3.75">-3.75</option>
-                  <option value="-4.00">-4.00</option>
-                  <option value="-4.25">-4.25</option>
-                  <option value="-4.50">-4.50</option>
-                  <option value="-4.75">-4.75</option>
-                  <option value="-5.00">-5.00</option>
-                  <option value="-5.25">-5.25</option>
-                  <option value="-5.50">-5.50</option>
-                  <option value="-5.75">-5.75</option>
-                  <option value="-6.00">-6.00</option>
-                  <option value="-6.25">-6.25</option>
-                  <option value="-6.50">-6.50</option>
-                  <option value="-6.75">-6.75</option>
-                  <option value="-7.00">-7.00</option>
-                  <option value="-7.25">-7.25</option>
-                  <option value="-7.50">-7.50</option>
-                  <option value="-7.75">-7.75</option>
-                  <option value="-8.00">-8.00</option>
-                  <option value="-8.25">-8.25</option>
-                  <option value="-8.50">-8.50</option>
-                  <option value="-8.75">-8.75</option>
-                  <option value="-9.00">-9.00</option>
-                  <option value="-9.25">-9.25</option>
-                  <option value="-9.50">-9.50</option>
-                  <option value="-9.75">-9.75</option>
-                  <option value="-10.00">-10.00</option>
-                  <option value="-10.25">-10.25</option>
-                  <option value="-10.50">-10.50</option>
-                  <option value="-10.75">-10.75</option>
-                  <option value="-11.00">-11.00</option>
-                  <option value="-11.25">-11.25</option>
-                  <option value="-11.50">-11.50</option>
-                  <option value="-11.75">-11.75</option>
-                  <option value="-12.00">-12.00</option>
-                  <option value="-12.25">-12.25</option>
-                  <option value="-12.50">-12.50</option>
-                  <option value="-12.75">-12.75</option>
-                  <option value="-13.00">-13.00</option>
-                  <option value="-13.25">-13.25</option>
-                  <option value="-13.50">-13.50</option>
-                  <option value="-13.75">-13.75</option>
-                  <option value="-14.00">-14.00</option>
-                  <option value="-14.25">-14.25</option>
-                  <option value="-14.50">-14.50</option>
-                  <option value="-14.75">-14.75</option>
-                  <option value="-15.00">-15.00</option>
-                  <option value="-15.25">-15.25</option>
-                  <option value="-15.50">-15.50</option>
-                  <option value="-15.75">-15.75</option>
-                  <option value="-16.00">-16.00</option>
-                  <option value="-16.25">-16.25</option>
-                  <option value="-16.50">-16.50</option>
-                  <option value="-16.75">-16.75</option>
-                  <option value="-17.00">-17.00</option>
-                  <option value="-17.25">-17.25</option>
-                  <option value="-17.50">-17.50</option>
-                  <option value="-17.75">-17.75</option>
-                  <option value="-18.00">-18.00</option>
-                  <option value="-18.25">-18.25</option>
-                  <option value="-18.50">-18.50</option>
-                  <option value="-18.75">-18.75</option>
-                  <option value="-19.00">-19.00</option>
-                  <option value="-19.25">-19.25</option>
-                  <option value="-19.50">-19.50</option>
-                  <option value="-19.75">-19.75</option>
-                  <option value="-20.00">-20.00</option>
-                  <option value="-20.25">-20.25</option>
-                  <option value="-20.50">-20.50</option>
-                  <option value="-20.75">-20.75</option>
-                  <option value="-21.00">-21.00</option>
-                  <option value="-21.25">-21.25</option>
-                  <option value="-21.50">-21.50</option>
-                  <option value="-21.75">-21.75</option>
-                  <option value="-22.00">-22.00</option>
-                  <option value="-22.25">-22.25</option>
-                  <option value="-22.50">-22.50</option>
-                  <option value="-22.75">-22.75</option>
-                  <option value="-23.00">-23.00</option>
-                  <option value="-23.25">-23.25</option>
-                  <option value="-23.50">-23.50</option>
-                  <option value="-23.75">-23.75</option>
-                  <option value="-24.00">-24.00</option>
-                  <option value="-24.25">-24.25</option>
-                  <option value="-24.50">-24.50</option>
-                  <option value="-24.75">-24.75</option>
-                  <option value="-25.00">-25.00</option>
-                  <option value="Neutro">Neutro</option>
-                  <option value="NR">NR</option>
-                </select>
-                <select name="auto_ciclo_od_3" class="field-input">
-                  <option value=""> </option>
-                  <option value="cm">cm</option>
-                  <option value="m">m</option>
-                </select>
-                <select name="auto_ciclo_od_4" class="field-input">
-                  <option value=""> </option>
-                  <option value="+3">+3</option>
-                  <option value="+2">+2</option>
-                  <option value="+1">+1</option>
-                  <option value="0">0</option>
-                  <option value="-1">-1</option>
-                  <option value="-2">-2</option>
-                  <option value="-3">-3</option>
-                </select>
-              </div>
-              <div class="field-row">
-                <span class="field-label">OI</span>
-                <select name="auto_ciclo_oi_1" class="field-input">
-                  <option value=""> </option>
-                  <option value="20">20</option>
-                  <option value="CD">CD</option>
-                  <option value="NM">NM</option>
-                  <option value="MM">MM</option>
-                  <option value="NPL">NPL</option>
-                  <option value="NV">NV</option>
-                  <option value="PL">PL</option>
-                  <option value="PL/DC">PL/DC</option>
-                  <option value="PL/NDC">PL/NDC</option>
-                  <option value="Sigue objetos">Sigue objetos</option>
-                </select>
-                <span>/</span>
-                <select name="auto_ciclo_oi_2" class="field-input">
-                  <option value=""> </option>
-                  <option value="+25.00">+25.00</option>
-                  <option value="+24.75">+24.75</option>
-                  <option value="+24.50">+24.50</option>
-                  <option value="+24.25">+24.25</option>
-                  <option value="+24.00">+24.00</option>
-                  <option value="+23.75">+23.75</option>
-                  <option value="+23.50">+23.50</option>
-                  <option value="+23.25">+23.25</option>
-                  <option value="+23.00">+23.00</option>
-                  <option value="+22.75">+22.75</option>
-                  <option value="+22.50">+22.50</option>
-                  <option value="+22.25">+22.25</option>
-                  <option value="+22.00">+22.00</option>
-                  <option value="+21.75">+21.75</option>
-                  <option value="+21.50">+21.50</option>
-                  <option value="+21.25">+21.25</option>
-                  <option value="+21.00">+21.00</option>
-                  <option value="+20.75">+20.75</option>
-                  <option value="+20.50">+20.50</option>
-                  <option value="+20.25">+20.25</option>
-                  <option value="+20.00">+20.00</option>
-                  <option value="+19.75">+19.75</option>
-                  <option value="+19.50">+19.50</option>
-                  <option value="+19.25">+19.25</option>
-                  <option value="+19.00">+19.00</option>
-                  <option value="+18.75">+18.75</option>
-                  <option value="+18.50">+18.50</option>
-                  <option value="+18.25">+18.25</option>
-                  <option value="+18.00">+18.00</option>
-                  <option value="+17.75">+17.75</option>
-                  <option value="+17.50">+17.50</option>
-                  <option value="+17.25">+17.25</option>
-                  <option value="+17.00">+17.00</option>
-                  <option value="+16.75">+16.75</option>
-                  <option value="+16.50">+16.50</option>
-                  <option value="+16.25">+16.25</option>
-                  <option value="+16.00">+16.00</option>
-                  <option value="+15.75">+15.75</option>
-                  <option value="+15.50">+15.50</option>
-                  <option value="+15.25">+15.25</option>
-                  <option value="+15.00">+15.00</option>
-                  <option value="+14.75">+14.75</option>
-                  <option value="+14.50">+14.50</option>
-                  <option value="+14.25">+14.25</option>
-                  <option value="+14.00">+14.00</option>
-                  <option value="+13.75">+13.75</option>
-                  <option value="+13.50">+13.50</option>
-                  <option value="+13.25">+13.25</option>
-                  <option value="+13.00">+13.00</option>
-                  <option value="+12.75">+12.75</option>
-                  <option value="+12.50">+12.50</option>
-                  <option value="+12.25">+12.25</option>
-                  <option value="+12.00">+12.00</option>
-                  <option value="+11.75">+11.75</option>
-                  <option value="+11.50">+11.50</option>
-                  <option value="+11.25">+11.25</option>
-                  <option value="+11.00">+11.00</option>
-                  <option value="+10.75">+10.75</option>
-                  <option value="+10.50">+10.50</option>
-                  <option value="+10.25">+10.25</option>
-                  <option value="+10.00">+10.00</option>
-                  <option value="+9.75">+9.75</option>
-                  <option value="+9.50">+9.50</option>
-                  <option value="+9.25">+9.25</option>
-                  <option value="+9.00">+9.00</option>
-                  <option value="+8.75">+8.75</option>
-                  <option value="+8.50">+8.50</option>
-                  <option value="+8.25">+8.25</option>
-                  <option value="+8.00">+8.00</option>
-                  <option value="+7.75">+7.75</option>
-                  <option value="+7.50">+7.50</option>
-                  <option value="+7.25">+7.25</option>
-                  <option value="+7.00">+7.00</option>
-                  <option value="+6.75">+6.75</option>
-                  <option value="+6.50">+6.50</option>
-                  <option value="+6.25">+6.25</option>
-                  <option value="+6.00">+6.00</option>
-                  <option value="+5.75">+5.75</option>
-                  <option value="+5.50">+5.50</option>
-                  <option value="+5.25">+5.25</option>
-                  <option value="+5.00">+5.00</option>
-                  <option value="+4.75">+4.75</option>
-                  <option value="+4.50">+4.50</option>
-                  <option value="+4.25">+4.25</option>
-                  <option value="+4.00">+4.00</option>
-                  <option value="+3.75">+3.75</option>
-                  <option value="+3.50">+3.50</option>
-                  <option value="+3.25">+3.25</option>
-                  <option value="+3.00">+3.00</option>
-                  <option value="+2.75">+2.75</option>
-                  <option value="+2.50">+2.50</option>
-                  <option value="+2.25">+2.25</option>
-                  <option value="+2.00">+2.00</option>
-                  <option value="+1.75">+1.75</option>
-                  <option value="+1.50">+1.50</option>
-                  <option value="+1.25">+1.25</option>
-                  <option value="+1.00">+1.00</option>
-                  <option value="+0.75">+0.75</option>
-                  <option value="+0.50">+0.50</option>
-                  <option value="+0.25">+0.25</option>
-                  <option value="0.00">0.00</option>
-                  <option value="-0.25">-0.25</option>
-                  <option value="-0.50">-0.50</option>
-                  <option value="-0.75">-0.75</option>
-                  <option value="-1.00">-1.00</option>
-                  <option value="-1.25">-1.25</option>
-                  <option value="-1.50">-1.50</option>
-                  <option value="-1.75">-1.75</option>
-                  <option value="-2.00">-2.00</option>
-                  <option value="-2.25">-2.25</option>
-                  <option value="-2.50">-2.50</option>
-                  <option value="-2.75">-2.75</option>
-                  <option value="-3.00">-3.00</option>
-                  <option value="-3.25">-3.25</option>
-                  <option value="-3.50">-3.50</option>
-                  <option value="-3.75">-3.75</option>
-                  <option value="-4.00">-4.00</option>
-                  <option value="-4.25">-4.25</option>
-                  <option value="-4.50">-4.50</option>
-                  <option value="-4.75">-4.75</option>
-                  <option value="-5.00">-5.00</option>
-                  <option value="-5.25">-5.25</option>
-                  <option value="-5.50">-5.50</option>
-                  <option value="-5.75">-5.75</option>
-                  <option value="-6.00">-6.00</option>
-                  <option value="-6.25">-6.25</option>
-                  <option value="-6.50">-6.50</option>
-                  <option value="-6.75">-6.75</option>
-                  <option value="-7.00">-7.00</option>
-                  <option value="-7.25">-7.25</option>
-                  <option value="-7.50">-7.50</option>
-                  <option value="-7.75">-7.75</option>
-                  <option value="-8.00">-8.00</option>
-                  <option value="-8.25">-8.25</option>
-                  <option value="-8.50">-8.50</option>
-                  <option value="-8.75">-8.75</option>
-                  <option value="-9.00">-9.00</option>
-                  <option value="-9.25">-9.25</option>
-                  <option value="-9.50">-9.50</option>
-                  <option value="-9.75">-9.75</option>
-                  <option value="-10.00">-10.00</option>
-                  <option value="-10.25">-10.25</option>
-                  <option value="-10.50">-10.50</option>
-                  <option value="-10.75">-10.75</option>
-                  <option value="-11.00">-11.00</option>
-                  <option value="-11.25">-11.25</option>
-                  <option value="-11.50">-11.50</option>
-                  <option value="-11.75">-11.75</option>
-                  <option value="-12.00">-12.00</option>
-                  <option value="-12.25">-12.25</option>
-                  <option value="-12.50">-12.50</option>
-                  <option value="-12.75">-12.75</option>
-                  <option value="-13.00">-13.00</option>
-                  <option value="-13.25">-13.25</option>
-                  <option value="-13.50">-13.50</option>
-                  <option value="-13.75">-13.75</option>
-                  <option value="-14.00">-14.00</option>
-                  <option value="-14.25">-14.25</option>
-                  <option value="-14.50">-14.50</option>
-                  <option value="-14.75">-14.75</option>
-                  <option value="-15.00">-15.00</option>
-                  <option value="-15.25">-15.25</option>
-                  <option value="-15.50">-15.50</option>
-                  <option value="-15.75">-15.75</option>
-                  <option value="-16.00">-16.00</option>
-                  <option value="-16.25">-16.25</option>
-                  <option value="-16.50">-16.50</option>
-                  <option value="-16.75">-16.75</option>
-                  <option value="-17.00">-17.00</option>
-                  <option value="-17.25">-17.25</option>
-                  <option value="-17.50">-17.50</option>
-                  <option value="-17.75">-17.75</option>
-                  <option value="-18.00">-18.00</option>
-                  <option value="-18.25">-18.25</option>
-                  <option value="-18.50">-18.50</option>
-                  <option value="-18.75">-18.75</option>
-                  <option value="-19.00">-19.00</option>
-                  <option value="-19.25">-19.25</option>
-                  <option value="-19.50">-19.50</option>
-                  <option value="-19.75">-19.75</option>
-                  <option value="-20.00">-20.00</option>
-                  <option value="-20.25">-20.25</option>
-                  <option value="-20.50">-20.50</option>
-                  <option value="-20.75">-20.75</option>
-                  <option value="-21.00">-21.00</option>
-                  <option value="-21.25">-21.25</option>
-                  <option value="-21.50">-21.50</option>
-                  <option value="-21.75">-21.75</option>
-                  <option value="-22.00">-22.00</option>
-                  <option value="-22.25">-22.25</option>
-                  <option value="-22.50">-22.50</option>
-                  <option value="-22.75">-22.75</option>
-                  <option value="-23.00">-23.00</option>
-                  <option value="-23.25">-23.25</option>
-                  <option value="-23.50">-23.50</option>
-                  <option value="-23.75">-23.75</option>
-                  <option value="-24.00">-24.00</option>
-                  <option value="-24.25">-24.25</option>
-                  <option value="-24.50">-24.50</option>
-                  <option value="-24.75">-24.75</option>
-                  <option value="-25.00">-25.00</option>
-                  <option value="Neutro">Neutro</option>
-                  <option value="NR">NR</option>
-                </select>
-                <select name="auto_ciclo_oi_3" class="field-input">
-                  <option value=""> </option>
-                  <option value="cm">cm</option>
-                  <option value="m">m</option>
-                </select>
-                <select name="auto_ciclo_oi_4" class="field-input">
-                  <option value=""> </option>
-                  <option value="+3">+3</option>
-                  <option value="+2">+2</option>
-                  <option value="+1">+1</option>
-                  <option value="0">0</option>
-                  <option value="-1">-1</option>
-                  <option value="-2">-2</option>
-                  <option value="-3">-3</option>
-                </select>
-              </div>
-            </div>
+        <div class="section-row" style="margin-top: 20px;">
+          <div class="section-label">Ojo izquierdo</div>
+          <div class="input-group-custom">
+            <select name="av_cerca_oi_1">
+              <option value=""> </option>
+              <option value="20">20</option>
+              <option value="CD">CD</option>
+              <option value="NM">NM</option>
+              <option value="MM">MM</option>
+              <option value="NPL">NPL</option>
+              <option value="NV">NV</option>
+              <option value="PL">PL</option>
+              <option value="PL/DC">PL/DC</option>
+              <option value="PL/NDC">PL/NDC</option>
+            </select>
+            <span class="separator">/</span>
+            <select name="av_cerca_oi_2">
+              <option value=""> </option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="25">25</option>
+              <option value="30">30</option>
+              <option value="40">40</option>
+              <option value="50">50</option>
+              <option value="60">60</option>
+              <option value="70">70</option>
+              <option value="80">80</option>
+              <option value="100">100</option>
+              <option value="200">200</option>
+              <option value="400">400</option>
+            </select>
+            <select name="av_cerca_oi_3">
+              <option value=""> </option>
+              <option value="cm">cm</option>
+              <option value="m">m</option>
+            </select>
+            <select name="av_cerca_oi_4">
+              <option value=""> </option>
+              <option value="+2">+2</option>
+              <option value="+1">+1</option>
+              <option value="0">0</option>
+              <option value="-1">-1</option>
+              <option value="-2">-2</option>
+            </select>
           </div>
-
-          <!-- ===== SECCIÓN REDISEÑADA: LENTES ANT / REFRACCIÓN SUBJ / SUBJ CICLOPEJÍA ===== -->
-          <div class="section-title">Agudeza visual y Adición</div>
-          <div class="wide-section" style="padding: 0;">
-            <table class="av-table">
-              <thead>
-                <tr>
-                  <th style="min-width: 150px;"></th>
-                  <th style="width: 35px;"> </th>
-                  <th colspan="2" style="min-width: 180px;"></th>
-                  <th style="min-width: 100px;"></th>
-                  <th style="min-width: 220px;">Agudeza visual</th>
-                  <th style="min-width: 220px;">Adición</th>
-                </tr>
-              </thead>
-              <tbody>
-                <!-- LENTES ANTERIORES -->
-                <tr>
-                  <td class="section-name" rowspan="2">Lentes anteriores</td>
-                  <td class="eye-label">OD</td>
-                  <td><select name="lentes_ant_od_esf" class="select-esfera" style="width:75px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></select></td>
-                  <td><select name="lentes_ant_od_cil" class="select-esfera" style="width:75px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></select></td>
-                  <td>
-                    <div class="grados-cell">
-                      <input type="text" name="lentes_ant_od_grados" placeholder="">
-                      <span class="grados-txt">° Grados</span>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="av-inputs">
-                      <select name="lentes_ant_od_av_1" class="select-adicion"></select>
-                      <span class="sep"></span>
-                      <select name="lentes_ant_od_av_2" class="select-av1"></select>
-                      <span class="sep">/</span>
-                      <select name="lentes_ant_od_av_3" class="select-av2"></select>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="av-inputs">
-                      <select name="lentes_ant_od_ad_1" class="select-adicion"></select>
-                      <span class="sep"></span>
-                      <select name="lentes_ant_od_ad_2" class="select-av1"></select>
-                      <span class="sep">/</span>
-                      <select name="lentes_ant_od_ad_3" class="select-av2"></select>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td class="eye-label">OI</td>
-                  <td><select name="lentes_ant_oi_esf" class="select-esfera" style="width:75px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></select></td>
-                  <td><select name="lentes_ant_oi_cil" class="select-esfera" style="width:75px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></select></td>
-                  <td>
-                    <div class="grados-cell">
-                      <input type="text" name="lentes_ant_oi_grados" placeholder="">
-                      <span class="grados-txt">° Grados</span>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="av-inputs">
-                      <select name="lentes_ant_oi_av_1" class="select-adicion"></select>
-                      <span class="sep"></span>
-                      <select name="lentes_ant_oi_av_2" class="select-av1"></select>
-                      <span class="sep">/</span>
-                      <select name="lentes_ant_oi_av_3" class="select-av2"></select>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="av-inputs">
-                      <select name="lentes_ant_oi_ad_1" class="select-adicion"></select>
-                      <span class="sep"></span>
-                      <select name="lentes_ant_oi_ad_2" class="select-av1"></select>
-                      <span class="sep">/</span>
-                      <select name="lentes_ant_oi_ad_3" class="select-av2"></select>
-                    </div>
-                  </td>
-                </tr>
-
-                <!-- REFRACCIÓN SUBJETIVA (fondo azul claro) -->
-                <tr class="row-highlight">
-                  <td class="section-name" rowspan="2" style="background: var(--bg-section);">Refracción subjetiva</td>
-                  <td class="eye-label">OD</td>
-                  <td><select name="refrac_subj_od_esf" class="select-esfera" style="width:75px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></select></td>
-                  <td><select name="refrac_subj_od_cil" class="select-esfera" style="width:75px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></select></td>
-                  <td>
-                    <div class="grados-cell">
-                      <input type="text" name="refrac_subj_od_grados" placeholder="">
-                      <span class="grados-txt">° Grados</span>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="av-inputs">
-                      <select name="refrac_subj_od_av_1" class="select-adicion"></select>
-                      <span class="sep"></span>
-                      <select name="refrac_subj_od_av_2" class="select-av1"></select>
-                      <span class="sep">/</span>
-                      <select name="refrac_subj_od_av_3" class="select-av2"></select>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="av-inputs">
-                      <select name="refrac_subj_od_ad_1" class="select-adicion"></select>
-                      <span class="sep"></span>
-                      <select name="refrac_subj_od_ad_2" class="select-av1"></select>
-                      <span class="sep">/</span>
-                      <select name="refrac_subj_od_ad_3" class="select-av2"></select>
-                    </div>
-                  </td>
-                </tr>
-                <tr class="row-highlight">
-                  <td class="eye-label">OI</td>
-                  <td><select name="refrac_subj_oi_esf" class="select-esfera" style="width:75px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></select></td>
-                  <td><select name="refrac_subj_oi_cil" class="select-esfera" style="width:75px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></select></td>
-                  <td>
-                    <div class="grados-cell">
-                      <input type="text" name="refrac_subj_oi_grados" placeholder="">
-                      <span class="grados-txt">° Grados</span>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="av-inputs">
-                      <select name="refrac_subj_oi_av_1" class="select-adicion"></select>
-                      <span class="sep"></span>
-                      <select name="refrac_subj_oi_av_2" class="select-av1"></select>
-                      <span class="sep">/</span>
-                      <select name="refrac_subj_oi_av_3" class="select-av2"></select>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="av-inputs">
-                      <select name="refrac_subj_oi_ad_1" class="select-adicion"></select>
-                      <span class="sep"></span>
-                      <select name="refrac_subj_oi_ad_2" class="select-av1"></select>
-                      <span class="sep">/</span>
-                      <select name="refrac_subj_oi_ad_3" class="select-av2"></select>
-                    </div>
-                  </td>
-                </tr>
-
-                <!-- SUBJETIVA CICLOPEJÍA -->
-                <tr>
-                  <td class="section-name" rowspan="2">Subjetiva Ciclopejía</td>
-                  <td class="eye-label">OD</td>
-                  <td><select name="subj_ciclo_od_esf" class="select-esfera" style="width:75px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></select></td>
-                  <td><select name="subj_ciclo_od_cil" class="select-esfera" style="width:75px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></select></td>
-                  <td>
-                    <div class="grados-cell">
-                      <input type="text" name="subj_ciclo_od_grados" placeholder="">
-                      <span class="grados-txt">° Grados</span>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="av-inputs">
-                      <select name="subj_ciclo_od_av_1" class="select-adicion"></select>
-                      <span class="sep"></span>
-                      <select name="subj_ciclo_od_av_2" class="select-av1"></select>
-                      <span class="sep">/</span>
-                      <select name="subj_ciclo_od_av_3" class="select-av2"></select>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="av-inputs">
-                      <select name="subj_ciclo_od_ad_1" class="select-adicion"></select>
-                      <span class="sep"></span>
-                      <select name="subj_ciclo_od_ad_2" class="select-av1"></select>
-                      <span class="sep">/</span>
-                      <select name="subj_ciclo_od_ad_3" class="select-av2"></select>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td class="eye-label">OI</td>
-                  <td><select name="subj_ciclo_oi_esf" class="select-esfera" style="width:75px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></select></td>
-                  <td><select name="subj_ciclo_oi_cil" class="select-esfera" style="width:75px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></select></td>
-                  <td>
-                    <div class="grados-cell">
-                      <input type="text" name="subj_ciclo_oi_grados" placeholder="">
-                      <span class="grados-txt">° Grados</span>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="av-inputs">
-                      <select name="subj_ciclo_oi_av_1" class="select-adicion"></select>
-                      <span class="sep"></span>
-                      <select name="subj_ciclo_oi_av_2" class="select-av1"></select>
-                      <span class="sep">/</span>
-                      <select name="subj_ciclo_oi_av_3" class="select-av2"></select>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="av-inputs">
-                      <select name="subj_ciclo_oi_ad_1" class="select-adicion"></select>
-                      <span class="sep"></span>
-                      <select name="subj_ciclo_oi_ad_2" class="select-av1"></select>
-                      <span class="sep">/</span>
-                      <select name="subj_ciclo_oi_ad_3" class="select-av2"></select>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <div class="checkbox-group">
+            <input type="checkbox" name="av_cerca_oi_color" id="av_cerca_oi_color">
+            <label for="av_cerca_oi_color">Discrimina color</label>
           </div>
+          <label style="margin-left: 20px; margin-bottom: 0;">Observaciones</label>
+        </div>
+        <div class="section-row">
+          <div class="section-label"></div>
+          <textarea name="av_cerca_oi_obs" class="observaciones-input" placeholder="Observaciones para ojo izquierdo..."></textarea>
+        </div>
+      </div>
 
-         <!-- RETINOSCOPÍA -->
-<div class="section-title">Retinoscopía</div>
+      <!-- AUTOREFRACTOR Y CICLOPEJÍA -->
+      <div class="section-title"></div>
+      <div class="two-column-section">
+        <div class="column-box">
+          <div class="column-title">Autorefractor</div>
+          <div class="field-row">
+            <span class="field-label">OD</span>
+            <select name="auto_od_1" class="field-input">
+              <option value=""> </option>
+              <option value="20">20</option>
+              <option value="CD">CD</option>
+              <option value="NM">NM</option>
+              <option value="MM">MM</option>
+              <option value="NPL">NPL</option>
+              <option value="NV">NV</option>
+              <option value="PL">PL</option>
+              <option value="PL/DC">PL/DC</option>
+              <option value="PL/NDC">PL/NDC</option>
+            </select>
+            <span>/</span>
+            <select name="auto_od_2" class="field-input">
+              ${generarOpcionesDioptrias()}
+            </select>
+            <input type="text" name="auto_od_grados" class="field-input" placeholder="0° Grados">
+          </div>
+          <div class="field-row">
+            <span class="field-label">OI</span>
+            <select name="auto_oi_1" class="field-input">
+              <option value=""> </option>
+              <option value="20">20</option>
+              <option value="CD">CD</option>
+              <option value="NM">NM</option>
+              <option value="MM">MM</option>
+              <option value="NPL">NPL</option>
+              <option value="NV">NV</option>
+              <option value="PL">PL</option>
+              <option value="PL/DC">PL/DC</option>
+              <option value="PL/NDC">PL/NDC</option>
+            </select>
+            <span>/</span>
+            <select name="auto_oi_2" class="field-input">
+              ${generarOpcionesDioptrias()}
+            </select>
+            <input type="text" name="auto_oi_grados" class="field-input" placeholder="0° Grados">
+          </div>
+        </div>
+
+        <div class="column-box">
+          <div class="column-title">Auto Refractor Con Ciclopléjia</div>
+          <div class="field-row">
+            <span class="field-label">OD</span>
+            <select name="auto_ciclo_od_1" class="field-input">
+              <option value=""> </option>
+              <option value="20">20</option>
+              <option value="CD">CD</option>
+              <option value="NM">NM</option>
+              <option value="MM">MM</option>
+              <option value="NPL">NPL</option>
+              <option value="NV">NV</option>
+              <option value="PL">PL</option>
+              <option value="PL/DC">PL/DC</option>
+              <option value="PL/NDC">PL/NDC</option>
+            </select>
+            <span>/</span>
+            <select name="auto_ciclo_od_2" class="field-input">
+              ${generarOpcionesDioptrias()}
+            </select>
+            <input type="text" name="auto_ciclo_od_grados" class="field-input" placeholder="0° Grados">
+          </div>
+          <div class="field-row">
+            <span class="field-label">OI</span>
+            <select name="auto_ciclo_oi_1" class="field-input">
+              <option value=""> </option>
+              <option value="20">20</option>
+              <option value="CD">CD</option>
+              <option value="NM">NM</option>
+              <option value="MM">MM</option>
+              <option value="NPL">NPL</option>
+              <option value="NV">NV</option>
+              <option value="PL">PL</option>
+              <option value="PL/DC">PL/DC</option>
+              <option value="PL/NDC">PL/NDC</option>
+            </select>
+            <span>/</span>
+            <select name="auto_ciclo_oi_2" class="field-input">
+              ${generarOpcionesDioptrias()}
+            </select>
+            <input type="text" name="auto_ciclo_oi_grados" class="field-input" placeholder="0° Grados">
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== SECCIÓN REDISEÑADA: LENTES ANT / REFRACCIÓN SUBJ / SUBJ CICLOPEJÍA ===== -->
+      <div class="section-title">Agudeza visual y Adición</div>
+      <div class="wide-section" style="padding: 0;">
+        <table class="av-table">
+          <thead>
+            <tr>
+              <th style="min-width: 150px;"></th>
+              <th style="width: 35px;"> </th>
+              <th colspan="2" style="min-width: 180px;"></th>
+              <th style="min-width: 100px;"></th>
+              <th style="min-width: 220px;">Agudeza visual</th>
+              <th style="min-width: 220px;">Adición</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- LENTES ANTERIORES -->
+            <tr>
+              <td class="section-name" rowspan="2">Lentes anteriores</td>
+              <td class="eye-label">OD</td>
+              <td><select name="lentes_ant_od_esf" class="select-esfera" style="width:75px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></select></td>
+              <td><select name="lentes_ant_od_cil" class="select-esfera" style="width:75px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></select></td>
+              <td>
+                <div class="grados-cell">
+                  <input type="text" name="lentes_ant_od_grados" placeholder="">
+                  <span class="grados-txt">° Grados</span>
+                </div>
+              </td>
+              <td>
+                <div class="av-inputs">
+                  <select name="lentes_ant_od_av_1" class="select-adicion"></select>
+                  <span class="sep"></span>
+                  <select name="lentes_ant_od_av_2" class="select-av1"></select>
+                  <span class="sep">/</span>
+                  <select name="lentes_ant_od_av_3" class="select-av2"></select>
+                </div>
+              </td>
+              <td>
+                <div class="av-inputs">
+                  <select name="lentes_ant_od_ad_1" class="select-adicion"></select>
+                  <span class="sep"></span>
+                  <select name="lentes_ant_od_ad_2" class="select-av1"></select>
+                  <span class="sep">/</span>
+                  <select name="lentes_ant_od_ad_3" class="select-av2"></select>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="eye-label">OI</td>
+              <td><select name="lentes_ant_oi_esf" class="select-esfera" style="width:75px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></select></td>
+              <td><select name="lentes_ant_oi_cil" class="select-esfera" style="width:75px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></select></td>
+              <td>
+                <div class="grados-cell">
+                  <input type="text" name="lentes_ant_oi_grados" placeholder="">
+                  <span class="grados-txt">° Grados</span>
+                </div>
+              </td>
+              <td>
+                <div class="av-inputs">
+                  <select name="lentes_ant_oi_av_1" class="select-adicion"></select>
+                  <span class="sep"></span>
+                  <select name="lentes_ant_oi_av_2" class="select-av1"></select>
+                  <span class="sep">/</span>
+                  <select name="lentes_ant_oi_av_3" class="select-av2"></select>
+                </div>
+              </td>
+              <td>
+                <div class="av-inputs">
+                  <select name="lentes_ant_oi_ad_1" class="select-adicion"></select>
+                  <span class="sep"></span>
+                  <select name="lentes_ant_oi_ad_2" class="select-av1"></select>
+                  <span class="sep">/</span>
+                  <select name="lentes_ant_oi_ad_3" class="select-av2"></select>
+                </div>
+              </td>
+            </tr>
+
+            <!-- REFRACCIÓN SUBJETIVA (fondo azul claro) -->
+            <tr class="row-highlight">
+              <td class="section-name" rowspan="2" style="background: var(--bg-section);">Refracción subjetiva</td>
+              <td class="eye-label">OD</td>
+              <td><select name="refrac_subj_od_esf" class="select-esfera" style="width:75px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></select></td>
+              <td><select name="refrac_subj_od_cil" class="select-esfera" style="width:75px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></select></td>
+              <td>
+                <div class="grados-cell">
+                  <input type="text" name="refrac_subj_od_grados" placeholder="">
+                  <span class="grados-txt">° Grados</span>
+                </div>
+              </td>
+              <td>
+                <div class="av-inputs">
+                  <select name="refrac_subj_od_av_1" class="select-adicion"></select>
+                  <span class="sep"></span>
+                  <select name="refrac_subj_od_av_2" class="select-av1"></select>
+                  <span class="sep">/</span>
+                  <select name="refrac_subj_od_av_3" class="select-av2"></select>
+                </div>
+              </td>
+              <td>
+                <div class="av-inputs">
+                  <select name="refrac_subj_od_ad_1" class="select-adicion"></select>
+                  <span class="sep"></span>
+                  <select name="refrac_subj_od_ad_2" class="select-av1"></select>
+                  <span class="sep">/</span>
+                  <select name="refrac_subj_od_ad_3" class="select-av2"></select>
+                </div>
+              </td>
+            </tr>
+            <tr class="row-highlight">
+              <td class="eye-label">OI</td>
+              <td><select name="refrac_subj_oi_esf" class="select-esfera" style="width:75px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></select></td>
+              <td><select name="refrac_subj_oi_cil" class="select-esfera" style="width:75px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></select></td>
+              <td>
+                <div class="grados-cell">
+                  <input type="text" name="refrac_subj_oi_grados" placeholder="">
+                  <span class="grados-txt">° Grados</span>
+                </div>
+              </td>
+              <td>
+                <div class="av-inputs">
+                  <select name="refrac_subj_oi_av_1" class="select-adicion"></select>
+                  <span class="sep"></span>
+                  <select name="refrac_subj_oi_av_2" class="select-av1"></select>
+                  <span class="sep">/</span>
+                  <select name="refrac_subj_oi_av_3" class="select-av2"></select>
+                </div>
+              </td>
+              <td>
+                <div class="av-inputs">
+                  <select name="refrac_subj_oi_ad_1" class="select-adicion"></select>
+                  <span class="sep"></span>
+                  <select name="refrac_subj_oi_ad_2" class="select-av1"></select>
+                  <span class="sep">/</span>
+                  <select name="refrac_subj_oi_ad_3" class="select-av2"></select>
+                </div>
+              </td>
+            </tr>
+
+            <!-- SUBJETIVA CICLOPEJÍA -->
+            <tr>
+              <td class="section-name" rowspan="2">Subjetiva Ciclopejía</td>
+              <td class="eye-label">OD</td>
+              <td><select name="subj_ciclo_od_esf" class="select-esfera" style="width:75px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></select></td>
+              <td><select name="subj_ciclo_od_cil" class="select-esfera" style="width:75px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></select></td>
+              <td>
+                <div class="grados-cell">
+                  <input type="text" name="subj_ciclo_od_grados" placeholder="">
+                  <span class="grados-txt">° Grados</span>
+                </div>
+              </td>
+              <td>
+                <div class="av-inputs">
+                  <select name="subj_ciclo_od_av_1" class="select-adicion"></select>
+                  <span class="sep"></span>
+                  <select name="subj_ciclo_od_av_2" class="select-av1"></select>
+                  <span class="sep">/</span>
+                  <select name="subj_ciclo_od_av_3" class="select-av2"></select>
+                </div>
+              </td>
+              <td>
+                <div class="av-inputs">
+                  <select name="subj_ciclo_od_ad_1" class="select-adicion"></select>
+                  <span class="sep"></span>
+                  <select name="subj_ciclo_od_ad_2" class="select-av1"></select>
+                  <span class="sep">/</span>
+                  <select name="subj_ciclo_od_ad_3" class="select-av2"></select>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="eye-label">OI</td>
+              <td><select name="subj_ciclo_oi_esf" class="select-esfera" style="width:75px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></select></td>
+              <td><select name="subj_ciclo_oi_cil" class="select-esfera" style="width:75px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></select></td>
+              <td>
+                <div class="grados-cell">
+                  <input type="text" name="subj_ciclo_oi_grados" placeholder="">
+                  <span class="grados-txt">° Grados</span>
+                </div>
+              </td>
+              <td>
+                <div class="av-inputs">
+                  <select name="subj_ciclo_oi_av_1" class="select-adicion"></select>
+                  <span class="sep"></span>
+                  <select name="subj_ciclo_oi_av_2" class="select-av1"></select>
+                  <span class="sep">/</span>
+                  <select name="subj_ciclo_oi_av_3" class="select-av2"></select>
+                </div>
+              </td>
+              <td>
+                <div class="av-inputs">
+                  <select name="subj_ciclo_oi_ad_1" class="select-adicion"></select>
+                  <span class="sep"></span>
+                  <select name="subj_ciclo_oi_ad_2" class="select-av1"></select>
+                  <span class="sep">/</span>
+                  <select name="subj_ciclo_oi_ad_3" class="select-av2"></select>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+     <!-- RETINOSCOPÍA --><div class="section-title">Retinoscopía</div>
 <div class="retino-section">
   <div class="retino-grid">
     <!-- OJO DERECHO -->
     <div class="retino-eye">
       <div class="retino-eye-label">Ojo derecho</div>
-      <textarea name="retino_od_obs" class="retino-textarea" placeholder=""></textarea>
-      
-      <div class="retino-grados-container">
-        <input type="text" name="retino_od_90" placeholder="90">
+      <textarea name="retino_od_obs" class="retino-textarea" placeholder=""></textarea><div class="retino-grados-container">
+    <input type="text" name="retino_od_90" placeholder="90">
+    <span class="retino-grados-label">° Grados</span>
+  </div>
+  
+  <div class="retino-circle-row">
+    <div class="circle-display"></div>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <input type="text" name="retino_od_top" placeholder="" style="width: 120px; padding: 8px; border: 1px solid #ced4da; border-radius: 5px; text-align: center;">
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <input type="text" name="retino_od_180" placeholder="180" style="width: 80px; padding: 8px; border: 1px solid #ced4da; border-radius: 5px; text-align: center;">
         <span class="retino-grados-label">° Grados</span>
-      </div>
-      
-      <div class="retino-circle-row">
-        <div class="circle-display"></div>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <input type="text" name="retino_od_top" placeholder="" style="width: 120px; padding: 8px; border: 1px solid #ced4da; border-radius: 5px; text-align: center;">
-          <div style="display: flex; gap: 10px; align-items: center;">
-            <input type="text" name="retino_od_180" placeholder="180" style="width: 80px; padding: 8px; border: 1px solid #ced4da; border-radius: 5px; text-align: center;">
-            <span class="retino-grados-label">° Grados</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- OJO IZQUIERDO -->
-    <div class="retino-eye">
-      <div class="retino-eye-label">Ojo izquierdo</div>
-      <textarea name="retino_oi_obs" class="retino-textarea" placeholder=""></textarea>
-      
-      <div class="retino-grados-container">
-        <input type="text" name="retino_oi_90" placeholder="90">
-        <span class="retino-grados-label">° Grados</span>
-      </div>
-      
-      <div class="retino-circle-row">
-        <div class="circle-display"></div>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <input type="text" name="retino_oi_top" placeholder="" style="width: 120px; padding: 8px; border: 1px solid #ced4da; border-radius: 5px; text-align: center;">
-          <div style="display: flex; gap: 10px; align-items: center;">
-            <input type="text" name="retino_oi_180" placeholder="180" style="width: 80px; padding: 8px; border: 1px solid #ced4da; border-radius: 5px; text-align: center;">
-            <span class="retino-grados-label">° Grados</span>
-          </div>
-        </div>
       </div>
     </div>
   </div>
 </div>
 
+<!-- OJO IZQUIERDO -->
+<div class="retino-eye">
+  <div class="retino-eye-label">Ojo izquierdo</div>
+  <textarea name="retino_oi_obs" class="retino-textarea" placeholder=""></textarea>
+  
+  <div class="retino-grados-container">
+    <input type="text" name="retino_oi_90" placeholder="90">
+    <span class="retino-grados-label">° Grados</span>
+  </div>
+  
+  <div class="retino-circle-row">
+    <div class="circle-display"></div>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <input type="text" name="retino_oi_top" placeholder="" style="width: 120px; padding: 8px; border: 1px solid #ced4da; border-radius: 5px; text-align: center;">
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <input type="text" name="retino_oi_180" placeholder="180" style="width: 80px; padding: 8px; border: 1px solid #ced4da; border-radius: 5px; text-align: center;">
+        <span class="retino-grados-label">° Grados</span>
+      </div>
+    </div>
+  </div>
+</div></div>
+</div>
 <!-- RETINOSCOPÍA CON CICLOPEJÍA -->
 <div class="section-title">Retinoscopía con ciclopejía</div>
 <div class="retino-section">
@@ -3154,47 +2291,44 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
     <!-- OJO DERECHO -->
     <div class="retino-eye">
       <div class="retino-eye-label">Ojo derecho</div>
-      <textarea name="retino_ciclo_od_obs" class="retino-textarea" placeholder=""></textarea>
-      
-      <div class="retino-grados-container">
-        <input type="text" name="retino_ciclo_od_90" placeholder="90">
+      <textarea name="retino_ciclo_od_obs" class="retino-textarea" placeholder=""></textarea><div class="retino-grados-container">
+    <input type="text" name="retino_ciclo_od_90" placeholder="90">
+    <span class="retino-grados-label">° Grados</span>
+  </div>
+  
+  <div class="retino-circle-row">
+    <div class="circle-display"></div>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <input type="text" name="retino_ciclo_od_top" placeholder="" style="width: 120px; padding: 8px; border: 1px solid #ced4da; border-radius: 5px; text-align: center;">
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <input type="text" name="retino_ciclo_od_180" placeholder="180" style="width: 80px; padding: 8px; border: 1px solid #ced4da; border-radius: 5px; text-align: center;">
         <span class="retino-grados-label">° Grados</span>
-      </div>
-      
-      <div class="retino-circle-row">
-        <div class="circle-display"></div>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <input type="text" name="retino_ciclo_od_top" placeholder="" style="width: 120px; padding: 8px; border: 1px solid #ced4da; border-radius: 5px; text-align: center;">
-          <div style="display: flex; gap: 10px; align-items: center;">
-            <input type="text" name="retino_ciclo_od_180" placeholder="180" style="width: 80px; padding: 8px; border: 1px solid #ced4da; border-radius: 5px; text-align: center;">
-            <span class="retino-grados-label">° Grados</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- OJO IZQUIERDO -->
-    <div class="retino-eye">
-      <div class="retino-eye-label">Ojo izquierdo</div>
-      <textarea name="retino_ciclo_oi_obs" class="retino-textarea" placeholder=""></textarea>
-      
-      <div class="retino-grados-container">
-        <input type="text" name="retino_ciclo_oi_90" placeholder="90">
-        <span class="retino-grados-label">° Grados</span>
-      </div>
-      
-      <div class="retino-circle-row">
-        <div class="circle-display"></div>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <input type="text" name="retino_ciclo_oi_top" placeholder="" style="width: 120px; padding: 8px; border: 1px solid #ced4da; border-radius: 5px; text-align: center;">
-          <div style="display: flex; gap: 10px; align-items: center;">
-            <input type="text" name="retino_ciclo_oi_180" placeholder="180" style="width: 80px; padding: 8px; border: 1px solid #ced4da; border-radius: 5px; text-align: center;">
-            <span class="retino-grados-label">° Grados</span>
-          </div>
-        </div>
       </div>
     </div>
   </div>
+</div>
+
+<!-- OJO IZQUIERDO -->
+<div class="retino-eye">
+  <div class="retino-eye-label">Ojo izquierdo</div>
+  <textarea name="retino_ciclo_oi_obs" class="retino-textarea" placeholder=""></textarea>
+  
+  <div class="retino-grados-container">
+    <input type="text" name="retino_ciclo_oi_90" placeholder="90">
+    <span class="retino-grados-label">° Grados</span>
+  </div>
+  
+  <div class="retino-circle-row">
+    <div class="circle-display"></div>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <input type="text" name="retino_ciclo_oi_top" placeholder="" style="width: 120px; padding: 8px; border: 1px solid #ced4da; border-radius: 5px; text-align: center;">
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <input type="text" name="retino_ciclo_oi_180" placeholder="180" style="width: 80px; padding: 8px; border: 1px solid #ced4da; border-radius: 5px; text-align: center;">
+        <span class="retino-grados-label">° Grados</span>
+      </div>
+    </div>
+  </div>
+</div></div>
 </div>
           <!-- QUERATOMETRÍA -->
           <div class="section-title">Queratometría</div>
@@ -3223,137 +2357,121 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                 <input type="text" name="kerato_oi_4" placeholder=" ">
               </div>
             </div>
-          </div>
-
-          <div class="d-flex justify-content-between mt-4">
-            <button type="button" class="btn btn-secondary" id="cancelarOpto">
-              <i class="fas fa-times"></i> Cancelar
-            </button>
-            <button type="submit" class="btn btn-primary">
-              <i class="fas fa-save"></i> Guardar Evaluación
-            </button>
-          </div>
-        </form>
+          </div><div class="d-flex justify-content-between mt-4">
+        <button type="button" class="btn btn-secondary" id="cancelarOpto">
+          <i class="fas fa-times"></i> Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-save"></i> Guardar Evaluación
+        </button>
       </div>
-    </div>
-  `;
+    </form>
+  </div>
+</div>`;
+const formDiv = document.getElementById("formularioOpto");
+formDiv.innerHTML = html;
+formDiv.style.display = "block";
+// Búsqueda de paciente
+document.getElementById("expedienteInput").addEventListener("input", function(e) {
+buscarNombrePaciente(e.target.value);
+});
+// Botón TP
+document.getElementById("btnTP").addEventListener("click", function() {
+if (!tpAplicado) {
+const ahora = new Date();
+const horas = String(ahora.getHours()).padStart(2, '0');
+const minutos = String(ahora.getMinutes()).padStart(2, '0');
+horaTP = `${horas}:${minutos}`;
+this.classList.add('aplicado');
   
-  const formDiv = document.getElementById("formularioOpto");
-  formDiv.innerHTML = html;
-  formDiv.style.display = "block";
-
-  // Búsqueda de paciente
-  document.getElementById("expedienteInput").addEventListener("input", function(e) {
-    buscarNombrePaciente(e.target.value);
+  document.getElementById('tpTexto').textContent = `TP Aplicado - ${horaTP}`;
+  document.getElementById('horaTPInput').value = horaTP;
+  
+  tpAplicado = true;
+  
+  Swal.fire({
+    icon: 'success',
+    title: '✅ TP Aplicado',
+    text: `Hora registrada: ${horaTP}`,
+    timer: 2000,
+    showConfirmButton: false
   });
+} else {
+  this.classList.remove('aplicado');
+  document.getElementById('tpTexto').textContent = 'TP No Aplicado';
+  document.getElementById('horaTPInput').value = '';
+  tpAplicado = false;
+  horaTP = '';
+}});
+// Cancelar
+document.getElementById("cancelarOpto").onclick = () => {
+formDiv.style.display = "none";
+filtro.style.display = "block";
+document.getElementById("tablaOpto").style.display = "block";
+};
+// Submit
+document.getElementById("formOptometria").addEventListener("submit", async e => {
+e.preventDefault();
+const formData = new FormData(e.target);
+const data = Object.fromEntries(formData);// Convertir checkboxes a booleanos
+data.av_sc_od_color = formData.get('av_sc_od_color') === 'on';
+data.av_sc_oi_color = formData.get('av_sc_oi_color') === 'on';
+data.av_est_od_color = formData.get('av_est_od_color') === 'on';
+data.av_est_oi_color = formData.get('av_est_oi_color') === 'on';
+data.av_cerca_od_color = formData.get('av_cerca_od_color') === 'on';
+data.av_cerca_oi_color = formData.get('av_cerca_oi_color') === 'on';
 
-  // Botón TP
-  document.getElementById("btnTP").addEventListener("click", function() {
-    if (!tpAplicado) {
-      const ahora = new Date();
-      const horas = String(ahora.getHours()).padStart(2, '0');
-      const minutos = String(ahora.getMinutes()).padStart(2, '0');
-      horaTP = `${horas}:${minutos}`;
-      
-      this.classList.add('aplicado');
-      document.getElementById('tpTexto').textContent = `TP Aplicado - ${horaTP}`;
-      document.getElementById('horaTPInput').value = horaTP;
-      
-      tpAplicado = true;
-      
-      Swal.fire({
-        icon: 'success',
-        title: ' TP Aplicado',
-        text: `Hora registrada: ${horaTP}`,
-        timer: 2000,
-        showConfirmButton: false
-      });
-    } else {
-      this.classList.remove('aplicado');
-      document.getElementById('tpTexto').textContent = 'TP No Aplicado';
-      document.getElementById('horaTPInput').value = '';
-      tpAplicado = false;
-      horaTP = '';
-    }
-  });
-
-  // Cancelar
-  document.getElementById("cancelarOpto").onclick = () => {
-    formDiv.style.display = "none";
-    filtro.style.display = "block";
-    document.getElementById("tablaOpto").style.display = "block";
-  };
-
-  // Submit
-  document.getElementById("formOptometria").addEventListener("submit", async e => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData);
-    
-    // Convertir checkboxes a booleanos
-    data.av_sc_od_color = formData.get('av_sc_od_color') === 'on';
-    data.av_sc_oi_color = formData.get('av_sc_oi_color') === 'on';
-    data.av_est_od_color = formData.get('av_est_od_color') === 'on';
-    data.av_est_oi_color = formData.get('av_est_oi_color') === 'on';
-    data.av_cerca_od_color = formData.get('av_cerca_od_color') === 'on';
-    data.av_cerca_oi_color = formData.get('av_cerca_oi_color') === 'on';
-    
-    const res = await fetch("/api/optometria", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify(data)
-    });
-    
-    const result = await res.json();
-    
-    if (res.ok) {
-      Swal.fire(" Éxito", result.mensaje, "success");
-      formDiv.style.display = "none";
-      filtro.style.display = "block";
-      document.getElementById("tablaOpto").style.display = "block";
-      const hoy = moment().format("YYYY-MM-DD");
-      $('#filtroRangoOpto').val('Hoy');
-      cargarOptometrias(hoy, hoy);
-    } else {
-      Swal.fire("❌ Error", result.error, "error");
-    }
-  });
+const res = await fetch("/api/optometria", {
+  method: "POST",
+  headers: {"Content-Type": "application/json"},
+  body: JSON.stringify(data)
 });
 
+const result = await res.json();
+
+if (res.ok) {
+  Swal.fire("✅ Éxito", result.mensaje, "success");
+  formDiv.style.display = "none";
+  filtro.style.display = "block";
+  document.getElementById("tablaOpto").style.display = "block";
+  const hoy = moment().format("YYYY-MM-DD");
+  $('#filtroRangoOpto').val('Hoy');
+  cargarOptometrias(hoy, hoy);
+} else {
+  Swal.fire("❌ Error", result.error, "error");
+}});
+});
 async function borrarOpto(id) {
-  const result = await Swal.fire({
-    title: "¿Eliminar?",
-    text: "No podrás revertir esto",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#e74c3c",
-    cancelButtonColor: "#95a5a6",
-    confirmButtonText: "Sí, eliminar",
-    cancelButtonText: "Cancelar"
-  });
+const result = await Swal.fire({
+title: "¿Eliminar?",
+text: "No podrás revertir esto",
+icon: "warning",
+showCancelButton: true,
+confirmButtonColor: "#e74c3c",
+cancelButtonColor: "#95a5a6",
+confirmButtonText: "Sí, eliminar",
+cancelButtonText: "Cancelar"
+});
+if (result.isConfirmed) {
+const res = await fetch(`/api/optometria/${id}`, {method: "DELETE"});
   
-  if (result.isConfirmed) {
-    const res = await fetch(`/api/optometria/${id}`, {method: "DELETE"});
-    const data = await res.json();
-    
-    if (res.ok) {
-      Swal.fire("Eliminado", data.mensaje, "success");
-      const inputVal = $('#filtroRangoOpto').val();
-      if (inputVal === 'Hoy' || !inputVal) {
-        const hoy = moment().format("YYYY-MM-DD");
-        cargarOptometrias(hoy, hoy);
-      } else {
-        const picker = $('#filtroRangoOpto').data('daterangepicker');
-        if (picker) {
-          const desde = picker.startDate.format("YYYY-MM-DD");
-          const hasta = picker.endDate.format("YYYY-MM-DD");
-          cargarOptometrias(desde, hasta);
-        }
-      }
-    } else {
-      Swal.fire("Error", data.error, "error");
+const data = await res.json();if (res.ok) {
+  Swal.fire("Eliminado", data.mensaje, "success");
+  const inputVal = $('#filtroRangoOpto').val();
+  if (inputVal === 'Hoy' || !inputVal) {
+    const hoy = moment().format("YYYY-MM-DD");
+    cargarOptometrias(hoy, hoy);
+  } else {
+    const picker = $('#filtroRangoOpto').data('daterangepicker');
+    if (picker) {
+      const desde = picker.startDate.format("YYYY-MM-DD");
+      const hasta = picker.endDate.format("YYYY-MM-DD");
+      cargarOptometrias(desde, hasta);
     }
   }
+} else {
+  Swal.fire("Error", data.error, "error");
+}}
 }
 </script>
 </body>
