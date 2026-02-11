@@ -640,7 +640,10 @@
           <i class="material-icons" id="bell">notifications</i>
           <span class="notification-badge" id="notif-count" style="display:none;">0</span>
           <div class="notification-dropdown" id="notif-dropdown">
-            <div class="notification-header">Notificaciones</div>
+            <div class="notification-header" style="display:flex; justify-content:space-between; align-items:center;">
+              Notificaciones
+              <button id="btn-limpiar-notif" title="Limpiar notificaciones" style="background:none; border:none; color:#e74c3c; cursor:pointer; font-size:13px; font-weight:600; padding:2px 8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#fdecea'" onmouseout="this.style.background='none'">Limpiar</button>
+            </div>
             <div class="notification-list" id="notif-list"></div>
           </div>
         </div>
@@ -1057,6 +1060,22 @@ async function cambiarSucursal(nombreSucursal) {
   });
 
   notifDropdown.addEventListener("click", e => e.stopPropagation());
+
+  // Botón limpiar notificaciones
+  const btnLimpiar = document.getElementById("btn-limpiar-notif");
+  if (btnLimpiar) {
+    btnLimpiar.addEventListener("click", async () => {
+      try {
+        const res = await fetch("/api/notificaciones", { method: "DELETE" });
+        if (res.ok) {
+          notifList.innerHTML = `<div class="notification-empty">No hay notificaciones</div>`;
+          notifCount.style.display = "none";
+        }
+      } catch (err) {
+        console.error("Error al limpiar notificaciones:", err);
+      }
+    });
+  }
 
   setInterval(() => {
     cargarNotificaciones();

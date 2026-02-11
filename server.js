@@ -197,6 +197,25 @@ function generarCodigo() {
     }
   });
 
+  // Eliminar notificaciones
+  app.delete("/api/notificaciones", verificarSesion, async (req, res) => {
+    try {
+      const user = req.session.usuario?.username || "desconocido";
+      const rol = req.session.usuario?.rol || "usuario";
+
+      if (rol === "admin") {
+        await pool.query("DELETE FROM notificaciones");
+      } else {
+        await pool.query("DELETE FROM notificaciones WHERE usuario = $1", [user]);
+      }
+
+      res.json({ ok: true });
+    } catch (err) {
+      console.error("Error eliminando notificaciones:", err);
+      res.status(500).json({ error: "No se pudieron eliminar las notificaciones" });
+    }
+  });
+
   // Registrar cuando un usuario cambia su contraseña
   app.post("/api/notificacion/cambio-password", verificarSesion, async (req, res) => {
     try {
