@@ -2978,6 +2978,39 @@ app.put("/api/optometria/:id", verificarSesion, async (req, res) => {
       // Autorefractor con ciclopejía
       'auto_ciclo_od_1', 'auto_ciclo_od_2', 'auto_ciclo_od_grados',
       'auto_ciclo_oi_1', 'auto_ciclo_oi_2', 'auto_ciclo_oi_grados',
+      // Lentes Anteriores - Esf, Cil, Grados
+      'lentes_ant_od_esf', 'lentes_ant_od_cil', 'lentes_ant_od_grados',
+      'lentes_ant_oi_esf', 'lentes_ant_oi_cil', 'lentes_ant_oi_grados',
+      // Lentes Anteriores - AV
+      'lentes_ant_od_av_1', 'lentes_ant_od_av_2', 'lentes_ant_od_av_3',
+      'lentes_ant_oi_av_1', 'lentes_ant_oi_av_2', 'lentes_ant_oi_av_3',
+      // Lentes Anteriores - Adición
+      'lentes_ant_od_ad_1', 'lentes_ant_od_ad_2', 'lentes_ant_od_ad_3',
+      'lentes_ant_oi_ad_1', 'lentes_ant_oi_ad_2', 'lentes_ant_oi_ad_3',
+      // Refracción Subjetiva - Esf, Cil, Grados
+      'refrac_subj_od_esf', 'refrac_subj_od_cil', 'refrac_subj_od_grados',
+      'refrac_subj_oi_esf', 'refrac_subj_oi_cil', 'refrac_subj_oi_grados',
+      // Refracción Subjetiva - AV
+      'refrac_subj_od_av_1', 'refrac_subj_od_av_2', 'refrac_subj_od_av_3',
+      'refrac_subj_oi_av_1', 'refrac_subj_oi_av_2', 'refrac_subj_oi_av_3',
+      // Refracción Subjetiva - Adición
+      'refrac_subj_od_ad_1', 'refrac_subj_od_ad_2', 'refrac_subj_od_ad_3',
+      'refrac_subj_oi_ad_1', 'refrac_subj_oi_ad_2', 'refrac_subj_oi_ad_3',
+      // Subjetiva Ciclopejía - Esf, Cil, Grados
+      'subj_ciclo_od_esf', 'subj_ciclo_od_cil', 'subj_ciclo_od_grados',
+      'subj_ciclo_oi_esf', 'subj_ciclo_oi_cil', 'subj_ciclo_oi_grados',
+      // Subjetiva Ciclopejía - AV
+      'subj_ciclo_od_av_1', 'subj_ciclo_od_av_2', 'subj_ciclo_od_av_3',
+      'subj_ciclo_oi_av_1', 'subj_ciclo_oi_av_2', 'subj_ciclo_oi_av_3',
+      // Subjetiva Ciclopejía - Adición
+      'subj_ciclo_od_ad_1', 'subj_ciclo_od_ad_2', 'subj_ciclo_od_ad_3',
+      'subj_ciclo_oi_ad_1', 'subj_ciclo_oi_ad_2', 'subj_ciclo_oi_ad_3',
+      // Retinoscopía
+      'retino_od_obs', 'retino_od_90', 'retino_od_180', 'retino_od_top',
+      'retino_oi_obs', 'retino_oi_90', 'retino_oi_180', 'retino_oi_top',
+      // Retinoscopía con ciclopejía
+      'retino_ciclo_od_obs', 'retino_ciclo_od_90', 'retino_ciclo_od_180', 'retino_ciclo_od_top',
+      'retino_ciclo_oi_obs', 'retino_ciclo_oi_90', 'retino_ciclo_oi_180', 'retino_ciclo_oi_top',
       // Queratometría
       'kerato_od_1', 'kerato_od_2', 'kerato_od_3', 'kerato_od_4',
       'kerato_oi_1', 'kerato_oi_2', 'kerato_oi_3', 'kerato_oi_4'

@@ -1117,6 +1117,9 @@ function habilitarEdicion(id, data) {
   const htmlEditable = crearFormularioEdicion(data);
   document.getElementById('modalGraduacionBody').innerHTML = htmlEditable;
 
+  // Poblar los selects del formulario recién inyectado
+  poblarSelectsFormulario(document.getElementById('modalGraduacionBody'));
+
   // Configurar eventos
   document.getElementById('btnGuardarEvaluacion').onclick = () => guardarEdicion(id);
   document.getElementById('btnCancelarEdicion').onclick = () => verGraduacion(id);
@@ -1409,36 +1412,49 @@ async function guardarEdicion(id) {
   }
 }
 
-document.addEventListener("DOMContentLoaded", function() {
-  // ===== POBLAR SELECTS DE LA SECCIÓN AGUDEZA VISUAL Y ADICIÓN =====
-  function addOpt(sel, val, txt) {
-    const o = document.createElement('option');
-    o.value = val;
-    o.textContent = txt || val;
-    sel.appendChild(o);
-  }
-  document.querySelectorAll('.select-esfera').forEach(function(sel) {
+// ===== FUNCIÓN GLOBAL PARA POBLAR SELECTS =====
+function addOpt(sel, val, txt) {
+  const o = document.createElement('option');
+  o.value = val;
+  o.textContent = txt || val;
+  sel.appendChild(o);
+}
+
+function poblarSelectsFormulario(contenedor) {
+  const ctx = contenedor || document;
+  ctx.querySelectorAll('.select-esfera').forEach(function(sel) {
+    if (sel.options.length > 0) return;
     addOpt(sel, '', ' ');
-    for (let v = 25.00; v >= -25.00; v = +(v - 0.25).toFixed(2)) {
-      const txt = v > 0 ? '+' + v.toFixed(2) : v.toFixed(2);
-      addOpt(sel, txt, txt);
+    for (let v = 25.00; v >= 0.25; v = +(v - 0.25).toFixed(2)) {
+      addOpt(sel, '+' + v.toFixed(2), '+' + v.toFixed(2));
+    }
+    for (let v = -0.25; v >= -25.00; v = +(v - 0.25).toFixed(2)) {
+      addOpt(sel, v.toFixed(2), v.toFixed(2));
     }
   });
-  document.querySelectorAll('.select-av1').forEach(function(sel) {
+  ctx.querySelectorAll('.select-av1').forEach(function(sel) {
+    if (sel.options.length > 0) return;
     addOpt(sel, '', ' ');
     ['20','CD','NM','MM','NPL','NV','PL','PL/DC','PL/NDC','Sigue objetos'].forEach(function(v) { addOpt(sel, v, v); });
   });
-  document.querySelectorAll('.select-av2').forEach(function(sel) {
+  ctx.querySelectorAll('.select-av2').forEach(function(sel) {
+    if (sel.options.length > 0) return;
     addOpt(sel, '', ' ');
     [1,2,3,4,5,10,20,25,30,40,50,60,70,80,100,200,400].forEach(function(v) { addOpt(sel, v, v); });
   });
-  document.querySelectorAll('.select-adicion').forEach(function(sel) {
+  ctx.querySelectorAll('.select-adicion').forEach(function(sel) {
+    if (sel.options.length > 0) return;
     addOpt(sel, '', ' ');
     for (let v = 0.50; v <= 4.00; v = +(v + 0.25).toFixed(2)) {
       const txt = '+' + v.toFixed(2);
       addOpt(sel, txt, txt);
     }
   });
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+  // Poblar selects que ya existan en el DOM
+  poblarSelectsFormulario();
 
   const hoy = moment().format("YYYY-MM-DD");
   
