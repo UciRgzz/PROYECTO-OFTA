@@ -201,13 +201,7 @@ function generarCodigo() {
   app.delete("/api/notificaciones", verificarSesion, async (req, res) => {
     try {
       const user = req.session.usuario?.username || "desconocido";
-      const rol = req.session.usuario?.rol || "usuario";
-
-      if (rol === "admin") {
-        await pool.query("DELETE FROM notificaciones");
-      } else {
-        await pool.query("DELETE FROM notificaciones WHERE usuario = $1", [user]);
-      }
+      await pool.query("DELETE FROM notificaciones WHERE usuario = $1", [user]);
 
       res.json({ ok: true });
     } catch (err) {
