@@ -2931,9 +2931,7 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
                 <tr>
                   <td class="section-name" rowspan="2">Lentes anteriores</td>
                   <td class="eye-label">OD</td>
-                       <div class="column-title">Autorefractor</div>
-              <div class="field-row">
-                <span class="field-label">OD</span>
+                  <span class="field-label">OD</span>
 <select name="auto_od_1" class="field-input">
 
   <option value=""></option>
@@ -2972,6 +2970,35 @@ document.getElementById("btnNuevo").addEventListener("click", async function() {
 
 </select>
 
+                       <div class="column-title">Autorefractor</div>
+              <div class="field-row">
+                <span class="field-label">OD</span>
+                <select name="auto_od_1" class="field-input">
+                  <td><select name="lentes_ant_od_esf" class="select-esfera" style="width:75px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></select></td>
+                  <td><select name="lentes_ant_od_cil" class="select-esfera" style="width:75px; padding:5px; border:1px solid #ced4da; border-radius:4px; text-align:center; font-size:0.82rem;"></select></td>
+                  <td>
+                    <div class="grados-cell">
+                      <input type="text" name="lentes_ant_od_grados" placeholder="">
+                      <span class="grados-txt">° Grados</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="av-inputs">
+                      <select name="lentes_ant_od_av_1" class="select-adicion"></select>
+                      <span class="sep"></span>
+                      <select name="lentes_ant_od_av_2" class="select-av1"></select>
+                      <span class="sep">/</span>
+                      <select name="lentes_ant_od_av_3" class="select-av2"></select>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="av-inputs">
+                      <select name="lentes_ant_od_ad_1" class="select-adicion"></select>
+                      <span class="sep"></span>
+                      <select name="lentes_ant_od_ad_2" class="select-av1"></select>
+                      <span class="sep">/</span>
+                      <select name="lentes_ant_od_ad_3" class="select-av2"></select>
+                    </div>
                   </td>
                 </tr>
                 <tr>
