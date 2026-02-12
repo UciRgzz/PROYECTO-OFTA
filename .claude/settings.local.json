@@ -5,7 +5,8 @@
       "Bash(nul)",
       "Bash(findstr:*)",
       "Bash(git checkout:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []

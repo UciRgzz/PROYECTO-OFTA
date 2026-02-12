@@ -2686,12 +2686,12 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
       av_cerca_od_obs, av_cerca_oi_obs,
       
       // Autorefractor
-      auto_od_1, auto_od_2, auto_od_grados,
-      auto_oi_1, auto_oi_2, auto_oi_grados,
-      
+      auto_od_1, auto_od_2, auto_od_3, auto_od_4,
+      auto_oi_1, auto_oi_2, auto_oi_3, auto_oi_4,
+
       // Autorefractor con ciclopejía
-      auto_ciclo_od_1, auto_ciclo_od_2, auto_ciclo_od_grados,
-      auto_ciclo_oi_1, auto_ciclo_oi_2, auto_ciclo_oi_grados,
+      auto_ciclo_od_1, auto_ciclo_od_2, auto_ciclo_od_3, auto_ciclo_od_4,
+      auto_ciclo_oi_1, auto_ciclo_oi_2, auto_ciclo_oi_3, auto_ciclo_oi_4,
       
       // Lentes Anteriores - AV
       lentes_ant_od_av_1, lentes_ant_od_av_2, lentes_ant_od_av_3,
@@ -2765,11 +2765,11 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
         av_cerca_od_color, av_cerca_oi_color,
         av_cerca_od_obs, av_cerca_oi_obs,
         
-        auto_od_1, auto_od_2, auto_od_grados,
-        auto_oi_1, auto_oi_2, auto_oi_grados,
-        
-        auto_ciclo_od_1, auto_ciclo_od_2, auto_ciclo_od_grados,
-        auto_ciclo_oi_1, auto_ciclo_oi_2, auto_ciclo_oi_grados,
+        auto_od_1, auto_od_2, auto_od_3, auto_od_4,
+        auto_oi_1, auto_oi_2, auto_oi_3, auto_oi_4,
+
+        auto_ciclo_od_1, auto_ciclo_od_2, auto_ciclo_od_3, auto_ciclo_od_4,
+        auto_ciclo_oi_1, auto_ciclo_oi_2, auto_ciclo_oi_3, auto_ciclo_oi_4,
         
         lentes_ant_od_av_1, lentes_ant_od_av_2, lentes_ant_od_av_3,
         lentes_ant_oi_av_1, lentes_ant_oi_av_2, lentes_ant_oi_av_3,
@@ -2810,23 +2810,22 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
       VALUES (
         $1, $2, $3::date, $4,
         $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
-        $17, $18, $19, $20, $21, $22, $23, $24, $25, $26,
-        $27, $28, $29, $30, $31, $32, $33, $34, $35, $36,
-        $37, $38, $39, $40, $41, $42,
-        $43, $44, $45, $46, $47, $48,
-        $49, $50, $51, $52, $53, $54,
-        $55, $56, $57, $58, $59, $60,
-        $61, $62, $63, $64, $65, $66,
-        $67, $68, $69, $70, $71, $72,
-        $73, $74, $75, $76, $77, $78,
-        $79, $80, $81, $82, $83, $84,
-        $85, $86, $87, $88, $89, $90,
-        $91, $92, $93, $94, $95, $96,
-        $97, $98, $99, $100, $101, $102,
-        $103, $104, $105, $106, $107, $108, $109, $110,
+        $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28,
+        $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40,
+        $41, $42, $43, $44, $45, $46, $47, $48,
+        $49, $50, $51, $52, $53, $54, $55, $56,
+        $57, $58, $59, $60, $61, $62,
+        $63, $64, $65, $66, $67, $68,
+        $69, $70, $71, $72, $73, $74,
+        $75, $76, $77, $78, $79, $80,
+        $81, $82, $83, $84, $85, $86,
+        $87, $88, $89, $90, $91, $92,
+        $93, $94, $95, $96, $97, $98,
+        $99, $100, $101, $102, $103, $104,
+        $105, $106, $107, $108, $109, $110,
         $111, $112, $113, $114, $115, $116, $117, $118,
         $119, $120, $121, $122, $123, $124, $125, $126,
-        $127, $128, $129, $130
+        $127, $128, $129, $130, $131, $132, $133, $134
       )
       RETURNING *`,
       [
@@ -2840,9 +2839,10 @@ app.post("/api/optometria", verificarSesion, async (req, res) => {
         av_cerca_od_1, av_cerca_od_2, av_cerca_od_3, av_cerca_od_4,
         av_cerca_oi_1, av_cerca_oi_2, av_cerca_oi_3, av_cerca_oi_4,
         av_cerca_od_color, av_cerca_oi_color, av_cerca_od_obs, av_cerca_oi_obs,
-        auto_od_1, auto_od_2, auto_od_grados, auto_oi_1, auto_oi_2, auto_oi_grados,
-        auto_ciclo_od_1, auto_ciclo_od_2, auto_ciclo_od_grados,
-        auto_ciclo_oi_1, auto_ciclo_oi_2, auto_ciclo_oi_grados,
+        auto_od_1, auto_od_2, auto_od_3, auto_od_4,
+        auto_oi_1, auto_oi_2, auto_oi_3, auto_oi_4,
+        auto_ciclo_od_1, auto_ciclo_od_2, auto_ciclo_od_3, auto_ciclo_od_4,
+        auto_ciclo_oi_1, auto_ciclo_oi_2, auto_ciclo_oi_3, auto_ciclo_oi_4,
         lentes_ant_od_av_1, lentes_ant_od_av_2, lentes_ant_od_av_3,
         lentes_ant_oi_av_1, lentes_ant_oi_av_2, lentes_ant_oi_av_3,
         lentes_ant_od_ad_1, lentes_ant_od_ad_2, lentes_ant_od_ad_3,
@@ -2986,11 +2986,11 @@ app.put("/api/optometria/:id", verificarSesion, async (req, res) => {
       'av_cerca_oi_1', 'av_cerca_oi_2', 'av_cerca_oi_3', 'av_cerca_oi_4',
       'av_cerca_od_color', 'av_cerca_oi_color', 'av_cerca_od_obs', 'av_cerca_oi_obs',
       // Autorefractor
-      'auto_od_1', 'auto_od_2', 'auto_od_grados',
-      'auto_oi_1', 'auto_oi_2', 'auto_oi_grados',
+      'auto_od_1', 'auto_od_2', 'auto_od_3', 'auto_od_4',
+      'auto_oi_1', 'auto_oi_2', 'auto_oi_3', 'auto_oi_4',
       // Autorefractor con ciclopejía
-      'auto_ciclo_od_1', 'auto_ciclo_od_2', 'auto_ciclo_od_grados',
-      'auto_ciclo_oi_1', 'auto_ciclo_oi_2', 'auto_ciclo_oi_grados',
+      'auto_ciclo_od_1', 'auto_ciclo_od_2', 'auto_ciclo_od_3', 'auto_ciclo_od_4',
+      'auto_ciclo_oi_1', 'auto_ciclo_oi_2', 'auto_ciclo_oi_3', 'auto_ciclo_oi_4',
       // Lentes Anteriores - Esf, Cil, Grados
       'lentes_ant_od_esf', 'lentes_ant_od_cil', 'lentes_ant_od_grados',
       'lentes_ant_oi_esf', 'lentes_ant_oi_cil', 'lentes_ant_oi_grados',
