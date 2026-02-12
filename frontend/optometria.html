@@ -906,13 +906,13 @@ async function verGraduacion(id) {
             <div class="view-data-box">
               <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Derecho</h6>
               <div class="view-data-row">
-                <span class="view-data-value">${data.auto_od_1 || '-'} / ${data.auto_od_2 || '-'} @ ${data.auto_od_grados || '-'}°</span>
+                <span class="view-data-value">${data.auto_od_1 || '-'} / ${data.auto_od_2 || '-'} ${data.auto_od_3 || ''} ${data.auto_od_4 || ''}</span>
               </div>
             </div>
             <div class="view-data-box">
               <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Izquierdo</h6>
               <div class="view-data-row">
-                <span class="view-data-value">${data.auto_oi_1 || '-'} / ${data.auto_oi_2 || '-'} @ ${data.auto_oi_grados || '-'}°</span>
+                <span class="view-data-value">${data.auto_oi_1 || '-'} / ${data.auto_oi_2 || '-'} ${data.auto_oi_3 || ''} ${data.auto_oi_4 || ''}</span>
               </div>
             </div>
           </div>
@@ -922,13 +922,13 @@ async function verGraduacion(id) {
             <div class="view-data-box">
               <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Derecho</h6>
               <div class="view-data-row">
-                <span class="view-data-value">${data.auto_ciclo_od_1 || '-'} / ${data.auto_ciclo_od_2 || '-'} @ ${data.auto_ciclo_od_grados || '-'}°</span>
+                <span class="view-data-value">${data.auto_ciclo_od_1 || '-'} / ${data.auto_ciclo_od_2 || '-'} ${data.auto_ciclo_od_3 || ''} ${data.auto_ciclo_od_4 || ''}</span>
               </div>
             </div>
             <div class="view-data-box">
               <h6 style="font-weight: 600; margin-bottom: 10px;">Ojo Izquierdo</h6>
               <div class="view-data-row">
-                <span class="view-data-value">${data.auto_ciclo_oi_1 || '-'} / ${data.auto_ciclo_oi_2 || '-'} @ ${data.auto_ciclo_oi_grados || '-'}°</span>
+                <span class="view-data-value">${data.auto_ciclo_oi_1 || '-'} / ${data.auto_ciclo_oi_2 || '-'} ${data.auto_ciclo_oi_3 || ''} ${data.auto_ciclo_oi_4 || ''}</span>
               </div>
             </div>
           </div>
@@ -1292,9 +1292,8 @@ function crearFormularioEdicion(data) {
               <input type="text" name="auto_od_1" value="${data.auto_od_1 || ''}" class="form-control" style="width: 70px;" placeholder="">
               <span>/</span>
               <input type="text" name="auto_od_2" value="${data.auto_od_2 || ''}" class="form-control" style="width: 70px;" placeholder="">
-              <span>@</span>
-              <input type="text" name="auto_od_grados" value="${data.auto_od_grados || ''}" class="form-control" style="width: 70px;" placeholder="0">
-              <span>°</span>
+              <input type="text" name="auto_od_3" value="${data.auto_od_3 || ''}" class="form-control" style="width: 70px;" placeholder="">
+              <input type="text" name="auto_od_4" value="${data.auto_od_4 || ''}" class="form-control" style="width: 70px;" placeholder="">
             </div>
           </div>
           <div class="view-data-box">
@@ -1303,9 +1302,8 @@ function crearFormularioEdicion(data) {
               <input type="text" name="auto_oi_1" value="${data.auto_oi_1 || ''}" class="form-control" style="width: 70px;" placeholder="">
               <span>/</span>
               <input type="text" name="auto_oi_2" value="${data.auto_oi_2 || ''}" class="form-control" style="width: 70px;" placeholder="">
-              <span>@</span>
-              <input type="text" name="auto_oi_grados" value="${data.auto_oi_grados || ''}" class="form-control" style="width: 70px;" placeholder="0">
-              <span>°</span>
+              <input type="text" name="auto_oi_3" value="${data.auto_oi_3 || ''}" class="form-control" style="width: 70px;" placeholder="">
+              <input type="text" name="auto_oi_4" value="${data.auto_oi_4 || ''}" class="form-control" style="width: 70px;" placeholder="">
             </div>
           </div>
         </div>
@@ -1319,9 +1317,8 @@ function crearFormularioEdicion(data) {
               <input type="text" name="auto_ciclo_od_1" value="${data.auto_ciclo_od_1 || ''}" class="form-control" style="width: 70px;" placeholder="">
               <span>/</span>
               <input type="text" name="auto_ciclo_od_2" value="${data.auto_ciclo_od_2 || ''}" class="form-control" style="width: 70px;" placeholder="">
-              <span>@</span>
-              <input type="text" name="auto_ciclo_od_grados" value="${data.auto_ciclo_od_grados || ''}" class="form-control" style="width: 70px;" placeholder="0">
-              <span>°</span>
+              <input type="text" name="auto_ciclo_od_3" value="${data.auto_ciclo_od_3 || ''}" class="form-control" style="width: 70px;" placeholder="">
+              <input type="text" name="auto_ciclo_od_4" value="${data.auto_ciclo_od_4 || ''}" class="form-control" style="width: 70px;" placeholder="">
             </div>
           </div>
           <div class="view-data-box">
@@ -1330,9 +1327,8 @@ function crearFormularioEdicion(data) {
               <input type="text" name="auto_ciclo_oi_1" value="${data.auto_ciclo_oi_1 || ''}" class="form-control" style="width: 70px;" placeholder="">
               <span>/</span>
               <input type="text" name="auto_ciclo_oi_2" value="${data.auto_ciclo_oi_2 || ''}" class="form-control" style="width: 70px;" placeholder="">
-              <span>@</span>
-              <input type="text" name="auto_ciclo_oi_grados" value="${data.auto_ciclo_oi_grados || ''}" class="form-control" style="width: 70px;" placeholder="0">
-              <span>°</span>
+              <input type="text" name="auto_ciclo_oi_3" value="${data.auto_ciclo_oi_3 || ''}" class="form-control" style="width: 70px;" placeholder="">
+              <input type="text" name="auto_ciclo_oi_4" value="${data.auto_ciclo_oi_4 || ''}" class="form-control" style="width: 70px;" placeholder="">
             </div>
           </div>
         </div>
