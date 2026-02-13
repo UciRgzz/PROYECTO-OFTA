@@ -3566,30 +3566,33 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
       const { desde, hasta } = req.query;
 
       let query = `
-        SELECT 
+        SELECT
           o.id,
-          e.numero_expediente AS expediente,
-          e.edad,
-          e.nombre_completo AS nombre,
+          COALESCE(e.numero_expediente, pa.id) AS expediente,
+          COALESCE(e.edad, 0) AS edad,
+          COALESCE(e.nombre_completo, pa.nombre || ' ' || pa.apellido, 'No registrado') AS nombre,
           o.procedimiento,
-          o.precio AS total,                                        
-          COALESCE(SUM(p.monto), 0) AS pagos,                      
-          (o.precio - COALESCE(SUM(p.monto), 0)) AS diferencia,     
+          o.precio AS total,
+          COALESCE(SUM(p.monto), 0) AS pagos,
+          (o.precio - COALESCE(SUM(p.monto), 0)) AS diferencia,
           o.estatus AS status,
           o.tipo_lente,
-          r.fecha AS fecha_creacion,
+          COALESCE(r.fecha, o.fecha::date) AS fecha_creacion,
           o.fecha_cirugia AS fecha_agendada,
           o.hora_cirugia
         FROM ordenes_medicas o
-        JOIN recibos r 
-          ON r.id = o.folio_recibo 
-        AND r.departamento = o.departamento
-        JOIN expedientes e 
-          ON e.numero_expediente = o.expediente_id 
-        AND e.departamento = o.departamento
-        LEFT JOIN pagos p 
-          ON p.orden_id = o.id 
-        AND p.departamento = o.departamento
+        LEFT JOIN recibos r
+          ON r.id = o.folio_recibo
+          AND r.departamento = o.departamento
+        LEFT JOIN expedientes e
+          ON e.numero_expediente = o.expediente_id
+          AND e.departamento = o.departamento
+        LEFT JOIN pacientes_agenda pa
+          ON pa.id = o.paciente_agenda_id
+          AND pa.departamento = o.departamento
+        LEFT JOIN pagos p
+          ON p.orden_id = o.id
+          AND p.departamento = o.departamento
         WHERE o.departamento = $1
           AND o.tipo != 'Consulta'
       `;
@@ -3597,17 +3600,18 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
       const params = [depto];
 
       if (desde && hasta) {
-        query += ` AND (COALESCE(o.fecha_cirugia, r.fecha)::date BETWEEN $2 AND $3)`;
+        query += ` AND (COALESCE(o.fecha_cirugia, r.fecha, o.fecha::date)::date BETWEEN $2 AND $3)`;
         params.push(desde, hasta);
       } else {
-        query += ` AND (COALESCE(o.fecha_cirugia, r.fecha)::date = CURRENT_DATE)`;
+        query += ` AND (COALESCE(o.fecha_cirugia, r.fecha, o.fecha::date)::date = CURRENT_DATE)`;
       }
 
       query += `
-        GROUP BY o.id, e.numero_expediente, e.edad, e.nombre_completo, 
-                o.procedimiento, o.precio, o.estatus, o.tipo_lente, 
-                r.fecha, o.fecha_cirugia, o.hora_cirugia
-        ORDER BY r.fecha DESC, o.fecha_cirugia NULLS LAST
+        GROUP BY o.id, e.numero_expediente, e.edad, e.nombre_completo,
+                pa.id, pa.nombre, pa.apellido,
+                o.procedimiento, o.precio, o.estatus, o.tipo_lente,
+                r.fecha, o.fecha, o.fecha_cirugia, o.hora_cirugia
+        ORDER BY COALESCE(r.fecha, o.fecha::date) DESC, o.fecha_cirugia NULLS LAST
       `;
 
       const result = await pool.query(query, params);
