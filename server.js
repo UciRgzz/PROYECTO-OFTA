@@ -3558,7 +3558,7 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
   });
 
 
-  // ==================== MODULO DE AGENDA QUIRÚRGICA ====================
+ // ==================== MODULO DE AGENDA QUIRÚRGICA ====================
   // Obtener órdenes médicas (SOLO CIRUGÍAS)
   app.get("/api/ordenes", verificarSesion, async (req, res) => {
     try {
@@ -3600,10 +3600,16 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
       const params = [depto];
 
       if (desde && hasta) {
-        query += ` AND (COALESCE(o.fecha_cirugia, r.fecha, o.fecha::date)::date BETWEEN $2 AND $3)`;
+        query += ` AND (
+          o.fecha_cirugia IS NULL
+          OR COALESCE(o.fecha_cirugia, r.fecha, o.fecha::date)::date BETWEEN $2 AND $3
+        )`;
         params.push(desde, hasta);
       } else {
-        query += ` AND (COALESCE(o.fecha_cirugia, r.fecha, o.fecha::date)::date = CURRENT_DATE)`;
+        query += ` AND (
+          o.fecha_cirugia IS NULL
+          OR COALESCE(o.fecha_cirugia, r.fecha, o.fecha::date)::date = CURRENT_DATE
+        )`;
       }
 
       query += `
@@ -3681,7 +3687,7 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
   });
 
 
-  // ==================== LISTAR CIRUGÍAS (para calendario) - SOLO CIRUGÍAS ====================
+// ==================== LISTAR CIRUGÍAS (para calendario) - SOLO CIRUGÍAS ====================
   app.get("/api/cirugias", verificarSesion, async (req, res) => {
     try {
       let depto = getDepartamento(req);
@@ -3689,16 +3695,19 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
       const result = await pool.query(`
         SELECT 
           o.id,
-          e.nombre_completo AS nombre,
+          COALESCE(e.nombre_completo, pa.nombre || ' ' || pa.apellido, 'Sin nombre') AS nombre,
           o.procedimiento,
           o.medico,
           o.tipo_lente,
           o.fecha_cirugia,
           o.hora_cirugia
         FROM ordenes_medicas o
-        JOIN expedientes e 
+        LEFT JOIN expedientes e 
           ON e.numero_expediente = o.expediente_id 
-        AND e.departamento = o.departamento
+          AND e.departamento = o.departamento
+        LEFT JOIN pacientes_agenda pa
+          ON pa.id = o.paciente_agenda_id
+          AND pa.departamento = o.departamento
         WHERE o.departamento = $1
           AND o.fecha_cirugia IS NOT NULL
           AND o.tipo != 'Consulta'
@@ -3711,7 +3720,7 @@ app.get("/api/expedientes/:id/nombre", verificarSesion, async (req, res) => {
       res.status(500).json({ error: err.message });
     }
   });
-
+  
   // ==================== MODULO DE AGENDA DE CONSULTAS MÉDICAS ====================
   // ==================== BÚSQUEDA DE EXPEDIENTES ====================
   app.get('/api/expedientes/buscar', verificarSesion, async (req, res) => {
