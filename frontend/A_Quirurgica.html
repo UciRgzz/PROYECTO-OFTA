@@ -855,18 +855,34 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ fecha_cirugia: fecha })
         });
-        mostrarExito("Cirugía asignada", `Fecha: ${fecha}`);
 
-        ordenSeleccionada = null;
-        fechaAgendadaActual = null;
-        renderCalendarCirugias();   
-        
+        // Guardar la fecha agendada y mantener la orden seleccionada
+        fechaAgendadaActual = fecha;
+
+        // Cambiar automáticamente a vista semanal para asignar hora
+        const monthlyView = document.getElementById('monthlyView');
+        const weeklyView = document.getElementById('weeklyView');
+        const toggleBtn = document.getElementById('toggleViewBtn');
+
+        monthlyView.style.display = 'none';
+        weeklyView.style.display = 'block';
+        toggleBtn.innerHTML = '<i class="fas fa-calendar-alt"></i> Cambiar a Vista Mensual';
+        vistaActual = 'semanal';
+
+        renderCalendarHoras();
+        renderCalendarCirugias();
+
         // Recargar órdenes para actualizar todasLasOrdenes
         const hoyStr = moment().format("YYYY-MM-DD");
         await cargarOrdenesPorRango(hoyStr, hoyStr);
 
-        const modal = bootstrap.Modal.getInstance(document.getElementById("modalCalendario"));
-        modal.hide();
+        Swal.fire({
+          icon: 'success',
+          title: 'Fecha asignada',
+          text: `Ahora selecciona la hora para el ${fecha}`,
+          timer: 2000,
+          showConfirmButton: false
+        });
       } catch (err) {
         console.error("Error al asignar cirugía:", err);
         mostrarError("Error", "No se pudo asignar la cirugía");
