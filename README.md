@@ -2,7 +2,7 @@
 
 Plataforma web fullstack para la gestión integral de una clínica oftalmológica con múltiples sucursales: pacientes, citas, expedientes clínicos, recetas, cirugías y facturación.
 
-## 🚀 Funcionalidades principales
+##  Funcionalidades principales
 
 - **Gestión de pacientes**: registro, historial y expedientes clínicos completos.
 - **Agenda de citas y cirugías**: control de agendamiento por sucursal y especialista.
@@ -11,7 +11,7 @@ Plataforma web fullstack para la gestión integral de una clínica oftalmológic
 - **Facturación**: numeración consecutiva automática mediante triggers en PostgreSQL, con sincronización bidireccional de pagos.
 - **Multi-sucursal**: manejo de operaciones independientes por sede.
 
-## 🛠️ Tecnologías
+##  Tecnologías
 
 | Categoría | Tecnología |
 |---|---|
